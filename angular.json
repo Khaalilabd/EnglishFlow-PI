@@ -29,12 +29,29 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*",
+                "input": "src/assets",
+                "output": "/assets"
               }
             ],
             "styles": [
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "src/assets/css/fontawesome.css",
+              "src/assets/css/templatemo-scholar.css",
+              "src/assets/css/owl.css",
+              "src/assets/css/animate.css",
               "src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/jquery/dist/jquery.min.js",
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js",
+              "src/assets/js/isotope.min.js",
+              "src/assets/js/owl-carousel.js",
+              "src/assets/js/counter.js",
+              "src/assets/js/custom.js"
+            ]
           },
           "configurations": {
             "production": {
@@ -98,5 +115,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "8fb42e62-4dd1-403f-a393-0e59f2305c34"
   }
 }
