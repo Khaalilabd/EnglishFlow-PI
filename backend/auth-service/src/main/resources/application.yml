@@ -8,22 +8,51 @@ spring:
     config:
       enabled: false
   datasource:
-    url: jdbc:h2:mem:englishflow_auth
-    username: sa
-    password: 
-    driver-class-name: org.h2.Driver
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: jdbc:postgresql://localhost:5432/englishflow_identity
+    username: englishflow
+    password: englishflow123
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: update
     show-sql: true
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  h2:
+    console:
+      enabled: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: khalilabdelmoumen7@gmail.com
+    password: qdez muag xoha bfbq
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+              - profile
+            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
 
 jwt:
   secret: englishflow-secret-key-change-this-in-production-with-a-very-long-secure-key

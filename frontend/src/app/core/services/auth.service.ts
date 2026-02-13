@@ -57,4 +57,20 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+
+  requestPasswordReset(email: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/password-reset/request`, { email });
+  }
+
+  resetPassword(token: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/password-reset/confirm`, { token, newPassword });
+  }
+
+  activateAccount(token: string): Observable<AuthResponse> {
+    return this.http.get<AuthResponse>(`${this.apiUrl}/activate?token=${token}`).pipe(
+      tap(response => {
+        this.setCurrentUser(response);
+      })
+    );
+  }
 }

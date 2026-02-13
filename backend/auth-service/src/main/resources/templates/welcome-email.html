@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome to Jungle in English</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f7f7f7;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2D5757 0%, #F6BD60 100%); padding: 50px 30px; text-align: center;">
+                            <h1 style="color: #F7EDE2; margin: 0; font-size: 36px; font-weight: bold;">
+                                🎉 Welcome!
+                            </h1>
+                            <p style="color: #F7EDE2; margin: 15px 0 0 0; font-size: 18px;">
+                                Your adventure begins now
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #2D5757; margin: 0 0 20px 0; font-size: 26px;">
+                                Hello, <span th:text="${firstName}">Student</span>! 🌟
+                            </h2>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Your account has been successfully activated! Welcome to the <strong>Jungle in English</strong> family.
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                We're thrilled to have you join our community of English learners. Get ready to explore, learn, and grow!
+                            </p>
+                            
+                            <!-- Features -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 15px; background-color: #F7EDE2; border-radius: 8px; margin-bottom: 10px;">
+                                        <p style="margin: 0; color: #2D5757; font-size: 16px;">
+                                            📚 <strong>Interactive Lessons</strong> - Learn at your own pace
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 10px;"></td></tr>
+                                <tr>
+                                    <td style="padding: 15px; background-color: #F7EDE2; border-radius: 8px;">
+                                        <p style="margin: 0; color: #2D5757; font-size: 16px;">
+                                            👨‍🏫 <strong>Expert Teachers</strong> - Get personalized guidance
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr><td style="height: 10px;"></td></tr>
+                                <tr>
+                                    <td style="padding: 15px; background-color: #F7EDE2; border-radius: 8px;">
+                                        <p style="margin: 0; color: #2D5757; font-size: 16px;">
+                                            🎯 <strong>Track Progress</strong> - Monitor your improvement
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 30px 0 20px 0;">
+                                        <a href="http://localhost:4200/login" 
+                                           style="display: inline-block; background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); color: #F7EDE2; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(45, 87, 87, 0.3);">
+                                            🚀 Start Learning Now
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+                                Need help? Contact us anytime at <a href="mailto:support@jungleinenglish.com" style="color: #2D5757;">support@jungleinenglish.com</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #F7EDE2; padding: 30px; text-align: center;">
+                            <p style="color: #2D5757; font-size: 14px; margin: 0 0 10px 0;">
+                                <strong>Jungle in English</strong> - Your English Learning Adventure
+                            </p>
+                            <p style="color: #666666; font-size: 12px; margin: 0;">
+                                © 2026 Jungle in English. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

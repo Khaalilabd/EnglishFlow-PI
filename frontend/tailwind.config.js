@@ -20,7 +20,7 @@ module.exports = {
         outfit: ['Outfit', 'sans-serif'],
       },
       colors: {
-        // EnglishFlow School Brand Colors
+        // Jungle in English School Brand Colors
         primary: {
           DEFAULT: '#2D5757', // Dominant color - Dark teal
           light: '#3a6d6d',

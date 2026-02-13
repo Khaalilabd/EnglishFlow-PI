@@ -1,7 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { LogoComponent } from '../../shared/components/logo.component';
 
@@ -12,7 +12,7 @@ import { LogoComponent } from '../../shared/components/logo.component';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
   errorMessage = '';
@@ -21,11 +21,26 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]]
+    });
+  }
+
+  ngOnInit(): void {
+    // Check for error messages from OAuth2 redirect
+    this.route.queryParams.subscribe(params => {
+      if (params['error'] === 'account_not_activated') {
+        this.errorMessage = 'Your account is not activated yet. Please check your email for the activation link.';
+        if (params['email']) {
+          this.loginForm.patchValue({ email: params['email'] });
+        }
+      } else if (params['error']) {
+        this.errorMessage = 'Authentication failed. Please try again.';
+      }
     });
   }
 

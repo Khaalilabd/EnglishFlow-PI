@@ -3,11 +3,15 @@ package com.englishflow.auth.controller;
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.dto.LoginRequest;
 import com.englishflow.auth.dto.RegisterRequest;
+import com.englishflow.auth.dto.PasswordResetRequest;
+import com.englishflow.auth.dto.PasswordResetConfirm;
 import com.englishflow.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -17,8 +21,14 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        return ResponseEntity.ok(authService.register(request));
+    public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        authService.register(request);
+        return ResponseEntity.ok(Map.of("message", "Registration successful! Please check your email to activate your account."));
+    }
+
+    @GetMapping("/activate")
+    public ResponseEntity<AuthResponse> activateAccount(@RequestParam String token) {
+        return ResponseEntity.ok(authService.activateAccount(token));
     }
 
     @PostMapping("/login")
@@ -29,5 +39,17 @@ public class AuthController {
     @GetMapping("/validate")
     public ResponseEntity<Boolean> validateToken(@RequestParam String token) {
         return ResponseEntity.ok(authService.validateToken(token));
+    }
+
+    @PostMapping("/password-reset/request")
+    public ResponseEntity<Map<String, String>> requestPasswordReset(@Valid @RequestBody PasswordResetRequest request) {
+        authService.requestPasswordReset(request);
+        return ResponseEntity.ok(Map.of("message", "Password reset email sent"));
+    }
+
+    @PostMapping("/password-reset/confirm")
+    public ResponseEntity<Map<String, String>> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirm request) {
+        authService.resetPassword(request);
+        return ResponseEntity.ok(Map.of("message", "Password reset successful"));
     }
 }

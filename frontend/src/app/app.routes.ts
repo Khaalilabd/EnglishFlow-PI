@@ -21,9 +21,13 @@ import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
 import { LoginComponent } from './auth/login/login.component';
 import { RegisterComponent } from './auth/register/register.component';
+import { ForgotPasswordComponent } from './auth/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './auth/reset-password/reset-password.component';
+import { ActivateComponent } from './auth/activate/activate.component';
+import { OAuth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback.component';
 
 export const routes: Routes = [
-  // Page d'accueil EnglishFlow
+  // Page d'accueil Jungle in English
   {
     path: '',
     component: HomeComponent
@@ -33,22 +37,42 @@ export const routes: Routes = [
   {
     path: 'login',
     component: LoginComponent,
-    title: 'Login | EnglishFlow'
+    title: 'Login | Jungle in English'
   },
   {
     path: 'register',
     component: RegisterComponent,
-    title: 'Register | EnglishFlow'
+    title: 'Register | Jungle in English'
+  },
+  {
+    path: 'forgot-password',
+    component: ForgotPasswordComponent,
+    title: 'Forgot Password | Jungle in English'
+  },
+  {
+    path: 'reset-password',
+    component: ResetPasswordComponent,
+    title: 'Reset Password | Jungle in English'
+  },
+  {
+    path: 'activate',
+    component: ActivateComponent,
+    title: 'Activate Account | Jungle in English'
+  },
+  {
+    path: 'oauth2/callback',
+    component: OAuth2CallbackComponent,
+    title: 'Signing in... | Jungle in English'
   },
   {
     path: 'signin',
     component: SignInComponent,
-    title: 'Sign In | EnglishFlow'
+    title: 'Sign In | Jungle in English'
   },
   {
     path: 'signup',
     component: SignUpComponent,
-    title: 'Sign Up | EnglishFlow'
+    title: 'Sign Up | Jungle in English'
   },
   
   // Dashboard avec toutes ses routes
@@ -59,77 +83,77 @@ export const routes: Routes = [
       {
         path: '',
         component: EcommerceComponent,
-        title: 'Dashboard | EnglishFlow'
+        title: 'Dashboard | Jungle in English'
       },
       {
         path: 'calendar',
         component: CalenderComponent,
-        title: 'Calendar | EnglishFlow Dashboard'
+        title: 'Calendar | Jungle in English Dashboard'
       },
       {
         path: 'profile',
         component: ProfileComponent,
-        title: 'Profile | EnglishFlow Dashboard'
+        title: 'Profile | Jungle in English Dashboard'
       },
       {
         path: 'form-elements',
         component: FormElementsComponent,
-        title: 'Form Elements | EnglishFlow Dashboard'
+        title: 'Form Elements | Jungle in English Dashboard'
       },
       {
         path: 'basic-tables',
         component: BasicTablesComponent,
-        title: 'Tables | EnglishFlow Dashboard'
+        title: 'Tables | Jungle in English Dashboard'
       },
       {
         path: 'blank',
         component: BlankComponent,
-        title: 'Blank Page | EnglishFlow Dashboard'
+        title: 'Blank Page | Jungle in English Dashboard'
       },
       {
         path: 'invoice',
         component: InvoicesComponent,
-        title: 'Invoice | EnglishFlow Dashboard'
+        title: 'Invoice | Jungle in English Dashboard'
       },
       {
         path: 'line-chart',
         component: LineChartComponent,
-        title: 'Line Chart | EnglishFlow Dashboard'
+        title: 'Line Chart | Jungle in English Dashboard'
       },
       {
         path: 'bar-chart',
         component: BarChartComponent,
-        title: 'Bar Chart | EnglishFlow Dashboard'
+        title: 'Bar Chart | Jungle in English Dashboard'
       },
       {
         path: 'alerts',
         component: AlertsComponent,
-        title: 'Alerts | EnglishFlow Dashboard'
+        title: 'Alerts | Jungle in English Dashboard'
       },
       {
         path: 'avatars',
         component: AvatarElementComponent,
-        title: 'Avatars | EnglishFlow Dashboard'
+        title: 'Avatars | Jungle in English Dashboard'
       },
       {
         path: 'badge',
         component: BadgesComponent,
-        title: 'Badges | EnglishFlow Dashboard'
+        title: 'Badges | Jungle in English Dashboard'
       },
       {
         path: 'buttons',
         component: ButtonsComponent,
-        title: 'Buttons | EnglishFlow Dashboard'
+        title: 'Buttons | Jungle in English Dashboard'
       },
       {
         path: 'images',
         component: ImagesComponent,
-        title: 'Images | EnglishFlow Dashboard'
+        title: 'Images | Jungle in English Dashboard'
       },
       {
         path: 'videos',
         component: VideosComponent,
-        title: 'Videos | EnglishFlow Dashboard'
+        title: 'Videos | Jungle in English Dashboard'
       }
     ]
   },
@@ -138,6 +162,6 @@ export const routes: Routes = [
   {
     path: '**',
     component: NotFoundComponent,
-    title: 'Page Not Found | EnglishFlow'
+    title: 'Page Not Found | Jungle in English'
   }
 ];

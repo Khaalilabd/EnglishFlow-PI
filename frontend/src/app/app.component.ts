@@ -11,5 +11,5 @@ declare var $: any;
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'EnglishFlow-PI';
+  title = 'Jungle in English';
 }

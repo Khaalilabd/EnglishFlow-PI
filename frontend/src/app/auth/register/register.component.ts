@@ -34,7 +34,7 @@ export class RegisterComponent {
       password: ['', [Validators.required, Validators.minLength(6)]],
       firstName: ['', Validators.required],
       lastName: ['', Validators.required],
-      role: ['STUDENT', Validators.required],
+      role: ['STUDENT', Validators.required], // Always STUDENT for public registration
       
       // Step 2: Personal Details
       phone: [''],
@@ -46,25 +46,14 @@ export class RegisterComponent {
       
       // Step 3: Profile & Experience
       bio: [''],
-      englishLevel: [''],
+      englishLevel: ['', Validators.required], // Required for students
       yearsOfExperience: [null]
     });
   }
 
   selectRole(role: string): void {
-    this.registerForm.patchValue({ role });
-    
-    // Update validators based on role
-    if (role === 'STUDENT') {
-      this.registerForm.get('englishLevel')?.setValidators([Validators.required]);
-      this.registerForm.get('yearsOfExperience')?.clearValidators();
-    } else {
-      this.registerForm.get('yearsOfExperience')?.setValidators([Validators.required]);
-      this.registerForm.get('englishLevel')?.clearValidators();
-    }
-    
-    this.registerForm.get('englishLevel')?.updateValueAndValidity();
-    this.registerForm.get('yearsOfExperience')?.updateValueAndValidity();
+    // Only STUDENT role is allowed for public registration
+    this.registerForm.patchValue({ role: 'STUDENT' });
   }
 
   onFileSelected(event: any): void {
@@ -98,11 +87,7 @@ export class RegisterComponent {
       case 2:
         return !!(this.cin?.valid && this.dateOfBirth?.valid);
       case 3:
-        if (this.role?.value === 'STUDENT') {
-          return !!this.englishLevel?.valid;
-        } else {
-          return !!this.yearsOfExperience?.valid;
-        }
+        return !!this.englishLevel?.valid; // Only English level for students
       default:
         return false;
     }

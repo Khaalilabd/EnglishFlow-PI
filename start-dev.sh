@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "🚀 Démarrage de l'environnement de développement EnglishFlow"
+echo "🚀 Démarrage de l'environnement de développement Jungle in English"
 echo ""
 
 # Fonction pour démarrer le frontend

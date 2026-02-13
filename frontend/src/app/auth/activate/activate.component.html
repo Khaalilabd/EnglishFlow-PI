@@ -1,0 +1,88 @@
+<div class="min-h-screen relative overflow-hidden bg-gradient-to-br from-primary via-primary-dark to-accent-navy flex items-center justify-center p-4">
+  <!-- Animated Background -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="absolute top-20 left-10 w-72 h-72 bg-accent-orange rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+    <div class="absolute top-40 right-10 w-72 h-72 bg-accent-red rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+    <div class="absolute -bottom-8 left-20 w-72 h-72 bg-secondary rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 w-full max-w-md">
+    <!-- Logo -->
+    <div class="text-center mb-8">
+      <div class="inline-block relative group">
+        <div class="absolute inset-0 bg-accent-orange rounded-full blur-2xl opacity-30 group-hover:opacity-50 transition-opacity duration-500"></div>
+        <div class="relative bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-white/20 shadow-2xl">
+          <app-logo [width]="180" [height]="180"></app-logo>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-white/95 backdrop-blur-2xl rounded-3xl shadow-2xl p-8 border border-white/50">
+      <!-- Loading State -->
+      <div *ngIf="loading" class="text-center py-8">
+        <div class="inline-block">
+          <svg class="animate-spin h-16 w-16 text-primary" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-black text-primary mt-6">Activating Your Account...</h2>
+        <p class="text-gray-600 mt-2">Please wait a moment</p>
+      </div>
+
+      <!-- Success State -->
+      <div *ngIf="!loading && success" class="text-center py-8">
+        <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
+          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-black text-primary mb-4">Account Activated! 🎉</h2>
+        <p class="text-gray-600 text-lg mb-6">
+          Your account has been successfully activated.<br>
+          Redirecting you to login...
+        </p>
+        <div class="flex items-center justify-center space-x-2 text-primary">
+          <div class="w-2 h-2 bg-primary rounded-full animate-ping"></div>
+          <span class="text-sm font-semibold">Redirecting...</span>
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="!loading && !success && errorMessage" class="text-center py-8">
+        <div class="w-20 h-20 bg-gradient-to-r from-red-400 to-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+          <svg class="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h2 class="text-3xl font-black text-red-600 mb-4">Activation Failed</h2>
+        <p class="text-gray-600 text-lg mb-8">{{ errorMessage }}</p>
+        
+        <div class="space-y-4">
+          <a routerLink="/login" 
+             class="block w-full py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300">
+            Go to Login
+          </a>
+          <a routerLink="/register" 
+             class="block w-full py-3 bg-white border-2 border-primary text-primary font-bold rounded-2xl hover:bg-primary hover:text-white transition-all duration-300">
+            Register Again
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  25% { transform: translate(20px, -50px) scale(1.1); }
+  50% { transform: translate(-20px, 20px) scale(0.9); }
+  75% { transform: translate(50px, 50px) scale(1.05); }
+}
+.animate-blob { animation: blob 7s infinite; }
+.animation-delay-2000 { animation-delay: 2s; }
+.animation-delay-4000 { animation-delay: 4s; }
+</style>

@@ -6,6 +6,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
+import java.time.LocalDate;
+
 @Data
 public class RegisterRequest {
 
@@ -24,7 +26,19 @@ public class RegisterRequest {
     private String lastName;
 
     private String phone;
+    
+    private String cin;
 
     @NotBlank(message = "Role is required")
     private String role;
+    
+    // Optional fields
+    private String profilePhoto;
+    private LocalDate dateOfBirth;
+    private String address;
+    private String city;
+    private String postalCode;
+    private String bio;
+    private String englishLevel;
+    private Integer yearsOfExperience;
 }
