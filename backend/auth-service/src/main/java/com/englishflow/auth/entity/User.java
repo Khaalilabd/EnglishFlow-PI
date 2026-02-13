@@ -33,6 +33,33 @@ public class User {
     @Column
     private String phone;
 
+    @Column(unique = true)
+    private String cin;
+
+    @Column
+    private String profilePhoto;
+
+    @Column
+    private String dateOfBirth;
+
+    @Column
+    private String address;
+
+    @Column
+    private String city;
+
+    @Column
+    private String postalCode;
+
+    @Column(length = 500)
+    private String bio;
+
+    @Column
+    private String englishLevel; // For students: Beginner, Intermediate, Advanced
+
+    @Column
+    private Integer yearsOfExperience; // For teachers
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

@@ -4,6 +4,7 @@ export interface User {
   firstName: string;
   lastName: string;
   phone?: string;
+  cin?: string;
   role: UserRole;
   isActive: boolean;
   registrationFeePaid: boolean;
@@ -27,6 +28,14 @@ export interface RegisterRequest {
   firstName: string;
   lastName: string;
   phone?: string;
+  cin?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  bio?: string;
+  englishLevel?: string;
+  yearsOfExperience?: number;
   role: string;
 }
 
