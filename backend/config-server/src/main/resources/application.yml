@@ -1,0 +1,21 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: file://${user.home}/englishflow-config
+          default-label: main
+          clone-on-start: true
+        native:
+          search-locations: classpath:/config
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

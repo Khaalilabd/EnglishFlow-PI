@@ -1,0 +1,144 @@
+<div class="min-h-screen flex bg-gradient-to-br from-secondary via-white to-secondary">
+  <!-- Left Panel -->
+  <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-primary via-primary-dark to-accent-navy items-center justify-center p-12 relative overflow-hidden">
+    <div class="absolute top-20 left-20 w-72 h-72 bg-accent-orange opacity-10 rounded-full blur-3xl animate-pulse"></div>
+    <div class="absolute bottom-20 right-20 w-96 h-96 bg-accent-red opacity-10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    
+    <div class="relative z-10 text-center max-w-md">
+      <div class="mb-8 flex justify-center">
+        <div class="relative">
+          <div class="absolute inset-0 bg-accent-orange opacity-20 rounded-full blur-2xl animate-pulse"></div>
+          <div class="relative w-48 h-48 bg-secondary rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
+            <svg class="w-32 h-32" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M40 60 L40 160 L160 160 L160 60 Z" fill="#3D3D60" stroke="#2D5757" stroke-width="3"></path>
+              <path d="M100 60 L100 160" stroke="#C84630" stroke-width="4"></path>
+              <path d="M70 40 L80 55 L100 45 L120 55 L130 40 L125 60 L75 60 Z" fill="#F6BD60" stroke="#2D5757" stroke-width="2"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <h1 class="text-5xl font-bold text-secondary mb-4">Join EnglishFlow!</h1>
+      <p class="text-secondary-light text-lg mb-12">Start your journey to English mastery today</p>
+    </div>
+  </div>
+
+  <!-- Right Panel -->
+  <div class="flex-1 flex items-center justify-center p-8">
+    <div class="w-full max-w-md">
+      <div class="lg:hidden mb-8 text-center">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-primary rounded-2xl mb-4 shadow-xl">
+          <svg class="w-12 h-12" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M40 60 L40 160 L160 160 L160 60 Z" fill="#F7EDE2" stroke="#2D5757" stroke-width="3"></path>
+            <path d="M100 60 L100 160" stroke="#C84630" stroke-width="4"></path>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-primary">EnglishFlow</h2>
+      </div>
+
+      <div class="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-gray-100">
+        <div class="mb-8">
+          <h2 class="text-3xl font-bold text-primary mb-2">Create Account</h2>
+          <p class="text-gray-600">
+            Already have an account?
+            <a routerLink="/login" class="font-semibold text-accent-orange hover:text-accent-red transition-colors ml-1">Sign in</a>
+          </p>
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="space-y-5">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="group">
+              <label class="block text-sm font-semibold text-primary mb-2">First Name</label>
+              <input type="text" formControlName="firstName" placeholder="John" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all">
+              <div *ngIf="firstName?.invalid && firstName?.touched" class="text-accent-red text-xs mt-1.5">
+                <span *ngIf="firstName?.errors?.['required']">Required</span>
+              </div>
+            </div>
+            
+            <div class="group">
+              <label class="block text-sm font-semibold text-primary mb-2">Last Name</label>
+              <input type="text" formControlName="lastName" placeholder="Doe" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all">
+              <div *ngIf="lastName?.invalid && lastName?.touched" class="text-accent-red text-xs mt-1.5">
+                <span *ngIf="lastName?.errors?.['required']">Required</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="group">
+            <label class="block text-sm font-semibold text-primary mb-2">Email Address</label>
+            <input type="email" formControlName="email" placeholder="you@example.com" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all">
+            <div *ngIf="email?.invalid && email?.touched" class="text-accent-red text-xs mt-1.5">
+              <span *ngIf="email?.errors?.['required']">Email is required</span>
+              <span *ngIf="email?.errors?.['email']">Please enter a valid email</span>
+            </div>
+          </div>
+
+          <div class="group">
+            <label class="block text-sm font-semibold text-primary mb-2">
+              Phone <span class="text-gray-400 text-xs">(Optional)</span>
+            </label>
+            <input type="tel" formControlName="phone" placeholder="+1 (555) 000-0000" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all">
+          </div>
+
+          <div class="group">
+            <label class="block text-sm font-semibold text-primary mb-2">Password</label>
+            <input type="password" formControlName="password" placeholder="••••••••" class="w-full px-4 py-3.5 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all">
+            <div *ngIf="password?.invalid && password?.touched" class="text-accent-red text-xs mt-1.5">
+              <span *ngIf="password?.errors?.['required']">Password is required</span>
+              <span *ngIf="password?.errors?.['minlength']">Minimum 6 characters</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-primary mb-3">I am a</label>
+            <div class="grid grid-cols-2 gap-3">
+              <div (click)="selectRole('STUDENT')" [ngClass]="{'border-primary bg-primary/5': role?.value === 'STUDENT', 'border-gray-200': role?.value !== 'STUDENT'}" class="relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-lg">
+                <div class="text-3xl mb-2 text-center">🎓</div>
+                <h3 class="text-sm font-bold text-primary text-center">Student</h3>
+              </div>
+              
+              <div (click)="selectRole('TEACHER')" [ngClass]="{'border-primary bg-primary/5': role?.value === 'TEACHER', 'border-gray-200': role?.value !== 'TEACHER'}" class="relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-300 hover:shadow-lg">
+                <div class="text-3xl mb-2 text-center">👨‍🏫</div>
+                <h3 class="text-sm font-bold text-primary text-center">Teacher</h3>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="errorMessage" class="rounded-xl bg-red-50 border-2 border-accent-red/20 p-4">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 text-accent-red mr-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              <span class="text-sm font-medium text-accent-red">{{ errorMessage }}</span>
+            </div>
+          </div>
+
+          <button type="submit" [disabled]="loading || registerForm.invalid" class="w-full py-4 px-6 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none relative overflow-hidden group">
+            <span class="relative z-10 flex items-center justify-center">
+              <span *ngIf="!loading">
+                <svg class="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                </svg>
+                Create Account
+              </span>
+              <span *ngIf="loading" class="flex items-center">
+                <svg class="animate-spin h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Creating...
+              </span>
+            </span>
+            <div class="absolute inset-0 bg-gradient-to-r from-accent-orange to-accent-red opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          </button>
+        </form>
+      </div>
+
+      <p class="text-center text-sm text-gray-500 mt-6">
+        By signing up, you agree to our
+        <a href="#" class="text-primary hover:text-primary-dark font-medium">Terms</a>
+        and
+        <a href="#" class="text-primary hover:text-primary-dark font-medium">Privacy Policy</a>
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  # Frontend Angular
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4200:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - englishflow-network
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      - eureka-server
+      - config-server
+    networks:
+      - englishflow-network
+
+  # Eureka Service Discovery
+  eureka-server:
+    build:
+      context: ./backend/eureka-server
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - englishflow-network
+
+  # Config Server
+  config-server:
+    build:
+      context: ./backend/config-server
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    networks:
+      - englishflow-network
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: englishflow
+      POSTGRES_USER: englishflow
+      POSTGRES_PASSWORD: englishflow123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - englishflow-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - englishflow-network
+
+networks:
+  englishflow-network:
+    driver: bridge
+
+volumes:
+  postgres-data:

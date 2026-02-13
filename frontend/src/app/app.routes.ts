@@ -19,6 +19,8 @@ import { VideosComponent } from './pages/ui-elements/videos/videos.component';
 import { SignInComponent } from './pages/auth-pages/sign-in/sign-in.component';
 import { SignUpComponent } from './pages/auth-pages/sign-up/sign-up.component';
 import { NotFoundComponent } from './pages/other-page/not-found/not-found.component';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
 
 export const routes: Routes = [
   // Page d'accueil EnglishFlow
@@ -28,6 +30,16 @@ export const routes: Routes = [
   },
   
   // Pages d'authentification (hors du layout dashboard)
+  {
+    path: 'login',
+    component: LoginComponent,
+    title: 'Login | EnglishFlow'
+  },
+  {
+    path: 'register',
+    component: RegisterComponent,
+    title: 'Register | EnglishFlow'
+  },
   {
     path: 'signin',
     component: SignInComponent,

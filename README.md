@@ -1,27 +1,61 @@
-# EnglishflowPI
+# EnglishFlow - Plateforme d'Apprentissage de l'Anglais
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.21.
+Plateforme complète pour l'apprentissage de l'anglais avec architecture microservices.
 
-## Development server
+## Structure du Projet
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+```
+EnglishFlow-PI/
+├── frontend/          # Application Angular (Backoffice + Frontoffice)
+│   ├── src/
+│   ├── public/
+│   └── README.md
+└── backend/           # Microservices Spring Boot
+    ├── api-gateway/
+    ├── auth-service/
+    ├── user-service/
+    └── README.md
+```
 
-## Code scaffolding
+## Frontend
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Application Angular avec deux interfaces:
+- **Backoffice**: Interface d'administration
+- **Frontoffice**: Interface utilisateur (étudiants/enseignants)
 
-## Build
+Technologies: Angular 18, TypeScript, Tailwind CSS
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+[Voir le README du frontend](./frontend/README.md)
 
-## Running unit tests
+## Backend
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Architecture microservices avec Spring Boot:
+- API Gateway
+- Service d'authentification
+- Service utilisateurs
+- Service cours
+- Service paiements
+- Service notifications
 
-## Running end-to-end tests
+Technologies: Spring Boot 3, Spring Cloud, PostgreSQL, Redis, Docker
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+[Voir le README du backend](./backend/README.md)
 
-## Further help
+## Démarrage Rapide
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+### Frontend
+```bash
+cd frontend
+npm install
+npm start
+```
+
+### Backend
+```bash
+cd backend
+# Instructions à venir pour chaque microservice
+```
+
+## Contribution
+
+Ce projet est développé dans le cadre d'un projet intégré (PI).

@@ -20,6 +20,22 @@ module.exports = {
         outfit: ['Outfit', 'sans-serif'],
       },
       colors: {
+        // EnglishFlow School Brand Colors
+        primary: {
+          DEFAULT: '#2D5757', // Dominant color - Dark teal
+          light: '#3a6d6d',
+          dark: '#1f3d3d',
+        },
+        secondary: {
+          DEFAULT: '#F7EDE2', // Dominant color - Cream/Beige
+          light: '#faf5ef',
+          dark: '#e8dac9',
+        },
+        accent: {
+          navy: '#3D3D60',    // Navy blue
+          orange: '#F6BD60',  // Warm orange
+          red: '#C84630',     // Terracotta red
+        },
         brand: {
           25: '#f2f7ff',
           50: '#ecf3ff',
