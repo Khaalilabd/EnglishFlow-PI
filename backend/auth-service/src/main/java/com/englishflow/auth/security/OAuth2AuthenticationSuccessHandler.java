@@ -41,23 +41,33 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         log.info("OAuth2 authentication successful for user: {}", oAuth2User.getAttributes());
         
-        // Extract user info from OAuth2User
+        // Extract user info based on provider
         Map<String, Object> attributes = oAuth2User.getAttributes();
-        String email = (String) attributes.get("email");
-        String firstName = (String) attributes.get("given_name");
-        String lastName = (String) attributes.get("family_name");
-        String picture = (String) attributes.get("picture");
+        String registrationId = extractRegistrationId(request);
+        
+        UserInfo userInfo = extractUserInfo(attributes, registrationId);
+        
+        if (userInfo.email == null || userInfo.email.isEmpty()) {
+            // Redirect to frontend with error - email required
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login")
+                    .queryParam("error", "email_required")
+                    .queryParam("provider", registrationId)
+                    .build().toUriString();
+            
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            return;
+        }
         
         // Find or create user
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> createOAuth2User(email, firstName, lastName, picture));
+        User user = userRepository.findByEmail(userInfo.email)
+                .orElseGet(() -> createOAuth2User(userInfo));
         
         // Check if user is active
         if (!user.getIsActive()) {
             // Redirect to frontend with error - account not activated
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login")
                     .queryParam("error", "account_not_activated")
-                    .queryParam("email", email)
+                    .queryParam("email", userInfo.email)
                     .build().toUriString();
             
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -79,12 +89,55 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 
-    private User createOAuth2User(String email, String firstName, String lastName, String picture) {
+    private String extractRegistrationId(HttpServletRequest request) {
+        String requestUri = request.getRequestURI();
+        // Extract from URI like /login/oauth2/code/google or /login/oauth2/code/github
+        String[] parts = requestUri.split("/");
+        return parts[parts.length - 1];
+    }
+
+    private UserInfo extractUserInfo(Map<String, Object> attributes, String provider) {
+        UserInfo info = new UserInfo();
+        
+        switch (provider.toLowerCase()) {
+            case "google":
+                info.email = (String) attributes.get("email");
+                info.firstName = (String) attributes.get("given_name");
+                info.lastName = (String) attributes.get("family_name");
+                info.picture = (String) attributes.get("picture");
+                break;
+                
+            case "github":
+                info.email = (String) attributes.get("email");
+                String name = (String) attributes.get("name");
+                if (name != null && name.contains(" ")) {
+                    String[] nameParts = name.split(" ", 2);
+                    info.firstName = nameParts[0];
+                    info.lastName = nameParts[1];
+                } else {
+                    info.firstName = name != null ? name : (String) attributes.get("login");
+                    info.lastName = "";
+                }
+                info.picture = (String) attributes.get("avatar_url");
+                break;
+                
+            default:
+                log.warn("Unknown OAuth2 provider: {}", provider);
+                info.email = (String) attributes.get("email");
+                info.firstName = "";
+                info.lastName = "";
+                info.picture = null;
+        }
+        
+        return info;
+    }
+
+    private User createOAuth2User(UserInfo userInfo) {
         User user = new User();
-        user.setEmail(email);
-        user.setFirstName(firstName != null ? firstName : "");
-        user.setLastName(lastName != null ? lastName : "");
-        user.setProfilePhoto(picture);
+        user.setEmail(userInfo.email);
+        user.setFirstName(userInfo.firstName != null ? userInfo.firstName : "");
+        user.setLastName(userInfo.lastName != null ? userInfo.lastName : "");
+        user.setProfilePhoto(userInfo.picture);
         user.setRole(User.Role.STUDENT); // Default role for OAuth2 users
         user.setIsActive(false); // OAuth2 users need activation
         user.setRegistrationFeePaid(false);
@@ -104,11 +157,19 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             emailService.sendActivationEmail(savedUser.getEmail(), 
                                             savedUser.getFirstName(), 
                                             activationToken.getToken());
-            log.info("Activation email sent to OAuth2 user: {}", email);
+            log.info("Activation email sent to OAuth2 user: {}", userInfo.email);
         } catch (Exception e) {
-            log.error("Failed to send activation email to OAuth2 user: {}", email, e);
+            log.error("Failed to send activation email to OAuth2 user: {}", userInfo.email, e);
         }
         
         return savedUser;
+    }
+
+    // Inner class to hold user info from different providers
+    private static class UserInfo {
+        String email;
+        String firstName;
+        String lastName;
+        String picture;
     }
 }
