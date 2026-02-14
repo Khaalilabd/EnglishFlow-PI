@@ -1,0 +1,843 @@
+<div class="p-6">
+  <!-- Floating Action Bar (Quiz Style) -->
+  <div class="sticky top-0 z-10 -mx-6 -mt-6 mb-6 px-6 pt-6 pb-4 bg-gradient-to-b from-gray-50 to-transparent backdrop-blur-sm">
+    <div class="flex justify-between items-start mb-4">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-800 mb-1">Ebooks Library</h1>
+        <p class="text-gray-600 text-sm">Browse and download learning materials</p>
+      </div>
+      <button 
+        (click)="openUploadModal()"
+        class="group relative bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] hover:from-[#234948] hover:to-[#152e2d] text-white px-5 py-2.5 rounded-xl transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+        <svg class="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        <span class="font-semibold">Upload Ebook</span>
+      </button>
+    </div>
+
+    <!-- Modern Segmented Control -->
+    <div class="bg-white rounded-2xl shadow-lg p-1.5 mb-4 border border-gray-200">
+      <div class="relative flex gap-1">
+        <!-- Sliding Background -->
+        <div class="absolute inset-y-1 transition-all duration-300 ease-out bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] rounded-xl shadow-md"
+             [style.left]="viewMode === 'published' ? '4px' : viewMode === 'drafts' ? 'calc(25% + 2px)' : viewMode === 'scheduled' ? 'calc(50% + 2px)' : 'calc(75% + 2px)'"
+             [style.width]="'calc(25% - 8px)'"></div>
+        
+        <!-- Buttons -->
+        <button 
+          (click)="setViewMode('published')"
+          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
+          [class.text-white]="viewMode === 'published'"
+          [class.text-gray-600]="viewMode !== 'published'">
+          <div class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+            <span>Published</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                  [class.bg-white]="viewMode === 'published'"
+                  [class.text-[#2D5F5D]]="viewMode === 'published'"
+                  [class.bg-gray-100]="viewMode !== 'published'"
+                  [class.text-gray-600]="viewMode !== 'published'">
+              {{ getEbookCountByMode('published') }}
+            </span>
+          </div>
+        </button>
+        
+        <button 
+          (click)="setViewMode('drafts')"
+          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
+          [class.text-white]="viewMode === 'drafts'"
+          [class.text-gray-600]="viewMode !== 'drafts'">
+          <div class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+            </svg>
+            <span>Drafts</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                  [class.bg-white]="viewMode === 'drafts'"
+                  [class.text-[#2D5F5D]]="viewMode === 'drafts'"
+                  [class.bg-gray-100]="viewMode !== 'drafts'"
+                  [class.text-gray-600]="viewMode !== 'drafts'">
+              {{ getEbookCountByMode('drafts') }}
+            </span>
+          </div>
+        </button>
+        
+        <button 
+          (click)="setViewMode('scheduled')"
+          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
+          [class.text-white]="viewMode === 'scheduled'"
+          [class.text-gray-600]="viewMode !== 'scheduled'">
+          <div class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span>Scheduled</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                  [class.bg-white]="viewMode === 'scheduled'"
+                  [class.text-[#2D5F5D]]="viewMode === 'scheduled'"
+                  [class.bg-gray-100]="viewMode !== 'scheduled'"
+                  [class.text-gray-600]="viewMode !== 'scheduled'">
+              {{ getEbookCountByMode('scheduled') }}
+            </span>
+          </div>
+        </button>
+        
+        <button 
+          (click)="setViewMode('all')"
+          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
+          [class.text-white]="viewMode === 'all'"
+          [class.text-gray-600]="viewMode !== 'all'">
+          <div class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+            </svg>
+            <span>All</span>
+            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
+                  [class.bg-white]="viewMode === 'all'"
+                  [class.text-[#2D5F5D]]="viewMode === 'all'"
+                  [class.bg-gray-100]="viewMode !== 'all'"
+                  [class.text-gray-600]="viewMode !== 'all'">
+              {{ ebooks.length }}
+            </span>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Collapsible Filters -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300"
+         [class.max-h-0]="!showFilters"
+         [class.max-h-96]="showFilters">
+      <div class="p-4 space-y-3" *ngIf="showFilters">
+        <div class="flex gap-2 flex-wrap">
+          <button 
+            (click)="filterByLevel('all')"
+            [class.bg-[#2D5F5D]]="selectedLevel === 'all'"
+            [class.text-white]="selectedLevel === 'all'"
+            [class.bg-gray-100]="selectedLevel !== 'all'"
+            [class.text-gray-700]="selectedLevel !== 'all'"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md">
+            All Levels
+          </button>
+          <button 
+            *ngFor="let level of ['A1', 'A2', 'B1', 'B2', 'C1']"
+            (click)="filterByLevel(level)"
+            [class.bg-[#2D5F5D]]="selectedLevel === level"
+            [class.text-white]="selectedLevel === level"
+            [class.bg-gray-100]="selectedLevel !== level"
+            [class.text-gray-700]="selectedLevel !== level"
+            class="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:shadow-md">
+            {{ level }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Toggle Button -->
+    <button 
+      (click)="toggleFilters()"
+      class="mt-3 w-full bg-white hover:bg-gray-50 border-2 border-gray-200 text-gray-700 px-4 py-2 rounded-xl transition-all flex items-center justify-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+      </svg>
+      <span class="font-medium">{{ showFilters ? 'Hide' : 'Show' }} Filters</span>
+      <span *ngIf="hasActiveFilters()" class="px-2 py-0.5 bg-[#2D5F5D] text-white text-xs rounded-full font-bold">Active</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-12">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#2D5F5D]"></div>
+    <p class="mt-4 text-gray-600">Loading ebooks...</p>
+  </div>
+
+  <!-- Innovative 3D Bookshelf Display -->
+  <div *ngIf="!isLoading" class="space-y-8">
+    <!-- Bookshelf Row -->
+    <div class="relative">
+      <!-- Shelf Background -->
+      <div class="absolute bottom-0 left-0 right-0 h-3 bg-gradient-to-b from-amber-800 to-amber-900 rounded-sm shadow-lg"></div>
+      
+      <!-- Books Container -->
+      <div class="flex flex-wrap gap-3 pb-4 justify-start items-end">
+        <div *ngFor="let ebook of getFilteredEbooks(); let i = index" 
+             class="book-spine group cursor-pointer animate-fade-in-up"
+             [style.animation-delay]="(i * 50) + 'ms'"
+             (click)="openDetailsModal(ebook)">
+          
+          <!-- 3D Book with Spine -->
+          <div class="relative book-container">
+            <!-- Book Spine (visible by default) -->
+            <div class="book-spine-view h-64 w-12 rounded-sm shadow-xl transform transition-all duration-500 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden"
+                 [style.background]="'linear-gradient(135deg, ' + getBookColor(i) + ' 0%, ' + getDarkerBookColor(i) + ' 100%)'">
+              
+              <!-- Spine Text (Vertical) -->
+              <div class="absolute inset-0 flex items-center justify-center">
+                <div class="transform -rotate-90 whitespace-nowrap text-white font-bold text-xs px-2 text-center w-64 truncate">
+                  {{ ebook.title }}
+                </div>
+              </div>
+              
+              <!-- Book Details on Spine -->
+              <div class="absolute bottom-2 left-0 right-0 flex flex-col items-center gap-1">
+                <span class="text-white text-[10px] font-semibold bg-black bg-opacity-30 px-1 rounded">
+                  {{ ebook.level }}
+                </span>
+              </div>
+              
+              <!-- Shine Effect -->
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-0 group-hover:opacity-20 transition-opacity duration-500 transform -skew-x-12"></div>
+            </div>
+            
+            <!-- Book Cover (shows on hover) -->
+            <div class="book-cover-view absolute top-0 left-0 h-64 w-44 rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 transform transition-all duration-500 scale-95 group-hover:scale-100 -translate-x-2 group-hover:-translate-x-48 pointer-events-none overflow-hidden border-4 border-white"
+                 style="z-index: 100;">
+              
+              <!-- Cover Image -->
+              <div class="relative h-full w-full bg-gradient-to-br from-[#2D5F5D] to-[#1e4442] flex items-center justify-center">
+                <img *ngIf="getCoverImageUrl(ebook)" 
+                     [src]="getCoverImageUrl(ebook)" 
+                     alt="Cover" 
+                     class="w-full h-full object-cover absolute inset-0"
+                     (error)="handleImageError($event)">
+                <div class="text-6xl" [class.hidden]="getCoverImageUrl(ebook)">📕</div>
+                
+                <!-- Badges -->
+                <div class="absolute top-2 right-2 flex flex-col gap-1">
+                  <span *ngIf="isPremium(ebook)" class="px-2 py-1 bg-blue-500 text-white text-xs font-bold rounded-full shadow-lg">
+                    ${{ getPricing(ebook) }}
+                  </span>
+                  <span *ngIf="!isPremium(ebook)" class="px-2 py-1 bg-green-500 text-white text-xs font-bold rounded-full shadow-lg">
+                    Free
+                  </span>
+                </div>
+              </div>
+              
+              <!-- Quick Info Overlay -->
+              <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black via-black/80 to-transparent p-3 text-white">
+                <h4 class="font-bold text-sm mb-1 line-clamp-2">{{ ebook.title }}</h4>
+                <div class="flex items-center gap-3 text-xs">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                    </svg>
+                    {{ ebook.downloadCount || 0 }}
+                  </span>
+                  <span>{{ ebook.level }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!isLoading && filteredEbooks.length === 0" class="text-center py-12">
+    <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+    </svg>
+    <p class="text-gray-600">No ebooks found</p>
+  </div>
+</div>
+
+<!-- Enhanced Upload Modal with Wizard - SIMPLIFIED VERSION -->
+<div *ngIf="showUploadModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl p-8 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <!-- Wizard Header -->
+    <div class="mb-6">
+      <h2 class="text-3xl font-bold text-gray-800 mb-2">📚 Visual Ebook Builder</h2>
+      <p class="text-gray-600 text-sm">Step {{ wizardStep }} of {{ totalWizardSteps }}</p>
+    </div>
+
+    <!-- Step 1: Basic Info -->
+    <div *ngIf="wizardStep === 1" class="space-y-4">
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Ebook Title *</label>
+        <input 
+          [(ngModel)]="newEbook.title" 
+          type="text" 
+          placeholder="e.g., English Grammar Essentials"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]">
+      </div>
+      
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Description</label>
+        <textarea 
+          [(ngModel)]="newEbook.description" 
+          rows="4"
+          placeholder="Describe what this ebook covers..."
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2">Level</label>
+          <select 
+            [(ngModel)]="newEbook.level" 
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]">
+            <option value="A1">A1 - Beginner</option>
+            <option value="A2">A2 - Elementary</option>
+            <option value="B1">B1 - Intermediate</option>
+            <option value="B2">B2 - Upper Intermediate</option>
+            <option value="C1">C1 - Advanced</option>
+          </select>
+        </div>
+        
+        <div>
+          <label class="block text-gray-700 text-sm font-bold mb-2">Category</label>
+          <select 
+            [(ngModel)]="newEbook.category" 
+            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]">
+            <option value="GRAMMAR">Grammar</option>
+            <option value="VOCABULARY">Vocabulary</option>
+            <option value="BUSINESS">Business English</option>
+            <option value="EXAM_PREP">Exam Preparation</option>
+            <option value="GENERAL">General</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">
+          Main PDF File {{ newEbook.id ? '' : '*' }}
+        </label>
+        
+        <!-- Show existing file info when editing -->
+        <div *ngIf="newEbook.id && !selectedFile" class="mb-3 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+          <div class="flex items-center gap-3">
+            <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-green-900">✓ Existing file attached</p>
+              <p class="text-xs text-green-700 mt-1">{{ newEbook.fileUrl || 'Current PDF file' }}</p>
+            </div>
+          </div>
+          <p class="text-xs text-green-600 mt-2">Upload a new file below to replace it (optional)</p>
+        </div>
+        
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-[#2D5F5D] transition-colors">
+          <input 
+            (change)="onFileSelected($event)"
+            type="file" 
+            accept=".pdf"
+            id="mainFile"
+            class="hidden">
+          <label for="mainFile" class="cursor-pointer block">
+            <svg class="w-12 h-12 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-gray-600 font-medium">
+              {{ selectedFile ? selectedFile.name : (newEbook.id ? 'Click to upload new PDF (optional)' : 'Click to upload PDF') }}
+            </p>
+            <p class="text-gray-400 text-sm mt-1">PDF files only (Max 50MB)</p>
+          </label>
+        </div>
+        
+        <!-- Auto-extracted metadata -->
+        <div *ngIf="selectedFile" class="mt-4 p-4 bg-blue-50 rounded-lg">
+          <p class="text-sm font-semibold text-blue-900 mb-2">📊 Auto-detected:</p>
+          <div class="grid grid-cols-2 gap-2 text-sm text-blue-800">
+            <div>• Size: {{ formatFileSize(selectedFile.size) }}</div>
+            <div>• Read time: {{ getEstimatedReadTime() }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Enhanced Chapter Builder -->
+    <div *ngIf="wizardStep === 2" class="space-y-4">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="text-lg font-bold text-gray-800">📖 Chapter Organization</h3>
+          <p class="text-sm text-gray-500">💡 Tip: Drag chapters to reorder</p>
+        </div>
+        <button 
+          type="button"
+          (click)="addChapter()"
+          class="bg-[#2D5F5D] hover:bg-[#234948] text-white px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+          <span>+</span> Add Chapter
+        </button>
+      </div>
+
+      <!-- Cover Card with Image Upload -->
+      <div class="bg-gradient-to-br from-[#2D5F5D] to-[#1e4442] rounded-xl p-6 text-white shadow-lg hover:shadow-xl transition-all">
+        <div class="flex items-center gap-4">
+          <div class="relative">
+            <input 
+              type="file" 
+              accept="image/*" 
+              id="coverImage" 
+              class="hidden"
+              (change)="onCoverImageSelected($event)">
+            <label for="coverImage" class="cursor-pointer block">
+              <div *ngIf="!coverImagePreview" class="w-24 h-32 bg-white bg-opacity-20 rounded-lg flex items-center justify-center hover:bg-opacity-30 transition-all">
+                <span class="text-6xl">📕</span>
+              </div>
+              <div *ngIf="coverImagePreview" class="w-24 h-32 rounded-lg overflow-hidden hover:opacity-90 transition-opacity">
+                <img [src]="coverImagePreview" alt="Cover" class="w-full h-full object-cover">
+              </div>
+            </label>
+          </div>
+          <div class="flex-1">
+            <h4 class="font-bold text-xl mb-1">Cover</h4>
+            <p class="text-sm opacity-90 mb-2">{{ newEbook.title || 'Untitled Ebook' }}</p>
+            <label for="coverImage" class="text-xs opacity-75 cursor-pointer hover:opacity-100">
+              📷 {{ coverImagePreview ? 'Change' : 'Upload' }} cover image
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chapter Cards -->
+      <div *ngIf="chapters.length > 0" class="space-y-3">
+        <div *ngFor="let chapter of chapters; let i = index"
+             [class.opacity-50]="isDragging(chapter)"
+             [class.transform]="isDragging(chapter)"
+             [class.rotate-2]="isDragging(chapter)"
+             class="chapter-card bg-white border-2 rounded-xl transition-all duration-200 hover:shadow-lg"
+             [class.border-[#2D5F5D]]="isDragOver(chapter)"
+             [class.bg-teal-50]="isDragOver(chapter)"
+             [class.border-gray-200]="!isDragOver(chapter)"
+             draggable="true"
+             (dragstart)="onDragStart($event, chapter)"
+             (dragover)="onDragOver($event, chapter)"
+             (dragleave)="onDragLeave(chapter)"
+             (drop)="onDrop($event, chapter)"
+             (dragend)="onDragEnd()">
+          
+          <!-- Chapter Header -->
+          <div class="p-4 cursor-move">
+            <div class="flex items-center gap-3">
+              <!-- Drag Handle -->
+              <div class="text-gray-400 hover:text-gray-600">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z"></path>
+                </svg>
+              </div>
+
+              <!-- Chapter Icon -->
+              <div class="text-3xl">📄</div>
+
+              <!-- Chapter Info -->
+              <div class="flex-1">
+                <input 
+                  [(ngModel)]="chapter.title"
+                  type="text"
+                  placeholder="Chapter title"
+                  class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm font-medium focus:outline-none focus:border-[#2D5F5D]"
+                  (click)="$event.stopPropagation()">
+                
+                <!-- Progress Bar -->
+                <div *ngIf="chapter.file" class="mt-2">
+                  <div class="flex items-center gap-2 text-xs text-gray-600">
+                    <div class="flex-1 bg-gray-200 rounded-full h-2">
+                      <div class="bg-[#2D5F5D] h-2 rounded-full transition-all" 
+                           [style.width.%]="getChapterProgress(chapter)"></div>
+                    </div>
+                    <span>{{ getChapterProgress(chapter) }}%</span>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">
+                    📄 {{ chapter.fileName }} • {{ chapter.pages }} pages
+                  </p>
+                </div>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center gap-2">
+                <button 
+                  type="button"
+                  (click)="toggleChapterExpand(chapter); $event.stopPropagation()"
+                  class="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Expand details">
+                  <svg class="w-5 h-5 text-gray-600 transition-transform" 
+                       [class.rotate-180]="chapter.expanded"
+                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </button>
+                <button 
+                  type="button"
+                  (click)="removeChapter(i); $event.stopPropagation()"
+                  class="p-2 hover:bg-red-100 rounded-lg transition-colors"
+                  title="Delete chapter">
+                  <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Expanded Details -->
+          <div *ngIf="chapter.expanded" class="px-4 pb-4 border-t border-gray-200 pt-4 space-y-4">
+            <!-- File Info Grid -->
+            <div class="grid grid-cols-2 gap-3">
+              <div class="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                <div class="flex items-center gap-2 mb-1">
+                  <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                  <span class="text-xs font-medium text-blue-700">File</span>
+                </div>
+                <div class="text-sm font-semibold text-blue-900 truncate">{{ chapter.fileName || 'No file' }}</div>
+              </div>
+              
+              <div class="bg-purple-50 rounded-lg p-3 border border-purple-200">
+                <div class="flex items-center gap-2 mb-1">
+                  <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                  </svg>
+                  <span class="text-xs font-medium text-purple-700">Pages</span>
+                </div>
+                <div class="text-sm font-semibold text-purple-900">{{ chapter.pages || 0 }}</div>
+              </div>
+            </div>
+
+            <!-- Read Time -->
+            <div class="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-sm font-medium text-green-900">Est. read time: {{ (chapter.pages || 0) * 2 }} min</span>
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                </svg>
+                Description
+              </label>
+              <textarea 
+                [(ngModel)]="chapter.description"
+                rows="3"
+                placeholder="Brief description of this chapter..."
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#2D5F5D]"
+                (click)="$event.stopPropagation()"></textarea>
+            </div>
+
+            <!-- Quiz Linking (Placeholder for future) -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+                Linked Quiz (Optional)
+              </label>
+              <select 
+                [(ngModel)]="chapter.quizId"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#2D5F5D]"
+                (click)="$event.stopPropagation()">
+                <option [value]="undefined">No quiz linked</option>
+                <option value="1">Basic Grammar Quiz</option>
+                <option value="2">Vocabulary Builder</option>
+                <option value="3">Reading Comprehension</option>
+              </select>
+            </div>
+
+            <!-- File Upload -->
+            <div>
+              <label class="block text-xs font-medium text-gray-700 mb-2 flex items-center gap-1">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                Chapter PDF File
+              </label>
+              <input 
+                type="file" 
+                accept=".pdf"
+                [id]="'chapterFile' + i"
+                class="hidden"
+                (change)="onChapterFileSelected($event, chapter)">
+              <label [for]="'chapterFile' + i" 
+                     class="flex items-center gap-2 px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-[#2D5F5D] hover:bg-gray-50 transition-all">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                </svg>
+                <span class="text-sm text-gray-600">
+                  {{ chapter.fileName || 'Click to upload PDF' }}
+                </span>
+              </label>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-2 pt-2">
+              <button 
+                type="button"
+                class="flex-1 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                [disabled]="!chapter.file"
+                (click)="previewChapterPdf(chapter); $event.stopPropagation()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                Preview PDF
+              </button>
+              <button 
+                type="button"
+                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                (click)="toggleChapterExpand(chapter); $event.stopPropagation()">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="chapters.length === 0" class="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+        <div class="text-6xl mb-4">📚</div>
+        <h4 class="text-lg font-semibold text-gray-700 mb-2">No chapters added yet</h4>
+        <p class="text-sm text-gray-500 mb-4">Start by uploading your PDF and breaking it into chapters</p>
+        <button 
+          type="button"
+          (click)="addChapter()"
+          class="bg-[#2D5F5D] hover:bg-[#234948] text-white px-6 py-2 rounded-lg text-sm">
+          + Add First Chapter
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: Publishing -->
+    <div *ngIf="wizardStep === 3" class="space-y-4">
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-3">💰 Pricing Model</label>
+        <div class="space-y-2">
+          <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer"
+                 [class.border-[#2D5F5D]]="pricingModel === 'free'">
+            <input type="radio" [(ngModel)]="pricingModel" value="free" class="mr-3">
+            <div>
+              <div class="font-medium">Free</div>
+              <div class="text-sm text-gray-600">Everyone can access</div>
+            </div>
+          </label>
+          <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer"
+                 [class.border-[#2D5F5D]]="pricingModel === 'premium'">
+            <input type="radio" [(ngModel)]="pricingModel" value="premium" class="mr-3">
+            <div class="flex-1">
+              <div class="font-medium">Premium</div>
+              <div class="text-sm text-gray-600 mb-2">Requires subscription</div>
+              <div *ngIf="pricingModel === 'premium'" class="flex items-center gap-2">
+                <span class="text-sm font-medium">Price:</span>
+                <input 
+                  [(ngModel)]="priceAmount"
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="w-24 px-3 py-1 border border-gray-300 rounded-lg text-sm"
+                  (click)="$event.stopPropagation()">
+                <span class="text-sm text-gray-600">USD</span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-3">📅 Release</label>
+        <div class="space-y-2">
+          <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer"
+                 [class.border-[#2D5F5D]]="releaseSchedule === 'immediate'">
+            <input type="radio" [(ngModel)]="releaseSchedule" value="immediate" class="mr-3">
+            <span>Publish Immediately</span>
+          </label>
+          <label class="flex items-start p-3 border-2 rounded-lg cursor-pointer"
+                 [class.border-[#2D5F5D]]="releaseSchedule === 'scheduled'">
+            <input type="radio" [(ngModel)]="releaseSchedule" value="scheduled" class="mr-3 mt-1">
+            <div class="flex-1">
+              <span class="font-medium">Scheduled Release</span>
+              <div *ngIf="releaseSchedule === 'scheduled'" class="mt-3 space-y-2">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Date</label>
+                  <input 
+                    [(ngModel)]="scheduledDate"
+                    type="date"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#2D5F5D]"
+                    (click)="$event.stopPropagation()">
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700 mb-1">Time</label>
+                  <input 
+                    [(ngModel)]="scheduledTime"
+                    type="time"
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#2D5F5D]"
+                    (click)="$event.stopPropagation()">
+                </div>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 4: Preview -->
+    <div *ngIf="wizardStep === 4" class="space-y-4">
+      <h3 class="text-lg font-bold text-gray-800 mb-4">👁️ Preview</h3>
+      
+      <div class="bg-gradient-to-br from-[#2D5F5D] to-[#1e4442] text-white p-8 rounded-2xl">
+        <h2 class="text-3xl font-bold mb-2">{{ newEbook.title }}</h2>
+        <p class="opacity-90 mb-4">{{ newEbook.description }}</p>
+        <div class="flex gap-4 text-sm">
+          <span>📚 {{ newEbook.level }}</span>
+          <span>📖 {{ chapters.length + 1 }} chapters</span>
+          <span *ngIf="pricingModel === 'free'">🆓 Free</span>
+          <span *ngIf="pricingModel === 'premium'">💎 ${{ priceAmount || 0 }}</span>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 p-6 rounded-xl">
+        <h4 class="font-bold mb-4">📊 Stats</h4>
+        <div class="grid grid-cols-3 gap-4 text-center">
+          <div>
+            <div class="text-2xl font-bold text-[#2D5F5D]">{{ getEstimatedReadTime() }}</div>
+            <div class="text-sm text-gray-600">Read time</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-[#2D5F5D]">{{ newEbook.level }}</div>
+            <div class="text-sm text-gray-600">Level</div>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-[#2D5F5D]">{{ chapters.length }}</div>
+            <div class="text-sm text-gray-600">Chapters</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex gap-3 mt-6 pt-6 border-t">
+      <button 
+        (click)="closeUploadModal()"
+        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg">
+        Cancel
+      </button>
+      <button 
+        *ngIf="wizardStep > 1"
+        (click)="previousWizardStep()"
+        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg">
+        ← Previous
+      </button>
+      <button 
+        *ngIf="wizardStep < totalWizardSteps"
+        (click)="nextWizardStep()"
+        class="flex-1 bg-[#2D5F5D] hover:bg-[#234948] text-white px-6 py-2 rounded-lg">
+        Next →
+      </button>
+      <button 
+        *ngIf="wizardStep === totalWizardSteps"
+        (click)="uploadEbook()"
+        [disabled]="isLoading"
+        class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg">
+        {{ isLoading ? 'Publishing...' : '🚀 Publish' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Details Modal -->
+<div *ngIf="showDetailsModal && selectedEbookForDetails" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-start gap-6">
+      <!-- Book Cover - ALWAYS SHOW IF AVAILABLE -->
+      <div class="flex-shrink-0">
+        <div class="w-40 h-56 bg-gradient-to-br from-[#2D5F5D] to-[#1e4442] rounded-lg shadow-lg flex items-center justify-center overflow-hidden relative">
+          <img *ngIf="getCoverImageUrl(selectedEbookForDetails)" 
+               [src]="getCoverImageUrl(selectedEbookForDetails)" 
+               alt="Cover" 
+               class="w-full h-full object-cover absolute inset-0"
+               (error)="handleImageError($event)">
+          <div class="text-7xl" [class.hidden]="getCoverImageUrl(selectedEbookForDetails)">📕</div>
+        </div>
+      </div>
+      
+      <!-- Details -->
+      <div class="flex-1">
+        <div class="flex justify-between items-start mb-4">
+          <h2 class="text-2xl font-bold text-gray-800">{{ selectedEbookForDetails.title }}</h2>
+          <button 
+            (click)="closeDetailsModal()"
+            class="text-gray-400 hover:text-gray-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+        
+        <p class="text-gray-600 mb-4">{{ getCleanDescription(selectedEbookForDetails.description) }}</p>
+        
+        <!-- Status -->
+        <div class="mb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-[#2D5F5D]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="font-semibold text-gray-700">Status:</span>
+            <span class="text-gray-600">{{ getPublicationStatus(selectedEbookForDetails) }}</span>
+          </div>
+        </div>
+        
+        <!-- Info Grid -->
+        <div class="grid grid-cols-2 gap-4 mb-4">
+          <div class="bg-gray-50 rounded-lg p-3">
+            <div class="text-xs text-gray-500 mb-1">Level</div>
+            <div class="font-semibold text-gray-800">{{ selectedEbookForDetails.level }}</div>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <div class="text-xs text-gray-500 mb-1">Downloads</div>
+            <div class="font-semibold text-gray-800">{{ selectedEbookForDetails.downloadCount || 0 }}</div>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <div class="text-xs text-gray-500 mb-1">Size</div>
+            <div class="font-semibold text-gray-800">{{ formatFileSize(selectedEbookForDetails.fileSize) }}</div>
+          </div>
+          <div class="bg-gray-50 rounded-lg p-3">
+            <div class="text-xs text-gray-500 mb-1">Price</div>
+            <div class="font-semibold text-gray-800">
+              <span *ngIf="isPremium(selectedEbookForDetails)">${{ getPricing(selectedEbookForDetails) }}</span>
+              <span *ngIf="!isPremium(selectedEbookForDetails)">Free</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="flex gap-2">
+          <button 
+            (click)="downloadEbook(selectedEbookForDetails); $event.stopPropagation()"
+            class="flex-1 bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] hover:from-[#234948] hover:to-[#152e2d] text-white px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            Download
+          </button>
+          <button 
+            (click)="editEbook(selectedEbookForDetails); $event.stopPropagation()"
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+            </svg>
+            Edit
+          </button>
+          <button 
+            (click)="deleteEbook(selectedEbookForDetails.id!); closeDetailsModal(); $event.stopPropagation()"
+            class="bg-red-500 hover:bg-red-600 text-white px-4 py-2.5 rounded-lg transition-all shadow-md hover:shadow-lg">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
