@@ -1,7 +1,3 @@
-WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
-WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/usr/local/Cellar/maven/3.9.11/libexec/lib/guice-5.1.0-classes.jar)
-WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
-WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
 [INFO] Scanning for projects...
 [INFO] 
 [INFO] -------------------< com.englishflow:config-server >--------------------
@@ -38,35 +34,12 @@ WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.0)
 
-2026-02-13T11:30:27.089-08:00  INFO 90298 --- [default] [           main] c.e.c.ConfigServerApplication            : Starting ConfigServerApplication using Java 25.0.1 with PID 90298 (/Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server/target/classes started by apple in /Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server)
-2026-02-13T11:30:27.100-08:00  INFO 90298 --- [default] [           main] c.e.c.ConfigServerApplication            : No active profile set, falling back to 1 default profile: "default"
-2026-02-13T11:30:29.811-08:00  INFO 90298 --- [default] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=50d737dd-a9c6-3627-b846-50474b982601
-WARNING: A restricted method in java.lang.System has been called
-WARNING: java.lang.System::load has been called by org.apache.tomcat.jni.Library in an unnamed module (file:/Users/apple/.m2/repository/org/apache/tomcat/embed/tomcat-embed-core/10.1.16/tomcat-embed-core-10.1.16.jar)
-WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
-WARNING: Restricted methods will be blocked in a future release unless native access is enabled
-
-2026-02-13T11:30:30.460-08:00  INFO 90298 --- [default] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8888 (http)
-2026-02-13T11:30:30.483-08:00  INFO 90298 --- [default] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
-2026-02-13T11:30:30.484-08:00  INFO 90298 --- [default] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
-2026-02-13T11:30:30.605-08:00  INFO 90298 --- [default] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
-2026-02-13T11:30:30.606-08:00  INFO 90298 --- [default] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 3257 ms
-2026-02-13T11:30:32.269-08:00  INFO 90298 --- [default] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 3 endpoint(s) beneath base path '/actuator'
-2026-02-13T11:30:32.411-08:00  INFO 90298 --- [default] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8888 (http) with context path ''
-2026-02-13T11:30:32.444-08:00  INFO 90298 --- [default] [           main] c.e.c.ConfigServerApplication            : Started ConfigServerApplication in 7.762 seconds (process running for 8.769)
-2026-02-13T11:32:58.490-08:00  INFO 90298 --- [default] [nio-8888-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
-2026-02-13T11:32:58.491-08:00  INFO 90298 --- [default] [nio-8888-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
-2026-02-13T11:32:58.494-08:00  INFO 90298 --- [default] [nio-8888-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
-[INFO] ------------------------------------------------------------------------
-[INFO] BUILD FAILURE
-[INFO] ------------------------------------------------------------------------
-[INFO] Total time:  10:39 min
-[INFO] Finished at: 2026-02-13T11:40:58-08:00
-[INFO] ------------------------------------------------------------------------
-[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.2.0:run (default-cli) on project config-server: Process terminated with exit code: 137 -> [Help 1]
-[ERROR] 
-[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
-[ERROR] Re-run Maven using the -X switch to enable full debug logging.
-[ERROR] 
-[ERROR] For more information about the errors and possible solutions, please read the following articles:
-[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException
+2026-02-13T15:02:25.563-08:00  INFO 18631 --- [default] [           main] c.e.c.ConfigServerApplication            : Starting ConfigServerApplication using Java 17.0.12 with PID 18631 (/Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server/target/classes started by apple in /Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server)
+2026-02-13T15:02:25.582-08:00  INFO 18631 --- [default] [           main] c.e.c.ConfigServerApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-02-13T15:02:57.066-08:00  INFO 18631 --- [default] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=50d737dd-a9c6-3627-b846-50474b982601
+2026-02-13T15:03:07.007-08:00  INFO 18631 --- [default] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8888 (http)
+2026-02-13T15:03:07.630-08:00  INFO 18631 --- [default] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-13T15:03:07.631-08:00  INFO 18631 --- [default] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-02-13T15:03:10.160-08:00  INFO 18631 --- [default] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-13T15:03:10.167-08:00  INFO 18631 --- [default] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 43600 ms
+2026-02-13T15:03:20.938-08:00  WARN 18631 --- [default] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'healthContributorRegistry' defined in class path resource [org/springframework/boot/actuate/autoconfigure/health/HealthEndpointConfiguration.class]: Unsatisfied dependency expressed through method 'healthContributorRegistry' parameter 2: Error creating bean with name 'configServerHealthIndicator' defined in class path resource [org/springframework/cloud/config/server/config/EnvironmentRepositoryConfiguration$ConfigServerActuatorConfiguration.class]: Unsatisfied dependency expressed through method 'configServerHealthIndicator' parameter 0: Error creating bean with name 'searchPathCompositeEnvironmentRepository' defined in class path resource [org/springframework/cloud/config/server/config/CompositeConfiguration.class]: Unsatisfied dependency expressed through method 'searchPathCompositeEnvironmentRepository' parameter 0: Error creating bean with name 'defaultEnvironmentRepository' defined in class path resource [org/springframework/cloud/config/server/config/DefaultRepositoryConfiguration.class]: Failed to instantiate [org.springframework.cloud.config.server.environment.MultipleJGitEnvironmentRepository]: Factory method 'defaultEnvironmentRepository' threw exception with message: Shutdown in progress

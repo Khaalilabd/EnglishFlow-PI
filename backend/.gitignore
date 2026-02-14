@@ -9,6 +9,7 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 .mvn/wrapper/maven-wrapper.jar
+.mavenrc
 
 # Gradle
 .gradle/
@@ -44,3 +45,7 @@ Thumbs.db
 # Application
 application-local.yml
 application-local.properties
+
+# Environment variables
+.env
+*.sh

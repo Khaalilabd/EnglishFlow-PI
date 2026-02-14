@@ -26,8 +26,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: khalilabdelmoumen7@gmail.com
-    password: qdez muag xoha bfbq
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -62,16 +62,20 @@ app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:4200}
 
+recaptcha:
+  secret: ${RECAPTCHA_SECRET:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
+
 jwt:
   secret: englishflow-secret-key-change-this-in-production-with-a-very-long-secure-key
   expiration: 86400000
 
 eureka:
   client:
+    enabled: false
     service-url:
       defaultZone: http://localhost:8761/eureka/
-    register-with-eureka: true
-    fetch-registry: true
+    register-with-eureka: false
+    fetch-registry: false
   instance:
     prefer-ip-address: true
 

@@ -9,6 +9,7 @@ Service d'authentification et d'autorisation pour la plateforme Jungle in Englis
 - ✅ Activation de compte par email
 - ✅ Réinitialisation de mot de passe
 - ✅ Emails HTML professionnels
+- ✅ Google reCAPTCHA v2 (protection anti-bot)
 - ✅ Rôles: STUDENT, TEACHER, ADMIN
 - ✅ PostgreSQL (englishflow_identity)
 
@@ -63,9 +64,32 @@ GITHUB_CLIENT_SECRET=ton-github-client-secret
 
 ## 🏃 Démarrage
 
+### Sur votre machine de développement:
+
+1. Configure les variables d'environnement dans ton terminal:
+
 ```bash
+export JAVA_HOME=/path/to/java17
+export MAIL_USERNAME=your-email@gmail.com
+export MAIL_PASSWORD="your-app-password"
+export GOOGLE_CLIENT_ID=your-google-client-id
+export GOOGLE_CLIENT_SECRET=your-google-client-secret
+export FRONTEND_URL=http://localhost:4200
+```
+
+2. Lance le service:
+
+```bash
+cd backend/auth-service
 mvn spring-boot:run
 ```
+
+### Sur un autre PC:
+
+1. Clone le projet
+2. Crée le fichier `.env` avec les credentials (demande-les à l'équipe)
+3. Configure JAVA_HOME et exporte les variables du `.env`
+4. Lance `mvn spring-boot:run`
 
 Le service sera disponible sur `http://localhost:8081`
 

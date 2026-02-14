@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { LogoComponent } from '../../shared/components/logo.component';
+import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule],
   templateUrl: './register.component.html',
   styleUrls: ['./register.component.scss']
 })
@@ -19,6 +20,8 @@ export class RegisterComponent {
   currentStep = 1;
   totalSteps = 3;
   profilePhotoPreview: string | null = null;
+  recaptchaToken: string | null = null;
+  siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
 
   englishLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Proficient'];
   experienceYears = Array.from({length: 31}, (_, i) => i); // 0-30 years
@@ -87,21 +90,33 @@ export class RegisterComponent {
       case 2:
         return !!(this.cin?.valid && this.dateOfBirth?.valid);
       case 3:
-        return !!this.englishLevel?.valid; // Only English level for students
+        return !!(this.englishLevel?.valid && this.recaptchaToken); // Require reCAPTCHA
       default:
         return false;
     }
   }
 
+  onCaptchaResolved(token: string | null): void {
+    this.recaptchaToken = token;
+    console.log('reCAPTCHA resolved:', token);
+  }
+
   onSubmit(): void {
-    if (this.registerForm.invalid) {
+    if (this.registerForm.invalid || !this.recaptchaToken) {
+      this.errorMessage = 'Please complete the reCAPTCHA verification';
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    this.authService.register(this.registerForm.value).subscribe({
+    // Add recaptcha token to form data
+    const formData = {
+      ...this.registerForm.value,
+      recaptchaToken: this.recaptchaToken
+    };
+
+    this.authService.register(formData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
         this.router.navigate(['/dashboard']);

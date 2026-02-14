@@ -149,10 +149,24 @@
                 </div>
               </div>
 
+              <!-- reCAPTCHA -->
+              <div class="flex justify-center my-6">
+                <div class="bg-white rounded-2xl p-4 shadow-lg border-2 border-gray-200">
+                  <re-captcha
+                    [siteKey]="siteKey"
+                    (resolved)="onCaptchaResolved($event)"
+                    size="normal"
+                  ></re-captcha>
+                </div>
+              </div>
+              <div *ngIf="!recaptchaToken && errorMessage" class="text-center mb-4">
+                <p class="text-sm text-red-600 font-medium">⚠️ Please verify you're not a robot</p>
+              </div>
+
               <!-- Submit Button -->
               <button 
                 type="submit" 
-                [disabled]="loading || loginForm.invalid"
+                [disabled]="loading || loginForm.invalid || !recaptchaToken"
                 [class.from-blue-500]="selectedRole === 'STUDENT'"
                 [class.to-blue-600]="selectedRole === 'STUDENT'"
                 [class.from-amber-500]="selectedRole === 'TEACHER'"

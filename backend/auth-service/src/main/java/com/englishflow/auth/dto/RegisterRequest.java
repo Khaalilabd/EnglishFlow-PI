@@ -41,4 +41,5 @@ public class RegisterRequest {
     private String bio;
     private String englishLevel;
     private Integer yearsOfExperience;
+    private String recaptchaToken;
 }

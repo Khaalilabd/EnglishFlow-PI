@@ -4,11 +4,12 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angula
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { LogoComponent } from '../../shared/components/logo.component';
+import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -17,6 +18,8 @@ export class LoginComponent implements OnInit {
   loading = false;
   errorMessage = '';
   selectedRole: 'STUDENT' | 'TEACHER' = 'STUDENT';
+  recaptchaToken: string | null = null;
+  siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
 
   constructor(
     private fb: FormBuilder,
@@ -44,15 +47,27 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  onCaptchaResolved(token: string | null): void {
+    this.recaptchaToken = token;
+    console.log('reCAPTCHA resolved:', token);
+  }
+
   onSubmit(): void {
-    if (this.loginForm.invalid) {
+    if (this.loginForm.invalid || !this.recaptchaToken) {
+      this.errorMessage = 'Please complete the reCAPTCHA verification';
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
+    // Add recaptcha token to login data
+    const loginData = {
+      ...this.loginForm.value,
+      recaptchaToken: this.recaptchaToken
+    };
+
+    this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
         this.router.navigate(['/dashboard']);

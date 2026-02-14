@@ -6,8 +6,10 @@ import com.englishflow.auth.dto.RegisterRequest;
 import com.englishflow.auth.dto.PasswordResetRequest;
 import com.englishflow.auth.dto.PasswordResetConfirm;
 import com.englishflow.auth.service.AuthService;
+import com.englishflow.auth.service.RecaptchaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,9 +21,16 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final RecaptchaService recaptchaService;
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, String>> register(@Valid @RequestBody RegisterRequest request) {
+        // Verify reCAPTCHA
+        if (!recaptchaService.verifyRecaptcha(request.getRecaptchaToken())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(Map.of("message", "reCAPTCHA verification failed. Please try again."));
+        }
+        
         authService.register(request);
         return ResponseEntity.ok(Map.of("message", "Registration successful! Please check your email to activate your account."));
     }
@@ -33,6 +42,12 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        // Verify reCAPTCHA
+        if (!recaptchaService.verifyRecaptcha(request.getRecaptchaToken())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(null);
+        }
+        
         return ResponseEntity.ok(authService.login(request));
     }
 
