@@ -1,0 +1,342 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <button
+        (click)="cancel()"
+        class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-4"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Tutors
+      </button>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Tutor</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-2">Fill in the information to create a new tutor account</p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Step {{ currentStep }} of {{ totalSteps }}</span>
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ getProgressPercentage() }}%</span>
+      </div>
+      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+        <div
+          class="bg-primary h-2 rounded-full transition-all duration-300"
+          [style.width.%]="getProgressPercentage()"
+        ></div>
+      </div>
+      <div class="flex justify-between mt-2">
+        <span class="text-xs text-gray-600 dark:text-gray-400">Basic Info</span>
+        <span class="text-xs text-gray-600 dark:text-gray-400">Address</span>
+        <span class="text-xs text-gray-600 dark:text-gray-400">Professional</span>
+      </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 md:p-8">
+      <form [formGroup]="tutorForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Error Message -->
+        <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <div class="flex items-center">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+            </svg>
+            <p class="text-sm text-red-800 dark:text-red-200">{{ errorMessage }}</p>
+          </div>
+        </div>
+
+        <!-- Step 1: Basic Information -->
+        <div *ngIf="currentStep === 1" class="space-y-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Basic Information</h2>
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- First Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                First Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="firstName"
+                placeholder="Enter first name"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['firstName'].invalid && f['firstName'].touched"
+              />
+              <p *ngIf="f['firstName'].invalid && f['firstName'].touched" class="mt-1 text-sm text-red-600">
+                First name is required (min 2 characters)
+              </p>
+            </div>
+
+            <!-- Last Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Last Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="lastName"
+                placeholder="Enter last name"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['lastName'].invalid && f['lastName'].touched"
+              />
+              <p *ngIf="f['lastName'].invalid && f['lastName'].touched" class="mt-1 text-sm text-red-600">
+                Last name is required (min 2 characters)
+              </p>
+            </div>
+
+            <!-- Email -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="teacher@example.com"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['email'].invalid && f['email'].touched"
+              />
+              <p *ngIf="f['email'].invalid && f['email'].touched" class="mt-1 text-sm text-red-600">
+                Valid email is required
+              </p>
+            </div>
+
+            <!-- Phone -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Phone <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="tel"
+                formControlName="phone"
+                placeholder="0612345678"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['phone'].invalid && f['phone'].touched"
+              />
+              <p *ngIf="f['phone'].invalid && f['phone'].touched" class="mt-1 text-sm text-red-600">
+                Valid 10-digit phone number is required
+              </p>
+            </div>
+
+            <!-- CIN -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                CIN <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="cin"
+                placeholder="AB123456"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['cin'].invalid && f['cin'].touched"
+              />
+              <p *ngIf="f['cin'].invalid && f['cin'].touched" class="mt-1 text-sm text-red-600">
+                Valid CIN is required (e.g., AB123456)
+              </p>
+            </div>
+
+            <!-- Date of Birth -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Date of Birth <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="date"
+                formControlName="dateOfBirth"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['dateOfBirth'].invalid && f['dateOfBirth'].touched"
+              />
+              <p *ngIf="f['dateOfBirth'].invalid && f['dateOfBirth'].touched" class="mt-1 text-sm text-red-600">
+                Date of birth is required
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Address Information -->
+        <div *ngIf="currentStep === 2" class="space-y-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Address Information</h2>
+          
+          <div class="space-y-6">
+            <!-- Address -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Address <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="address"
+                placeholder="Street address"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['address'].invalid && f['address'].touched"
+              />
+              <p *ngIf="f['address'].invalid && f['address'].touched" class="mt-1 text-sm text-red-600">
+                Address is required
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- City -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  City <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="city"
+                  placeholder="City"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  [class.border-red-500]="f['city'].invalid && f['city'].touched"
+                />
+                <p *ngIf="f['city'].invalid && f['city'].touched" class="mt-1 text-sm text-red-600">
+                  City is required
+                </p>
+              </div>
+
+              <!-- Postal Code -->
+              <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Postal Code <span class="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  formControlName="postalCode"
+                  placeholder="12345"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                  [class.border-red-500]="f['postalCode'].invalid && f['postalCode'].touched"
+                />
+                <p *ngIf="f['postalCode'].invalid && f['postalCode'].touched" class="mt-1 text-sm text-red-600">
+                  Valid postal code is required (4-5 digits)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Professional Information -->
+        <div *ngIf="currentStep === 3" class="space-y-6">
+          <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Professional Information</h2>
+          
+          <div class="space-y-6">
+            <!-- Years of Experience -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Years of Experience <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="yearsOfExperience"
+                placeholder="5"
+                min="0"
+                max="50"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="f['yearsOfExperience'].invalid && f['yearsOfExperience'].touched"
+              />
+              <p *ngIf="f['yearsOfExperience'].invalid && f['yearsOfExperience'].touched" class="mt-1 text-sm text-red-600">
+                Years of experience is required (0-50)
+              </p>
+            </div>
+
+            <!-- Bio -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Biography <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                formControlName="bio"
+                rows="6"
+                placeholder="Write a brief biography about the teacher's background, expertise, and teaching philosophy... (minimum 50 characters)"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none"
+                [class.border-red-500]="f['bio'].invalid && f['bio'].touched"
+              ></textarea>
+              <div class="flex justify-between mt-1">
+                <p *ngIf="f['bio'].invalid && f['bio'].touched" class="text-sm text-red-600">
+                  Biography is required (50-500 characters)
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                  {{ f['bio'].value?.length || 0 }} / 500
+                </p>
+              </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+              <div class="flex items-start">
+                <svg class="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                </svg>
+                <div>
+                  <h4 class="text-sm font-medium text-blue-900 dark:text-blue-200">Password Generation</h4>
+                  <p class="text-sm text-blue-800 dark:text-blue-300 mt-1">
+                    A secure temporary password will be automatically generated for this tutor. Make sure to save it and share it securely with the tutor.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            (click)="previousStep()"
+            *ngIf="currentStep > 1"
+            class="inline-flex items-center px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+            Previous
+          </button>
+          
+          <button
+            type="button"
+            (click)="cancel()"
+            *ngIf="currentStep === 1"
+            class="inline-flex items-center px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            (click)="nextStep()"
+            *ngIf="currentStep < totalSteps"
+            class="inline-flex items-center px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors ml-auto"
+          >
+            Next
+            <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+
+          <button
+            type="submit"
+            *ngIf="currentStep === totalSteps"
+            [disabled]="loading"
+            class="inline-flex items-center px-6 py-2 bg-accent-orange text-white rounded-lg hover:bg-accent-orange-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+          >
+            <svg *ngIf="loading" class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            {{ loading ? 'Creating...' : 'Create Tutor' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Password Modal -->
+<app-password-modal
+  *ngIf="showPasswordModal"
+  [password]="generatedPassword"
+  [teacherName]="createdTutorName"
+  [teacherEmail]="createdTutorEmail"
+  (closeModal)="closePasswordModal()"
+></app-password-modal>

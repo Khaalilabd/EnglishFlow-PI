@@ -379,6 +379,12 @@ Header Style
   transition: all 0.3s ease 0s;
   position: relative;
   z-index: 999;
+  border-bottom: none;
+  box-shadow: none;
+}
+
+.header-area .main-nav ul.nav::after {
+  display: none;
 }
 
 .header-area .main-nav .nav li:last-child {

@@ -63,7 +63,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .orElseGet(() -> createOAuth2User(userInfo));
         
         // Check if user is active
-        if (!user.getIsActive()) {
+        if (!user.isActive()) {
             // Redirect to frontend with error - account not activated
             String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login")
                     .queryParam("error", "account_not_activated")
@@ -139,7 +139,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         user.setLastName(userInfo.lastName != null ? userInfo.lastName : "");
         user.setProfilePhoto(userInfo.picture);
         user.setRole(User.Role.STUDENT); // Default role for OAuth2 users
-        user.setIsActive(false); // OAuth2 users need activation
+        user.setActive(false); // OAuth2 users need activation
         user.setRegistrationFeePaid(false);
         user.setPassword(""); // No password for OAuth2 users
         

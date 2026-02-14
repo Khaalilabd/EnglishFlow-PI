@@ -44,7 +44,7 @@ public class AuthService {
         user.setLastName(request.getLastName());
         user.setPhone(request.getPhone());
         user.setRole(User.Role.valueOf(request.getRole().toUpperCase()));
-        user.setIsActive(false); // Account inactive until email verification
+        user.setActive(false); // Account inactive until email verification
         user.setRegistrationFeePaid(false);
         
         // Set CIN if provided
@@ -92,7 +92,7 @@ public class AuthService {
         }
 
         User user = activationToken.getUser();
-        user.setIsActive(true);
+        user.setActive(true);
         userRepository.save(user);
 
         activationToken.setUsed(true);
@@ -122,7 +122,7 @@ public class AuthService {
             throw new RuntimeException("Invalid credentials");
         }
 
-        if (!user.getIsActive()) {
+        if (!user.isActive()) {
             throw new RuntimeException("Account not activated. Please check your email.");
         }
 

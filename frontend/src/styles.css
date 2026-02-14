@@ -19,7 +19,7 @@
     cursor: pointer;
   }
   body {
-    @apply relative font-normal font-outfit z-1 bg-gray-50;
+    @apply relative font-normal font-outfit z-1 bg-gradient-to-br from-secondary via-secondary-100 to-accent-orange/10;
   }
 }
 
@@ -29,19 +29,19 @@
   }
 
   .menu-item-active {
-    @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+    @apply bg-secondary/20 text-secondary dark:bg-secondary/10 dark:text-secondary backdrop-blur-sm;
   }
 
   .menu-item-inactive {
-    @apply text-gray-700 hover:bg-gray-100 group-hover:text-gray-700 dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+    @apply text-secondary/80 hover:bg-white/10 group-hover:text-secondary dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
   }
 
   .menu-item-icon {
-    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400;
+    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400;
   }
 
   .menu-item-icon-active {
-    @apply text-brand-500 dark:text-brand-400;
+    @apply text-secondary dark:text-secondary;
   }
 
   .menu-item-icon-size svg {
@@ -49,7 +49,7 @@
   }
 
   .menu-item-icon-inactive {
-    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400 dark:group-hover:text-gray-300;
   }
 
   .menu-item-arrow {
@@ -57,11 +57,11 @@
   }
 
   .menu-item-arrow-active {
-    @apply rotate-180 text-brand-500 dark:text-brand-400;
+    @apply rotate-180 text-secondary dark:text-secondary;
   }
 
   .menu-item-arrow-inactive {
-    @apply text-gray-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300;
+    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400 dark:group-hover:text-gray-300;
   }
 
   .menu-dropdown-item {
@@ -69,35 +69,35 @@
   }
   
   .menu-dropdown-item-active {
-    @apply bg-brand-50 text-brand-500 dark:bg-brand-500/[0.12] dark:text-brand-400;
+    @apply bg-secondary/20 text-secondary dark:bg-secondary/10 dark:text-secondary backdrop-blur-sm;
   }
 
   .menu-dropdown-item-inactive {
-    @apply text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5;
+    @apply text-secondary/80 hover:bg-white/10 dark:text-gray-300 dark:hover:bg-white/5;
   }
 
   .menu-dropdown-badge {
-    @apply text-success-600 dark:text-success-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
+    @apply text-accent-orange dark:text-accent-orange block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
   }
 
   .menu-dropdown-badge-active {
-    @apply bg-success-100 dark:bg-success-500/20;
+    @apply bg-accent-orange/20 dark:bg-accent-orange/20;
   }
 
   .menu-dropdown-badge-inactive {
-    @apply bg-success-50 group-hover:bg-success-100 dark:bg-success-500/15 dark:group-hover:bg-success-500/20;
+    @apply bg-accent-orange/10 group-hover:bg-accent-orange/20 dark:bg-accent-orange/15 dark:group-hover:bg-accent-orange/20;
   }
 
   .menu-dropdown-badge-pro {
-    @apply text-brand-600 dark:text-brand-500 block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
+    @apply text-accent-orange dark:text-accent-orange block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase;
   }
 
   .menu-dropdown-badge-pro-active {
-    @apply bg-brand-100 dark:bg-brand-500/20;
+    @apply bg-accent-orange/20 dark:bg-accent-orange/20;
   }
 
   .menu-dropdown-badge-pro-inactive {
-    @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+    @apply bg-accent-orange/10 group-hover:bg-accent-orange/20 dark:bg-accent-orange/15 dark:group-hover:bg-accent-orange/20;
   }
 
   .no-scrollbar {

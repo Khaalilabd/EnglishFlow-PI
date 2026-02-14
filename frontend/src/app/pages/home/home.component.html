@@ -11,633 +11,492 @@
 </div>
 <!-- ***** Preloader End ***** -->
 
-<!-- ***** Header Area Start ***** -->
-<header class="header-area header-sticky">
-  <div class="container">
-    <div class="row">
-      <div class="col-12">
-        <nav class="main-nav">
-          <!-- ***** Logo Start ***** -->
-          <a href="#top" class="logo" style="display: flex; align-items: center; gap: 10px;">
-            <img src="/images/logo/jungle-in-english.png" alt="Jungle in English" style="height: 50px; width: auto;">
-            <span style="font-size: 20px; font-weight: 700; color: #fff;">JUNGLE IN ENGLISH</span>
-          </a>
-          <!-- ***** Logo End ***** -->
-          <!-- ***** Search Start ***** -->
-          <div class="search-input">
-            <form id="search" action="#">
-              <input type="text" placeholder="Type Something" id='searchText' name="searchKeyword" />
-              <i class="fa fa-search"></i>
-            </form>
-          </div>
-          <!-- ***** Search End ***** -->
-          <!-- ***** Menu Start ***** -->
-          <ul class="nav">
-            <li class="scroll-to-section"><a href="#top" class="active">Home</a></li>
-            <li class="scroll-to-section"><a href="#services">Services</a></li>
-            <li class="scroll-to-section"><a href="#courses">Courses</a></li>
-            <li class="scroll-to-section"><a href="#team">Team</a></li>
-            <li class="scroll-to-section"><a href="#events">Events</a></li>
-            <li class="scroll-to-section"><a href="#contact">Register Now!</a></li>
-          </ul>
-          <a class='menu-trigger'>
-            <span>Menu</span>
-          </a>
-          <!-- ***** Menu End ***** -->
-        </nav>
+<!-- ***** Modern Header Area Start ***** -->
+<header class="modern-header">
+  <nav class="modern-nav">
+    <div class="nav-container">
+      <!-- Logo -->
+      <a routerLink="/" class="nav-logo">
+        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
+        <span class="logo-text">JUNGLE IN ENGLISH</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <div class="nav-menu" [class.active]="mobileMenuOpen">
+        <ul class="nav-links">
+          <li><a href="#home" class="nav-link active">Home</a></li>
+          <li><a href="#services" class="nav-link">Services</a></li>
+          <li><a href="#courses" class="nav-link">Courses</a></li>
+          <li><a href="#team" class="nav-link">Team</a></li>
+          <li><a href="#events" class="nav-link">Events</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+
+        <!-- Auth Buttons / User Menu -->
+        <div class="nav-actions">
+          @if (!authService.isAuthenticated) {
+            <!-- Guest Actions -->
+            <a routerLink="/login" class="btn-login">Login</a>
+            <a routerLink="/register" class="btn-register">Get Started</a>
+          } @else {
+            <!-- Authenticated User Actions -->
+            <div class="nav-user-section">
+              <app-frontoffice-notification-dropdown />
+              <app-frontoffice-user-dropdown />
+            </div>
+          }
+        </div>
       </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
     </div>
-  </div>
+  </nav>
 </header>
-<!-- ***** Header Area End ***** -->
+<!-- ***** Modern Header Area End ***** -->
 
-<div class="main-banner" id="top">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="owl-carousel owl-banner">
-          <div class="item item-1">
-            <div class="header-text">
-              <span class="category">Our Courses</span>
-              <h2>With Jungle in English Teachers, Everything Is Easier</h2>
-              <p>Learn English with our experienced teachers and modern teaching methods. Start your journey to fluency today.</p>
-              <div class="buttons">
-                <div class="main-button">
-                  <a href="#">Request Demo</a>
-                </div>
-                <div class="icon-button">
-                  <a href="#"><i class="fa fa-play"></i> What's Jungle in English?</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="item item-2">
-            <div class="header-text">
-              <span class="category">Best Result</span>
-              <h2>Get the best result out of your effort</h2>
-              <p>Our proven teaching methodology helps you achieve your English learning goals faster and more effectively.</p>
-              <div class="buttons">
-                <div class="main-button">
-                  <a href="#">Request Demo</a>
-                </div>
-                <div class="icon-button">
-                  <a href="#"><i class="fa fa-play"></i> What's the best result?</a>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="item item-3">
-            <div class="header-text">
-              <span class="category">Online Learning</span>
-              <h2>Online Learning helps you save the time</h2>
-              <p>Learn from anywhere, at any time. Our flexible online platform adapts to your schedule and learning pace.</p>
-              <div class="buttons">
-                <div class="main-button">
-                  <a href="#">Request Demo</a>
-                </div>
-                <div class="icon-button">
-                  <a href="#"><i class="fa fa-play"></i> What's Online Course?</a>
-                </div>
-              </div>
-            </div>
-          </div>
+<!-- ***** Hero Section Start ***** -->
+<section class="hero-section" id="home">
+  <div class="hero-container">
+    <div class="hero-content">
+      <span class="hero-badge">🌟 Welcome to Jungle in English</span>
+      <h1 class="hero-title">Master English with Expert Teachers</h1>
+      <p class="hero-description">
+        Learn English with our experienced teachers and modern teaching methods. 
+        Start your journey to fluency today with personalized lessons.
+      </p>
+      <div class="hero-buttons">
+        <a routerLink="/register" class="btn-hero-primary">Start Learning Now</a>
+        <a href="#courses" class="btn-hero-secondary">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Explore Courses
+        </a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Students</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">Expert Teachers</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">95%</span>
+          <span class="stat-label">Success Rate</span>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<div class="services section" id="services">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-4 col-md-6">
-        <div class="service-item">
-          <div class="icon">
-            <img src="assets/images/service-01.png" alt="online degrees">
-          </div>
-          <div class="main-content">
-            <h4>Online Degrees</h4>
-            <p>Get certified with our comprehensive English language programs designed for all levels.</p>
-            <div class="main-button">
-              <a href="#">Read More</a>
-            </div>
+    <div class="hero-image">
+      <div class="hero-image-wrapper">
+        <img src="assets/images/banner-item-01.jpg" alt="English Learning" class="hero-img">
+        <div class="floating-card card-1">
+          <div class="card-icon">📚</div>
+          <div class="card-content">
+            <span class="card-title">Interactive Lessons</span>
+            <span class="card-subtitle">Learn by doing</span>
           </div>
         </div>
-      </div>
-      <div class="col-lg-4 col-md-6">
-        <div class="service-item">
-          <div class="icon">
-            <img src="assets/images/service-02.png" alt="short courses">
-          </div>
-          <div class="main-content">
-            <h4>Short Courses</h4>
-            <p>Intensive courses focused on specific skills like business English, conversation, or exam preparation.</p>
-            <div class="main-button">
-              <a href="#">Read More</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6">
-        <div class="service-item">
-          <div class="icon">
-            <img src="assets/images/service-03.png" alt="web experts">
-          </div>
-          <div class="main-content">
-            <h4>Expert Teachers</h4>
-            <p>Learn from native speakers and certified English teachers with years of experience.</p>
-            <div class="main-button">
-              <a href="#">Read More</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="section about-us">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-6 offset-lg-1">
-        <div class="accordion" id="accordionExample">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne">
-                Where shall we begin?
-              </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse show" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                Start with our placement test to determine your current level, then we'll recommend the perfect course for you.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingTwo">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
-                How do we work together?
-              </button>
-            </h2>
-            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                Through interactive online sessions, personalized feedback, and continuous support from your dedicated teacher.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingThree">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                Why Jungle in English is the best?
-              </button>
-            </h2>
-            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                We combine modern technology with proven teaching methods, offering flexible schedules and personalized learning paths.
-              </div>
-            </div>
-          </div>
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingFour">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-                Do we get the best support?
-              </button>
-            </h2>
-            <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
-              <div class="accordion-body">
-                Yes! Our support team is available 24/7 to help with technical issues, scheduling, and any questions you may have.
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-5 align-self-center">
-        <div class="section-heading">
-          <h6>About Us</h6>
-          <h2>What makes us the best English academy online?</h2>
-          <p>We provide personalized English learning experiences with native teachers, flexible schedules, and proven results.</p>
-          <div class="main-button">
-            <a href="#">Discover More</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<section class="section courses" id="courses">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12 text-center">
-        <div class="section-heading">
-          <h6>Latest Courses</h6>
-          <h2>Latest Courses</h2>
-        </div>
-      </div>
-    </div>
-    <ul class="event_filter">
-      <li>
-        <a class="is_active" href="#!" data-filter="*">Show All</a>
-      </li>
-      <li>
-        <a href="#!" data-filter=".beginner">Beginner</a>
-      </li>
-      <li>
-        <a href="#!" data-filter=".intermediate">Intermediate</a>
-      </li>
-      <li>
-        <a href="#!" data-filter=".advanced">Advanced</a>
-      </li>
-    </ul>
-    <div class="row event_box">
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 beginner">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-01.jpg" alt=""></a>
-            <span class="category">Beginner</span>
-            <span class="price"><h6><em>$</em>160</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">Sarah Johnson</span>
-            <h4>English Basics</h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 intermediate">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-02.jpg" alt=""></a>
-            <span class="category">Intermediate</span>
-            <span class="price"><h6><em>$</em>340</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">Michael Brown</span>
-            <h4>Business English</h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 advanced">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-03.jpg" alt=""></a>
-            <span class="category">Advanced</span>
-            <span class="price"><h6><em>$</em>640</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">Emma Wilson</span>
-            <h4>Advanced Conversation</h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 intermediate">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-04.jpg" alt=""></a>
-            <span class="category">Intermediate</span>
-            <span class="price"><h6><em>$</em>450</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">James Davis</span>
-            <h4>IELTS Preparation</h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 beginner intermediate">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-05.jpg" alt=""></a>
-            <span class="category">All Levels</span>
-            <span class="price"><h6><em>$</em>320</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">Lisa Anderson</span>
-            <h4>English Grammar</h4>
-          </div>
-        </div>
-      </div>
-      <div class="col-lg-4 col-md-6 align-self-center mb-30 event_outer col-md-6 advanced">
-        <div class="events_item">
-          <div class="thumb">
-            <a href="#"><img src="assets/images/course-06.jpg" alt=""></a>
-            <span class="category">Advanced</span>
-            <span class="price"><h6><em>$</em>240</h6></span>
-          </div>
-          <div class="down-content">
-            <span class="author">Robert Taylor</span>
-            <h4>Academic Writing</h4>
+        <div class="floating-card card-2">
+          <div class="card-icon">🎯</div>
+          <div class="card-content">
+            <span class="card-title">Personalized Path</span>
+            <span class="card-subtitle">Your pace, your goals</span>
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
+<!-- ***** Hero Section End ***** -->
 
-<div class="section fun-facts">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12">
-        <div class="wrapper">
-          <div class="row">
-            <div class="col-lg-3 col-md-6">
-              <div class="counter">
-                <h2 class="timer count-title count-number" data-to="150" data-speed="1000"></h2>
-                <p class="count-text">Happy Students</p>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="counter">
-                <h2 class="timer count-title count-number" data-to="804" data-speed="1000"></h2>
-                <p class="count-text">Course Hours</p>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="counter">
-                <h2 class="timer count-title count-number" data-to="50" data-speed="1000"></h2>
-                <p class="count-text">Employed Students</p>
-              </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-              <div class="counter end">
-                <h2 class="timer count-title count-number" data-to="15" data-speed="1000"></h2>
-                <p class="count-text">Years Experience</p>
-              </div>
-            </div>
+<!-- ***** Services Section Start ***** -->
+<section class="services-section" id="services">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Our Services</span>
+      <h2 class="section-title">What We Offer</h2>
+      <p class="section-description">Comprehensive English learning programs designed for all levels</p>
+    </div>
+
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon">
+          <img src="assets/images/service-01.png" alt="Online Degrees">
+        </div>
+        <h3 class="service-title">Online Degrees</h3>
+        <p class="service-description">Get certified with our comprehensive English language programs designed for all levels.</p>
+        <a href="#" class="service-link">Learn More →</a>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <img src="assets/images/service-02.png" alt="Short Courses">
+        </div>
+        <h3 class="service-title">Short Courses</h3>
+        <p class="service-description">Intensive courses focused on specific skills like business English, conversation, or exam preparation.</p>
+        <a href="#" class="service-link">Learn More →</a>
+      </div>
+
+      <div class="service-card">
+        <div class="service-icon">
+          <img src="assets/images/service-03.png" alt="Expert Teachers">
+        </div>
+        <h3 class="service-title">Expert Teachers</h3>
+        <p class="service-description">Learn from native speakers and certified English teachers with years of experience.</p>
+        <a href="#" class="service-link">Learn More →</a>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ***** Services Section End ***** -->
+
+<!-- ***** Courses Section Start ***** -->
+<section class="courses-section" id="courses">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Popular Courses</span>
+      <h2 class="section-title">Featured Courses</h2>
+      <p class="section-description">Choose from our wide range of English courses</p>
+    </div>
+
+    <div class="course-filters">
+      <button class="filter-btn active">All Courses</button>
+      <button class="filter-btn">Beginner</button>
+      <button class="filter-btn">Intermediate</button>
+      <button class="filter-btn">Advanced</button>
+    </div>
+
+    <div class="courses-grid">
+      <div class="course-card">
+        <div class="course-image">
+          <img src="assets/images/course-01.jpg" alt="English Basics">
+          <span class="course-badge beginner">Beginner</span>
+          <span class="course-price">$160</span>
+        </div>
+        <div class="course-content">
+          <div class="course-meta">
+            <span class="course-author">Sarah Johnson</span>
+            <span class="course-rating">⭐ 4.8</span>
+          </div>
+          <h3 class="course-title">English Basics</h3>
+          <p class="course-description">Perfect for beginners starting their English journey</p>
+          <div class="course-footer">
+            <span class="course-duration">📚 12 Lessons</span>
+            <a href="#" class="course-enroll">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card">
+        <div class="course-image">
+          <img src="assets/images/course-02.jpg" alt="Business English">
+          <span class="course-badge intermediate">Intermediate</span>
+          <span class="course-price">$340</span>
+        </div>
+        <div class="course-content">
+          <div class="course-meta">
+            <span class="course-author">Michael Brown</span>
+            <span class="course-rating">⭐ 4.9</span>
+          </div>
+          <h3 class="course-title">Business English</h3>
+          <p class="course-description">Master professional English for the workplace</p>
+          <div class="course-footer">
+            <span class="course-duration">📚 20 Lessons</span>
+            <a href="#" class="course-enroll">Enroll Now</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="course-card">
+        <div class="course-image">
+          <img src="assets/images/course-03.jpg" alt="Advanced Conversation">
+          <span class="course-badge advanced">Advanced</span>
+          <span class="course-price">$640</span>
+        </div>
+        <div class="course-content">
+          <div class="course-meta">
+            <span class="course-author">Emma Wilson</span>
+            <span class="course-rating">⭐ 5.0</span>
+          </div>
+          <h3 class="course-title">Advanced Conversation</h3>
+          <p class="course-description">Achieve fluency with advanced speaking practice</p>
+          <div class="course-footer">
+            <span class="course-duration">📚 24 Lessons</span>
+            <a href="#" class="course-enroll">Enroll Now</a>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- ***** Courses Section End ***** -->
 
-<div class="team section" id="team">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-3 col-md-6">
-        <div class="team-member">
-          <div class="main-content">
-            <img src="assets/images/member-01.jpg" alt="">
-            <span class="category">Lead Teacher</span>
-            <h4>Sarah Johnson</h4>
-            <ul class="social-icons">
-              <li><a href="#"><i class="fab fa-facebook"></i></a></li>
-              <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-              <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
-            </ul>
+<!-- ***** Team Section Start ***** -->
+<section class="team-section" id="team">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Our Team</span>
+      <h2 class="section-title">Meet Our Expert Teachers</h2>
+      <p class="section-description">Learn from the best English teachers in the industry</p>
+    </div>
+
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="team-image">
+          <img src="assets/images/member-01.jpg" alt="Sarah Johnson">
+        </div>
+        <div class="team-content">
+          <h3 class="team-name">Sarah Johnson</h3>
+          <span class="team-role">Lead Teacher</span>
+          <p class="team-bio">10+ years of experience in English education</p>
+          <div class="team-social">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
       </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="team-member">
-          <div class="main-content">
-            <img src="assets/images/member-02.jpg" alt="">
-            <span class="category">Business English</span>
-            <h4>Michael Brown</h4>
-            <ul class="social-icons">
-              <li><a href="#"><i class="fab fa-facebook"></i></a></li>
-              <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-              <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
-            </ul>
+
+      <div class="team-card">
+        <div class="team-image">
+          <img src="assets/images/member-02.jpg" alt="Michael Brown">
+        </div>
+        <div class="team-content">
+          <h3 class="team-name">Michael Brown</h3>
+          <span class="team-role">Business English Expert</span>
+          <p class="team-bio">Specialized in corporate training programs</p>
+          <div class="team-social">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
       </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="team-member">
-          <div class="main-content">
-            <img src="assets/images/member-03.jpg" alt="">
-            <span class="category">IELTS Expert</span>
-            <h4>Emma Wilson</h4>
-            <ul class="social-icons">
-              <li><a href="#"><i class="fab fa-facebook"></i></a></li>
-              <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-              <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
-            </ul>
+
+      <div class="team-card">
+        <div class="team-image">
+          <img src="assets/images/member-03.jpg" alt="Emma Wilson">
+        </div>
+        <div class="team-content">
+          <h3 class="team-name">Emma Wilson</h3>
+          <span class="team-role">IELTS Specialist</span>
+          <p class="team-bio">Helped 500+ students achieve their target scores</p>
+          <div class="team-social">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
       </div>
-      <div class="col-lg-3 col-md-6">
-        <div class="team-member">
-          <div class="main-content">
-            <img src="assets/images/member-04.jpg" alt="">
-            <span class="category">Conversation Master</span>
-            <h4>James Davis</h4>
-            <ul class="social-icons">
-              <li><a href="#"><i class="fab fa-facebook"></i></a></li>
-              <li><a href="#"><i class="fab fa-twitter"></i></a></li>
-              <li><a href="#"><i class="fab fa-linkedin"></i></a></li>
-            </ul>
+
+      <div class="team-card">
+        <div class="team-image">
+          <img src="assets/images/member-04.jpg" alt="James Davis">
+        </div>
+        <div class="team-content">
+          <h3 class="team-name">James Davis</h3>
+          <span class="team-role">Conversation Master</span>
+          <p class="team-bio">Expert in conversational English and pronunciation</p>
+          <div class="team-social">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- ***** Team Section End ***** -->
 
-<div class="section testimonials">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-7">
-        <div class="owl-carousel owl-testimonials">
-          <div class="item">
-            <p>"Jungle in English has transformed my English skills. The teachers are patient and the platform is easy to use. Highly recommended!"</p>
-            <div class="author">
-              <img src="assets/images/testimonial-author.jpg" alt="">
-              <span class="category">Business Professional</span>
-              <h4>John Smith</h4>
-            </div>
+<!-- ***** Events Section Start ***** -->
+<section class="events-section" id="events">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Upcoming Events</span>
+      <h2 class="section-title">Join Our Events</h2>
+      <p class="section-description">Free workshops and webinars to boost your English skills</p>
+    </div>
+
+    <div class="events-list">
+      <div class="event-card">
+        <div class="event-image">
+          <img src="assets/images/event-01.jpg" alt="English Pronunciation">
+          <span class="event-type">Workshop</span>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">English Pronunciation Masterclass</h3>
+          <p class="event-description">Learn the secrets of perfect English pronunciation</p>
+          <div class="event-details">
+            <span class="event-date">📅 March 16, 2026</span>
+            <span class="event-duration">⏱️ 2 Hours</span>
+            <span class="event-price">🎫 Free</span>
           </div>
-          <div class="item">
-            <p>"I improved my IELTS score from 6.0 to 7.5 in just 3 months. The preparation course was excellent and very focused."</p>
-            <div class="author">
-              <img src="assets/images/testimonial-author.jpg" alt="">
-              <span class="category">University Student</span>
-              <h4>Maria Garcia</h4>
-            </div>
-          </div>
-          <div class="item">
-            <p>"The flexibility of online learning combined with professional teachers makes Jungle in English the perfect choice for busy professionals."</p>
-            <div class="author">
-              <img src="assets/images/testimonial-author.jpg" alt="">
-              <span class="category">Marketing Manager</span>
-              <h4>David Chen</h4>
-            </div>
-          </div>
+          <a href="#" class="event-register">Register Now</a>
         </div>
       </div>
-      <div class="col-lg-5 align-self-center">
-        <div class="section-heading">
-          <h6>TESTIMONIALS</h6>
-          <h2>What they say about us?</h2>
-          <p>Our students' success stories speak for themselves. Join thousands of satisfied learners who have achieved their English goals with Jungle in English.</p>
+
+      <div class="event-card">
+        <div class="event-image">
+          <img src="assets/images/event-02.jpg" alt="IELTS Tips">
+          <span class="event-type">Webinar</span>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">IELTS Tips & Tricks</h3>
+          <p class="event-description">Insider strategies to ace your IELTS exam</p>
+          <div class="event-details">
+            <span class="event-date">📅 March 24, 2026</span>
+            <span class="event-duration">⏱️ 1.5 Hours</span>
+            <span class="event-price">🎫 Free</span>
+          </div>
+          <a href="#" class="event-register">Register Now</a>
+        </div>
+      </div>
+
+      <div class="event-card">
+        <div class="event-image">
+          <img src="assets/images/event-03.jpg" alt="Business Communication">
+          <span class="event-type">Masterclass</span>
+        </div>
+        <div class="event-content">
+          <h3 class="event-title">Business English Communication</h3>
+          <p class="event-description">Professional English for career advancement</p>
+          <div class="event-details">
+            <span class="event-date">📅 April 12, 2026</span>
+            <span class="event-duration">⏱️ 3 Hours</span>
+            <span class="event-price">🎫 $50</span>
+          </div>
+          <a href="#" class="event-register">Register Now</a>
         </div>
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- ***** Events Section End ***** -->
 
-<div class="section events" id="events">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12 text-center">
-        <div class="section-heading">
-          <h6>Schedule</h6>
-          <h2>Upcoming Events</h2>
-        </div>
-      </div>
-      <div class="col-lg-12 col-md-6">
-        <div class="item">
-          <div class="row">
-            <div class="col-lg-3">
-              <div class="image">
-                <img src="assets/images/event-01.jpg" alt="">
-              </div>
+<!-- ***** Contact Section Start ***** -->
+<section class="contact-section" id="contact">
+  <div class="section-container">
+    <div class="contact-wrapper">
+      <div class="contact-info">
+        <span class="section-badge">Get In Touch</span>
+        <h2 class="section-title">Start Your English Journey Today</h2>
+        <p class="section-description">
+          Ready to improve your English? Contact us today and discover how we can help you achieve your goals.
+        </p>
+        
+        <div class="contact-details">
+          <div class="contact-item">
+            <div class="contact-icon">📧</div>
+            <div class="contact-text">
+              <span class="contact-label">Email</span>
+              <span class="contact-value">jungleinenglish.platform&#64;gmail.com</span>
             </div>
-            <div class="col-lg-9">
-              <ul>
-                <li>
-                  <span class="category">Workshop</span>
-                  <h4>English Pronunciation</h4>
-                </li>
-                <li>
-                  <span>Date:</span>
-                  <h6>16 Mar 2026</h6>
-                </li>
-                <li>
-                  <span>Duration:</span>
-                  <h6>2 Hours</h6>
-                </li>
-                <li>
-                  <span>Price:</span>
-                  <h6>Free</h6>
-                </li>
-              </ul>
-              <a href="#"><i class="fa fa-angle-right"></i></a>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">📱</div>
+            <div class="contact-text">
+              <span class="contact-label">Phone</span>
+              <span class="contact-value">+216 XX XXX XXX</span>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">📍</div>
+            <div class="contact-text">
+              <span class="contact-label">Location</span>
+              <span class="contact-value">Tunisia</span>
             </div>
           </div>
         </div>
-      </div>
-      <div class="col-lg-12 col-md-6">
-        <div class="item">
-          <div class="row">
-            <div class="col-lg-3">
-              <div class="image">
-                <img src="assets/images/event-02.jpg" alt="">
-              </div>
-            </div>
-            <div class="col-lg-9">
-              <ul>
-                <li>
-                  <span class="category">Webinar</span>
-                  <h4>IELTS Tips & Tricks</h4>
-                </li>
-                <li>
-                  <span>Date:</span>
-                  <h6>24 Mar 2026</h6>
-                </li>
-                <li>
-                  <span>Duration:</span>
-                  <h6>1.5 Hours</h6>
-                </li>
-                <li>
-                  <span>Price:</span>
-                  <h6>Free</h6>
-                </li>
-              </ul>
-              <a href="#"><i class="fa fa-angle-right"></i></a>
-            </div>
+
+        <div class="special-offer">
+          <div class="offer-badge">50% OFF</div>
+          <div class="offer-content">
+            <h4>Special Offer</h4>
+            <p>Get 50% off on your first course</p>
+            <span class="offer-validity">Valid until April 24, 2026</span>
           </div>
         </div>
       </div>
-      <div class="col-lg-12 col-md-6">
-        <div class="item">
-          <div class="row">
-            <div class="col-lg-3">
-              <div class="image">
-                <img src="assets/images/event-03.jpg" alt="">
-              </div>
-            </div>
-            <div class="col-lg-9">
-              <ul>
-                <li>
-                  <span class="category">Masterclass</span>
-                  <h4>Business English Communication</h4>
-                </li>
-                <li>
-                  <span>Date:</span>
-                  <h6>12 Apr 2026</h6>
-                </li>
-                <li>
-                  <span>Duration:</span>
-                  <h6>3 Hours</h6>
-                </li>
-                <li>
-                  <span>Price:</span>
-                  <h6>$50</h6>
-                </li>
-              </ul>
-              <a href="#"><i class="fa fa-angle-right"></i></a>
-            </div>
+
+      <div class="contact-form-wrapper">
+        <form class="contact-form">
+          <div class="form-group">
+            <label>Your Name</label>
+            <input type="text" placeholder="Enter your name" required>
           </div>
-        </div>
+          <div class="form-group">
+            <label>Your Email</label>
+            <input type="email" placeholder="Enter your email" required>
+          </div>
+          <div class="form-group">
+            <label>Your Message</label>
+            <textarea rows="5" placeholder="Tell us about your English learning goals"></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Send Message</button>
+        </form>
       </div>
     </div>
   </div>
-</div>
+</section>
+<!-- ***** Contact Section End ***** -->
 
-<div class="contact-us section" id="contact">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-6 align-self-center">
-        <div class="section-heading">
-          <h6>Contact Us</h6>
-          <h2>Feel free to contact us anytime</h2>
-          <p>Ready to start your English learning journey? Get in touch with us today and discover how we can help you achieve your goals.</p>
-          <div class="special-offer">
-            <span class="offer">off<br><em>50%</em></span>
-            <h6>Valid: <em>24 April 2026</em></h6>
-            <h4>Special Offer <em>50%</em> OFF!</h4>
-            <a href="#"><i class="fa fa-angle-right"></i></a>
-          </div>
+<!-- ***** Footer Start ***** -->
+<footer class="modern-footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="footer-logo">
+        <p class="footer-description">
+          Empowering students to master English through innovative teaching methods and expert guidance.
+        </p>
+        <div class="footer-social">
+          <a href="#"><i class="fab fa-facebook"></i></a>
+          <a href="#"><i class="fab fa-twitter"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-linkedin"></i></a>
         </div>
       </div>
-      <div class="col-lg-6">
-        <div class="contact-us-content">
-          <form id="contact-form" action="" method="post">
-            <div class="row">
-              <div class="col-lg-12">
-                <fieldset>
-                  <input type="name" name="name" id="name" placeholder="Your Name..." autocomplete="on" required>
-                </fieldset>
-              </div>
-              <div class="col-lg-12">
-                <fieldset>
-                  <input type="text" name="email" id="email" pattern="[^ @]*@[^ @]*" placeholder="Your E-mail..." required="">
-                </fieldset>
-              </div>
-              <div class="col-lg-12">
-                <fieldset>
-                  <textarea name="message" id="message" placeholder="Your Message"></textarea>
-                </fieldset>
-              </div>
-              <div class="col-lg-12">
-                <fieldset>
-                  <button type="submit" id="form-submit" class="orange-button">Send Message Now</button>
-                </fieldset>
-              </div>
-            </div>
-          </form>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#courses">Courses</a></li>
+            <li><a href="#team">Team</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Resources</h4>
+          <ul>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#">FAQ</a></li>
+            <li><a href="#">Support</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-column">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:jungleinenglish.platform@gmail.com">Email Us</a></li>
+            <li><a href="#contact">Get in Touch</a></li>
+            <li><a routerLink="/register">Join Now</a></li>
+          </ul>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<footer>
-  <div class="container">
-    <div class="col-lg-12">
-      <p>Copyright © 2026 Jungle in English. All rights reserved.</p>
+    <div class="footer-bottom">
+      <p>&copy; 2026 Jungle in English. All rights reserved.</p>
     </div>
   </div>
 </footer>
-
-
-
+<!-- ***** Footer End ***** -->

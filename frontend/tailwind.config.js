@@ -22,20 +22,73 @@ module.exports = {
       colors: {
         // Jungle in English School Brand Colors
         primary: {
-          DEFAULT: '#2D5757', // Dominant color - Dark teal
-          light: '#3a6d6d',
-          dark: '#1f3d3d',
+          DEFAULT: '#2D5757', // Dark teal - Couleur dominante
+          50: '#f0f5f5',
+          100: '#d9e6e6',
+          200: '#b3cdcd',
+          300: '#8db4b4',
+          400: '#679b9b',
+          500: '#2D5757', // Base
+          600: '#244646',
+          700: '#1b3434',
+          800: '#122323',
+          900: '#091111',
         },
         secondary: {
-          DEFAULT: '#F7EDE2', // Dominant color - Cream/Beige
-          light: '#faf5ef',
-          dark: '#e8dac9',
+          DEFAULT: '#F7EDE2', // Cream/Beige - Couleur secondaire
+          50: '#fefcfa',
+          100: '#fdf9f5',
+          200: '#fbf3eb',
+          300: '#f9ede1',
+          400: '#f7ede2', // Base
+          500: '#f5e7d8',
+          600: '#e8d5c0',
+          700: '#dbc3a8',
+          800: '#ceb190',
+          900: '#c19f78',
         },
         accent: {
-          navy: '#3D3D60',    // Navy blue
-          orange: '#F6BD60',  // Warm orange
-          red: '#C84630',     // Terracotta red
+          navy: {
+            DEFAULT: '#3D3D60',
+            50: '#f2f2f7',
+            100: '#e5e5ef',
+            200: '#cbcbdf',
+            300: '#b1b1cf',
+            400: '#9797bf',
+            500: '#3D3D60', // Base
+            600: '#31314d',
+            700: '#25253a',
+            800: '#191927',
+            900: '#0d0d14',
+          },
+          orange: {
+            DEFAULT: '#F6BD60',
+            50: '#fef9f0',
+            100: '#fdf3e1',
+            200: '#fbe7c3',
+            300: '#f9dba5',
+            400: '#f7cf87',
+            500: '#F6BD60', // Base
+            600: '#f4a939',
+            700: '#e89420',
+            800: '#c17a1a',
+            900: '#9a6115',
+          },
+          red: {
+            DEFAULT: '#C84630',
+            50: '#faf2f0',
+            100: '#f5e5e1',
+            200: '#ebcbc3',
+            300: '#e1b1a5',
+            400: '#d79787',
+            500: '#C84630', // Base
+            600: '#a03826',
+            700: '#782a1c',
+            800: '#501c13',
+            900: '#280e09',
+          },
         },
+        // Couleurs système (gardées pour compatibilité)
         brand: {
           25: '#f2f7ff',
           50: '#ecf3ff',
@@ -43,12 +96,12 @@ module.exports = {
           200: '#c2d6ff',
           300: '#9cb9ff',
           400: '#7592ff',
-          500: '#465fff',
-          600: '#3641f5',
-          700: '#2a31d8',
-          800: '#252dae',
-          900: '#262e89',
-          950: '#161950',
+          500: '#2D5757', // Remplacé par primary
+          600: '#244646',
+          700: '#1b3434',
+          800: '#122323',
+          900: '#091111',
+          950: '#050808',
         },
         gray: {
           25: '#fcfcfd',

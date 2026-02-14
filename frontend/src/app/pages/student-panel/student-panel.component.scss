@@ -1,0 +1,48 @@
+// Student Panel Styles
+:host {
+  display: block;
+}
+
+// Smooth animations
+* {
+  transition: all 0.3s ease;
+}
+
+// Custom scrollbar
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(246, 189, 96, 0.5);
+  border-radius: 10px;
+  
+  &:hover {
+    background: rgba(246, 189, 96, 0.7);
+  }
+}
+
+// Card hover effects
+.hover\:-translate-y-1:hover {
+  transform: translateY(-4px);
+}
+
+// Progress bar animation
+@keyframes progressAnimation {
+  from {
+    width: 0;
+  }
+}
+
+// Backdrop blur fallback
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+}

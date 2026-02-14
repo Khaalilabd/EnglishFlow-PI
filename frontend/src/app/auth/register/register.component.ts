@@ -119,7 +119,8 @@ export class RegisterComponent {
     this.authService.register(formData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
-        this.router.navigate(['/dashboard']);
+        // Students always go to landing page after registration
+        this.router.navigate(['/']);
       },
       error: (error) => {
         console.error('Registration error:', error);

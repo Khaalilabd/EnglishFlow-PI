@@ -65,10 +65,10 @@ public class User {
     private Role role;
 
     @Column(nullable = false)
-    private Boolean isActive = true;
+    private boolean isActive = true;
 
     @Column(nullable = false)
-    private Boolean registrationFeePaid = false;
+    private boolean registrationFeePaid = false;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -89,7 +89,7 @@ public class User {
 
     public enum Role {
         ADMIN,
-        TEACHER,
+        TUTOR,
         STUDENT
     }
 }

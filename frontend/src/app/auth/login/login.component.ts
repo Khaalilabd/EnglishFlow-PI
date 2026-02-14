@@ -70,7 +70,12 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
-        this.router.navigate(['/dashboard']);
+        // Redirect based on user role
+        if (response.role === 'STUDENT') {
+          this.router.navigate(['/']); // Landing page for students
+        } else {
+          this.router.navigate(['/dashboard']); // Dashboard for admin/tutor
+        }
       },
       error: (error) => {
         console.error('Login error:', error);
