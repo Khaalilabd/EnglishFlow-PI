@@ -264,6 +264,26 @@ export const routes: Routes = [
         title: 'Create Tutor | Jungle in English Dashboard'
       },
       {
+        path: 'clubs',
+        loadComponent: () => import('./pages/clubs/clubs-list/clubs-list.component').then(m => m.ClubsListComponent),
+        title: 'Clubs | Jungle in English Dashboard'
+      },
+      {
+        path: 'clubs/create',
+        loadComponent: () => import('./pages/clubs/club-create/club-create.component').then(m => m.ClubCreateComponent),
+        title: 'Create Club | Jungle in English Dashboard'
+      },
+      {
+        path: 'clubs/:id',
+        loadComponent: () => import('./pages/clubs/club-detail/club-detail.component').then(m => m.ClubDetailComponent),
+        title: 'Club Details | Jungle in English Dashboard'
+      },
+      {
+        path: 'clubs/:id/edit',
+        loadComponent: () => import('./pages/clubs/club-edit/club-edit.component').then(m => m.ClubEditComponent),
+        title: 'Edit Club | Jungle in English Dashboard'
+      },
+      {
         path: 'form-elements',
         component: FormElementsComponent,
         title: 'Form Elements | Jungle in English Dashboard'
