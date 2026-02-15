@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/clubs")
+@RequestMapping("/clubs")
 @RequiredArgsConstructor
 public class ClubController {
     
@@ -56,5 +56,39 @@ public class ClubController {
     public ResponseEntity<Void> deleteClub(@PathVariable Integer id) {
         clubService.deleteClub(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    // Endpoints pour le workflow d'approbation
+    @GetMapping("/pending")
+    public ResponseEntity<List<ClubDTO>> getPendingClubs() {
+        return ResponseEntity.ok(clubService.getPendingClubs());
+    }
+    
+    @GetMapping("/approved")
+    public ResponseEntity<List<ClubDTO>> getApprovedClubs() {
+        return ResponseEntity.ok(clubService.getApprovedClubs());
+    }
+    
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<ClubDTO>> getClubsByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(clubService.getClubsByUser(userId));
+    }
+    
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<ClubDTO> approveClub(
+            @PathVariable Integer id,
+            @RequestParam Integer reviewerId,
+            @RequestParam(required = false) String comment) {
+        ClubDTO approvedClub = clubService.approveClub(id, reviewerId, comment);
+        return ResponseEntity.ok(approvedClub);
+    }
+    
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<ClubDTO> rejectClub(
+            @PathVariable Integer id,
+            @RequestParam Integer reviewerId,
+            @RequestParam(required = false) String comment) {
+        ClubDTO rejectedClub = clubService.rejectClub(id, reviewerId, comment);
+        return ResponseEntity.ok(rejectedClub);
     }
 }

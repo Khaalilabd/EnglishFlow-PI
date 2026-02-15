@@ -1,36 +1,111 @@
-// Student Panel Styles
+// Student Panel Styles - Modern & Professional
 :host {
   display: block;
 }
 
-// Smooth animations
+// Smooth animations for all elements
 * {
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-// Custom scrollbar
+// Fade in animation
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Slide up animation
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Shimmer effect for progress bars
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+// Pulse animation
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// Apply animations
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out backwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+// Custom scrollbar - Modern design
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(243, 244, 246, 0.5);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(246, 189, 96, 0.5);
+  background: linear-gradient(180deg, #F59E0B 0%, #C84630 100%);
   border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
   
   &:hover {
-    background: rgba(246, 189, 96, 0.7);
+    background: linear-gradient(180deg, #e5ac4f 0%, #d65a42 100%);
+    background-clip: padding-box;
   }
 }
 
-// Card hover effects
+// Card hover effects with smooth transitions
+.hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.hover\:shadow-2xl:hover {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+// Enhanced hover translate
 .hover\:-translate-y-1:hover {
   transform: translateY(-4px);
+}
+
+.hover\:-translate-y-2:hover {
+  transform: translateY(-8px);
 }
 
 // Progress bar animation
@@ -40,9 +115,99 @@
   }
 }
 
-// Backdrop blur fallback
+// Backdrop blur fallback for older browsers
 @supports not (backdrop-filter: blur(10px)) {
   .backdrop-blur-sm {
     background-color: rgba(255, 255, 255, 0.95);
   }
+}
+
+// Gradient text effect
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+// Ring effect for images
+.ring-1 {
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.ring-2 {
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+}
+
+.ring-4 {
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+}
+
+// Smooth scale transitions
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+
+// Smooth translate transitions
+.group:hover .group-hover\:translate-x-1 {
+  transform: translateX(0.25rem);
+}
+
+.group\/btn:hover .group-hover\/btn\:translate-x-1 {
+  transform: translateX(0.25rem);
+}
+
+// Border gradient effect
+.border-gradient {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, #F59E0B, #C84630);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+// Responsive utilities
+@media (max-width: 768px) {
+  .animate-slide-up {
+    animation-delay: 0ms !important;
+  }
+}
+
+// Focus states for accessibility
+*:focus-visible {
+  outline: 2px solid #F59E0B;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+// Smooth color transitions
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+// Loading skeleton (for future use)
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
 }

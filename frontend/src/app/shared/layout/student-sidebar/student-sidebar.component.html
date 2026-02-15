@@ -1,114 +1,109 @@
-<aside
+<aside 
   (mouseenter)="onSidebarMouseEnter()"
   (mouseleave)="sidebarService.setHovered(false)"
-  class="fixed left-0 top-0 z-50 h-screen flex flex-col overflow-y-hidden bg-gradient-to-b from-[#2D5757] to-[#3D3D60] transition-all duration-300 ease-linear"
   [ngClass]="{
     'translate-x-0': (isMobileOpen$ | async),
     '-translate-x-full xl:translate-x-0': !(isMobileOpen$ | async),
-    'w-[280px]': (isExpanded$ | async) || (isHovered$ | async),
-    'w-[80px]': !(isExpanded$ | async) && !(isHovered$ | async)
+    'w-72': (isExpanded$ | async) || (isHovered$ | async),
+    'w-20': !(isExpanded$ | async) && !(isHovered$ | async)
   }"
->
-  <!-- SIDEBAR HEADER -->
-  <div class="flex items-center justify-between gap-2 px-6 py-5.5">
-    <a routerLink="/" class="flex items-center gap-3">
-      <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-[#F59E0B]">
-        <span class="text-2xl">🎓</span>
+  class="fixed left-0 top-0 h-screen bg-gradient-to-b from-[#2D5757] via-[#3D3D60] to-[#2D5757] text-white transition-all duration-300 ease-in-out shadow-2xl z-50 flex flex-col">
+  
+  <!-- Header with Logo -->
+  <div class="p-6 border-b border-[#2D5757]/30">
+    <div class="flex items-center justify-between">
+      <div [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'flex items-center space-x-3' : 'hidden'">
+        <div class="w-10 h-10 bg-gradient-to-br from-[#F6BD60] to-[#C84630] rounded-lg flex items-center justify-center shadow-lg">
+          <i class="fas fa-graduation-cap text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold">Student Panel</h1>
+          <p class="text-xs text-[#F7EDE2]/80">Jungle in English</p>
+        </div>
       </div>
-      <span
-        *ngIf="(isExpanded$ | async) || (isHovered$ | async)"
-        class="text-xl font-bold text-white"
-      >
-        Jungle English
-      </span>
-    </a>
+      <button 
+        (click)="sidebarService.toggleExpanded()"
+        class="p-2 hover:bg-[#2D5757]/50 rounded-lg transition-colors">
+        <i [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'fas fa-chevron-left' : 'fas fa-chevron-right'"></i>
+      </button>
+    </div>
+  </div>
 
-    <button
-      (click)="sidebarService.toggleExpanded()"
-      class="hidden xl:block rounded-lg p-1.5 hover:bg-white/10"
-      *ngIf="(isExpanded$ | async) || (isHovered$ | async)"
-    >
-      <svg class="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-      </svg>
+  <!-- Scrollable Menu Section -->
+  <div class="flex-1 overflow-y-auto py-6 px-3 space-y-1 scrollbar-thin scrollbar-thumb-[#2D5757] scrollbar-track-[#3D3D60]/30">
+    <!-- Main Menu Items -->
+    <div class="space-y-1">
+      <div *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider">Menu</p>
+      </div>
+      
+      <a 
+        *ngFor="let item of navItems"
+        [routerLink]="item.path"
+        routerLinkActive="bg-[#2D5757]/50 shadow-lg"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-[#2D5757]/50 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? item.name : ''">
+        
+        <i [class]="'text-lg w-6 transition-colors ' + (rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80')"></i>
+        
+        <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="ml-4 font-medium transition-colors" [class.text-white]="rla.isActive" [class.text-[#F7EDE2]/90]="!rla.isActive">{{ item.name }}</span>
+        
+        <span *ngIf="item.badge && ((isExpanded$ | async) || (isHovered$ | async))" class="ml-auto bg-[#F6BD60] text-white text-xs font-bold px-2 py-1 rounded-full shadow-lg">{{ item.badge }}</span>
+        
+        <span *ngIf="item.badge && !(isExpanded$ | async) && !(isHovered$ | async)" class="absolute -top-1 -right-1 bg-[#F6BD60] text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-lg">{{ item.badge }}</span>
+      </a>
+    </div>
+
+    <!-- Support Section -->
+    <div class="pt-6 mt-6 border-t border-[#2D5757]/30 space-y-1">
+      <div *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider">Support</p>
+      </div>
+      
+      <a 
+        *ngFor="let item of othersItems"
+        [routerLink]="item.path"
+        routerLinkActive="bg-[#2D5757]/50 shadow-lg"
+        #rla2="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-[#2D5757]/50 transition-all duration-200"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? item.name : ''">
+        
+        <i [class]="'text-lg w-6 transition-colors ' + (rla2.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80')"></i>
+        
+        <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="ml-4 font-medium" [class.text-white]="rla2.isActive" [class.text-[#F7EDE2]/90]="!rla2.isActive">{{ item.name }}</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="p-4 border-t border-[#2D5757]/30">
+    <div *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="bg-[#2D5757]/30 rounded-xl p-4 backdrop-blur-sm mb-3">
+      <div class="flex items-center space-x-3 mb-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-[#F6BD60] to-[#C84630] rounded-full flex items-center justify-center shadow-lg">
+          <i class="fas fa-graduation-cap text-white"></i>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold">Need Help?</p>
+          <p class="text-xs text-[#F7EDE2]/80">Contact support</p>
+        </div>
+      </div>
+      <button class="w-full bg-gradient-to-r from-[#F6BD60] to-[#C84630] hover:from-[#C84630] hover:to-[#F6BD60] text-white text-sm font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg">
+        Get Support
+      </button>
+    </div>
+    
+    <button 
+      *ngIf="!(isExpanded$ | async) && !(isHovered$ | async)"
+      class="w-full p-3 bg-[#2D5757]/30 rounded-xl hover:bg-[#2D5757]/50 transition-colors mb-3"
+      title="Get Support">
+      <i class="fas fa-question-circle text-[#F6BD60]"></i>
     </button>
-  </div>
 
-  <!-- SIDEBAR MENU -->
-  <div class="no-scrollbar flex flex-col overflow-y-auto duration-300 ease-linear">
-    <nav class="px-4 py-4">
-      <!-- Main Menu Group -->
-      <div>
-        <h3
-          *ngIf="(isExpanded$ | async) || (isHovered$ | async)"
-          class="mb-4 ml-4 text-sm font-semibold text-gray-300"
-        >
-          MENU
-        </h3>
-
-        <ul class="mb-6 flex flex-col gap-1.5">
-          <li *ngFor="let item of navItems">
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="bg-white/10 text-white"
-              class="group relative flex items-center gap-2.5 rounded-lg px-4 py-2.5 font-medium text-gray-200 duration-300 ease-in-out hover:bg-white/10 hover:text-white"
-            >
-              <span class="text-xl" [innerHTML]="item.icon | safeHtml"></span>
-              <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">
-                {{ item.name }}
-              </span>
-              
-              <!-- Badge -->
-              <span
-                *ngIf="item.badge && ((isExpanded$ | async) || (isHovered$ | async))"
-                class="ml-auto rounded-full px-2 py-0.5 text-xs font-semibold text-white"
-                [ngClass]="item.badgeColor || 'bg-red-500'"
-              >
-                {{ item.badge }}
-              </span>
-            </a>
-          </li>
-        </ul>
-      </div>
-
-      <!-- Support & Settings Group -->
-      <div>
-        <h3
-          *ngIf="(isExpanded$ | async) || (isHovered$ | async)"
-          class="mb-4 ml-4 text-sm font-semibold text-gray-300"
-        >
-          SUPPORT
-        </h3>
-
-        <ul class="mb-6 flex flex-col gap-1.5">
-          <li *ngFor="let item of othersItems">
-            <a
-              [routerLink]="item.path"
-              routerLinkActive="bg-white/10 text-white"
-              class="group relative flex items-center gap-2.5 rounded-lg px-4 py-2.5 font-medium text-gray-200 duration-300 ease-in-out hover:bg-white/10 hover:text-white"
-            >
-              <span class="text-xl" [innerHTML]="item.icon | safeHtml"></span>
-              <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">
-                {{ item.name }}
-              </span>
-            </a>
-          </li>
-        </ul>
-      </div>
-    </nav>
-  </div>
-
-  <!-- Logout Button -->
-  <div class="mt-auto border-t border-white/10 p-4">
-    <button
-      class="group relative flex w-full items-center gap-2.5 rounded-lg px-4 py-2.5 font-medium text-gray-200 duration-300 ease-in-out hover:bg-red-500/20 hover:text-red-400"
-    >
-      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-      </svg>
-      <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">
-        Logout
-      </span>
+    <!-- Logout Button -->
+    <button class="w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-500/20 text-[#F7EDE2]/90 hover:text-red-400 transition-all duration-200">
+      <i class="fas fa-sign-out-alt text-lg w-6"></i>
+      <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="ml-4 font-medium">Logout</span>
     </button>
   </div>
 </aside>

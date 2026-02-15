@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { FrontofficeUserDropdownComponent } from '../../shared/components/frontoffice-user-dropdown.component';
 import { FrontofficeNotificationDropdownComponent } from '../../shared/components/frontoffice-notification-dropdown.component';
+import { map } from 'rxjs/operators';
 
 declare var $: any;
 
@@ -16,8 +17,15 @@ declare var $: any;
 })
 export class HomeComponent implements OnInit, AfterViewInit {
   mobileMenuOpen = false;
+  isAuthenticated$;
+  currentUser$;
   
-  constructor(public authService: AuthService) {}
+  constructor(public authService: AuthService) {
+    this.isAuthenticated$ = this.authService.currentUser$.pipe(
+      map(user => !!user)
+    );
+    this.currentUser$ = this.authService.currentUser$;
+  }
 
   get userPanelLabel(): string {
     const user = this.authService.currentUserValue;

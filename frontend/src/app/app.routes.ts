@@ -35,6 +35,13 @@ export const routes: Routes = [
     component: HomeComponent
   },
   
+  // Page publique des clubs
+  {
+    path: 'clubs',
+    loadComponent: () => import('./pages/public-clubs/public-clubs.component').then(m => m.PublicClubsComponent),
+    title: 'Clubs | Jungle in English'
+  },
+  
   // Student Panel avec layout et sidebar
   {
     path: 'user-panel',
@@ -84,6 +91,16 @@ export const routes: Routes = [
         path: 'ebooks',
         loadComponent: () => import('./pages/student-panel/ebooks/ebooks.component').then(m => m.EbooksComponent),
         title: 'Ebooks | Jungle in English'
+      },
+      {
+        path: 'clubs',
+        loadComponent: () => import('./pages/student-panel/clubs/clubs.component').then(m => m.ClubsComponent),
+        title: 'My Clubs | Jungle in English'
+      },
+      {
+        path: 'club-requests',
+        loadComponent: () => import('./pages/student-panel/club-requests/club-requests.component').then(m => m.ClubRequestsComponent),
+        title: 'Club Requests | Jungle in English'
       },
       {
         path: 'progress',
@@ -267,6 +284,11 @@ export const routes: Routes = [
         path: 'clubs',
         loadComponent: () => import('./pages/clubs/clubs-list/clubs-list.component').then(m => m.ClubsListComponent),
         title: 'Clubs | Jungle in English Dashboard'
+      },
+      {
+        path: 'clubs/requests',
+        loadComponent: () => import('./pages/clubs/club-requests-admin/club-requests-admin.component').then(m => m.ClubRequestsAdminComponent),
+        title: 'Club Requests | Jungle in English Dashboard'
       },
       {
         path: 'clubs/create',

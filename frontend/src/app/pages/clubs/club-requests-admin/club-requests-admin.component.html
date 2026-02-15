@@ -1,0 +1,176 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Club Requests</h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Review and approve club creation requests</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg font-semibold">
+        {{ pendingClubs.length }} Pending
+      </span>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center">
+        <svg class="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+      </div>
+      <button
+        (click)="loadPendingClubs()"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        Retry
+      </button>
+    </div>
+  </div>
+
+  <!-- Pending Clubs List -->
+  <div *ngIf="!loading && !error" class="space-y-4">
+    @for (club of pendingClubs; track club.id) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+          <!-- Club Image -->
+          <div class="flex-shrink-0">
+            @if (club.image) {
+              <img [src]="club.image" [alt]="club.name" class="w-full lg:w-48 h-48 object-cover rounded-lg">
+            } @else {
+              <div class="w-full lg:w-48 h-48 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+            }
+          </div>
+
+          <!-- Club Details -->
+          <div class="flex-1">
+            <div class="flex items-start justify-between mb-4">
+              <div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ club.name }}</h3>
+                <span [class]="'px-3 py-1 text-sm font-semibold rounded-full ' + getCategoryBadgeClass(club.category)">
+                  {{ club.category }}
+                </span>
+              </div>
+              <span class="px-3 py-1 text-sm font-semibold text-amber-800 bg-amber-100 rounded-full">
+                PENDING
+              </span>
+            </div>
+
+            <p class="text-gray-600 dark:text-gray-400 mb-4">{{ club.description }}</p>
+
+            @if (club.objective) {
+              <div class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Objective:</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">{{ club.objective }}</p>
+              </div>
+            }
+
+            <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                <span>Max Members: <strong>{{ club.maxMembers }}</strong></span>
+              </div>
+              <div class="flex items-center">
+                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <span>Requested: <strong>{{ formatDate(club.createdAt) }}</strong></span>
+              </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3">
+              <button
+                (click)="openReviewModal(club, 'approve')"
+                class="flex-1 sm:flex-none px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Approve
+              </button>
+              <button
+                (click)="openReviewModal(club, 'reject')"
+                class="flex-1 sm:flex-none px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+              >
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    } @empty {
+      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-12 text-center">
+        <svg class="mx-auto h-12 w-12 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No pending requests</h3>
+        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">All club requests have been reviewed!</p>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- Review Modal -->
+@if (showReviewModal && selectedClub) {
+  <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+        {{ reviewAction === 'approve' ? 'Approve' : 'Reject' }} Club Request
+      </h3>
+      
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        Are you sure you want to {{ reviewAction }} the club "<strong>{{ selectedClub.name }}</strong>"?
+      </p>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Comment (optional)
+        </label>
+        <textarea
+          [(ngModel)]="reviewComment"
+          rows="3"
+          class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent dark:bg-gray-700 dark:text-white"
+          [placeholder]="'Add a comment for the student...'"
+        ></textarea>
+      </div>
+
+      <div class="flex gap-3">
+        <button
+          (click)="closeReviewModal()"
+          [disabled]="processing"
+          class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+        >
+          Cancel
+        </button>
+        <button
+          (click)="confirmReview()"
+          [disabled]="processing"
+          [class]="reviewAction === 'approve' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'"
+          class="flex-1 px-4 py-2 text-white rounded-lg transition-colors disabled:opacity-50 font-medium"
+        >
+          @if (processing) {
+            <span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></span>
+          }
+          Confirm {{ reviewAction === 'approve' ? 'Approval' : 'Rejection' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

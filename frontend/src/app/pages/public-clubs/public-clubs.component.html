@@ -1,0 +1,237 @@
+<!-- ***** Header Area Start ***** -->
+<header class="modern-header">
+  <nav class="modern-nav">
+    <div class="nav-container">
+      <!-- Logo -->
+      <a routerLink="/" class="nav-logo">
+        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
+        <span class="logo-text">JUNGLE IN ENGLISH</span>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <div class="nav-menu" [class.active]="mobileMenuOpen">
+        <ul class="nav-links">
+          <li><a routerLink="/" class="nav-link">Home</a></li>
+          <li><a href="/#services" class="nav-link">Services</a></li>
+          <li><a href="/#courses" class="nav-link">Courses</a></li>
+          <li><a routerLink="/clubs" class="nav-link active">Clubs</a></li>
+          <li><a href="/#team" class="nav-link">Team</a></li>
+          <li><a href="/#events" class="nav-link">Events</a></li>
+          <li><a href="/#contact" class="nav-link">Contact</a></li>
+        </ul>
+
+        <!-- Auth Buttons / User Menu -->
+        <div class="nav-actions">
+          @if (!authService.isAuthenticated) {
+            <!-- Guest Actions -->
+            <a routerLink="/login" class="btn-login">Login</a>
+            <a routerLink="/register" class="btn-register">Get Started</a>
+          } @else {
+            <!-- Authenticated User Actions -->
+            <div class="nav-user-section">
+              <app-frontoffice-notification-dropdown />
+              <app-frontoffice-user-dropdown />
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- ***** Header Area End ***** -->
+
+<!-- ***** Clubs Section Start ***** -->
+<section class="clubs-public-section">
+  <div class="section-container">
+    <!-- Hero Header -->
+    <div class="clubs-hero">
+      <div class="clubs-hero-content">
+        <span class="section-badge">🎯 English Clubs</span>
+        <h1 class="clubs-hero-title">Join Our English Learning Clubs</h1>
+        <p class="clubs-hero-description">
+          Connect with fellow learners, practice English, and improve your skills in a fun and supportive community.
+        </p>
+        <a routerLink="/register" class="btn-hero-primary">Join a Club Today</a>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="clubs-filter-section">
+      <div class="filter-header">
+        <h2 class="filter-title">Explore Clubs</h2>
+        <span class="clubs-count">{{ filteredClubs.length }} club{{ filteredClubs.length !== 1 ? 's' : '' }} available</span>
+      </div>
+      
+      <div class="filter-buttons">
+        <button
+          (click)="filterByCategory(null)"
+          [class.active]="selectedCategory === null"
+          class="filter-btn"
+        >
+          All Clubs
+        </button>
+        @for (cat of categories; track cat) {
+          <button
+            (click)="filterByCategory(cat)"
+            [class.active]="selectedCategory === cat"
+            class="filter-btn"
+          >
+            {{ cat }}
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading clubs...</p>
+      </div>
+    } @else if (error) {
+      <div class="error-state">
+        <svg class="error-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <p>{{ error }}</p>
+        <button (click)="loadClubs()" class="btn-retry">Try Again</button>
+      </div>
+    } @else {
+      <!-- Clubs Grid -->
+      @if (filteredClubs.length > 0) {
+        <div class="clubs-grid">
+          @for (club of filteredClubs; track club.id) {
+            <div class="club-card">
+              <!-- Club Image Header -->
+              <div class="club-image-header">
+                @if (club.image) {
+                  <div class="club-image-container">
+                    <img 
+                      [src]="club.image" 
+                      [alt]="club.name" 
+                      class="club-image-cover"
+                      loading="lazy"
+                    />
+                    <div class="image-overlay"></div>
+                  </div>
+                } @else {
+                  <div class="club-image-placeholder-header">
+                    <span class="placeholder-icon-large">{{ getCategoryIcon(club.category) }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- Club Body -->
+              <div class="club-body">
+                <h3 class="club-title tracking-tight">{{ club.name }}</h3>
+                <span class="club-category-badge tracking-wide">{{ club.category }}</span>
+                <p class="club-description tracking-tight">{{ club.description }}</p>
+                
+                <!-- Club Stats -->
+                <div class="club-stats">
+                  <div class="stat-item">
+                    <svg class="stat-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                    </svg>
+                    <span class="stat-text">{{ club.currentMembersCount || 0 }}/{{ club.maxMembers }} Members</span>
+                  </div>
+                  @if (club.isFull) {
+                    <span class="club-status-badge full">Full</span>
+                  } @else {
+                    <span class="club-status-badge open">Open</span>
+                  }
+                </div>
+
+                <!-- Social Links / Actions -->
+                <div class="club-actions">
+                  <a routerLink="/register" class="action-btn-primary">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                    </svg>
+                    Join Club
+                  </a>
+                  <a routerLink="/register" class="action-btn-secondary">
+                    Learn More
+                  </a>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <span class="empty-icon">{{ selectedCategory ? getCategoryIcon(selectedCategory) : '📚' }}</span>
+          <h3 class="empty-title">
+            @if (selectedCategory) {
+              No {{ selectedCategory }} clubs available
+            } @else {
+              No clubs available yet
+            }
+          </h3>
+          <p class="empty-description">
+            @if (selectedCategory) {
+              Try selecting a different category or check back later.
+            } @else {
+              Be the first to create a club! Sign up to get started.
+            }
+          </p>
+          @if (selectedCategory) {
+            <button (click)="filterByCategory(null)" class="btn-view-all">View All Clubs</button>
+          } @else {
+            <a routerLink="/register" class="btn-get-started">Get Started</a>
+          }
+        </div>
+      }
+    }
+
+    <!-- CTA Section -->
+    <div class="clubs-cta">
+      <div class="cta-content">
+        <h2 class="cta-title">Ready to Join a Club?</h2>
+        <p class="cta-description">Create an account to join clubs and start practicing English with other learners.</p>
+        <div class="cta-buttons">
+          <a routerLink="/register" class="btn-cta-primary">Create Account</a>
+          <a routerLink="/login" class="btn-cta-secondary">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<!-- ***** Clubs Section End ***** -->
+
+<!-- ***** Footer Start ***** -->
+<footer class="modern-footer">
+  <div class="footer-container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="footer-logo">
+        <p class="footer-description">
+          Empowering students to master English through innovative teaching methods and expert guidance.
+        </p>
+      </div>
+
+      <div class="footer-links">
+        <div class="footer-column">
+          <h4>Quick Links</h4>
+          <ul>
+            <li><a routerLink="/">Home</a></li>
+            <li><a routerLink="/clubs">Clubs</a></li>
+            <li><a routerLink="/register">Join Now</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <p>&copy; 2026 Jungle in English. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+<!-- ***** Footer End ***** -->

@@ -1,6 +1,7 @@
 package com.englishflow.club.dto;
 
 import com.englishflow.club.enums.ClubCategory;
+import com.englishflow.club.enums.ClubStatus;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -20,6 +23,7 @@ public class ClubDTO {
     @NotBlank(message = "Club name is required")
     private String name;
     
+    @NotBlank(message = "Description is required")
     private String description;
     
     private String objective;
@@ -32,4 +36,16 @@ public class ClubDTO {
     private Integer maxMembers;
     
     private String image; // Base64 encoded image
+    
+    private ClubStatus status;
+    
+    private Integer createdBy;
+    
+    private Integer reviewedBy;
+    
+    private String reviewComment;
+    
+    private LocalDateTime createdAt;
+    
+    private LocalDateTime updatedAt;
 }

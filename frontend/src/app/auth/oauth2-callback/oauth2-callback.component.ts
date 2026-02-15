@@ -33,16 +33,18 @@ export class OAuth2CallbackComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
       const token = params['token'];
+      const id = params['id'] ? parseInt(params['id'], 10) : 0;
       const email = params['email'];
       const firstName = params['firstName'];
       const lastName = params['lastName'];
       const role = params['role'] || 'STUDENT';
 
-      if (token && email) {
+      if (token && email && id) {
         // Store user data
         const userData = {
           token,
-          id: 0, // Will be set by backend
+          type: 'Bearer',
+          id,
           email,
           firstName,
           lastName,
@@ -51,6 +53,9 @@ export class OAuth2CallbackComponent implements OnInit {
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
         localStorage.setItem('token', token);
+        
+        // Update auth service subject to trigger navbar update
+        this.authService['currentUserSubject'].next(userData);
         
         // Redirect based on role
         setTimeout(() => {

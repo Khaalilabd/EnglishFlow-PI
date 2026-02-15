@@ -6,6 +6,10 @@ export interface Club {
   category: ClubCategory;
   maxMembers: number;
   image?: string; // Base64 encoded image
+  status?: ClubStatus;
+  createdBy?: number;
+  reviewedBy?: number;
+  reviewComment?: string;
   members?: Member[];
   createdAt?: string;
   updatedAt?: string;
@@ -13,11 +17,25 @@ export interface Club {
   isFull?: boolean;
 }
 
+export enum ClubStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
+}
+
 export enum ClubCategory {
   CONVERSATION = 'CONVERSATION',
   BOOK = 'BOOK',
   DRAMA = 'DRAMA',
-  WRITING = 'WRITING'
+  WRITING = 'WRITING',
+  GRAMMAR = 'GRAMMAR',
+  VOCABULARY = 'VOCABULARY',
+  READING = 'READING',
+  LISTENING = 'LISTENING',
+  SPEAKING = 'SPEAKING',
+  PRONUNCIATION = 'PRONUNCIATION',
+  BUSINESS = 'BUSINESS',
+  ACADEMIC = 'ACADEMIC'
 }
 
 export interface Member {
@@ -42,6 +60,7 @@ export interface CreateClubRequest {
   category: ClubCategory;
   maxMembers: number;
   image?: string;
+  createdBy?: number;
 }
 
 export interface UpdateClubRequest {
@@ -51,6 +70,11 @@ export interface UpdateClubRequest {
   category?: ClubCategory;
   maxMembers?: number;
   image?: string;
+}
+
+export interface ApproveClubRequest {
+  reviewerId: number;
+  comment?: string;
 }
 
 export interface JoinClubRequest {

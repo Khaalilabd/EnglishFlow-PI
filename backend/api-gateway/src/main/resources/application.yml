@@ -5,6 +5,8 @@ spring:
   application:
     name: api-gateway
   cloud:
+    config:
+      enabled: false
     gateway:
       discovery:
         locator:
@@ -43,6 +45,13 @@ spring:
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+            
+        - id: club-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/clubs/**
           filters:
             - StripPrefix=1
       globalcors:

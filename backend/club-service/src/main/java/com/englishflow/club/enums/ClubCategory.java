@@ -4,5 +4,13 @@ public enum ClubCategory {
     CONVERSATION,
     BOOK,
     DRAMA,
-    WRITING
+    WRITING,
+    GRAMMAR,
+    VOCABULARY,
+    READING,
+    LISTENING,
+    SPEAKING,
+    PRONUNCIATION,
+    BUSINESS,
+    ACADEMIC
 }

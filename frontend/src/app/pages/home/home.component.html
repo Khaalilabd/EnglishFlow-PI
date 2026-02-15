@@ -27,6 +27,7 @@
           <li><a href="#home" class="nav-link active">Home</a></li>
           <li><a href="#services" class="nav-link">Services</a></li>
           <li><a href="#courses" class="nav-link">Courses</a></li>
+          <li><a routerLink="/clubs" class="nav-link">Clubs</a></li>
           <li><a href="#team" class="nav-link">Team</a></li>
           <li><a href="#events" class="nav-link">Events</a></li>
           <li><a href="#contact" class="nav-link">Contact</a></li>
@@ -34,7 +35,7 @@
 
         <!-- Auth Buttons / User Menu -->
         <div class="nav-actions">
-          @if (!authService.isAuthenticated) {
+          @if (!(isAuthenticated$ | async)) {
             <!-- Guest Actions -->
             <a routerLink="/login" class="btn-login">Login</a>
             <a routerLink="/register" class="btn-register">Get Started</a>

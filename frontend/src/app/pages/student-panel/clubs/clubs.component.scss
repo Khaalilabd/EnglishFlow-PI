@@ -1,0 +1,218 @@
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.border-primary {
+  border-width: 2px !important;
+}
+
+// Image optimization styles
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  &[loading="lazy"] {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+  }
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// Typography improvements
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+}
+
+p, span, div {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+// Text styles
+.text-balance {
+  text-wrap: balance;
+}
+
+// Enhanced readability
+.club-title {
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 800;
+}
+
+.club-description {
+  line-height: 1.7;
+  letter-spacing: -0.01em;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+// Smooth transitions for all interactive elements
+button, a {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+// Custom scrollbar for modals
+.overflow-y-auto {
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #555;
+    }
+  }
+}
+
+
+// Todo list styles
+.todo-item {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateX(4px);
+  }
+  
+  // Animation de disparition pour les tâches terminées
+  &.task-completing {
+    animation: slideOutRight 0.3s ease-out forwards;
+    opacity: 0;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+}
+
+// Task status selector
+select {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 600;
+  
+  // Remove default arrow on all browsers
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:focus {
+    outline: none;
+    ring: 2px;
+    ring-color: #2D5757;
+    box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
+  }
+  
+  // Hide default arrow in IE
+  &::-ms-expand {
+    display: none;
+  }
+}
+
+// Custom styled select for task status
+.task-status-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  padding-right: 2rem !important;
+  
+  &::-ms-expand {
+    display: none;
+  }
+}
+
+input[type="checkbox"] {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:checked {
+    background-color: #2D5757;
+    border-color: #2D5757;
+  }
+  
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Todo list scrollbar
+.space-y-2 {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #2D5757;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #1f3f3f;
+    }
+  }
+}
+
+// Collapsible sections animation
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Rotate animation for chevron
+.rotate-180 {
+  transform: rotate(180deg);
+}

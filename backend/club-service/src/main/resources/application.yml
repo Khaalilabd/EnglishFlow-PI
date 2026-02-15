@@ -4,8 +4,8 @@ spring:
   
   datasource:
     url: jdbc:postgresql://localhost:5432/club_db
-    username: postgres
-    password: nadhem
+    username: englishflow
+    password: englishflow123
     driver-class-name: org.postgresql.Driver
   
   jpa:

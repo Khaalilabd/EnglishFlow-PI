@@ -1,6 +1,7 @@
 package com.englishflow.club.entity;
 
 import com.englishflow.club.enums.ClubCategory;
+import com.englishflow.club.enums.ClubStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -41,6 +42,20 @@ public class Club {
     
     @Column(columnDefinition = "TEXT")
     private String image;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private ClubStatus status = ClubStatus.PENDING;
+    
+    @Column(name = "created_by")
+    private Integer createdBy; // User ID du student qui a créé la demande
+    
+    @Column(name = "reviewed_by")
+    private Integer reviewedBy; // User ID de l'Academic Affairs Officer qui a traité
+    
+    @Column(name = "review_comment", columnDefinition = "TEXT")
+    private String reviewComment; // Commentaire de l'officer
     
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

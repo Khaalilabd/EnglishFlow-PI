@@ -80,6 +80,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         // Redirect to frontend with token and role
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("token", token)
+                .queryParam("id", user.getId())
                 .queryParam("email", user.getEmail())
                 .queryParam("firstName", user.getFirstName())
                 .queryParam("lastName", user.getLastName())

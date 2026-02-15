@@ -129,11 +129,21 @@ export class FrontofficeUserDropdownComponent {
   }
 
   get userPanelLabel(): string {
-    return this.currentUser?.role === 'TUTOR' ? 'Tutor Panel' : 'User Panel';
+    if (this.currentUser?.role === 'ADMIN') {
+      return 'Admin Panel';
+    } else if (this.currentUser?.role === 'TUTOR') {
+      return 'Tutor Panel';
+    }
+    return 'User Panel';
   }
 
   get userPanelRoute(): string {
-    return this.currentUser?.role === 'TUTOR' ? '/tutor-panel' : '/user-panel';
+    if (this.currentUser?.role === 'ADMIN') {
+      return '/dashboard';
+    } else if (this.currentUser?.role === 'TUTOR') {
+      return '/tutor-panel';
+    }
+    return '/user-panel';
   }
 
   toggleDropdown() {

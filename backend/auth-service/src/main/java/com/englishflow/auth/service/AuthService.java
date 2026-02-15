@@ -64,8 +64,13 @@ public class AuthService {
                 .build();
         activationTokenRepository.save(token);
 
-        // Send activation email
-        emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), activationToken);
+        // Send activation email (ne pas bloquer si ça échoue)
+        try {
+            emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), activationToken);
+        } catch (Exception e) {
+            System.err.println("Failed to send activation email: " + e.getMessage());
+            // Continue anyway - admin can activate manually
+        }
 
         // Return response without JWT (user must activate first)
         return new AuthResponse(

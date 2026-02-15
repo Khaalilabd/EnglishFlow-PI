@@ -1,0 +1,940 @@
+<div class="w-full">
+  <!-- Welcome Header -->
+  <div class="bg-gradient-to-r from-[#2D5757] via-[#356666] to-[#3D3D60] rounded-2xl p-8 mb-8 text-white shadow-xl relative overflow-hidden">
+    <!-- Decorative elements -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
+    
+    <div class="flex items-center justify-between relative z-10">
+      <div>
+        <h1 class="text-3xl font-bold mb-2 flex items-center gap-3 tracking-tight">
+          <span class="text-4xl">🎯</span>
+          My English Clubs
+        </h1>
+        <p class="text-gray-100 text-base leading-relaxed tracking-tight">Join clubs to practice English with other students and improve your skills</p>
+      </div>
+      <button
+        (click)="openCreateModal()"
+        class="inline-flex items-center px-6 py-3 bg-[#F6BD60] text-gray-900 rounded-xl hover:bg-[#e5ac4f] transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform tracking-tight"
+      >
+        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Create New Club
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
+    </div>
+  } @else if (error) {
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+        </div>
+        <button
+          (click)="loadClubs()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  } @else {
+    <!-- My Clubs Section -->
+    <div>
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div class="flex items-center gap-4">
+          <div class="bg-gradient-to-br from-[#2D5757] to-[#3D3D60] p-3 rounded-xl shadow-lg">
+            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-bold text-gray-900 tracking-tight">My Clubs</h2>
+            <p class="text-sm text-gray-600 tracking-tight">{{ filteredClubs.length }} club{{ filteredClubs.length !== 1 ? 's' : '' }} found</p>
+          </div>
+        </div>
+        
+        <!-- Category Filter -->
+        <div class="flex flex-wrap gap-2">
+          <button
+            (click)="filterByCategory(null)"
+            [class.bg-gradient-to-r]="selectedCategory === null"
+            [class.from-[#2D5757]]="selectedCategory === null"
+            [class.to-[#3D3D60]]="selectedCategory === null"
+            [class.text-white]="selectedCategory === null"
+            [class.shadow-lg]="selectedCategory === null"
+            [class.bg-gray-100]="selectedCategory !== null"
+            [class.text-gray-700]="selectedCategory !== null"
+            [class.hover:bg-gray-200]="selectedCategory !== null"
+            class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300"
+          >
+            All Categories
+          </button>
+          @for (cat of categories; track cat) {
+            <button
+              (click)="filterByCategory(cat)"
+              [class.bg-gradient-to-r]="selectedCategory === cat"
+              [class.from-[#2D5757]]="selectedCategory === cat"
+              [class.to-[#3D3D60]]="selectedCategory === cat"
+              [class.text-white]="selectedCategory === cat"
+              [class.shadow-lg]="selectedCategory === cat"
+              [class.bg-gray-100]="selectedCategory !== cat"
+              [class.text-gray-700]="selectedCategory !== cat"
+              [class.hover:bg-gray-200]="selectedCategory !== cat"
+              class="px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300"
+            >
+              {{ cat }}
+            </button>
+          }
+        </div>
+      </div>
+      
+      @if (filteredClubs.length > 0) {
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          @for (club of filteredClubs; track club.id) {
+            <div class="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100">
+              <!-- Club Image Header -->
+              @if (club.image) {
+                <div class="h-48 w-full overflow-hidden relative group bg-gray-100">
+                  <img 
+                    [src]="club.image" 
+                    [alt]="club.name" 
+                    class="w-full h-full object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                  />
+                  <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                  
+                  <!-- Member Count Badge -->
+                  <div class="absolute top-3 right-3 px-3 py-1.5 bg-white/95 backdrop-blur-sm rounded-full text-sm font-bold shadow-lg">
+                    <span class="text-[#2D5757]">{{ club.currentMembersCount || 0 }}</span>
+                    <span class="text-gray-400">/{{ club.maxMembers }}</span>
+                  </div>
+                  
+                  <!-- Club Name Overlay -->
+                  <div class="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 class="text-lg font-bold text-white drop-shadow-lg tracking-tight">{{ club.name }}</h3>
+                  </div>
+                </div>
+              } @else {
+                <!-- Club Header with Category Color (fallback) -->
+                <div class="p-6 relative h-48 flex flex-col justify-between" [ngClass]="getCategoryColorClass(club.category)">
+                  <div class="flex items-center justify-between relative z-10">
+                    <span class="text-4xl">{{ getCategoryIcon(club.category) }}</span>
+                    <span class="px-3 py-1.5 bg-white rounded-full text-sm font-bold text-gray-700 shadow-md">
+                      {{ club.currentMembersCount || 0 }}/{{ club.maxMembers }}
+                    </span>
+                  </div>
+                  <div class="relative z-10">
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ club.name }}</h3>
+                    <p class="text-sm text-gray-700 line-clamp-2">{{ club.description }}</p>
+                  </div>
+                </div>
+              }
+
+              <!-- Club Body -->
+              <div class="p-5 bg-white">
+                @if (club.image) {
+                  <p class="text-sm text-gray-600 line-clamp-3 mb-4 leading-relaxed tracking-tight">{{ club.description }}</p>
+                } @else {
+                  <h3 class="text-lg font-bold text-gray-900 mb-2 tracking-tight">{{ club.name }}</h3>
+                  <p class="text-sm text-gray-600 line-clamp-3 mb-4 leading-relaxed tracking-tight">{{ club.description }}</p>
+                }
+                
+                <!-- Status Alert for PENDING or REJECTED -->
+                @if (club.status === ClubStatus.PENDING) {
+                  <div class="mb-4 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <div class="flex items-start">
+                      <span class="text-amber-600 mr-2">⏳</span>
+                      <div class="flex-1">
+                        <p class="text-xs font-semibold text-amber-800">Pending Review</p>
+                        <p class="text-xs text-amber-700 mt-1">Your club request is awaiting approval from an Academic Affairs Officer.</p>
+                      </div>
+                    </div>
+                  </div>
+                } @else if (club.status === ClubStatus.REJECTED) {
+                  <div class="mb-4 bg-red-50 border border-red-200 rounded-lg p-3">
+                    <div class="flex items-start">
+                      <span class="text-red-600 mr-2">❌</span>
+                      <div class="flex-1">
+                        <p class="text-xs font-semibold text-red-800">Request Rejected</p>
+                        @if (club.reviewComment) {
+                          <p class="text-xs text-red-700 mt-1">{{ club.reviewComment }}</p>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+                
+                <!-- Category and Status Badges -->
+                <div class="mb-4 flex flex-wrap gap-2">
+                  <span [class]="'inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full tracking-wide uppercase ' + getCategoryBadgeClass(club.category)">
+                    {{ club.category }}
+                  </span>
+                  <span [class]="'inline-flex items-center px-3 py-1.5 text-xs font-bold rounded-full tracking-wide uppercase ' + getStatusBadgeClass(club.status)">
+                    @if (club.status === ClubStatus.PENDING) {
+                      ⏳ PENDING
+                    } @else if (club.status === ClubStatus.APPROVED) {
+                      ✅ APPROVED
+                    } @else if (club.status === ClubStatus.REJECTED) {
+                      ❌ REJECTED
+                    }
+                  </span>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex gap-2">
+                  <button
+                    (click)="openDetailsModal(club)"
+                    class="flex-1 px-4 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#2D5757] to-[#3D3D60] rounded-lg hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+                  >
+                    <span class="mr-1">👁️</span> View Details
+                  </button>
+                  @if (isClubCreator(club)) {
+                    <button
+                      (click)="openEditModal(club)"
+                      class="px-4 py-2.5 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-300"
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      (click)="deleteClub(club.id!)"
+                      class="px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all duration-300"
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+                  } @else {
+                    <button
+                      (click)="leaveClub(club.id!)"
+                      class="px-4 py-2.5 text-sm font-semibold text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-all duration-300"
+                      title="Leave Club"
+                    >
+                      🚪
+                    </button>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="bg-white rounded-xl p-12 text-center shadow-sm">
+          @if (selectedCategory !== null) {
+            <span class="text-6xl mb-4 block">{{ getCategoryIcon(selectedCategory) }}</span>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No {{ selectedCategory }} clubs</h3>
+            <p class="text-sm text-gray-600 mb-4">You don't have any {{ selectedCategory }} clubs yet.</p>
+            <button
+              (click)="filterByCategory(null)"
+              class="inline-flex items-center px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+            >
+              View All Clubs
+            </button>
+          } @else {
+            <span class="text-6xl mb-4 block">📚</span>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">No clubs yet</h3>
+            <p class="text-sm text-gray-600 mb-4">Create your first club to get started!</p>
+            <button
+              (click)="openCreateModal()"
+              class="inline-flex items-center px-4 py-2 bg-[#F6BD60] text-gray-900 rounded-lg hover:bg-[#e5ac4f] transition-colors font-semibold"
+            >
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Create First Club
+            </button>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Create Club Modal -->
+@if (showCreateModal) {
+  <div class="fixed inset-0 z-50 overflow-y-auto" style="background-color: rgba(0,0,0,0.5);">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Create New Club</h3>
+          <button
+            (click)="closeCreateModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          @if (createError) {
+            <div class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-red-800 dark:text-red-200">{{ createError }}</p>
+              </div>
+            </div>
+          }
+
+          <form [formGroup]="clubForm" (ngSubmit)="createClub()" class="space-y-4">
+            <!-- Club Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Enter club name"
+                [class.border-red-500]="isFieldInvalid('name')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              @if (isFieldInvalid('name')) {
+                <p class="mt-1 text-sm text-red-600">
+                  @if (clubForm.get('name')?.errors?.['required']) {
+                    Club name is required
+                  }
+                  @if (clubForm.get('name')?.errors?.['minlength']) {
+                    Club name must be at least 3 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select
+                formControlName="category"
+                [class.border-red-500]="isFieldInvalid('category')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Select a category</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('category')) {
+                <p class="mt-1 text-sm text-red-600">Category is required</p>
+              }
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Description <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                formControlName="description"
+                rows="4"
+                placeholder="Describe your club..."
+                [class.border-red-500]="isFieldInvalid('description')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              ></textarea>
+              @if (isFieldInvalid('description')) {
+                <p class="mt-1 text-sm text-red-600">
+                  @if (clubForm.get('description')?.errors?.['required']) {
+                    Description is required
+                  }
+                  @if (clubForm.get('description')?.errors?.['minlength']) {
+                    Description must be at least 10 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Objective -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Objective
+              </label>
+              <textarea
+                formControlName="objective"
+                rows="3"
+                placeholder="What is the main objective of this club?"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              ></textarea>
+            </div>
+
+            <!-- Maximum Members -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Maximum Members <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="maxMembers"
+                min="5"
+                max="100"
+                [class.border-red-500]="isFieldInvalid('maxMembers')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              @if (isFieldInvalid('maxMembers')) {
+                <p class="mt-1 text-sm text-red-600">Maximum members must be between 5 and 100</p>
+              }
+            </div>
+
+            <!-- Image Upload -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Image (optional)
+              </label>
+              <div class="flex items-center gap-4">
+                <label class="flex-1 cursor-pointer">
+                  <div class="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-500 transition-colors text-center">
+                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ selectedImageFile ? selectedImageFile.name : 'Click to upload image' }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onImageSelected($event)"
+                    class="hidden"
+                  />
+                </label>
+                @if (imagePreview) {
+                  <div class="relative">
+                    <img [src]="imagePreview" alt="Preview" class="w-20 h-20 object-cover rounded-lg border-2 border-gray-300" />
+                    <button
+                      type="button"
+                      (click)="imagePreview = null; selectedImageFile = null"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            (click)="closeCreateModal()"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="createClub()"
+            [disabled]="creating"
+            class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (creating) {
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            }
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Create Club
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+
+<!-- Edit Club Modal -->
+@if (showEditModal && editingClub) {
+  <div class="fixed inset-0 z-50 overflow-y-auto" style="background-color: rgba(0,0,0,0.5);">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-2xl w-full">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">Edit Club</h3>
+          <button
+            (click)="closeEditModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6">
+          @if (updateError) {
+            <div class="mb-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <p class="text-red-800 dark:text-red-200">{{ updateError }}</p>
+              </div>
+            </div>
+          }
+
+          <form [formGroup]="editForm" (ngSubmit)="updateClub()" class="space-y-4">
+            <!-- Club Name -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="Enter club name"
+                [class.border-red-500]="isEditFieldInvalid('name')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              @if (isEditFieldInvalid('name')) {
+                <p class="mt-1 text-sm text-red-600">
+                  @if (editForm.get('name')?.errors?.['required']) {
+                    Club name is required
+                  }
+                  @if (editForm.get('name')?.errors?.['minlength']) {
+                    Club name must be at least 3 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select
+                formControlName="category"
+                [class.border-red-500]="isEditFieldInvalid('category')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              >
+                <option value="">Select a category</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              @if (isEditFieldInvalid('category')) {
+                <p class="mt-1 text-sm text-red-600">Category is required</p>
+              }
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Description <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                formControlName="description"
+                rows="4"
+                placeholder="Describe your club..."
+                [class.border-red-500]="isEditFieldInvalid('description')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              ></textarea>
+              @if (isEditFieldInvalid('description')) {
+                <p class="mt-1 text-sm text-red-600">
+                  @if (editForm.get('description')?.errors?.['required']) {
+                    Description is required
+                  }
+                  @if (editForm.get('description')?.errors?.['minlength']) {
+                    Description must be at least 10 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Objective -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Objective
+              </label>
+              <textarea
+                formControlName="objective"
+                rows="3"
+                placeholder="What is the main objective of this club?"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              ></textarea>
+            </div>
+
+            <!-- Maximum Members -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Maximum Members <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="maxMembers"
+                min="5"
+                max="100"
+                [class.border-red-500]="isEditFieldInvalid('maxMembers')"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              @if (isEditFieldInvalid('maxMembers')) {
+                <p class="mt-1 text-sm text-red-600">Maximum members must be between 5 and 100</p>
+              }
+            </div>
+
+            <!-- Image Upload -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Club Image (optional)
+              </label>
+              <div class="flex items-center gap-4">
+                <label class="flex-1 cursor-pointer">
+                  <div class="w-full px-4 py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-primary-500 transition-colors text-center">
+                    <svg class="w-8 h-8 mx-auto mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                      {{ editImageFile ? editImageFile.name : (editingClub.image ? 'Change image' : 'Click to upload image') }}
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onEditImageSelected($event)"
+                    class="hidden"
+                  />
+                </label>
+                @if (editImagePreview || editingClub.image) {
+                  <div class="relative">
+                    <img [src]="editImagePreview || editingClub.image" alt="Preview" class="w-20 h-20 object-cover rounded-lg border-2 border-gray-300" />
+                    <button
+                      type="button"
+                      (click)="editImagePreview = null; editImageFile = null"
+                      class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
+                    >
+                      ×
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            (click)="closeEditModal()"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            (click)="updateClub()"
+            [disabled]="updating"
+            class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            @if (updating) {
+              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            }
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+            Update Club
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Details Modal -->
+@if (showDetailsModal && selectedClub) {
+  <div class="fixed inset-0 z-50 overflow-y-auto" style="background-color: rgba(0,0,0,0.5);">
+    <div class="flex items-center justify-center min-h-screen px-4">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-3xl w-full">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-3">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white">{{ selectedClub.name }}</h3>
+            <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + getCategoryBadgeClass(selectedClub.category)">
+              {{ selectedClub.category }}
+            </span>
+          </div>
+          <button
+            (click)="closeDetailsModal()"
+            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="p-6 space-y-6">
+          <!-- Club Image -->
+          @if (selectedClub.image) {
+            <div class="w-full h-80 rounded-2xl overflow-hidden shadow-lg bg-gray-100 relative group">
+              <img 
+                [src]="selectedClub.image" 
+                [alt]="selectedClub.name" 
+                class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                loading="lazy"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
+          }
+          
+          <!-- Description (Collapsible) -->
+          <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              (click)="toggleDescription()"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            >
+              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"></path>
+                </svg>
+                Description
+              </h4>
+              <svg 
+                [class.rotate-180]="showDescription"
+                class="w-5 h-5 text-gray-500 transition-transform duration-200" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </button>
+            @if (showDescription) {
+              <div class="p-4 bg-white dark:bg-gray-800 animate-fadeIn">
+                <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ selectedClub.description }}</p>
+              </div>
+            }
+          </div>
+
+          <!-- Objective (Collapsible) -->
+          @if (selectedClub.objective) {
+            <div class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+              <button
+                (click)="toggleObjective()"
+                class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              >
+                <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <svg class="w-5 h-5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                  </svg>
+                  Objectif
+                </h4>
+                <svg 
+                  [class.rotate-180]="showObjective"
+                  class="w-5 h-5 text-gray-500 transition-transform duration-200" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              @if (showObjective) {
+                <div class="p-4 bg-white dark:bg-gray-800 animate-fadeIn">
+                  <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ selectedClub.objective }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Stats -->
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Members</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                    {{ selectedClub.currentMembersCount || 0 }} / {{ selectedClub.maxMembers }}
+                  </p>
+                </div>
+                <svg class="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
+                  <p class="text-2xl font-bold text-gray-900 dark:text-white">
+                    {{ selectedClub.isFull ? 'Full' : 'Open' }}
+                  </p>
+                </div>
+                <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Members List -->
+          @if (selectedClub.members && selectedClub.members.length > 0) {
+            <div>
+              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                </svg>
+                Members
+              </h4>
+              <div class="space-y-2 max-h-60 overflow-y-auto">
+                @for (member of selectedClub.members; track member.id) {
+                  <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div class="flex items-center gap-3">
+                      <div class="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-semibold">
+                        {{ member.userId }}
+                      </div>
+                      <div>
+                        <p class="text-sm font-medium text-gray-900 dark:text-white">User #{{ member.userId }}</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Joined {{ member.joinedAt | date:'short' }}</p>
+                      </div>
+                    </div>
+                    <span [class]="'px-2 py-1 text-xs font-semibold rounded-full ' + (member.rank === 'PRESIDENT' ? 'text-yellow-800 bg-yellow-100 dark:text-yellow-200 dark:bg-yellow-900' : 'text-gray-800 bg-gray-100 dark:text-gray-200 dark:bg-gray-900')">
+                      {{ member.rank }}
+                    </span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Task List -->
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h4 class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                </svg>
+                Club Tasks
+              </h4>
+              <div class="flex items-center gap-2 text-xs">
+                <span class="px-2 py-1 rounded-full bg-gray-100 text-gray-700 font-medium">
+                  {{ getTaskCountByStatus(selectedClub.id!, TaskStatus.TODO) }} À faire
+                </span>
+                <span class="px-2 py-1 rounded-full bg-blue-100 text-blue-700 font-medium">
+                  {{ getTaskCountByStatus(selectedClub.id!, TaskStatus.IN_PROGRESS) }} En cours
+                </span>
+                <span class="px-2 py-1 rounded-full bg-green-100 text-green-700 font-medium">
+                  {{ getTaskCountByStatus(selectedClub.id!, TaskStatus.DONE) }} Terminé
+                </span>
+              </div>
+            </div>
+
+            <!-- Add Task Form -->
+            <div class="flex gap-2 mb-4">
+              <input
+                type="text"
+                [(ngModel)]="newTaskText"
+                (keyup.enter)="addTask(selectedClub.id!)"
+                placeholder="Add a new task..."
+                class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#2D5757] focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+              />
+              <button
+                (click)="addTask(selectedClub.id!)"
+                [disabled]="!newTaskText.trim()"
+                class="px-4 py-2 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-lg hover:shadow-lg transition-all duration-300 font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Task List -->
+            @if (loadingTasks) {
+              <div class="text-center py-8">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#2D5757] mx-auto"></div>
+                <p class="text-sm text-gray-500 mt-2">Loading tasks...</p>
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-64 overflow-y-auto">
+                @if (getTasksForClub(selectedClub.id!).length === 0) {
+                  <div class="text-center py-8 text-gray-500 dark:text-gray-400">
+                    <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    </svg>
+                    <p class="text-sm">No tasks yet. Add your first task above!</p>
+                  </div>
+                } @else {
+                  @for (task of getTasksForClub(selectedClub.id!); track task.id) {
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                      <!-- Status Selector styled as Badge -->
+                      <div class="relative inline-block">
+                        <select
+                          [value]="task.status"
+                          (change)="updateTaskStatus(selectedClub.id!, task.id!, $any($event.target).value)"
+                          [class]="'task-status-select px-4 py-1.5 pr-8 text-xs font-bold rounded-lg cursor-pointer border-0 transition-all hover:shadow-md ' + getTaskStatusColor(task.status)"
+                          title="Cliquer pour changer le statut"
+                        >
+                          <option [value]="TaskStatus.TODO">{{ getTaskStatusLabel(TaskStatus.TODO) }}</option>
+                          <option [value]="TaskStatus.IN_PROGRESS">{{ getTaskStatusLabel(TaskStatus.IN_PROGRESS) }}</option>
+                          <option [value]="TaskStatus.DONE">{{ getTaskStatusLabel(TaskStatus.DONE) }}</option>
+                        </select>
+                        <!-- Chevron icon -->
+                        <svg class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none opacity-70" fill="currentColor" viewBox="0 0 20 20">
+                          <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                        </svg>
+                      </div>
+                      
+                      <span [class.line-through]="task.status === TaskStatus.DONE" [class.text-gray-400]="task.status === TaskStatus.DONE" class="flex-1 text-sm text-gray-900 dark:text-white">
+                        {{ task.text }}
+                      </span>
+                      
+                      <button
+                        (click)="deleteTask(selectedClub.id!, task.id!)"
+                        class="opacity-0 group-hover:opacity-100 text-red-500 hover:text-red-700 transition-all"
+                        title="Delete task"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+          <button
+            type="button"
+            (click)="closeDetailsModal()"
+            class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -80,6 +80,54 @@ public class ClubService {
         clubRepository.deleteById(id);
     }
     
+    // Méthodes pour le workflow d'approbation
+    @Transactional(readOnly = true)
+    public List<ClubDTO> getPendingClubs() {
+        return clubRepository.findByStatus(com.englishflow.club.enums.ClubStatus.PENDING).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<ClubDTO> getApprovedClubs() {
+        return clubRepository.findByStatus(com.englishflow.club.enums.ClubStatus.APPROVED).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<ClubDTO> getClubsByUser(Integer userId) {
+        return clubRepository.findByCreatedBy(userId).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public ClubDTO approveClub(Integer id, Integer reviewerId, String comment) {
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Club not found with id: " + id));
+        
+        club.setStatus(com.englishflow.club.enums.ClubStatus.APPROVED);
+        club.setReviewedBy(reviewerId);
+        club.setReviewComment(comment);
+        
+        Club updatedClub = clubRepository.save(club);
+        return convertToDTO(updatedClub);
+    }
+    
+    @Transactional
+    public ClubDTO rejectClub(Integer id, Integer reviewerId, String comment) {
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Club not found with id: " + id));
+        
+        club.setStatus(com.englishflow.club.enums.ClubStatus.REJECTED);
+        club.setReviewedBy(reviewerId);
+        club.setReviewComment(comment);
+        
+        Club updatedClub = clubRepository.save(club);
+        return convertToDTO(updatedClub);
+    }
+    
     private ClubDTO convertToDTO(Club club) {
         return ClubDTO.builder()
                 .id(club.getId())
@@ -89,6 +137,12 @@ public class ClubService {
                 .category(club.getCategory())
                 .maxMembers(club.getMaxMembers())
                 .image(club.getImage())
+                .status(club.getStatus())
+                .createdBy(club.getCreatedBy())
+                .reviewedBy(club.getReviewedBy())
+                .reviewComment(club.getReviewComment())
+                .createdAt(club.getCreatedAt())
+                .updatedAt(club.getUpdatedAt())
                 .build();
     }
     
@@ -100,6 +154,7 @@ public class ClubService {
                 .category(clubDTO.getCategory())
                 .maxMembers(clubDTO.getMaxMembers())
                 .image(clubDTO.getImage())
+                .createdBy(clubDTO.getCreatedBy())
                 .build();
     }
 }
