@@ -44,7 +44,7 @@ import { CommonModule } from '@angular/common';
               <span class="text-2xl font-bold" [ngClass]="{
                 'text-green-600': course.progress >= 80,
                 'text-yellow-600': course.progress >= 50 && course.progress < 80,
-                'text-orange-600': course.progress < 50
+                'text-amber-600': course.progress < 50
               }">{{ course.progress }}%</span>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-3">
@@ -52,7 +52,7 @@ import { CommonModule } from '@angular/common';
                    [ngClass]="{
                      'bg-green-500': course.progress >= 80,
                      'bg-yellow-500': course.progress >= 50 && course.progress < 80,
-                     'bg-orange-500': course.progress < 50
+                     'bg-amber-500': course.progress < 50
                    }"
                    [style.width.%]="course.progress"></div>
             </div>

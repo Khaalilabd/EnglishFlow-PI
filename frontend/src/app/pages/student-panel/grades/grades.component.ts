@@ -21,7 +21,7 @@ import { CommonModule } from '@angular/common';
           <p class="text-4xl font-bold mt-2">12</p>
           <p class="text-sm mt-2">Assignments</p>
         </div>
-        <div class="bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white">
+        <div class="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-6 text-white">
           <p class="text-sm opacity-90">Pending</p>
           <p class="text-4xl font-bold mt-2">2</p>
           <p class="text-sm mt-2">Assignments</p>

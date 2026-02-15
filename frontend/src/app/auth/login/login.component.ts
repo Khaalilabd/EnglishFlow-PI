@@ -71,10 +71,10 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login successful:', response);
         // Redirect based on user role
-        if (response.role === 'STUDENT') {
-          this.router.navigate(['/']); // Landing page for students
+        if (response.role === 'ADMIN') {
+          this.router.navigate(['/dashboard']); // Admin dashboard
         } else {
-          this.router.navigate(['/dashboard']); // Dashboard for admin/tutor
+          this.router.navigate(['/']); // Landing page for students and tutors
         }
       },
       error: (error) => {

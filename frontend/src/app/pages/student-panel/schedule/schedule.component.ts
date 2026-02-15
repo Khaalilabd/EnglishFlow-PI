@@ -19,7 +19,7 @@ import { CommonModule } from '@angular/common';
         <div class="grid grid-cols-7 gap-4">
           <div *ngFor="let date of dates" 
                class="aspect-square flex items-center justify-center rounded-lg hover:bg-gray-50 cursor-pointer"
-               [ngClass]="{'bg-[#F6BD60] text-white font-bold': date === 15}">
+               [ngClass]="{'bg-[#F59E0B] text-white font-bold': date === 15}">
             {{ date }}
           </div>
         </div>
@@ -29,7 +29,7 @@ import { CommonModule } from '@angular/common';
         <h2 class="text-xl font-bold text-gray-900 mb-4">Upcoming Classes</h2>
         <div class="space-y-3">
           <div *ngFor="let class of upcomingClasses" 
-               class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-[#F6BD60] transition-colors">
+               class="flex items-center gap-4 p-4 border border-gray-200 rounded-lg hover:border-[#F59E0B] transition-colors">
             <div class="text-3xl">{{ class.icon }}</div>
             <div class="flex-1">
               <h3 class="font-semibold text-gray-900">{{ class.title }}</h3>

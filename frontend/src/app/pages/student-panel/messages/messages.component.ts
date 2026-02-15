@@ -33,7 +33,7 @@ interface ChatMessage {
             <input 
               type="text" 
               placeholder="Search conversations..." 
-              class="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F6BD60]"
+              class="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
             />
           </div>
           
@@ -61,7 +61,7 @@ interface ChatMessage {
                 </div>
                 <span 
                   *ngIf="contact.unread > 0"
-                  class="px-2 py-1 bg-[#F6BD60] text-white text-xs rounded-full font-semibold"
+                  class="px-2 py-1 bg-[#F59E0B] text-white text-xs rounded-full font-semibold"
                 >
                   {{ contact.unread }}
                 </span>
@@ -111,11 +111,11 @@ interface ChatMessage {
                   (keyup.enter)="sendMessage()"
                   type="text" 
                   placeholder="Type your message..." 
-                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F6BD60]"
+                  class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
                 />
                 <button 
                   (click)="sendMessage()"
-                  class="px-6 py-2 bg-[#F6BD60] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors"
+                  class="px-6 py-2 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors"
                 >
                   Send
                 </button>

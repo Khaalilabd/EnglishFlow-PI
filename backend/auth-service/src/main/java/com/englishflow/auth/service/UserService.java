@@ -89,42 +89,54 @@ public class UserService {
 
     @Transactional
     public UserDTO createTutor(CreateTutorRequest request) {
-        // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+        try {
+            // Validate request
+            if (request.getEmail() == null || request.getEmail().isEmpty()) {
+                throw new RuntimeException("Email is required");
+            }
+            if (request.getPassword() == null || request.getPassword().isEmpty()) {
+                throw new RuntimeException("Password is required");
+            }
+            
+            // Check if email already exists
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists: " + request.getEmail());
+            }
+
+            // Check if CIN already exists
+            if (request.getCin() != null && !request.getCin().isEmpty()) {
+                userRepository.findAll().stream()
+                    .filter(u -> request.getCin().equals(u.getCin()))
+                    .findFirst()
+                    .ifPresent(u -> {
+                        throw new RuntimeException("CIN already exists: " + request.getCin());
+                    });
+            }
+
+            // Create new tutor user
+            User tutor = new User();
+            tutor.setFirstName(request.getFirstName());
+            tutor.setLastName(request.getLastName());
+            tutor.setEmail(request.getEmail());
+            tutor.setPhone(request.getPhone());
+            tutor.setCin(request.getCin());
+            tutor.setDateOfBirth(request.getDateOfBirth());
+            tutor.setAddress(request.getAddress());
+            tutor.setCity(request.getCity());
+            tutor.setPostalCode(request.getPostalCode());
+            tutor.setYearsOfExperience(request.getYearsOfExperience());
+            tutor.setBio(request.getBio());
+            tutor.setRole(User.Role.TUTOR);
+            tutor.setActive(true);
+            tutor.setRegistrationFeePaid(false);
+            
+            // Encode password
+            tutor.setPassword(passwordEncoder.encode(request.getPassword()));
+
+            User savedTutor = userRepository.save(tutor);
+            return UserDTO.fromEntity(savedTutor);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create tutor: " + e.getMessage(), e);
         }
-
-        // Check if CIN already exists
-        if (request.getCin() != null && !request.getCin().isEmpty()) {
-            userRepository.findAll().stream()
-                .filter(u -> request.getCin().equals(u.getCin()))
-                .findFirst()
-                .ifPresent(u -> {
-                    throw new RuntimeException("CIN already exists: " + request.getCin());
-                });
-        }
-
-        // Create new tutor user
-        User tutor = new User();
-        tutor.setFirstName(request.getFirstName());
-        tutor.setLastName(request.getLastName());
-        tutor.setEmail(request.getEmail());
-        tutor.setPhone(request.getPhone());
-        tutor.setCin(request.getCin());
-        tutor.setDateOfBirth(request.getDateOfBirth());
-        tutor.setAddress(request.getAddress());
-        tutor.setCity(request.getCity());
-        tutor.setPostalCode(request.getPostalCode());
-        tutor.setYearsOfExperience(request.getYearsOfExperience());
-        tutor.setBio(request.getBio());
-        tutor.setRole(User.Role.TUTOR);
-        tutor.setActive(true);
-        tutor.setRegistrationFeePaid(false);
-        
-        // Encode password
-        tutor.setPassword(passwordEncoder.encode(request.getPassword()));
-
-        User savedTutor = userRepository.save(tutor);
-        return UserDTO.fromEntity(savedTutor);
     }
 }

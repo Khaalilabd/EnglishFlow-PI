@@ -77,7 +77,7 @@ export class StudentPanelComponent implements OnInit {
       title: 'Assignments',
       value: '2',
       icon: '📝',
-      color: 'from-orange-500 to-orange-600',
+      color: 'from-amber-500 to-amber-600',
       change: 'Due soon',
       changeType: 'down'
     },
@@ -101,7 +101,7 @@ export class StudentPanelComponent implements OnInit {
       instructor: 'By Sarah Johnson',
       progress: 50,
       icon: '📚',
-      color: 'bg-orange-100',
+      color: 'bg-amber-100',
       students: ['https://i.pravatar.cc/40?img=1', 'https://i.pravatar.cc/40?img=2', 'https://i.pravatar.cc/40?img=3'],
       lessons: 12,
       duration: '8 weeks'
@@ -139,11 +139,11 @@ export class StudentPanelComponent implements OnInit {
   ];
 
   upcomingClasses: UpcomingClass[] = [
-    { id: 1, time: '10:00', title: 'Business English', instructor: 'July 09, 11:30pm', date: '', icon: '💼', color: 'bg-orange-100' },
-    { id: 2, time: '11:00', title: 'Grammar Basics', instructor: 'July 09, 11:30pm', date: '', icon: '📚', color: 'bg-orange-100' },
-    { id: 3, time: '13:00', title: 'Pronunciation', instructor: 'July 06, 11:30pm', date: '', icon: '🎤', color: 'bg-orange-100' },
-    { id: 4, time: '15:00', title: 'Conversation', instructor: 'July 09, 11:30pm', date: '', icon: '💬', color: 'bg-orange-100' },
-    { id: 5, time: '17:00', title: 'Vocabulary', instructor: 'July 09, 11:30pm', date: '', icon: '📖', color: 'bg-orange-100' }
+    { id: 1, time: '10:00', title: 'Business English', instructor: 'July 09, 11:30pm', date: '', icon: '💼', color: 'bg-amber-100' },
+    { id: 2, time: '11:00', title: 'Grammar Basics', instructor: 'July 09, 11:30pm', date: '', icon: '📚', color: 'bg-amber-100' },
+    { id: 3, time: '13:00', title: 'Pronunciation', instructor: 'July 06, 11:30pm', date: '', icon: '🎤', color: 'bg-amber-100' },
+    { id: 4, time: '15:00', title: 'Conversation', instructor: 'July 09, 11:30pm', date: '', icon: '💬', color: 'bg-amber-100' },
+    { id: 5, time: '17:00', title: 'Vocabulary', instructor: 'July 09, 11:30pm', date: '', icon: '📖', color: 'bg-amber-100' }
   ];
 
   calendarDays: number[] = [];

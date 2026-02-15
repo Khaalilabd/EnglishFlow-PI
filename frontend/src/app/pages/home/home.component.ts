@@ -19,6 +19,22 @@ export class HomeComponent implements OnInit, AfterViewInit {
   
   constructor(public authService: AuthService) {}
 
+  get userPanelLabel(): string {
+    const user = this.authService.currentUserValue;
+    if (user?.role === 'TUTOR') {
+      return 'Tutor Panel';
+    }
+    return 'User Panel';
+  }
+
+  get userPanelRoute(): string {
+    const user = this.authService.currentUserValue;
+    if (user?.role === 'TUTOR') {
+      return '/tutor-panel';
+    }
+    return '/user-panel';
+  }
+
   toggleMobileMenu() {
     this.mobileMenuOpen = !this.mobileMenuOpen;
   }

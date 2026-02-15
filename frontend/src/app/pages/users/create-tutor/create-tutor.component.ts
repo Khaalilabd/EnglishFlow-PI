@@ -122,8 +122,19 @@ export class CreateTutorComponent {
       },
       error: (error) => {
         this.loading = false;
-        this.errorMessage = error.error?.message || 'Failed to create tutor. Please try again.';
-        console.error('Error creating tutor:', error);
+        console.error('Full error object:', error);
+        console.error('Error status:', error.status);
+        console.error('Error message:', error.error);
+        
+        if (error.error?.message) {
+          this.errorMessage = error.error.message;
+        } else if (error.message) {
+          this.errorMessage = error.message;
+        } else if (error.status === 0) {
+          this.errorMessage = 'Cannot connect to server. Please make sure the backend is running on port 8081.';
+        } else {
+          this.errorMessage = `Failed to create tutor (Error ${error.status}). Please try again.`;
+        }
       }
     });
   }

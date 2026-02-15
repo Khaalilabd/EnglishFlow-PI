@@ -874,7 +874,7 @@
     <!-- Streak Animation Overlay -->
     <div *ngIf="showStreakAnimation" 
          class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 rounded-lg animate-fade-in-up">
-      <div class="bg-gradient-to-r from-orange-500 to-red-500 text-white px-8 py-6 rounded-2xl shadow-2xl animate-bounce-in text-center">
+      <div class="bg-gradient-to-r from-amber-500 to-red-500 text-white px-8 py-6 rounded-2xl shadow-2xl animate-bounce-in text-center">
         <div class="text-6xl mb-2">🔥</div>
         <div class="text-2xl font-bold">{{ streakMessage }}</div>
       </div>
@@ -888,7 +888,7 @@
         
         <!-- Streak Indicator -->
         <div *ngIf="currentStreak > 0" class="flex items-center gap-2 mt-2">
-          <span class="text-sm font-semibold text-orange-600 flex items-center gap-1">
+          <span class="text-sm font-semibold text-amber-600 flex items-center gap-1">
             <span *ngIf="currentStreak >= 3" class="animate-pulse">🔥</span>
             <span *ngIf="currentStreak >= 5" class="animate-pulse">🔥🔥</span>
             {{ currentStreak }} Streak! 

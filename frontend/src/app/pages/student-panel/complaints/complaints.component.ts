@@ -21,7 +21,7 @@ import { FormsModule } from '@angular/forms';
               [(ngModel)]="newComplaint.subject"
               name="subject"
               placeholder="Brief description of your issue"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F6BD60]"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
             />
           </div>
 
@@ -30,7 +30,7 @@ import { FormsModule } from '@angular/forms';
             <select 
               [(ngModel)]="newComplaint.category"
               name="category"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F6BD60]"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
             >
               <option value="">Select a category</option>
               <option value="technical">Technical Issue</option>
@@ -48,13 +48,13 @@ import { FormsModule } from '@angular/forms';
               name="description"
               rows="5"
               placeholder="Please provide detailed information about your complaint"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F6BD60]"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
             ></textarea>
           </div>
 
           <button 
             type="submit"
-            class="px-6 py-3 bg-[#F6BD60] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors font-semibold"
+            class="px-6 py-3 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors font-semibold"
           >
             Submit Complaint
           </button>
@@ -66,7 +66,7 @@ import { FormsModule } from '@angular/forms';
         <h2 class="text-xl font-bold text-gray-900 mb-4">My Complaints</h2>
         <div class="space-y-4">
           <div *ngFor="let complaint of complaints" 
-               class="border border-gray-200 rounded-lg p-4 hover:border-[#F6BD60] transition-colors">
+               class="border border-gray-200 rounded-lg p-4 hover:border-[#F59E0B] transition-colors">
             <div class="flex items-start justify-between mb-2">
               <div>
                 <h3 class="font-semibold text-gray-900">{{ complaint.subject }}</h3>

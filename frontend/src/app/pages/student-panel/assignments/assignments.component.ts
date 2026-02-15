@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
         <h1 class="text-3xl font-bold text-gray-900">Assignments</h1>
         <div class="flex gap-2">
           <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">All</button>
-          <button class="px-4 py-2 bg-[#F6BD60] text-white rounded-lg">Pending</button>
+          <button class="px-4 py-2 bg-[#F59E0B] text-white rounded-lg">Pending</button>
           <button class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50">Completed</button>
         </div>
       </div>

@@ -54,9 +54,9 @@ import { CommonModule } from '@angular/common';
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div *ngFor="let plan of plans" 
                class="border-2 rounded-xl p-6"
-               [ngClass]="plan.popular ? 'border-[#F6BD60]' : 'border-gray-200'">
+               [ngClass]="plan.popular ? 'border-[#F59E0B]' : 'border-gray-200'">
             <div *ngIf="plan.popular" class="text-center mb-3">
-              <span class="bg-[#F6BD60] text-white px-3 py-1 rounded-full text-xs font-semibold">
+              <span class="bg-[#F59E0B] text-white px-3 py-1 rounded-full text-xs font-semibold">
                 Most Popular
               </span>
             </div>
@@ -72,7 +72,7 @@ import { CommonModule } from '@angular/common';
               </li>
             </ul>
             <button class="w-full py-2 rounded-lg font-semibold transition-colors"
-                    [ngClass]="plan.popular ? 'bg-[#F6BD60] text-white hover:bg-[#e5ac4f]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
+                    [ngClass]="plan.popular ? 'bg-[#F59E0B] text-white hover:bg-[#e5ac4f]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'">
               {{ plan.current ? 'Current Plan' : 'Upgrade' }}
             </button>
           </div>

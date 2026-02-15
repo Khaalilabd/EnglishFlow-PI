@@ -12,6 +12,11 @@ export class SidebarService {
   isExpanded$ = this.isExpandedSubject.asObservable();
   isMobileOpen$ = this.isMobileOpenSubject.asObservable();
   isHovered$ = this.isHoveredSubject.asObservable();
+  
+  // Alias pour compatibilité avec tutor panel
+  get collapsed$() {
+    return this.isExpanded$;
+  }
 
   setExpanded(val: boolean) {
     this.isExpandedSubject.next(val);
@@ -19,6 +24,11 @@ export class SidebarService {
 
   toggleExpanded() {
     this.isExpandedSubject.next(!this.isExpandedSubject.value);
+  }
+  
+  // Alias pour compatibilité avec tutor panel
+  toggle() {
+    this.toggleExpanded();
   }
 
   setMobileOpen(val: boolean) {

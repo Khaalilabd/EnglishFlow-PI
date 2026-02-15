@@ -26,6 +26,7 @@ import { ResetPasswordComponent } from './auth/reset-password/reset-password.com
 import { ActivateComponent } from './auth/activate/activate.component';
 import { OAuth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback.component';
 import { StudentLayoutComponent } from './shared/layout/student-layout/student-layout.component';
+import { TutorLayoutComponent } from './shared/layout/tutor-layout/tutor-layout.component';
 
 export const routes: Routes = [
   // Page d'accueil Jungle in English
@@ -103,6 +104,79 @@ export const routes: Routes = [
         path: 'complaints',
         loadComponent: () => import('./pages/student-panel/complaints/complaints.component').then(m => m.ComplaintsComponent),
         title: 'Complaints | Jungle in English'
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.SettingsComponent),
+        title: 'Settings | Jungle in English'
+      }
+    ]
+  },
+  
+  // Tutor Panel avec layout et sidebar
+  {
+    path: 'tutor-panel',
+    component: TutorLayoutComponent,
+    children: [
+      {
+        path: '',
+        loadComponent: () => import('./pages/tutor-panel/tutor-panel.component').then(m => m.TutorPanelComponent),
+        title: 'Tutor Dashboard | Jungle in English'
+      },
+      {
+        path: 'courses',
+        loadComponent: () => import('./pages/student-panel/courses/courses.component').then(m => m.CoursesComponent),
+        title: 'My Courses | Jungle in English'
+      },
+      {
+        path: 'quiz-management',
+        loadComponent: () => import('./pages/tutor-panel/quiz-management/quiz-management.component').then(m => m.QuizManagementComponent),
+        title: 'Quiz Management | Jungle in English'
+      },
+      {
+        path: 'quiz-management/create',
+        loadComponent: () => import('./pages/tutor-panel/quiz-create/quiz-create.component').then(m => m.QuizCreateComponent),
+        title: 'Create Quiz | Jungle in English'
+      },
+      {
+        path: 'quiz-management/edit/:id',
+        loadComponent: () => import('./pages/tutor-panel/quiz-create/quiz-create.component').then(m => m.QuizCreateComponent),
+        title: 'Edit Quiz | Jungle in English'
+      },
+      {
+        path: 'ebooks',
+        loadComponent: () => import('./pages/student-panel/ebooks/ebooks.component').then(m => m.EbooksComponent),
+        title: 'Ebooks | Jungle in English'
+      },
+      {
+        path: 'schedule',
+        loadComponent: () => import('./pages/student-panel/schedule/schedule.component').then(m => m.ScheduleComponent),
+        title: 'Schedule | Jungle in English'
+      },
+      {
+        path: 'students',
+        loadComponent: () => import('./pages/users/students/students.component').then(m => m.StudentsComponent),
+        title: 'My Students | Jungle in English'
+      },
+      {
+        path: 'assignments',
+        loadComponent: () => import('./pages/student-panel/assignments/assignments.component').then(m => m.AssignmentsComponent),
+        title: 'Assignments | Jungle in English'
+      },
+      {
+        path: 'analytics',
+        loadComponent: () => import('./pages/student-panel/progress/progress.component').then(m => m.ProgressComponent),
+        title: 'Analytics | Jungle in English'
+      },
+      {
+        path: 'messages',
+        loadComponent: () => import('./pages/student-panel/messages/messages.component').then(m => m.MessagesComponent),
+        title: 'Messages | Jungle in English'
+      },
+      {
+        path: 'support',
+        loadComponent: () => import('./pages/student-panel/support/support.component').then(m => m.SupportComponent),
+        title: 'Help & Support | Jungle in English'
       },
       {
         path: 'settings',

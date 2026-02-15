@@ -28,7 +28,7 @@
           class="text-xs px-2 py-1 rounded-full font-medium"
           [ngClass]="{
             'bg-green-100 text-green-700': stat.changeType === 'up',
-            'bg-orange-100 text-orange-700': stat.changeType === 'down'
+            'bg-amber-100 text-amber-700': stat.changeType === 'down'
           }"
         >
           {{ stat.change }}
@@ -49,7 +49,7 @@
       <div>
         <div class="flex items-center justify-between mb-4">
           <h2 class="text-xl font-bold text-gray-900">My Courses</h2>
-          <a routerLink="/user-panel/courses" class="text-[#F6BD60] hover:text-[#e5ac4f] text-sm font-semibold">
+          <a routerLink="/user-panel/courses" class="text-[#F59E0B] hover:text-[#e5ac4f] text-sm font-semibold">
             View All →
           </a>
         </div>
@@ -81,7 +81,7 @@
                 </div>
                 <div class="w-full bg-gray-200 rounded-full h-1.5">
                   <div 
-                    class="bg-gradient-to-r from-[#F6BD60] to-[#C84630] h-1.5 rounded-full"
+                    class="bg-gradient-to-r from-[#F59E0B] to-[#C84630] h-1.5 rounded-full"
                     [style.width.%]="course.progress"
                   ></div>
                 </div>
@@ -209,7 +209,7 @@
             (click)="selectDate(day)"
             class="aspect-square flex items-center justify-center text-sm rounded-lg cursor-pointer transition-all"
             [ngClass]="{
-              'bg-[#F6BD60] text-white font-bold': day === selectedDate,
+              'bg-[#F59E0B] text-white font-bold': day === selectedDate,
               'hover:bg-gray-100 text-gray-700': day !== selectedDate
             }"
           >

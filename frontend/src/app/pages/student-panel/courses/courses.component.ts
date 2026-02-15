@@ -29,7 +29,7 @@ interface Course {
           <h1 class="text-3xl font-bold text-gray-900">My Courses</h1>
           <p class="text-gray-600 mt-1">Continue learning and track your progress</p>
         </div>
-        <button class="px-4 py-2 bg-[#F6BD60] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors">
+        <button class="px-4 py-2 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors">
           Browse More Courses
         </button>
       </div>
@@ -70,7 +70,7 @@ interface Course {
               </div>
               <div class="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  class="bg-gradient-to-r from-[#F6BD60] to-[#C84630] h-2 rounded-full transition-all duration-500"
+                  class="bg-gradient-to-r from-[#F59E0B] to-[#C84630] h-2 rounded-full transition-all duration-500"
                   [style.width.%]="course.progress"
                 ></div>
               </div>
@@ -101,7 +101,7 @@ export class CoursesComponent {
       instructorAvatar: 'https://i.pravatar.cc/100?img=1',
       progress: 50,
       icon: '📚',
-      color: 'bg-orange-100',
+      color: 'bg-amber-100',
       lessons: 12,
       duration: '8 weeks',
       enrolled: '2 months ago',
