@@ -48,17 +48,31 @@ services:
     networks:
       - englishflow-network
 
-  # PostgreSQL Database
+  # PostgreSQL Database for Auth Service
   postgres:
     image: postgres:15-alpine
     environment:
-      POSTGRES_DB: englishflow
+      POSTGRES_DB: englishflow_identity
       POSTGRES_USER: englishflow
       POSTGRES_PASSWORD: englishflow123
     ports:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - englishflow-network
+
+  # PostgreSQL Database for Learning Service
+  postgres-learning:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: learning_db
+      POSTGRES_USER: englishflow
+      POSTGRES_PASSWORD: englishflow123
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-learning-data:/var/lib/postgresql/data
     networks:
       - englishflow-network
 
@@ -76,3 +90,4 @@ networks:
 
 volumes:
   postgres-data:
+  postgres-learning-data:

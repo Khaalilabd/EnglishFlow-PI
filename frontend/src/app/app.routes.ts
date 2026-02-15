@@ -80,6 +80,11 @@ export const routes: Routes = [
         title: 'Quizzes | Jungle in English'
       },
       {
+        path: 'ebooks',
+        loadComponent: () => import('./pages/student-panel/ebooks/ebooks.component').then(m => m.EbooksComponent),
+        title: 'Ebooks | Jungle in English'
+      },
+      {
         path: 'progress',
         loadComponent: () => import('./pages/student-panel/progress/progress.component').then(m => m.ProgressComponent),
         title: 'My Progress | Jungle in English'
