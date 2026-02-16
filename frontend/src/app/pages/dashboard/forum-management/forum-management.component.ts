@@ -458,12 +458,37 @@ export class ForumManagementComponent implements OnInit {
 
   // Category Management (TODO: Implement API)
   submitNewCategory(): void {
-    Swal.fire({
-      title: 'Coming Soon',
-      text: 'Category creation API will be available soon',
-      icon: 'info',
-      confirmButtonColor: '#2D5757'
-    });
+    if (this.isCategoryFormValid()) {
+      const request = {
+        name: this.newCategory.name,
+        description: this.newCategory.description,
+        icon: this.newCategory.icon,
+        color: this.newCategory.color
+      };
+
+      this.forumService.createCategory(request).subscribe({
+        next: (category) => {
+          Swal.fire({
+            title: 'Success!',
+            text: 'Category created successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.closeNewCategoryModal();
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('Error creating category:', err);
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to create category',
+            icon: 'error',
+            confirmButtonColor: '#dc2626'
+          });
+        }
+      });
+    }
   }
 
   isCategoryFormValid(): boolean {
@@ -481,12 +506,36 @@ export class ForumManagementComponent implements OnInit {
 
   // SubCategory Management (TODO: Implement API)
   submitNewSubCategory(): void {
-    Swal.fire({
-      title: 'Coming Soon',
-      text: 'SubCategory creation API will be available soon',
-      icon: 'info',
-      confirmButtonColor: '#2D5757'
-    });
+    if (this.isSubCategoryFormValid()) {
+      const request = {
+        categoryId: this.newSubCategory.categoryId,
+        name: this.newSubCategory.name,
+        description: this.newSubCategory.description
+      };
+
+      this.forumService.createSubCategory(request).subscribe({
+        next: (subCategory) => {
+          Swal.fire({
+            title: 'Success!',
+            text: 'Subcategory created successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.closeNewSubCategoryModal();
+          this.loadCategories();
+        },
+        error: (err) => {
+          console.error('Error creating subcategory:', err);
+          Swal.fire({
+            title: 'Error',
+            text: 'Failed to create subcategory',
+            icon: 'error',
+            confirmButtonColor: '#dc2626'
+          });
+        }
+      });
+    }
   }
 
   isSubCategoryFormValid(): boolean {
@@ -503,5 +552,81 @@ export class ForumManagementComponent implements OnInit {
       name: '',
       description: ''
     };
+  }
+
+  deleteSubCategory(subCategoryId: number, subCategoryName: string): void {
+    Swal.fire({
+      title: 'Delete Subcategory',
+      text: `Are you sure you want to delete "${subCategoryName}"? All topics in this subcategory will also be deleted.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.forumService.deleteSubCategory(subCategoryId).subscribe({
+          next: () => {
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'The subcategory has been successfully deleted.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            this.loadCategories();
+          },
+          error: (err) => {
+            console.error('Error deleting subcategory:', err);
+            Swal.fire({
+              title: 'Error',
+              text: 'Failed to delete subcategory',
+              icon: 'error',
+              confirmButtonColor: '#dc2626'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  deleteCategory(categoryId: number, categoryName: string): void {
+    Swal.fire({
+      title: 'Delete Category',
+      text: `Are you sure you want to delete "${categoryName}"? All subcategories and topics will also be deleted.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc2626',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      reverseButtons: true
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.forumService.deleteCategory(categoryId).subscribe({
+          next: () => {
+            Swal.fire({
+              title: 'Deleted!',
+              text: 'The category has been successfully deleted.',
+              icon: 'success',
+              timer: 2000,
+              showConfirmButton: false
+            });
+            this.loadCategories();
+          },
+          error: (err) => {
+            console.error('Error deleting category:', err);
+            Swal.fire({
+              title: 'Error',
+              text: 'Failed to delete category',
+              icon: 'error',
+              confirmButtonColor: '#dc2626'
+            });
+          }
+        });
+      }
+    });
   }
 }

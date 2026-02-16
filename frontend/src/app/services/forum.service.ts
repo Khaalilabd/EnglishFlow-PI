@@ -58,6 +58,19 @@ export interface CreatePostRequest {
   userName: string;
 }
 
+export interface CreateCategoryRequest {
+  name: string;
+  description: string;
+  icon: string;
+  color: string;
+}
+
+export interface CreateSubCategoryRequest {
+  categoryId: number;
+  name: string;
+  description: string;
+}
+
 export interface PageResponse<T> {
   content: T[];
   totalElements: number;
@@ -70,7 +83,7 @@ export interface PageResponse<T> {
   providedIn: 'root'
 })
 export class ForumService {
-  private apiUrl = 'http://localhost:8082/api/community';
+  private apiUrl = 'http://localhost:8080/api/community';
 
   constructor(private http: HttpClient) {}
 
@@ -85,6 +98,30 @@ export class ForumService {
 
   initializeCategories(): Observable<string> {
     return this.http.post<string>(`${this.apiUrl}/categories/initialize`, {});
+  }
+
+  createCategory(request: CreateCategoryRequest): Observable<Category> {
+    return this.http.post<Category>(`${this.apiUrl}/categories`, request);
+  }
+
+  updateCategory(id: number, request: CreateCategoryRequest): Observable<Category> {
+    return this.http.put<Category>(`${this.apiUrl}/categories/${id}`, request);
+  }
+
+  deleteCategory(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/categories/${id}`);
+  }
+
+  createSubCategory(request: CreateSubCategoryRequest): Observable<SubCategory> {
+    return this.http.post<SubCategory>(`${this.apiUrl}/categories/subcategories`, request);
+  }
+
+  updateSubCategory(id: number, request: CreateSubCategoryRequest): Observable<SubCategory> {
+    return this.http.put<SubCategory>(`${this.apiUrl}/categories/subcategories/${id}`, request);
+  }
+
+  deleteSubCategory(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/categories/subcategories/${id}`);
   }
 
   // Topics

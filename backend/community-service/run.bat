@@ -1,3 +1,0 @@
-@echo off
-echo Starting Community Service...
-mvn spring-boot:run

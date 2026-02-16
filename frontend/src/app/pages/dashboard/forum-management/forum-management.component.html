@@ -102,6 +102,12 @@
                   title="View Topics">
                   <i class="fas fa-arrow-right"></i>
                 </button>
+                <button
+                  (click)="deleteSubCategory(sub.id, sub.name)"
+                  class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                  title="Delete Subcategory">
+                  <i class="fas fa-trash"></i>
+                </button>
               </div>
             </div>
           </div>
@@ -402,9 +408,10 @@
         <input 
           type="text"
           [(ngModel)]="newCategory.name"
-          placeholder="E.g.: General Discussions"
+          placeholder="E.g.: 🏠 General Discussions"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2D5757] focus:border-transparent transition-all"
           maxlength="100">
+        <p class="text-xs text-gray-500 mt-1">Tip: Add emojis at the start for visual appeal (e.g., 🏠 📚 🎭 🎉 💡)</p>
       </div>
 
       <!-- Description -->
@@ -431,17 +438,6 @@
           placeholder="E.g.: fa-home"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2D5757] focus:border-transparent transition-all">
         <p class="text-xs text-gray-500 mt-1">Preview: <i class="fas" [ngClass]="newCategory.icon"></i></p>
-      </div>
-
-      <!-- Info Box -->
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div class="flex gap-3">
-          <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
-          <div>
-            <h4 class="font-semibold text-gray-900 text-sm mb-1">Coming Soon</h4>
-            <p class="text-xs text-gray-600">Category creation API is under development. This feature will be available soon.</p>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -512,9 +508,10 @@
         <input 
           type="text"
           [(ngModel)]="newSubCategory.name"
-          placeholder="E.g.: Student Introductions"
+          placeholder="E.g.: 👋 Student Introductions"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all"
           maxlength="100">
+        <p class="text-xs text-gray-500 mt-1">Tip: Add emojis at the start (e.g., 👋 📢 ❓ 📖 🗣️ ✍️ 💬)</p>
       </div>
 
       <!-- Description -->
@@ -528,17 +525,6 @@
           rows="4"
           class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all resize-none"
           maxlength="500"></textarea>
-      </div>
-
-      <!-- Info Box -->
-      <div class="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div class="flex gap-3">
-          <i class="fas fa-info-circle text-blue-600 mt-0.5"></i>
-          <div>
-            <h4 class="font-semibold text-gray-900 text-sm mb-1">Coming Soon</h4>
-            <p class="text-xs text-gray-600">Subcategory creation API is under development. This feature will be available soon.</p>
-          </div>
-        </div>
       </div>
     </div>
 
