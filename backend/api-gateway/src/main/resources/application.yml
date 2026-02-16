@@ -1,11 +1,11 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8080}
 
 spring:
   application:
     name: api-gateway
   config:
-    import: optional:configserver:http://localhost:8888
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
   cloud:
     config:
       enabled: false
@@ -19,6 +19,20 @@ spring:
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+            
+        - id: learning-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/learning/**
+          filters:
+            - StripPrefix=1
+            
+        - id: club-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/clubs/**
           filters:
             - StripPrefix=1
             
@@ -49,17 +63,10 @@ spring:
             - Path=/api/notifications/**
           filters:
             - StripPrefix=1
-            
-        - id: club-service
-          uri: lb://club-service
-          predicates:
-            - Path=/api/clubs/**
-          filters:
-            - StripPrefix=1
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "http://localhost:4200"
+            allowed-origins: "${FRONTEND_URL:http://localhost:4200}"
             allowed-methods:
               - GET
               - POST
@@ -72,7 +79,7 @@ spring:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
   instance:
