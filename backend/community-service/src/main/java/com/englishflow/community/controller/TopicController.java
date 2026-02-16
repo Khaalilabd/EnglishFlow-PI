@@ -63,4 +63,28 @@ public class TopicController {
         topicService.deleteTopic(id);
         return ResponseEntity.noContent().build();
     }
+    
+    @PutMapping("/{id}/pin")
+    public ResponseEntity<TopicDTO> pinTopic(@PathVariable Long id) {
+        TopicDTO topic = topicService.pinTopic(id);
+        return ResponseEntity.ok(topic);
+    }
+    
+    @PutMapping("/{id}/unpin")
+    public ResponseEntity<TopicDTO> unpinTopic(@PathVariable Long id) {
+        TopicDTO topic = topicService.unpinTopic(id);
+        return ResponseEntity.ok(topic);
+    }
+    
+    @PutMapping("/{id}/lock")
+    public ResponseEntity<TopicDTO> lockTopic(@PathVariable Long id) {
+        TopicDTO topic = topicService.lockTopic(id);
+        return ResponseEntity.ok(topic);
+    }
+    
+    @PutMapping("/{id}/unlock")
+    public ResponseEntity<TopicDTO> unlockTopic(@PathVariable Long id) {
+        TopicDTO topic = topicService.unlockTopic(id);
+        return ResponseEntity.ok(topic);
+    }
 }

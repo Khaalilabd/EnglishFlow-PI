@@ -113,6 +113,16 @@ export const routes: Routes = [
         title: 'Community Forum | Jungle in English'
       },
       {
+        path: 'forum/topics/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Topics | Jungle in English'
+      },
+      {
+        path: 'forum/topic/:topicId',
+        loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
+        title: 'Topic Details | Jungle in English'
+      },
+      {
         path: 'subscription',
         loadComponent: () => import('./pages/student-panel/subscription/subscription.component').then(m => m.SubscriptionComponent),
         title: 'My Subscription | Jungle in English'
@@ -344,6 +354,21 @@ export const routes: Routes = [
         path: 'feedbacks',
         loadComponent: () => import('./pages/dashboard/feedbacks/feedbacks.component').then(m => m.FeedbacksComponent),
         title: 'Manage Feedbacks | Jungle in English Dashboard'
+      },
+      {
+        path: 'forum',
+        loadComponent: () => import('./pages/dashboard/forum-management/forum-management.component').then(m => m.ForumManagementComponent),
+        title: 'Forum Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'forum/topics/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Topics | Jungle in English Dashboard'
+      },
+      {
+        path: 'forum/topic/:topicId',
+        loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
+        title: 'Topic Details | Jungle in English Dashboard'
       },
       {
         path: 'clubs',

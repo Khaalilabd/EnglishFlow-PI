@@ -130,4 +130,21 @@ export class ForumService {
   deletePost(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/posts/${id}`);
   }
+
+  // Topic Moderation
+  pinTopic(id: number): Observable<Topic> {
+    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}/pin`, {});
+  }
+
+  unpinTopic(id: number): Observable<Topic> {
+    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}/unpin`, {});
+  }
+
+  lockTopic(id: number): Observable<Topic> {
+    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}/lock`, {});
+  }
+
+  unlockTopic(id: number): Observable<Topic> {
+    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}/unlock`, {});
+  }
 }

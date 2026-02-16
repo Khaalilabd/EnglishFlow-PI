@@ -195,6 +195,16 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
+  // 💬 FORUM MANAGEMENT - Pour ADMIN et ACADEMIC_OFFICE_AFFAIR
+  forumManagementItems: NavItem[] = [
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 4.48122 4.48122 3.25 6 3.25H18C19.5188 3.25 20.75 4.48122 20.75 6V14C20.75 15.5188 19.5188 16.75 18 16.75H13.5L9.31802 19.8453C8.89676 20.1099 8.34199 20.0677 7.96967 19.7462C7.59735 19.4247 7.5 18.8972 7.72361 18.4722L8.5 17H6C4.48122 17 3.25 15.7688 3.25 14V6ZM6 4.75C5.30964 4.75 4.75 5.30964 4.75 6V14C4.75 14.6904 5.30964 15.25 6 15.25H9C9.30341 15.25 9.58835 15.3949 9.76393 15.6389L9.18198 16.6547L12.682 14.0297C12.8576 13.8951 13.0759 13.8214 13.3 13.8214H18C18.6904 13.8214 19.25 13.2618 19.25 12.5714V6C19.25 5.30964 18.6904 4.75 18 4.75H6Z" fill="currentColor"/><path d="M7.25 8C7.25 7.58579 7.58579 7.25 8 7.25H16C16.4142 7.25 16.75 7.58579 16.75 8C16.75 8.41421 16.4142 8.75 16 8.75H8C7.58579 8.75 7.25 8.41421 7.25 8Z" fill="currentColor"/><path d="M7.25 11C7.25 10.5858 7.58579 10.25 8 10.25H13C13.4142 10.25 13.75 10.5858 13.75 11C13.75 11.4142 13.4142 11.75 13 11.75H8C7.58579 11.75 7.25 11.4142 7.25 11Z" fill="currentColor"/></svg>`,
+      name: "Forum Management",
+      path: "/dashboard/forum",
+      roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
+    }
+  ];
+
   // 📦 AUTRES - Pour développement futur
   othersItems: NavItem[] = [
     {

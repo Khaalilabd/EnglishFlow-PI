@@ -1,0 +1,347 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <button 
+      (click)="goBack()"
+      class="flex items-center gap-2 text-gray-600 hover:text-primary mb-4 transition-colors">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Topics</span>
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading topic...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bg-error-50 border border-error-200 rounded-xl p-4 mb-6">
+    <p class="text-error-700">{{ error }}</p>
+    <button (click)="loadTopic()" class="mt-2 text-error-600 hover:text-error-700 font-medium">
+      Retry
+    </button>
+  </div>
+
+  <!-- Topic Content -->
+  <div *ngIf="!loading && !error && topic" class="space-y-6">
+    <!-- Topic Card -->
+    <div [class]="'rounded-2xl shadow-theme-sm border overflow-hidden ' + 
+                 (topic.isPinned ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300' : 
+                  topic.isLocked ? 'bg-gray-50 border-gray-300' : 
+                  'bg-white border-gray-100')">
+      
+      <!-- Pinned/Locked Badge -->
+      <div *ngIf="topic.isPinned || topic.isLocked" class="px-6 pt-4">
+        <span *ngIf="topic.isPinned" class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full shadow-sm">
+          <i class="fas fa-thumbtack"></i>
+          PINNED TOPIC
+        </span>
+        <span *ngIf="topic.isLocked && !topic.isPinned" class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded-full shadow-sm">
+          <i class="fas fa-lock"></i>
+          LOCKED - No new replies allowed
+        </span>
+      </div>
+      
+      <!-- Topic Header -->
+      <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-[#F7EDE2] to-white">
+        <div class="flex items-start gap-4">
+          <div class="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-accent-navy flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+            {{ topic.userName.charAt(0).toUpperCase() }}
+          </div>
+          <div class="flex-1">
+            <h1 [class]="'text-2xl font-bold mb-2 ' + 
+                        (topic.isPinned ? 'text-amber-900' : 
+                         topic.isLocked ? 'text-gray-600' : 
+                         'text-gray-900')">
+              {{ topic.title }}
+            </h1>
+            <div class="flex items-center gap-4 text-sm text-gray-600">
+              <span class="font-medium">{{ topic.userName }}</span>
+              <span>•</span>
+              <span>{{ getTimeAgo(topic.createdAt) }}</span>
+              <span>•</span>
+              <div class="flex items-center gap-1">
+                <i class="fas fa-eye"></i>
+                <span>{{ topic.viewsCount }} views</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Topic Content -->
+      <div class="p-6">
+        <div class="prose max-w-none text-gray-700 whitespace-pre-wrap">{{ topic.content }}</div>
+      </div>
+
+      <!-- Topic Footer -->
+      <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
+        <div class="flex items-center gap-4 text-sm text-gray-600">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-comment"></i>
+            <span>{{ topic.postsCount }} {{ topic.postsCount === 1 ? 'reply' : 'replies' }}</span>
+          </div>
+        </div>
+        <button 
+          (click)="openReplyModal()"
+          *ngIf="!topic.isLocked"
+          class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all shadow-theme-sm hover:shadow-theme-md flex items-center gap-2 text-sm font-medium">
+          <i class="fas fa-reply"></i>
+          <span>Reply</span>
+        </button>
+        <div *ngIf="topic.isLocked" class="flex items-center gap-2 text-gray-500 text-sm">
+          <i class="fas fa-lock"></i>
+          <span>This topic is locked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Replies Section -->
+    <div class="bg-white rounded-2xl shadow-theme-sm border border-gray-100 overflow-hidden">
+      <!-- Replies Header -->
+      <div class="p-6 border-b border-gray-100">
+        <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+          <i class="fas fa-comments text-primary-600"></i>
+          <span>Replies ({{ totalElements }})</span>
+        </h2>
+      </div>
+
+      <!-- Loading Posts -->
+      <div *ngIf="loadingPosts" class="p-12 text-center">
+        <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-primary mx-auto mb-3"></div>
+        <p class="text-gray-600 text-sm">Loading replies...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loadingPosts && posts.length === 0" class="p-12 text-center">
+        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-comment-slash text-gray-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">No replies yet</h3>
+        <p class="text-gray-600 mb-6">Be the first to reply to this topic!</p>
+        <button 
+          (click)="openReplyModal()"
+          *ngIf="!topic.isLocked"
+          class="px-6 py-3 bg-primary text-white rounded-xl hover:bg-primary-600 transition-all">
+          Write a Reply
+        </button>
+      </div>
+
+      <!-- Posts List -->
+      <div *ngIf="!loadingPosts && posts.length > 0" class="divide-y divide-gray-100">
+        <div *ngFor="let post of posts; let i = index" class="p-6 hover:bg-gray-50 transition-colors">
+          <div class="flex items-start gap-4">
+            <!-- Avatar -->
+            <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#F6BD60] to-[#C84630] flex items-center justify-center text-white font-semibold flex-shrink-0">
+              {{ post.userName.charAt(0).toUpperCase() }}
+            </div>
+
+            <!-- Post Content -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <div class="flex items-center gap-3 mb-1">
+                    <span class="font-semibold text-gray-900">{{ post.userName }}</span>
+                    <span class="text-xs text-gray-500">{{ getTimeAgo(post.createdAt) }}</span>
+                    <span *ngIf="post.updatedAt !== post.createdAt" class="text-xs text-gray-400 italic">
+                      (edited)
+                    </span>
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-gray-500">
+                    <span>#{{ i + 1 + (currentPage * pageSize) }}</span>
+                  </div>
+                </div>
+
+                <!-- Actions -->
+                <div *ngIf="canEditOrDelete(post)" class="flex items-center gap-2">
+                  <button 
+                    (click)="openEditPostModal($event, post)"
+                    class="p-2 text-[#1a1a1a] hover:text-[#1a1a1a] hover:bg-[#faf8f3] rounded-lg transition-all duration-200 group"
+                    title="Edit">
+                    <svg 
+                      class="w-4 h-4 group-hover:scale-110 transition-transform duration-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path 
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Z"/>
+                      <path 
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
+                    </svg>
+                  </button>
+                  <button 
+                    (click)="deletePost($event, post.id)"
+                    class="p-2 text-[#1a1a1a] hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+                    title="Delete">
+                    <svg 
+                      class="w-4 h-4 group-hover:scale-110 transition-transform duration-200"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24">
+                      <path 
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Post Text -->
+              <div class="prose max-w-none text-gray-700 whitespace-pre-wrap">{{ post.content }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="!loadingPosts && totalPages > 1" class="p-6 border-t border-gray-100 flex items-center justify-center gap-4">
+        <button 
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          [class.opacity-50]="currentPage === 0"
+          [class.cursor-not-allowed]="currentPage === 0"
+          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:hover:bg-white">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        
+        <span class="text-gray-600 text-sm">
+          Page {{ currentPage + 1 }} of {{ totalPages }}
+        </span>
+        
+        <button 
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          [class.opacity-50]="currentPage >= totalPages - 1"
+          [class.cursor-not-allowed]="currentPage >= totalPages - 1"
+          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:hover:bg-white">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Reply Modal -->
+<div *ngIf="showReplyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fade-in">
+  <div class="bg-white rounded-2xl shadow-theme-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+    <!-- Modal Header -->
+    <div class="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#F7EDE2] to-white">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-gradient-to-br from-[#F59E0B] to-[#C84630] rounded-lg flex items-center justify-center">
+          <i class="fas fa-reply text-white"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Write a Reply</h2>
+          <p class="text-sm text-gray-600">Share your thoughts on this topic</p>
+        </div>
+      </div>
+      <button 
+        (click)="closeReplyModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Your Reply <span class="text-error-500">*</span>
+        </label>
+        <textarea 
+          [(ngModel)]="newPost.content"
+          placeholder="Write your reply here..."
+          rows="10"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+          maxlength="5000"></textarea>
+        <p class="text-xs text-gray-500 mt-1">{{ newPost.content.length }}/5000 characters</p>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+      <button 
+        (click)="closeReplyModal()"
+        class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium">
+        Cancel
+      </button>
+      <button 
+        (click)="submitReply()"
+        [disabled]="!isFormValid()"
+        [class.opacity-50]="!isFormValid()"
+        [class.cursor-not-allowed]="!isFormValid()"
+        class="px-6 py-2.5 bg-gradient-to-r from-[#F59E0B] to-[#C84630] text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fas fa-paper-plane mr-2"></i>
+        Post Reply
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Post Modal -->
+<div *ngIf="showEditPostModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fade-in">
+  <div class="bg-white rounded-2xl shadow-theme-xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
+    <!-- Modal Header -->
+    <div class="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#F7EDE2] to-white">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-primary-50 rounded-lg flex items-center justify-center">
+          <i class="fas fa-edit text-primary-600"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900">Edit Reply</h2>
+          <p class="text-sm text-gray-600">Update your reply</p>
+        </div>
+      </div>
+      <button 
+        (click)="closeEditPostModal()"
+        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <div>
+        <label class="block text-sm font-semibold text-gray-900 mb-2">
+          Content <span class="text-error-500">*</span>
+        </label>
+        <textarea 
+          [(ngModel)]="newPost.content"
+          placeholder="Write your reply here..."
+          rows="10"
+          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all resize-none"
+          maxlength="5000"></textarea>
+        <p class="text-xs text-gray-500 mt-1">{{ newPost.content.length }}/5000 characters</p>
+      </div>
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
+      <button 
+        (click)="closeEditPostModal()"
+        class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium">
+        Cancel
+      </button>
+      <button 
+        (click)="submitEditPost()"
+        [disabled]="!isFormValid()"
+        [class.opacity-50]="!isFormValid()"
+        [class.cursor-not-allowed]="!isFormValid()"
+        class="px-6 py-2.5 bg-primary text-white rounded-xl hover:bg-primary-600 transition-all font-medium shadow-theme-sm hover:shadow-theme-md disabled:hover:bg-primary disabled:hover:shadow-theme-sm">
+        <i class="fas fa-save mr-2"></i>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>

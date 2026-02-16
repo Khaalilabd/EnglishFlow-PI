@@ -161,6 +161,27 @@
         </div>
         }
 
+        <!-- FORUM MANAGEMENT - ADMIN et ACADEMIC_OFFICE_AFFAIR -->
+        @if (currentUserRole === 'ADMIN' || currentUserRole === 'ACADEMIC_OFFICE_AFFAIR') {
+        <div>
+          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
+            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 💬 FORUM } @else { 💬 }
+          </h2>
+          <ul class="flex flex-col gap-1">
+            @for (nav of forumManagementItems; track $index) {
+            <li>
+              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
+                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
+                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
+                <span class="menu-item-text">{{ nav.name }}</span>
+                }
+              </a>
+            </li>
+            }
+          </ul>
+        </div>
+        }
+
         <!-- SYSTEM - Tous -->
         <div>
           <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">

@@ -9,6 +9,7 @@ import Swal from 'sweetalert2';
   selector: 'app-topic-list',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
+  providers: [ForumService],
   templateUrl: './topic-list.component.html',
   styleUrl: './topic-list.component.scss'
 })
@@ -231,7 +232,13 @@ export class TopicListComponent implements OnInit {
   }
 
   goBack(): void {
-    this.router.navigate(['/user-panel/forum']);
+    // Détecter si on vient du dashboard ou du student panel
+    const currentUrl = this.router.url;
+    if (currentUrl.includes('/dashboard/')) {
+      this.router.navigate(['/dashboard/forum']);
+    } else {
+      this.router.navigate(['/user-panel/forum']);
+    }
   }
 
   getTimeAgo(date: string): string {

@@ -56,7 +56,26 @@
   <div *ngIf="!loading && !error && topics.length > 0" class="space-y-4">
     <div 
       *ngFor="let topic of topics"
-      class="bg-white rounded-xl shadow-theme-sm border border-gray-100 p-6 hover:shadow-theme-md transition-all group">
+      [class]="'rounded-xl shadow-theme-sm border p-6 hover:shadow-theme-md transition-all group ' + 
+               (topic.isPinned ? 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-300 shadow-amber-100' : 
+                topic.isLocked ? 'bg-gray-50 border-gray-300 opacity-75' : 
+                'bg-white border-gray-100')">
+      
+      <!-- Pinned Badge -->
+      <div *ngIf="topic.isPinned" class="mb-3 flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-full shadow-sm">
+          <i class="fas fa-thumbtack"></i>
+          PINNED
+        </span>
+      </div>
+
+      <!-- Locked Badge -->
+      <div *ngIf="topic.isLocked && !topic.isPinned" class="mb-3 flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-500 text-white text-xs font-bold rounded-full shadow-sm">
+          <i class="fas fa-lock"></i>
+          LOCKED
+        </span>
+      </div>
       
       <div class="flex items-start gap-4">
         <!-- Avatar -->
@@ -68,9 +87,10 @@
         <div class="flex-1 min-w-0 cursor-pointer" (click)="goToTopic(topic.id)">
           <div class="flex items-start justify-between gap-4 mb-2">
             <div class="flex-1">
-              <h3 class="text-lg font-semibold text-gray-900 group-hover:text-primary transition-colors mb-1">
-                <i *ngIf="topic.isPinned" class="fas fa-thumbtack text-primary-600 mr-2"></i>
-                <i *ngIf="topic.isLocked" class="fas fa-lock text-gray-400 mr-2"></i>
+              <h3 [class]="'text-lg font-semibold mb-1 transition-colors ' + 
+                          (topic.isPinned ? 'text-amber-900 group-hover:text-amber-700' : 
+                           topic.isLocked ? 'text-gray-600' : 
+                           'text-gray-900 group-hover:text-primary')">
                 {{ topic.title }}
               </h3>
               <div class="flex items-center gap-3 text-sm text-gray-600">

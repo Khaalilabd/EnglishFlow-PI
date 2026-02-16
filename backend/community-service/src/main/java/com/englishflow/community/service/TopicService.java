@@ -76,6 +76,42 @@ public class TopicService {
         topicRepository.deleteById(id);
     }
     
+    @Transactional
+    public TopicDTO pinTopic(Long id) {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+        topic.setIsPinned(true);
+        Topic updatedTopic = topicRepository.save(topic);
+        return convertToDTO(updatedTopic);
+    }
+    
+    @Transactional
+    public TopicDTO unpinTopic(Long id) {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+        topic.setIsPinned(false);
+        Topic updatedTopic = topicRepository.save(topic);
+        return convertToDTO(updatedTopic);
+    }
+    
+    @Transactional
+    public TopicDTO lockTopic(Long id) {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+        topic.setIsLocked(true);
+        Topic updatedTopic = topicRepository.save(topic);
+        return convertToDTO(updatedTopic);
+    }
+    
+    @Transactional
+    public TopicDTO unlockTopic(Long id) {
+        Topic topic = topicRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Topic not found"));
+        topic.setIsLocked(false);
+        Topic updatedTopic = topicRepository.save(topic);
+        return convertToDTO(updatedTopic);
+    }
+    
     private TopicDTO convertToDTO(Topic topic) {
         TopicDTO dto = new TopicDTO();
         dto.setId(topic.getId());

@@ -6,12 +6,6 @@
         <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum 💬</h1>
         <p class="text-gray-600">Exchange, learn and progress together</p>
       </div>
-      <button 
-        (click)="openNewTopicModal()"
-        class="px-6 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-lg transition-all flex items-center gap-2 font-semibold">
-        <i class="fas fa-plus"></i>
-        <span>New Topic</span>
-      </button>
     </div>
   </div>
 
@@ -65,125 +59,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- New Topic Modal -->
-<div *ngIf="showNewTopicModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 animate-fade-in">
-  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-slide-up">
-    <!-- Modal Header -->
-    <div class="p-6 border-b border-gray-200 flex items-center justify-between bg-gradient-to-r from-[#F7EDE2] to-white">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 bg-gradient-to-br from-[#F59E0B] to-[#C84630] rounded-lg flex items-center justify-center">
-          <i class="fas fa-plus text-white"></i>
-        </div>
-        <div>
-          <h2 class="text-xl font-bold text-gray-900">Create a New Topic</h2>
-          <p class="text-sm text-gray-600">Share your questions and ideas with the community</p>
-        </div>
-      </div>
-      <button 
-        (click)="closeNewTopicModal()"
-        class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-500 hover:text-gray-700">
-        <i class="fas fa-times"></i>
-      </button>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="flex-1 overflow-y-auto p-6 space-y-5">
-      <!-- Category Selection -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-900 mb-2">
-          Category <span class="text-red-500">*</span>
-        </label>
-        <select 
-          [(ngModel)]="newTopic.categoryId"
-          (ngModelChange)="onCategoryChange()"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all">
-          <option [ngValue]="0">Select a category</option>
-          <option *ngFor="let category of categories" [ngValue]="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Subcategory Selection -->
-      <div *ngIf="availableSubCategories.length > 0">
-        <label class="block text-sm font-semibold text-gray-900 mb-2">
-          Subcategory <span class="text-red-500">*</span>
-        </label>
-        <select 
-          [(ngModel)]="newTopic.subCategoryId"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all">
-          <option [ngValue]="0">Select a subcategory</option>
-          <option *ngFor="let subCat of availableSubCategories" [ngValue]="subCat.id">
-            {{ subCat.name }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Title -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-900 mb-2">
-          Topic Title <span class="text-red-500">*</span>
-        </label>
-        <input 
-          type="text"
-          [(ngModel)]="newTopic.title"
-          placeholder="E.g.: How to improve my pronunciation?"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all"
-          maxlength="150">
-        <p class="text-xs text-gray-500 mt-1">{{ newTopic.title.length }}/150 characters</p>
-      </div>
-
-      <!-- Content -->
-      <div>
-        <label class="block text-sm font-semibold text-gray-900 mb-2">
-          Content <span class="text-red-500">*</span>
-        </label>
-        <textarea 
-          [(ngModel)]="newTopic.content"
-          placeholder="Describe your question or topic in detail..."
-          rows="8"
-          class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F59E0B] focus:border-transparent transition-all resize-none"
-          maxlength="5000"></textarea>
-        <p class="text-xs text-gray-500 mt-1">{{ newTopic.content.length }}/5000 characters</p>
-      </div>
-
-      <!-- Tips -->
-      <div class="bg-[#F7EDE2] border border-[#F6BD60]/30 rounded-xl p-4">
-        <div class="flex gap-3">
-          <i class="fas fa-lightbulb text-[#F59E0B] mt-0.5"></i>
-          <div>
-            <h4 class="font-semibold text-gray-900 text-sm mb-1">Tips for a Good Topic</h4>
-            <ul class="text-xs text-gray-600 space-y-1">
-              <li>• Choose a clear and descriptive title</li>
-              <li>• Explain your question in detail</li>
-              <li>• Be respectful and courteous</li>
-              <li>• Check if your question hasn't already been asked</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="p-6 border-t border-gray-200 flex items-center justify-end gap-3">
-      <button 
-        (click)="closeNewTopicModal()"
-        class="px-6 py-2.5 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all font-medium">
-        Cancel
-      </button>
-      <button 
-        (click)="submitNewTopic()"
-        [disabled]="!isFormValid()"
-        [class.opacity-50]="!isFormValid()"
-        [class.cursor-not-allowed]="!isFormValid()"
-        class="px-6 py-2.5 bg-gradient-to-r from-[#F59E0B] to-[#C84630] text-white rounded-xl hover:shadow-lg transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed">
-        <i class="fas fa-paper-plane mr-2"></i>
-        Post Topic
-      </button>
     </div>
   </div>
 </div>
