@@ -108,6 +108,11 @@ export const routes: Routes = [
         title: 'My Progress | Jungle in English'
       },
       {
+        path: 'forum',
+        loadComponent: () => import('./pages/student-panel/forum/forum.component').then(m => m.ForumComponent),
+        title: 'Community Forum | Jungle in English'
+      },
+      {
         path: 'subscription',
         loadComponent: () => import('./pages/student-panel/subscription/subscription.component').then(m => m.SubscriptionComponent),
         title: 'My Subscription | Jungle in English'

@@ -69,6 +69,11 @@ export class StudentSidebarComponent {
     },
     {
       icon: 'fas fa-comments',
+      name: "Forum",
+      path: "/user-panel/forum",
+    },
+    {
+      icon: 'fas fa-envelope',
       name: "Messages",
       path: "/user-panel/messages",
       badge: "5",
