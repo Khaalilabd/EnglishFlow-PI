@@ -63,7 +63,7 @@ export interface UpdateUserRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081/auth/users';
+  private apiUrl = 'http://localhost:8081/auth/admin/users';
 
   constructor(private http: HttpClient) {}
 
@@ -99,12 +99,12 @@ export class UserService {
 
   // Activate user
   activateUser(id: number): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}/activate`, {});
+    return this.http.put<User>(`${this.apiUrl}/${id}/activate`, {});
   }
 
   // Deactivate user
   deactivateUser(id: number): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}/deactivate`, {});
+    return this.http.put<User>(`${this.apiUrl}/${id}/deactivate`, {});
   }
 
   // Update profile photo

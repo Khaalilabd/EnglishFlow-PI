@@ -139,4 +139,100 @@ public class UserService {
             throw new RuntimeException("Failed to create tutor: " + e.getMessage(), e);
         }
     }
+
+    @Transactional
+    public UserDTO createUser(CreateTutorRequest request) {
+        try {
+            // Validate request
+            if (request.getEmail() == null || request.getEmail().isEmpty()) {
+                throw new RuntimeException("Email is required");
+            }
+            if (request.getPassword() == null || request.getPassword().isEmpty()) {
+                throw new RuntimeException("Password is required");
+            }
+            if (request.getRole() == null || request.getRole().isEmpty()) {
+                throw new RuntimeException("Role is required");
+            }
+            
+            // Check if email already exists
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new RuntimeException("Email already exists: " + request.getEmail());
+            }
+
+            // Check if CIN already exists
+            if (request.getCin() != null && !request.getCin().isEmpty()) {
+                userRepository.findAll().stream()
+                    .filter(u -> request.getCin().equals(u.getCin()))
+                    .findFirst()
+                    .ifPresent(u -> {
+                        throw new RuntimeException("CIN already exists: " + request.getCin());
+                    });
+            }
+
+            // Parse role
+            User.Role userRole;
+            try {
+                userRole = User.Role.valueOf(request.getRole().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("Invalid role: " + request.getRole());
+            }
+
+            // Create new user
+            User user = new User();
+            user.setFirstName(request.getFirstName());
+            user.setLastName(request.getLastName());
+            user.setEmail(request.getEmail());
+            user.setPhone(request.getPhone());
+            user.setCin(request.getCin());
+            user.setDateOfBirth(request.getDateOfBirth());
+            user.setAddress(request.getAddress());
+            user.setCity(request.getCity());
+            user.setPostalCode(request.getPostalCode());
+            user.setYearsOfExperience(request.getYearsOfExperience());
+            user.setBio(request.getBio());
+            user.setEnglishLevel(request.getEnglishLevel());
+            user.setRole(userRole);
+            user.setActive(true);
+            user.setRegistrationFeePaid(false);
+            
+            // Encode password
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+
+            User savedUser = userRepository.save(user);
+            return UserDTO.fromEntity(savedUser);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create user: " + e.getMessage(), e);
+        }
+    }
+
+    @Transactional
+    public UserDTO activateUser(Long id) {
+        System.out.println("📝 UserService.activateUser called with ID: " + id);
+        
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        
+        System.out.println("👤 Found user: " + user.getEmail() + ", current status: " + user.isActive());
+        
+        user.setActive(true);
+        System.out.println("✏️ Setting user to active...");
+        
+        User updatedUser = userRepository.save(user);
+        System.out.println("💾 User saved, new status: " + updatedUser.isActive());
+        
+        UserDTO dto = UserDTO.fromEntity(updatedUser);
+        System.out.println("📦 DTO created successfully");
+        
+        return dto;
+    }
+
+    @Transactional
+    public UserDTO deactivateUser(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+        
+        user.setActive(false);
+        User updatedUser = userRepository.save(user);
+        return UserDTO.fromEntity(updatedUser);
+    }
 }

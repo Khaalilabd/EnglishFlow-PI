@@ -20,4 +20,6 @@ public class CreateTutorRequest {
     private Integer yearsOfExperience;
     private String bio;
     private String password;
+    private String role;
+    private String englishLevel;
 }

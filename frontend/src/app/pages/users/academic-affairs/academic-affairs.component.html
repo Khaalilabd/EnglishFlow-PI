@@ -1,0 +1,532 @@
+<div class="academic-affairs-management">
+  <!-- Modern Header -->
+  <div class="page-header">
+    <div class="header-container">
+      <div class="header-left">
+        <div class="icon-badge">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+        </div>
+        <div class="header-info">
+          <h1 class="page-title">Academic Affairs</h1>
+          <p class="page-description">Manage administrative staff and office personnel</p>
+        </div>
+      </div>
+      <button (click)="openCreateModal()" class="btn-add">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add Staff Member
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Overview -->
+  <div class="stats-container">
+    <div class="stat-box stat-total">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ users.length }}</span>
+        <span class="stat-label">Total Staff</span>
+      </div>
+    </div>
+
+    <div class="stat-box stat-active">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-label">Active</span>
+      </div>
+    </div>
+
+    <div class="stat-box stat-inactive">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ users.length - getActiveCount() }}</span>
+        <span class="stat-label">Inactive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filter Bar -->
+  <div class="toolbar">
+    <div class="search-container">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search by name, email, or CIN..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-tabs">
+      <button
+        [class.active]="selectedStatus === 'ALL'"
+        (click)="selectedStatus = 'ALL'; applyFilters()"
+        class="tab-btn"
+      >
+        All ({{ users.length }})
+      </button>
+      <button
+        [class.active]="selectedStatus === 'ACTIVE'"
+        (click)="selectedStatus = 'ACTIVE'; applyFilters()"
+        class="tab-btn"
+      >
+        Active ({{ getActiveCount() }})
+      </button>
+      <button
+        [class.active]="selectedStatus === 'INACTIVE'"
+        (click)="selectedStatus = 'INACTIVE'; applyFilters()"
+        class="tab-btn"
+      >
+        Inactive ({{ users.length - getActiveCount() }})
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-wrapper">
+    <div class="loader"></div>
+    <p class="loading-text">Loading staff members...</p>
+  </div>
+
+  <!-- Staff List -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="staff-list">
+    <div *ngFor="let staff of paginatedUsers" class="staff-item">
+      <div class="staff-main">
+        <div class="staff-avatar-section">
+          <div class="staff-avatar">
+            <span class="avatar-initials">{{ getUserInitials(staff) }}</span>
+          </div>
+          <div class="status-indicator" [class.status-active]="staff.isActive" [class.status-inactive]="!staff.isActive"></div>
+        </div>
+
+        <div class="staff-details">
+          <div class="staff-name-row">
+            <h3 class="staff-name">{{ staff.firstName }} {{ staff.lastName }}</h3>
+            <span class="status-badge" [class.badge-active]="staff.isActive" [class.badge-inactive]="!staff.isActive">
+              {{ staff.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          
+          <div class="staff-info-grid">
+            <div class="info-item">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+              <span class="info-text">{{ staff.email }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="staff.phone">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+              </svg>
+              <span class="info-text">{{ staff.phone }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="staff.cin">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path>
+              </svg>
+              <span class="info-text">CIN: {{ staff.cin }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="staff.city">
+              <svg class="info-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span class="info-text">{{ staff.city }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="staff-actions">
+        <button (click)="openViewModal(staff)" class="action-button btn-view" title="View Details">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          <span class="btn-text">View</span>
+        </button>
+        
+        <button (click)="openEditModal(staff)" class="action-button btn-edit" title="Edit">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          <span class="btn-text">Edit</span>
+        </button>
+        
+        <button
+          *ngIf="!staff.isActive"
+          (click)="activateUser(staff)"
+          class="action-button btn-activate"
+          title="Activate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="btn-text">Activate</span>
+        </button>
+        
+        <button
+          *ngIf="staff.isActive"
+          (click)="deactivateUser(staff)"
+          class="action-button btn-deactivate"
+          title="Deactivate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span class="btn-text">Deactivate</span>
+        </button>
+        
+        <button (click)="deleteUser(staff)" class="action-button btn-delete" title="Delete">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          <span class="btn-text">Delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredUsers.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+      </svg>
+    </div>
+    <h3 class="empty-title">No staff members found</h3>
+    <p class="empty-text">
+      {{ searchTerm ? 'Try adjusting your search criteria' : 'Start by adding your first staff member' }}
+    </p>
+    <button (click)="openCreateModal()" class="btn-empty-action" *ngIf="!searchTerm">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Add First Staff Member
+    </button>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="pagination-container">
+    <div class="pagination-info-text">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} staff members
+    </div>
+    
+    <div class="pagination-buttons">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="page-nav-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+      
+      <div class="page-numbers">
+        <button
+          *ngFor="let page of pageNumbers.slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))"
+          (click)="goToPage(page)"
+          [class.active]="currentPage === page"
+          class="page-number-btn"
+        >
+          {{ page }}
+        </button>
+      </div>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="page-nav-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Create Modal -->
+<div *ngIf="showCreateModal" class="modal-overlay" (click)="closeCreateModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Staff Member</h2>
+      <button (click)="closeCreateModal()" class="close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="createForm" (ngSubmit)="createAcademicAffair()" class="modal-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>First Name <span class="req">*</span></label>
+          <input type="text" formControlName="firstName" placeholder="Enter first name">
+          <span class="error" *ngIf="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+            Required
+          </span>
+        </div>
+        
+        <div class="form-field">
+          <label>Last Name <span class="req">*</span></label>
+          <input type="text" formControlName="lastName" placeholder="Enter last name">
+          <span class="error" *ngIf="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+            Required
+          </span>
+        </div>
+      </div>
+      
+      <div class="form-field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" formControlName="email" placeholder="Enter email">
+        <span class="error" *ngIf="createForm.get('email')?.invalid && createForm.get('email')?.touched">
+          Valid email required
+        </span>
+      </div>
+      
+      <div class="form-field">
+        <label>Password <span class="req">*</span></label>
+        <input type="password" formControlName="password" placeholder="Enter password (min 6 characters)">
+        <span class="error" *ngIf="createForm.get('password')?.invalid && createForm.get('password')?.touched">
+          Min 6 characters
+        </span>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Phone</label>
+          <input type="text" formControlName="phone" placeholder="Enter phone">
+        </div>
+        
+        <div class="form-field">
+          <label>CIN</label>
+          <input type="text" formControlName="cin" placeholder="Enter CIN">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dateOfBirth">
+        </div>
+        
+        <div class="form-field">
+          <label>City</label>
+          <input type="text" formControlName="city" placeholder="Enter city">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode" placeholder="Enter postal code">
+        </div>
+        
+        <div class="form-field">
+          <label>Address</label>
+          <input type="text" formControlName="address" placeholder="Enter address">
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" (click)="closeCreateModal()" class="btn-secondary">Cancel</button>
+        <button type="submit" [disabled]="createForm.invalid" class="btn-primary">Create Staff</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit Staff Member</h2>
+      <button (click)="closeEditModal()" class="close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="editForm" (ngSubmit)="updateAcademicAffair()" class="modal-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>First Name <span class="req">*</span></label>
+          <input type="text" formControlName="firstName">
+        </div>
+        
+        <div class="form-field">
+          <label>Last Name <span class="req">*</span></label>
+          <input type="text" formControlName="lastName">
+        </div>
+      </div>
+      
+      <div class="form-field">
+        <label>Email <span class="req">*</span></label>
+        <input type="email" formControlName="email">
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Phone</label>
+          <input type="text" formControlName="phone">
+        </div>
+        
+        <div class="form-field">
+          <label>CIN</label>
+          <input type="text" formControlName="cin">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dateOfBirth">
+        </div>
+        
+        <div class="form-field">
+          <label>City</label>
+          <input type="text" formControlName="city">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode">
+        </div>
+        
+        <div class="form-field">
+          <label>Address</label>
+          <input type="text" formControlName="address">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="checkbox-field">
+          <input type="checkbox" formControlName="isActive" id="editActive">
+          <label for="editActive">Active</label>
+        </div>
+        
+        <div class="checkbox-field">
+          <input type="checkbox" formControlName="registrationFeePaid" id="editFee">
+          <label for="editFee">Fee Paid</label>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" (click)="closeEditModal()" class="btn-secondary">Cancel</button>
+        <button type="submit" [disabled]="editForm.invalid" class="btn-primary">Update Staff</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div *ngIf="showViewModal && selectedUser" class="modal-overlay" (click)="closeViewModal()">
+  <div class="modal-box modal-view-box" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Staff Details</h2>
+      <button (click)="closeViewModal()" class="close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="view-content">
+      <div class="view-profile">
+        <div class="profile-avatar">
+          <span>{{ getUserInitials(selectedUser) }}</span>
+        </div>
+        <div class="profile-info">
+          <h3>{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h3>
+          <span [class]="'profile-badge ' + (selectedUser.isActive ? 'badge-active' : 'badge-inactive')">
+            {{ selectedUser.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="view-grid">
+        <div class="view-item">
+          <span class="view-label">Email</span>
+          <span class="view-value">{{ selectedUser.email }}</span>
+        </div>
+        
+        <div class="view-item" *ngIf="selectedUser.phone">
+          <span class="view-label">Phone</span>
+          <span class="view-value">{{ selectedUser.phone }}</span>
+        </div>
+        
+        <div class="view-item" *ngIf="selectedUser.cin">
+          <span class="view-label">CIN</span>
+          <span class="view-value">{{ selectedUser.cin }}</span>
+        </div>
+        
+        <div class="view-item" *ngIf="selectedUser.dateOfBirth">
+          <span class="view-label">Date of Birth</span>
+          <span class="view-value">{{ selectedUser.dateOfBirth }}</span>
+        </div>
+        
+        <div class="view-item" *ngIf="selectedUser.city">
+          <span class="view-label">City</span>
+          <span class="view-value">{{ selectedUser.city }}</span>
+        </div>
+        
+        <div class="view-item" *ngIf="selectedUser.postalCode">
+          <span class="view-label">Postal Code</span>
+          <span class="view-value">{{ selectedUser.postalCode }}</span>
+        </div>
+        
+        <div class="view-item view-full" *ngIf="selectedUser.address">
+          <span class="view-label">Address</span>
+          <span class="view-value">{{ selectedUser.address }}</span>
+        </div>
+        
+        <div class="view-item">
+          <span class="view-label">Registration Fee</span>
+          <span class="view-value">
+            <span [class]="selectedUser.registrationFeePaid ? 'fee-paid' : 'fee-unpaid'">
+              {{ selectedUser.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+            </span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button (click)="closeViewModal(); openEditModal(selectedUser)" class="btn-edit-action">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit
+        </button>
+        <button (click)="closeViewModal()" class="btn-secondary">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

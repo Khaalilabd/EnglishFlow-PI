@@ -1,13 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { UserService, User } from '../../../core/services/user.service';
+import { UserService, User, UpdateUserRequest } from '../../../core/services/user.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-tutors',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
   templateUrl: './tutors.component.html',
   styleUrls: ['./tutors.component.scss']
 })
@@ -18,27 +19,64 @@ export class TutorsComponent implements OnInit {
   searchTerm = '';
   selectedStatus = 'ALL';
   
-  // Pagination
+  showEditModal = false;
+  showViewModal = false;
+  editForm!: FormGroup;
+  selectedUser: User | null = null;
+  
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 1;
 
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    private fb: FormBuilder,
+    private toastService: ToastService
+  ) {
+    this.initForms();
+  }
 
   ngOnInit(): void {
     this.loadTutors();
   }
 
+  initForms(): void {
+    this.editForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]],
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      phone: [''],
+      cin: [''],
+      dateOfBirth: [''],
+      address: [''],
+      city: [''],
+      postalCode: [''],
+      yearsOfExperience: [''],
+      bio: [''],
+      isActive: [true],
+      registrationFeePaid: [false]
+    });
+  }
+
   loadTutors(): void {
     this.loading = true;
+    console.log('🔍 Loading tutors from API...');
     this.userService.getUsersByRole('TUTOR').subscribe({
       next: (data) => {
+        console.log('✅ Tutors received:', data);
+        console.log('📊 Number of tutors:', data.length);
         this.users = data;
         this.applyFilters();
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading tutors:', error);
+        console.error('❌ Error loading tutors:', error);
+        console.error('Error details:', {
+          status: error.status,
+          statusText: error.statusText,
+          message: error.message,
+          url: error.url
+        });
         this.loading = false;
       }
     });
@@ -99,12 +137,16 @@ export class TutorsComponent implements OnInit {
   activateUser(user: User): void {
     this.userService.activateUser(user.id).subscribe({
       next: (updatedUser: User) => {
-        user.isActive = updatedUser.isActive;
-        alert('Tutor activated successfully!');
+        const index = this.users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+          this.users[index] = updatedUser;
+        }
+        this.applyFilters();
+        this.toastService.success(`${user.firstName} ${user.lastName} has been activated successfully!`);
       },
       error: (error: any) => {
         console.error('Error activating tutor:', error);
-        alert('Failed to activate tutor.');
+        this.toastService.error('Failed to activate tutor. Please try again.');
       }
     });
   }
@@ -113,12 +155,16 @@ export class TutorsComponent implements OnInit {
     if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
       this.userService.deactivateUser(user.id).subscribe({
         next: (updatedUser: User) => {
-          user.isActive = updatedUser.isActive;
-          alert('Tutor deactivated successfully!');
+          const index = this.users.findIndex(u => u.id === user.id);
+          if (index !== -1) {
+            this.users[index] = updatedUser;
+          }
+          this.applyFilters();
+          this.toastService.success(`${user.firstName} ${user.lastName} has been deactivated.`);
         },
         error: (error: any) => {
           console.error('Error deactivating tutor:', error);
-          alert('Failed to deactivate tutor.');
+          this.toastService.error('Failed to deactivate tutor. Please try again.');
         }
       });
     }
@@ -130,24 +176,99 @@ export class TutorsComponent implements OnInit {
         next: () => {
           this.users = this.users.filter(u => u.id !== user.id);
           this.applyFilters();
+          this.toastService.success(`${user.firstName} ${user.lastName} has been deleted.`);
         },
         error: (error) => {
           console.error('Error deleting user:', error);
+          this.toastService.error('Failed to delete tutor. Please try again.');
         }
       });
     }
   }
 
   editUser(user: User): void {
-    console.log('Edit user:', user);
+    this.openEditModal(user);
   }
 
   viewUser(user: User): void {
-    console.log('View user:', user);
+    this.openViewModal(user);
+  }
+
+  openEditModal(user: User): void {
+    this.selectedUser = user;
+    this.editForm.patchValue({
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone || '',
+      cin: user.cin || '',
+      dateOfBirth: user.dateOfBirth || '',
+      address: user.address || '',
+      city: user.city || '',
+      postalCode: user.postalCode || '',
+      yearsOfExperience: user.yearsOfExperience || '',
+      bio: user.bio || '',
+      isActive: user.isActive,
+      registrationFeePaid: user.registrationFeePaid
+    });
+    this.showEditModal = true;
+  }
+
+  closeEditModal(): void {
+    this.showEditModal = false;
+    this.selectedUser = null;
+    this.editForm.reset();
+  }
+
+  updateTutor(): void {
+    if (this.editForm.invalid || !this.selectedUser) {
+      this.editForm.markAllAsTouched();
+      return;
+    }
+
+    const updateData: UpdateUserRequest = this.editForm.value;
+
+    this.userService.updateUser(this.selectedUser.id, updateData).subscribe({
+      next: (updatedUser) => {
+        const index = this.users.findIndex(u => u.id === updatedUser.id);
+        if (index !== -1) {
+          this.users[index] = updatedUser;
+          this.applyFilters();
+        }
+        this.closeEditModal();
+        this.toastService.success('Tutor updated successfully!');
+      },
+      error: (error) => {
+        console.error('Error updating tutor:', error);
+        this.toastService.error('Failed to update tutor. Please try again.');
+      }
+    });
+  }
+
+  openViewModal(user: User): void {
+    this.selectedUser = user;
+    this.showViewModal = true;
+  }
+
+  closeViewModal(): void {
+    this.showViewModal = false;
+    this.selectedUser = null;
+  }
+
+  getUserInitials(user: User): string {
+    return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
   }
 
   getActiveCount(): number {
     return this.users.filter(u => u.isActive).length;
+  }
+
+  getAverageExperience(): number {
+    if (this.users.length === 0) return 0;
+    const tutorsWithExperience = this.users.filter(u => u.yearsOfExperience && u.yearsOfExperience > 0);
+    if (tutorsWithExperience.length === 0) return 0;
+    const total = tutorsWithExperience.reduce((sum, u) => sum + (u.yearsOfExperience || 0), 0);
+    return Math.round(total / tutorsWithExperience.length);
   }
 
   get Math() {

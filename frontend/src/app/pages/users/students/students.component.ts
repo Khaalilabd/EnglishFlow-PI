@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService, User, CreateUserRequest, UpdateUserRequest } from '../../../core/services/user.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-students',
@@ -36,7 +37,8 @@ export class StudentsComponent implements OnInit {
 
   constructor(
     private userService: UserService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private toastService: ToastService
   ) {
     this.initForms();
   }
@@ -163,21 +165,35 @@ export class StudentsComponent implements OnInit {
       return;
     }
 
+    // Clean up the form data - remove empty strings
+    const formValue = this.createForm.value;
     const userData: CreateUserRequest = {
-      ...this.createForm.value,
+      email: formValue.email,
+      password: formValue.password,
+      firstName: formValue.firstName,
+      lastName: formValue.lastName,
       role: 'STUDENT'
     };
+
+    // Add optional fields only if they have values
+    if (formValue.phone && formValue.phone.trim()) userData.phone = formValue.phone.trim();
+    if (formValue.cin && formValue.cin.trim()) userData.cin = formValue.cin.trim();
+    if (formValue.dateOfBirth) userData.dateOfBirth = formValue.dateOfBirth;
+    if (formValue.address && formValue.address.trim()) userData.address = formValue.address.trim();
+    if (formValue.city && formValue.city.trim()) userData.city = formValue.city.trim();
+    if (formValue.postalCode && formValue.postalCode.trim()) userData.postalCode = formValue.postalCode.trim();
+    if (formValue.englishLevel) userData.englishLevel = formValue.englishLevel;
 
     this.userService.createUser(userData).subscribe({
       next: (newUser) => {
         this.users.push(newUser);
         this.applyFilters();
         this.closeCreateModal();
-        alert('Student created successfully!');
+        this.toastService.success('Student created successfully!');
       },
       error: (error) => {
         console.error('Error creating student:', error);
-        alert('Failed to create student. Please try again.');
+        this.toastService.error(error.error?.message || 'Failed to create student. Please try again.');
       }
     });
   }
@@ -223,11 +239,11 @@ export class StudentsComponent implements OnInit {
           this.applyFilters();
         }
         this.closeEditModal();
-        alert('Student updated successfully!');
+        this.toastService.success('Student updated successfully!');
       },
       error: (error) => {
         console.error('Error updating student:', error);
-        alert('Failed to update student. Please try again.');
+        this.toastService.error('Failed to update student. Please try again.');
       }
     });
   }
@@ -243,28 +259,40 @@ export class StudentsComponent implements OnInit {
   }
 
   activateUser(user: User): void {
+    console.log('🟢 Activating user:', user.id, user.email);
     this.userService.activateUser(user.id).subscribe({
       next: (updatedUser) => {
-        user.isActive = updatedUser.isActive;
-        alert('Student activated successfully!');
+        console.log('✅ User activated:', updatedUser);
+        const index = this.users.findIndex(u => u.id === user.id);
+        if (index !== -1) {
+          this.users[index] = updatedUser;
+        }
+        this.applyFilters();
+        this.toastService.success(`${user.firstName} ${user.lastName} has been activated successfully!`);
       },
       error: (error) => {
-        console.error('Error activating student:', error);
-        alert('Failed to activate student.');
+        console.error('❌ Error activating student:', error);
+        this.toastService.error('Failed to activate student. Please try again.');
       }
     });
   }
 
   deactivateUser(user: User): void {
     if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
+      console.log('🔴 Deactivating user:', user.id, user.email);
       this.userService.deactivateUser(user.id).subscribe({
         next: (updatedUser) => {
-          user.isActive = updatedUser.isActive;
-          alert('Student deactivated successfully!');
+          console.log('✅ User deactivated:', updatedUser);
+          const index = this.users.findIndex(u => u.id === user.id);
+          if (index !== -1) {
+            this.users[index] = updatedUser;
+          }
+          this.applyFilters();
+          this.toastService.success(`${user.firstName} ${user.lastName} has been deactivated.`);
         },
         error: (error) => {
-          console.error('Error deactivating student:', error);
-          alert('Failed to deactivate student.');
+          console.error('❌ Error deactivating student:', error);
+          this.toastService.error('Failed to deactivate student. Please try again.');
         }
       });
     }
@@ -276,11 +304,11 @@ export class StudentsComponent implements OnInit {
         next: () => {
           this.users = this.users.filter(u => u.id !== user.id);
           this.applyFilters();
-          alert('Student deleted successfully!');
+          this.toastService.success(`${user.firstName} ${user.lastName} has been deleted.`);
         },
         error: (error) => {
           console.error('Error deleting student:', error);
-          alert('Failed to delete student.');
+          this.toastService.error('Failed to delete student. Please try again.');
         }
       });
     }
@@ -301,6 +329,20 @@ export class StudentsComponent implements OnInit {
 
   getUserAvatar(user: User): string {
     return user.profilePhoto || '';
+  }
+
+  getActivePercentage(): number {
+    if (this.users.length === 0) return 0;
+    return Math.round((this.getActiveCount() / this.users.length) * 100);
+  }
+
+  getFeesCollectedCount(): number {
+    return this.users.filter(u => u.registrationFeePaid).length;
+  }
+
+  getFeesCollectedPercentage(): number {
+    if (this.users.length === 0) return 0;
+    return Math.round((this.getFeesCollectedCount() / this.users.length) * 100);
   }
 
   get Math() {

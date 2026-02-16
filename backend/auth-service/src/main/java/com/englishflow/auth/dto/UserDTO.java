@@ -1,6 +1,7 @@
 package com.englishflow.auth.dto;
 
 import com.englishflow.auth.entity.User;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -26,7 +27,10 @@ public class UserDTO {
     private String englishLevel;
     private Integer yearsOfExperience;
     private String role;
+    
+    @JsonProperty("isActive")
     private boolean isActive;
+    
     private boolean registrationFeePaid;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

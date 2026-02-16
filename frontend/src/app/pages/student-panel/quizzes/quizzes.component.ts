@@ -18,9 +18,7 @@ export class QuizzesComponent implements OnInit {
   selectedQuiz: Quiz | null = null;
   questions: Question[] = [];
   isLoading = false;
-  showCreateModal = false;
   showQuizModal = false;
-  showQuestionsModal = false;
   showResultsModal = false;
   showHistoryModal = false;
   
@@ -39,12 +37,6 @@ export class QuizzesComponent implements OnInit {
   
   // Track question counts for each quiz
   quizQuestionCounts: { [quizId: number]: number } = {};
-  
-  // Wizard state
-  wizardStep = 1;
-  totalWizardSteps = 3;
-  draftQuestions: Question[] = [];
-  previewMode = false;
   
   // Quiz taking state
   currentQuestionIndex = 0;
@@ -65,30 +57,6 @@ export class QuizzesComponent implements OnInit {
   questionTimings: { [questionId: number]: number } = {}; // seconds spent per question
   showStreakAnimation = false;
   streakMessage = '';
-  
-  newQuiz: Quiz = {
-    title: '',
-    description: '',
-    maxScore: 100,
-    passingScore: 70,
-    published: false,
-    durationMin: 30,
-    shuffleQuestions: false,
-    shuffleOptions: false,
-    showAnswersTiming: 'end',
-    category: '',
-    difficulty: 'medium',
-    tags: ''
-  };
-
-  newQuestion: Question = {
-    content: '',
-    type: 'MCQ',
-    options: '',
-    correctAnswer: '',
-    points: 10,
-    partialCreditEnabled: false
-  };
 
   constructor(private quizService: QuizService) {}
 
@@ -99,10 +67,11 @@ export class QuizzesComponent implements OnInit {
 
   loadQuizzes() {
     this.isLoading = true;
-    // Load ALL quizzes instead of just published ones
+    // Load only PUBLISHED quizzes for students
     this.quizService.getAllQuizzes().subscribe({
       next: (data) => {
-        this.quizzes = data;
+        // Filter to show only published quizzes
+        this.quizzes = data.filter(quiz => quiz.published === true);
         // Load question counts for each quiz
         this.quizzes.forEach(quiz => {
           if (quiz.id) {
@@ -136,159 +105,6 @@ export class QuizzesComponent implements OnInit {
 
   hasQuestions(quizId: number): boolean {
     return this.getQuestionCount(quizId) > 0;
-  }
-
-  openCreateModal() {
-    this.wizardStep = 1;
-    this.draftQuestions = [];
-    this.previewMode = false;
-    this.showCreateModal = true;
-  }
-
-  closeCreateModal() {
-    if (this.wizardStep > 1 && !confirm('Are you sure? Your progress will be lost.')) {
-      return;
-    }
-    this.showCreateModal = false;
-    this.wizardStep = 1;
-    this.draftQuestions = [];
-    this.previewMode = false;
-    this.resetQuizForm();
-  }
-
-  nextWizardStep() {
-    if (this.wizardStep === 1 && !this.validateBasicInfo()) {
-      return;
-    }
-    if (this.wizardStep < this.totalWizardSteps) {
-      this.wizardStep++;
-    }
-  }
-
-  previousWizardStep() {
-    if (this.wizardStep > 1) {
-      this.wizardStep--;
-    }
-  }
-
-  validateBasicInfo(): boolean {
-    if (!this.newQuiz.title?.trim()) {
-      alert('Please enter a quiz title');
-      return false;
-    }
-    if (!this.newQuiz.description?.trim()) {
-      alert('Please enter a quiz description');
-      return false;
-    }
-    return true;
-  }
-
-  setDuration(minutes: number) {
-    this.newQuiz.durationMin = minutes;
-  }
-
-  addDraftQuestion() {
-    if (!this.newQuestion.content?.trim()) {
-      alert('Please enter question content');
-      return;
-    }
-    
-    const question = { ...this.newQuestion };
-    question.orderIndex = this.draftQuestions.length;
-    this.draftQuestions.push(question);
-    this.resetQuestionForm();
-  }
-
-  removeDraftQuestion(index: number) {
-    this.draftQuestions.splice(index, 1);
-    // Update order indices
-    this.draftQuestions.forEach((q, i) => q.orderIndex = i);
-  }
-
-  togglePreview() {
-    this.previewMode = !this.previewMode;
-  }
-
-  finishWizard() {
-    if (this.draftQuestions.length === 0) {
-      alert('Please add at least one question');
-      return;
-    }
-
-    this.isLoading = true;
-    
-    // Create quiz first
-    this.quizService.createQuiz(this.newQuiz).subscribe({
-      next: (createdQuiz) => {
-        // Then add all questions
-        let questionsAdded = 0;
-        const totalQuestions = this.draftQuestions.length;
-        
-        this.draftQuestions.forEach(question => {
-          question.quizId = createdQuiz.id;
-          this.quizService.createQuestion(question).subscribe({
-            next: () => {
-              questionsAdded++;
-              if (questionsAdded === totalQuestions) {
-                this.isLoading = false;
-                this.loadQuizzes();
-                this.closeCreateModal();
-                alert('Quiz created successfully!');
-              }
-            },
-            error: (error) => {
-              console.error('Error adding question:', error);
-              this.isLoading = false;
-            }
-          });
-        });
-      },
-      error: (error) => {
-        console.error('Error creating quiz:', error);
-        alert('Error creating quiz');
-        this.isLoading = false;
-      }
-    });
-  }
-
-  createQuiz() {
-    if (!this.newQuiz.title) {
-      alert('Please enter a quiz title');
-      return;
-    }
-
-    this.isLoading = true;
-    
-    // Check if we're editing (quiz has an id) or creating new
-    if (this.newQuiz.id) {
-      // Update existing quiz
-      this.quizService.updateQuiz(this.newQuiz.id, this.newQuiz).subscribe({
-        next: () => {
-          this.loadQuizzes();
-          this.closeCreateModal();
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error updating quiz:', error);
-          alert('Error updating quiz');
-          this.isLoading = false;
-        }
-      });
-    } else {
-      // Create new quiz
-      this.quizService.createQuiz(this.newQuiz).subscribe({
-        next: () => {
-          this.loadQuizzes();
-          this.closeCreateModal();
-          this.isLoading = false;
-        },
-        error: (error) => {
-          console.error('Error creating quiz:', error);
-          alert('Error creating quiz');
-          this.isLoading = false;
-        }
-      });
-    }
   }
 
   startQuiz(quiz: Quiz) {
@@ -519,134 +335,6 @@ export class QuizzesComponent implements OnInit {
 
   ngOnDestroy() {
     this.stopTimer();
-  }
-
-  manageQuestions(quiz: Quiz) {
-    this.selectedQuiz = quiz;
-    if (quiz.id) {
-      this.quizService.getQuestionsByQuizId(quiz.id).subscribe({
-        next: (questions) => {
-          this.questions = questions;
-          this.showQuestionsModal = true;
-        },
-        error: (error) => console.error('Error loading questions:', error)
-      });
-    }
-  }
-
-  addQuestion() {
-    if (!this.selectedQuiz?.id || !this.newQuestion.content) {
-      alert('Please fill in all required fields');
-      return;
-    }
-
-    this.newQuestion.quizId = this.selectedQuiz.id;
-    this.quizService.createQuestion(this.newQuestion).subscribe({
-      next: () => {
-        this.manageQuestions(this.selectedQuiz!);
-        this.resetQuestionForm();
-        // Update question count
-        if (this.selectedQuiz?.id) {
-          this.loadQuestionCount(this.selectedQuiz.id);
-        }
-      },
-      error: (error) => {
-        console.error('Error adding question:', error);
-        alert('Error adding question');
-      }
-    });
-  }
-
-  deleteQuestion(questionId: number) {
-    if (confirm('Are you sure you want to delete this question?')) {
-      this.quizService.deleteQuestion(questionId).subscribe({
-        next: () => {
-          this.manageQuestions(this.selectedQuiz!);
-          // Update question count
-          if (this.selectedQuiz?.id) {
-            this.loadQuestionCount(this.selectedQuiz.id);
-          }
-        },
-        error: (error) => console.error('Error deleting question:', error)
-      });
-    }
-  }
-
-  closeQuestionsModal() {
-    this.showQuestionsModal = false;
-    this.selectedQuiz = null;
-    this.questions = [];
-    this.resetQuestionForm();
-  }
-
-  deleteQuiz(id: number) {
-    if (confirm('Are you sure you want to delete this quiz?')) {
-      this.quizService.deleteQuiz(id).subscribe({
-        next: () => {
-          this.loadQuizzes();
-        },
-        error: (error) => console.error('Error deleting quiz:', error)
-      });
-    }
-  }
-
-  editQuiz(quiz: Quiz) {
-    // Populate the form with existing quiz data
-    this.newQuiz = { ...quiz };
-    
-    // Load questions for this quiz
-    if (quiz.id) {
-      this.quizService.getQuestionsByQuizId(quiz.id).subscribe({
-        next: (questions) => {
-          this.draftQuestions = questions;
-        },
-        error: (error) => console.error('Error loading questions:', error)
-      });
-    }
-    
-    // Open the create modal in edit mode
-    this.wizardStep = 1;
-    this.showCreateModal = true;
-  }
-
-  togglePublish(quiz: Quiz) {
-    if (quiz.id) {
-      quiz.published = !quiz.published;
-      this.quizService.updateQuiz(quiz.id, quiz).subscribe({
-        next: () => {
-          this.loadQuizzes();
-        },
-        error: (error) => console.error('Error updating quiz:', error)
-      });
-    }
-  }
-
-  resetQuizForm() {
-    this.newQuiz = {
-      title: '',
-      description: '',
-      maxScore: 100,
-      passingScore: 70,
-      published: false,
-      durationMin: 30,
-      shuffleQuestions: false,
-      shuffleOptions: false,
-      showAnswersTiming: 'end',
-      category: '',
-      difficulty: 'medium',
-      tags: ''
-    };
-  }
-
-  resetQuestionForm() {
-    this.newQuestion = {
-      content: '',
-      type: 'MCQ',
-      options: '',
-      correctAnswer: '',
-      points: 10,
-      partialCreditEnabled: false
-    };
   }
 
   getOptionsArray(options: string | undefined): string[] {

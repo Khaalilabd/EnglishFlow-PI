@@ -1,268 +1,557 @@
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Manage student accounts and information</p>
+<div class="students-management">
+  <!-- Header Section with Gradient -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-icon-wrapper">
+          <span class="header-icon">🎓</span>
+        </div>
+        <div class="header-text">
+          <h1 class="page-title">Students Management</h1>
+          <p class="page-subtitle">Manage and track your English learning students</p>
+        </div>
+      </div>
+      <button (click)="openCreateModal()" class="btn-create">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add New Student
+      </button>
     </div>
-    <button 
-      (click)="openCreateModal()"
-      class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors">
-      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  </div>
+
+  <!-- Stats Dashboard -->
+  <div class="stats-dashboard">
+    <div class="stat-card stat-primary">
+      <div class="stat-icon-bg">
+        <svg class="stat-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-label">Total Students</span>
+        <span class="stat-value">{{ users.length }}</span>
+        <span class="stat-trend positive">+12% this month</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-success">
+      <div class="stat-icon-bg">
+        <svg class="stat-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-label">Active Students</span>
+        <span class="stat-value">{{ getActiveCount() }}</span>
+        <span class="stat-trend positive">{{ getActivePercentage() }}% active</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-warning">
+      <div class="stat-icon-bg">
+        <svg class="stat-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-label">Inactive Students</span>
+        <span class="stat-value">{{ getInactiveCount() }}</span>
+        <span class="stat-trend neutral">Need attention</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-info">
+      <div class="stat-icon-bg">
+        <svg class="stat-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-details">
+        <span class="stat-label">Fees Collected</span>
+        <span class="stat-value">{{ getFeesCollectedCount() }}</span>
+        <span class="stat-trend positive">{{ getFeesCollectedPercentage() }}% paid</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search and Filters -->
+  <div class="controls-section">
+    <div class="search-wrapper">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search by name, email, or CIN..."
+        class="search-input"
+      />
+      <span class="search-count" *ngIf="searchTerm">{{ filteredUsers.length }} results</span>
+    </div>
+
+    <div class="filter-group">
+      <button
+        [class.active]="selectedStatus === 'ALL'"
+        (click)="selectedStatus = 'ALL'; applyFilters()"
+        class="filter-chip"
+      >
+        <span class="chip-dot all"></span>
+        All
+      </button>
+      <button
+        [class.active]="selectedStatus === 'ACTIVE'"
+        (click)="selectedStatus = 'ACTIVE'; applyFilters()"
+        class="filter-chip"
+      >
+        <span class="chip-dot active"></span>
+        Active
+      </button>
+      <button
+        [class.active]="selectedStatus === 'INACTIVE'"
+        (click)="selectedStatus = 'INACTIVE'; applyFilters()"
+        class="filter-chip"
+      >
+        <span class="chip-dot inactive"></span>
+        Inactive
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading students...</p>
+  </div>
+
+  <!-- Students Grid -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="students-grid">
+    <div *ngFor="let student of paginatedUsers" class="student-card">
+      <!-- Card Ribbon -->
+      <div class="card-ribbon" [class.ribbon-active]="student.isActive" [class.ribbon-inactive]="!student.isActive">
+        {{ student.isActive ? 'Active' : 'Inactive' }}
+      </div>
+
+      <!-- Card Header -->
+      <div class="card-top">
+        <div class="student-avatar-wrapper">
+          <div class="student-avatar">
+            <span class="avatar-text">{{ getUserInitials(student) }}</span>
+          </div>
+          <div class="avatar-status" [class.status-online]="student.isActive" [class.status-offline]="!student.isActive"></div>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body">
+        <h3 class="student-name">{{ student.firstName }} {{ student.lastName }}</h3>
+        <p class="student-email">{{ student.email }}</p>
+
+        <!-- Student Info Tags -->
+        <div class="info-tags">
+          <span class="info-tag" *ngIf="student.englishLevel">
+            <svg class="tag-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+            </svg>
+            {{ student.englishLevel }}
+          </span>
+          <span class="info-tag" *ngIf="student.phone">
+            <svg class="tag-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            {{ student.phone }}
+          </span>
+          <span class="info-tag fee-tag" [class.fee-paid]="student.registrationFeePaid" [class.fee-unpaid]="!student.registrationFeePaid">
+            <svg class="tag-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            {{ student.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Card Actions -->
+      <div class="card-actions">
+        <button (click)="openViewModal(student)" class="action-btn btn-view" title="View Details">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+        </button>
+        <button (click)="openEditModal(student)" class="action-btn btn-edit" title="Edit">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+        </button>
+        <button
+          *ngIf="!student.isActive"
+          (click)="activateUser(student)"
+          class="action-btn btn-activate"
+          title="Activate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </button>
+        <button
+          *ngIf="student.isActive"
+          (click)="deactivateUser(student)"
+          class="action-btn btn-deactivate"
+          title="Deactivate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </button>
+        <button (click)="deleteUser(student)" class="action-btn btn-delete" title="Delete">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredUsers.length === 0" class="empty-state">
+    <div class="empty-illustration">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+      </svg>
+    </div>
+    <h3 class="empty-title">No students found</h3>
+    <p class="empty-description">
+      {{ searchTerm ? 'Try adjusting your search criteria' : 'Get started by adding your first student' }}
+    </p>
+    <button (click)="openCreateModal()" class="btn-empty" *ngIf="!searchTerm">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
       </svg>
-      Add New Student
+      Add First Student
     </button>
   </div>
 
-  <!-- Filters Card -->
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Search -->
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search</label>
-        <div class="relative">
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            (ngModelChange)="applyFilters()"
-            placeholder="Search by name, email, or CIN..."
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Status Filter -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Status</label>
-        <select
-          [(ngModel)]="selectedStatus"
-          (ngModelChange)="applyFilters()"
-          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-        >
-          <option value="ALL">All Status</option>
-          <option value="ACTIVE">Active</option>
-          <option value="INACTIVE">Inactive</option>
-        </select>
-      </div>
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="pagination-wrapper">
+    <div class="pagination-info">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} students
     </div>
+    <div class="pagination-controls">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="pagination-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+      
+      <div class="pagination-pages">
+        <button
+          *ngFor="let page of pageNumbers.slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))"
+          (click)="goToPage(page)"
+          [class.active]="currentPage === page"
+          class="page-btn"
+        >
+          {{ page }}
+        </button>
+      </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-      <div class="text-center">
-        <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ users.length }}</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Total Students</p>
-      </div>
-      <div class="text-center">
-        <p class="text-2xl font-bold text-green-600">{{ getActiveCount() }}</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Active</p>
-      </div>
-      <div class="text-center">
-        <p class="text-2xl font-bold text-red-600">{{ users.length - getActiveCount() }}</p>
-        <p class="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
-      </div>
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="pagination-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
     </div>
   </div>
+</div>
 
-  <!-- Users Table -->
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-    <!-- Loading State -->
-    <div *ngIf="loading" class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-    </div>
 
-    <!-- Table -->
-    <div *ngIf="!loading" class="overflow-x-auto">
-      <table class="w-full">
-        <thead class="bg-gray-50 dark:bg-gray-700">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Level</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">CIN</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Joined</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-          <tr *ngFor="let user of paginatedUsers" class="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-            <!-- User Info -->
-            <td class="px-6 py-4 whitespace-nowrap">
-              <div class="flex items-center">
-                <div class="flex-shrink-0 h-10 w-10">
-                  <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-semibold">
-                    {{ user.firstName.charAt(0) }}{{ user.lastName.charAt(0) }}
-                  </div>
-                </div>
-                <div class="ml-4">
-                  <div class="text-sm font-medium text-gray-900 dark:text-white">{{ user.firstName }} {{ user.lastName }}</div>
-                  <div class="text-sm text-gray-500 dark:text-gray-400">{{ user.email }}</div>
-                </div>
-              </div>
-            </td>
-
-            <!-- Status -->
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span
-                [class.bg-green-100]="user.isActive"
-                [class.text-green-800]="user.isActive"
-                [class.bg-red-100]="!user.isActive"
-                [class.text-red-800]="!user.isActive"
-                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-              >
-                {{ user.isActive ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
-
-            <!-- English Level -->
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-              {{ user.englishLevel || 'N/A' }}
-            </td>
-
-            <!-- CIN -->
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-              {{ user.cin || 'N/A' }}
-            </td>
-
-            <!-- Joined Date -->
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-              {{ user.createdAt | date:'MMM d, y' }}
-            </td>
-
-            <!-- Actions -->
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <div class="flex items-center justify-end space-x-2">
-                <button
-                  (click)="openViewModal(user)"
-                  class="text-primary hover:text-primary-700"
-                  title="View"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                  </svg>
-                </button>
-                <button
-                  (click)="openEditModal(user)"
-                  class="text-primary hover:text-primary-700"
-                  title="Edit"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                  </svg>
-                </button>
-                <button
-                  *ngIf="user.isActive"
-                  (click)="deactivateUser(user)"
-                  class="text-red-600 hover:text-red-900"
-                  title="Deactivate"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
-                  </svg>
-                </button>
-                <button
-                  *ngIf="!user.isActive"
-                  (click)="activateUser(user)"
-                  class="text-green-600 hover:text-green-900"
-                  title="Activate"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                </button>
-                <button
-                  (click)="deleteUser(user)"
-                  class="text-red-600 hover:text-red-900"
-                  title="Delete"
-                >
-                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <!-- Empty State -->
-      <div *ngIf="filteredUsers.length === 0" class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+<!-- Create Modal -->
+<div *ngIf="showCreateModal" class="modal-overlay" (click)="closeCreateModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Add New Student</h2>
+      <button (click)="closeCreateModal()" class="modal-close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900 dark:text-white">No students found</h3>
-        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your search or filter criteria.</p>
-      </div>
+      </button>
     </div>
-
-    <!-- Pagination -->
-    <div *ngIf="filteredUsers.length > 0" class="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex items-center justify-between border-t border-gray-200 dark:border-gray-600">
-      <div class="flex-1 flex justify-between sm:hidden">
-        <button
-          (click)="previousPage()"
-          [disabled]="currentPage === 1"
-          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Previous
-        </button>
-        <button
-          (click)="nextPage()"
-          [disabled]="currentPage === totalPages"
-          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Next
-        </button>
+    
+    <form [formGroup]="createForm" (ngSubmit)="createStudent()" class="modal-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name <span class="required">*</span></label>
+          <input type="text" formControlName="firstName" placeholder="Enter first name">
+          <span class="error-msg" *ngIf="createForm.get('firstName')?.invalid && createForm.get('firstName')?.touched">
+            First name is required
+          </span>
+        </div>
+        
+        <div class="form-group">
+          <label>Last Name <span class="required">*</span></label>
+          <input type="text" formControlName="lastName" placeholder="Enter last name">
+          <span class="error-msg" *ngIf="createForm.get('lastName')?.invalid && createForm.get('lastName')?.touched">
+            Last name is required
+          </span>
+        </div>
       </div>
-      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-        <div>
-          <p class="text-sm text-gray-700 dark:text-gray-300">
-            Showing
-            <span class="font-medium">{{ (currentPage - 1) * itemsPerPage + 1 }}</span>
-            to
-            <span class="font-medium">{{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }}</span>
-            of
-            <span class="font-medium">{{ filteredUsers.length }}</span>
-            results
-          </p>
+      
+      <div class="form-group">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" formControlName="email" placeholder="Enter email">
+        <span class="error-msg" *ngIf="createForm.get('email')?.invalid && createForm.get('email')?.touched">
+          Valid email is required
+        </span>
+      </div>
+      
+      <div class="form-group">
+        <label>Password <span class="required">*</span></label>
+        <input type="password" formControlName="password" placeholder="Enter password (min 6 characters)">
+        <span class="error-msg" *ngIf="createForm.get('password')?.invalid && createForm.get('password')?.touched">
+          Password must be at least 6 characters
+        </span>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" formControlName="phone" placeholder="Enter phone number">
         </div>
-        <div>
-          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-            <button
-              (click)="previousPage()"
-              [disabled]="currentPage === 1"
-              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-              </svg>
-            </button>
-            <button
-              *ngFor="let page of pageNumbers"
-              (click)="goToPage(page)"
-              [class.bg-blue-600]="currentPage === page"
-              [class.text-white]="currentPage === page"
-              [class.bg-white]="currentPage !== page"
-              [class.dark:bg-gray-800]="currentPage !== page"
-              [class.text-gray-500]="currentPage !== page"
-              class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700"
-            >
-              {{ page }}
-            </button>
-            <button
-              (click)="nextPage()"
-              [disabled]="currentPage === totalPages"
-              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
-              </svg>
-            </button>
-          </nav>
+        
+        <div class="form-group">
+          <label>CIN</label>
+          <input type="text" formControlName="cin" placeholder="Enter CIN">
         </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dateOfBirth">
+        </div>
+        
+        <div class="form-group">
+          <label>English Level</label>
+          <select formControlName="englishLevel">
+            <option value="BEGINNER">Beginner</option>
+            <option value="INTERMEDIATE">Intermediate</option>
+            <option value="ADVANCED">Advanced</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" formControlName="city" placeholder="Enter city">
+        </div>
+        
+        <div class="form-group">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode" placeholder="Enter postal code">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" formControlName="address" placeholder="Enter address">
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" (click)="closeCreateModal()" class="btn-cancel">Cancel</button>
+        <button type="submit" [disabled]="createForm.invalid" class="btn-submit">Create Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit Student</h2>
+      <button (click)="closeEditModal()" class="modal-close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="editForm" (ngSubmit)="updateStudent()" class="modal-form">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>First Name <span class="required">*</span></label>
+          <input type="text" formControlName="firstName" placeholder="Enter first name">
+        </div>
+        
+        <div class="form-group">
+          <label>Last Name <span class="required">*</span></label>
+          <input type="text" formControlName="lastName" placeholder="Enter last name">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" formControlName="email" placeholder="Enter email">
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="text" formControlName="phone" placeholder="Enter phone number">
+        </div>
+        
+        <div class="form-group">
+          <label>CIN</label>
+          <input type="text" formControlName="cin" placeholder="Enter CIN">
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dateOfBirth">
+        </div>
+        
+        <div class="form-group">
+          <label>English Level</label>
+          <select formControlName="englishLevel">
+            <option value="BEGINNER">Beginner</option>
+            <option value="INTERMEDIATE">Intermediate</option>
+            <option value="ADVANCED">Advanced</option>
+          </select>
+        </div>
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" formControlName="city" placeholder="Enter city">
+        </div>
+        
+        <div class="form-group">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode" placeholder="Enter postal code">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Address</label>
+        <input type="text" formControlName="address" placeholder="Enter address">
+      </div>
+      
+      <div class="form-grid">
+        <div class="form-group-checkbox">
+          <input type="checkbox" formControlName="isActive" id="editIsActive">
+          <label for="editIsActive">Active</label>
+        </div>
+        
+        <div class="form-group-checkbox">
+          <input type="checkbox" formControlName="registrationFeePaid" id="editFeePaid">
+          <label for="editFeePaid">Registration Fee Paid</label>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" (click)="closeEditModal()" class="btn-cancel">Cancel</button>
+        <button type="submit" [disabled]="editForm.invalid" class="btn-submit">Update Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Modal -->
+<div *ngIf="showViewModal && selectedUser" class="modal-overlay" (click)="closeViewModal()">
+  <div class="modal-content modal-view" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Student Details</h2>
+      <button (click)="closeViewModal()" class="modal-close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="view-header">
+        <div class="view-avatar">
+          <span class="view-avatar-text">{{ getUserInitials(selectedUser) }}</span>
+        </div>
+        <div class="view-header-info">
+          <h3 class="view-name">{{ selectedUser.firstName }} {{ selectedUser.lastName }}</h3>
+          <span class="view-status" [class.status-active]="selectedUser.isActive" [class.status-inactive]="!selectedUser.isActive">
+            {{ selectedUser.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+      </div>
+      
+      <div class="view-details">
+        <div class="detail-item">
+          <span class="detail-label">Email</span>
+          <span class="detail-value">{{ selectedUser.email }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.phone">
+          <span class="detail-label">Phone</span>
+          <span class="detail-value">{{ selectedUser.phone }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.cin">
+          <span class="detail-label">CIN</span>
+          <span class="detail-value">{{ selectedUser.cin }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.dateOfBirth">
+          <span class="detail-label">Date of Birth</span>
+          <span class="detail-value">{{ selectedUser.dateOfBirth }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.englishLevel">
+          <span class="detail-label">English Level</span>
+          <span class="detail-value">{{ selectedUser.englishLevel }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.city">
+          <span class="detail-label">City</span>
+          <span class="detail-value">{{ selectedUser.city }}</span>
+        </div>
+        
+        <div class="detail-item" *ngIf="selectedUser.postalCode">
+          <span class="detail-label">Postal Code</span>
+          <span class="detail-value">{{ selectedUser.postalCode }}</span>
+        </div>
+        
+        <div class="detail-item detail-full" *ngIf="selectedUser.address">
+          <span class="detail-label">Address</span>
+          <span class="detail-value">{{ selectedUser.address }}</span>
+        </div>
+        
+        <div class="detail-item">
+          <span class="detail-label">Registration Fee</span>
+          <span class="detail-value">
+            <span [class]="selectedUser.registrationFeePaid ? 'badge-paid' : 'badge-unpaid'">
+              {{ selectedUser.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+            </span>
+          </span>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button (click)="closeViewModal(); openEditModal(selectedUser)" class="btn-edit-view">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit Student
+        </button>
+        <button (click)="closeViewModal()" class="btn-close">Close</button>
       </div>
     </div>
   </div>
