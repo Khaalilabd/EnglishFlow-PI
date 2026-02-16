@@ -3,6 +3,8 @@ import { DropdownComponent } from '../../ui/dropdown/dropdown.component';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
+import { AuthService } from '../../../../core/services/auth.service';
+import { AuthResponse } from '../../../../core/models/user.model';
 
 @Component({
   standalone: true,
@@ -12,6 +14,19 @@ import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdo
 })
 export class UserDropdownComponent {
   isOpen = false;
+  currentUser: AuthResponse | null = null;
+
+  constructor(private authService: AuthService) {
+    this.currentUser = this.authService.currentUserValue;
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
+
+  getDefaultAvatar(): string {
+    const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
+    return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=128`;
+  }
 
   toggleDropdown() {
     this.isOpen = !this.isOpen;
@@ -19,5 +34,10 @@ export class UserDropdownComponent {
 
   closeDropdown() {
     this.isOpen = false;
+  }
+
+  logout() {
+    this.authService.logout();
+    window.location.href = '/';
   }
 }

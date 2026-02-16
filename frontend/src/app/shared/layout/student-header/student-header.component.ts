@@ -1,11 +1,14 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { AuthResponse } from '../../../core/models/user.model';
 
 @Component({
   standalone: true,
   selector: 'app-student-header',
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   template: `
     <header 
       class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm transition-all duration-300">
@@ -15,7 +18,7 @@ import { SidebarService } from '../../services/sidebar.service';
         <!-- Hamburger Toggle for Mobile -->
         <button
           (click)="toggleSidebar()"
-          class="block rounded-xl p-2 hover:bg-gray-100 xl:hidden transition-colors"
+          class="block rounded-xl p-2 hover:bg-[#F7EDE2] xl:hidden transition-colors"
         >
           <svg class="h-6 w-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -28,46 +31,137 @@ import { SidebarService } from '../../services/sidebar.service';
           <input 
             type="text" 
             placeholder="Search courses, lessons, assignments..."
-            class="w-full pl-12 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2D5757] focus:border-transparent transition-all">
+            class="w-full pl-12 pr-4 py-2.5 bg-[#F7EDE2]/30 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
         </div>
       </div>
 
       <!-- Right: Actions -->
       <div class="flex items-center space-x-4 ml-6">
         <!-- Notifications -->
-        <button class="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <button class="relative p-2 hover:bg-[#F7EDE2] rounded-xl transition-colors">
           <i class="fas fa-bell text-gray-600 text-xl"></i>
           <span class="absolute top-1 right-1 w-2 h-2 bg-[#F6BD60] rounded-full animate-pulse"></span>
         </button>
 
         <!-- Messages -->
-        <button class="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
+        <button class="relative p-2 hover:bg-[#F7EDE2] rounded-xl transition-colors">
           <i class="fas fa-envelope text-gray-600 text-xl"></i>
-          <span class="absolute top-0 right-0 bg-[#2D5757] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">5</span>
+          <span *ngIf="unreadMessages > 0" class="absolute top-0 right-0 bg-[#C84630] text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{unreadMessages}}</span>
         </button>
 
         <!-- User Menu -->
-        <div class="flex items-center space-x-3 pl-4 border-l border-gray-200">
-          <img 
-            src="https://i.pravatar.cc/150?img=12" 
-            alt="Student"
-            class="w-10 h-10 rounded-full border-2 border-[#2D5757] shadow-sm">
-          <div class="hidden md:block">
-            <p class="text-sm font-semibold text-gray-800">Student Name</p>
-            <p class="text-xs text-[#2D5757]">Learner</p>
-          </div>
-          <button class="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <i class="fas fa-chevron-down text-gray-600 text-sm"></i>
+        <div class="relative">
+          <button 
+            (click)="toggleUserMenu()"
+            class="flex items-center space-x-3 pl-4 border-l border-gray-200 hover:bg-[#F7EDE2] rounded-lg px-3 py-2 transition-colors">
+            <img 
+              [src]="currentUser?.profilePhoto || 'https://ui-avatars.com/api/?name=' + (currentUser?.firstName || 'User') + '+' + (currentUser?.lastName || 'Name') + '&background=F6BD60&color=fff&size=128'"
+              [alt]="currentUser?.firstName + ' ' + currentUser?.lastName"
+              class="w-10 h-10 rounded-full border-2 border-[#F6BD60] shadow-sm object-cover">
+            <div class="hidden md:block text-left">
+              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+              <p class="text-xs text-[#2D5757]">{{currentUser?.role === 'STUDENT' ? 'Learner' : currentUser?.role}}</p>
+            </div>
+            <i class="fas fa-chevron-down text-gray-600 text-sm transition-transform" [class.rotate-180]="userMenuOpen"></i>
           </button>
+
+          <!-- Dropdown Menu -->
+          <div 
+            *ngIf="userMenuOpen"
+            class="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-200 py-2 z-50 animate-fadeIn">
+            
+            <!-- User Info -->
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+              <p class="text-xs text-gray-500">{{currentUser?.email}}</p>
+            </div>
+
+            <!-- Menu Items -->
+            <a 
+              routerLink="/user-panel/settings"
+              (click)="closeUserMenu()"
+              class="flex items-center px-4 py-3 hover:bg-[#F7EDE2] transition-colors">
+              <i class="fas fa-user-cog text-[#2D5757] w-5"></i>
+              <span class="ml-3 text-sm text-gray-700">Settings Profile</span>
+            </a>
+
+            <a 
+              routerLink="/user-panel/subscription"
+              (click)="closeUserMenu()"
+              class="flex items-center px-4 py-3 hover:bg-[#F7EDE2] transition-colors">
+              <i class="fas fa-credit-card text-[#2D5757] w-5"></i>
+              <span class="ml-3 text-sm text-gray-700">My Subscription</span>
+            </a>
+
+            <a 
+              routerLink="/user-panel/support"
+              (click)="closeUserMenu()"
+              class="flex items-center px-4 py-3 hover:bg-[#F7EDE2] transition-colors">
+              <i class="fas fa-life-ring text-[#2D5757] w-5"></i>
+              <span class="ml-3 text-sm text-gray-700">Help & Support</span>
+            </a>
+
+            <div class="border-t border-gray-100 mt-2"></div>
+
+            <button 
+              (click)="logout()"
+              class="w-full flex items-center px-4 py-3 hover:bg-red-50 transition-colors text-left">
+              <i class="fas fa-sign-out-alt text-red-500 w-5"></i>
+              <span class="ml-3 text-sm text-red-500 font-medium">Logout</span>
+            </button>
+          </div>
         </div>
       </div>
     </header>
-  `
+  `,
+  styles: [`
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.2s ease-out;
+    }
+  `]
 })
 export class StudentHeaderComponent {
-  constructor(private sidebarService: SidebarService) {}
+  userMenuOpen = false;
+  unreadMessages = 5;
+  currentUser$;
+  currentUser: AuthResponse | null = null;
+
+  constructor(
+    private sidebarService: SidebarService,
+    private authService: AuthService
+  ) {
+    this.currentUser$ = this.authService.currentUser$;
+    this.currentUser = this.authService.currentUserValue;
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
 
   toggleSidebar() {
     this.sidebarService.toggleMobileOpen();
+  }
+
+  toggleUserMenu() {
+    this.userMenuOpen = !this.userMenuOpen;
+  }
+
+  closeUserMenu() {
+    this.userMenuOpen = false;
+  }
+
+  logout() {
+    this.authService.logout();
+    window.location.href = '/';
   }
 }

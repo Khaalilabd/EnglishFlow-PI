@@ -13,8 +13,10 @@ export interface User {
 
 export enum UserRole {
   ADMIN = 'ADMIN',
+  TUTOR = 'TUTOR',
   TEACHER = 'TEACHER',
-  STUDENT = 'STUDENT'
+  STUDENT = 'STUDENT',
+  ACADEMIC_OFFICE_AFFAIR = 'ACADEMIC_OFFICE_AFFAIR'
 }
 
 export interface LoginRequest {
@@ -47,4 +49,6 @@ export interface AuthResponse {
   firstName: string;
   lastName: string;
   role: string;
+  profilePhoto?: string;
+  phone?: string;
 }

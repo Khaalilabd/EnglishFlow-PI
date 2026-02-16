@@ -247,6 +247,9 @@ export class ClubsComponent implements OnInit {
         clubData.image = await this.convertFileToBase64(this.selectedImageFile);
       }
 
+      console.log('📤 Sending club data:', clubData);
+      console.log('📤 Club data JSON:', JSON.stringify(clubData, null, 2));
+
       this.clubService.createClub(clubData).subscribe({
         next: (club) => {
           this.creating = false;
@@ -255,8 +258,19 @@ export class ClubsComponent implements OnInit {
           alert('Club request submitted successfully! It will be reviewed by an Academic Affairs Officer.');
         },
         error: (err) => {
-          console.error('Error creating club:', err);
-          this.createError = 'Failed to create club. Please try again.';
+          console.error('❌ Error creating club:', err);
+          console.error('❌ Error status:', err.status);
+          console.error('❌ Error message:', err.error);
+          
+          // Afficher le message d'erreur du backend si disponible
+          if (err.error && err.error.message) {
+            this.createError = `Failed to create club: ${err.error.message}`;
+          } else if (err.error && typeof err.error === 'string') {
+            this.createError = `Failed to create club: ${err.error}`;
+          } else {
+            this.createError = 'Failed to create club. Please check all required fields.';
+          }
+          
           this.creating = false;
         }
       });

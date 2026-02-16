@@ -130,11 +130,15 @@ export class FrontofficeUserDropdownComponent {
 
   get userPanelLabel(): string {
     if (this.currentUser?.role === 'ADMIN') {
-      return 'Admin Panel';
+      return 'Admin Dashboard';
     } else if (this.currentUser?.role === 'TUTOR') {
       return 'Tutor Panel';
+    } else if (this.currentUser?.role === 'ACADEMIC_OFFICE_AFFAIR') {
+      return 'Academic Support Panel';
+    } else if (this.currentUser?.role === 'STUDENT') {
+      return 'Student Panel';
     }
-    return 'User Panel';
+    return 'Student Panel'; // Default pour les autres cas
   }
 
   get userPanelRoute(): string {
@@ -142,8 +146,12 @@ export class FrontofficeUserDropdownComponent {
       return '/dashboard';
     } else if (this.currentUser?.role === 'TUTOR') {
       return '/tutor-panel';
+    } else if (this.currentUser?.role === 'ACADEMIC_OFFICE_AFFAIR') {
+      return '/dashboard';
+    } else if (this.currentUser?.role === 'STUDENT') {
+      return '/user-panel';
     }
-    return '/user-panel';
+    return '/user-panel'; // Default pour les autres cas
   }
 
   toggleDropdown() {

@@ -90,6 +90,7 @@ public class User {
     public enum Role {
         ADMIN,
         TUTOR,
-        STUDENT
+        STUDENT,
+        ACADEMIC_OFFICE_AFFAIR
     }
 }

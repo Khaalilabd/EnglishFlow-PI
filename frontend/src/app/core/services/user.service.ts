@@ -7,11 +7,28 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  phone?: string;
+  cin?: string;
+  profilePhoto?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  bio?: string;
+  englishLevel?: string;
+  yearsOfExperience?: number;
   role: string;
   isActive: boolean;
   registrationFeePaid: boolean;
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateUserRequest {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
   phone?: string;
   cin?: string;
   dateOfBirth?: string;
@@ -21,42 +38,77 @@ export interface User {
   bio?: string;
   englishLevel?: string;
   yearsOfExperience?: number;
+  role: string;
+}
+
+export interface UpdateUserRequest {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  cin?: string;
   profilePhoto?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  bio?: string;
+  englishLevel?: string;
+  yearsOfExperience?: number;
+  isActive?: boolean;
+  registrationFeePaid?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081/api/users';
+  private apiUrl = 'http://localhost:8081/auth/users';
 
   constructor(private http: HttpClient) {}
 
+  // Get all users
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(this.apiUrl);
   }
 
-  getUserById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
-  }
-
+  // Get users by role
   getUsersByRole(role: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/role/${role}`);
   }
 
-  updateUser(id: number, user: Partial<User>): Observable<User> {
+  // Get user by ID
+  getUserById(id: number): Observable<User> {
+    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  }
+
+  // Create user
+  createUser(user: CreateUserRequest): Observable<User> {
+    return this.http.post<User>(this.apiUrl, user);
+  }
+
+  // Update user
+  updateUser(id: number, user: UpdateUserRequest): Observable<User> {
     return this.http.put<User>(`${this.apiUrl}/${id}`, user);
   }
 
+  // Delete user
   deleteUser(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  toggleUserStatus(id: number): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}/toggle-status`, {});
+  // Activate user
+  activateUser(id: number): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}/activate`, {});
   }
 
-  createTutor(tutorData: any): Observable<any> {
-    return this.http.post(`${this.apiUrl}/create-tutor`, tutorData);
+  // Deactivate user
+  deactivateUser(id: number): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}/deactivate`, {});
+  }
+
+  // Update profile photo
+  updateProfilePhoto(id: number, photoBase64: string): Observable<User> {
+    return this.http.patch<User>(`${this.apiUrl}/${id}/photo`, { profilePhoto: photoBase64 });
   }
 }

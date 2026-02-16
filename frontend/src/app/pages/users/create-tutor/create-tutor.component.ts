@@ -112,15 +112,20 @@ export class CreateTutorComponent {
     const tempPassword = this.generatePassword();
     this.tutorForm.patchValue({ password: tempPassword });
 
-    this.userService.createTutor(this.tutorForm.value).subscribe({
-      next: (response) => {
+    const tutorData = {
+      ...this.tutorForm.value,
+      role: 'TUTOR'
+    };
+
+    this.userService.createUser(tutorData).subscribe({
+      next: (response: any) => {
         this.loading = false;
         this.generatedPassword = tempPassword;
         this.createdTutorName = `${this.tutorForm.value.firstName} ${this.tutorForm.value.lastName}`;
         this.createdTutorEmail = this.tutorForm.value.email;
         this.showPasswordModal = true;
       },
-      error: (error) => {
+      error: (error: any) => {
         this.loading = false;
         console.error('Full error object:', error);
         console.error('Error status:', error.status);

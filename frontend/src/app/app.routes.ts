@@ -266,6 +266,11 @@ export const routes: Routes = [
         title: 'Profile | Jungle in English Dashboard'
       },
       {
+        path: 'settings',
+        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.SettingsComponent),
+        title: 'Settings Profile | Jungle in English Dashboard'
+      },
+      {
         path: 'users/students',
         loadComponent: () => import('./pages/users/students/students.component').then(m => m.StudentsComponent),
         title: 'Students | Jungle in English Dashboard'
@@ -281,9 +286,69 @@ export const routes: Routes = [
         title: 'Create Tutor | Jungle in English Dashboard'
       },
       {
+        path: 'users/academic-affairs',
+        loadComponent: () => import('./pages/users/academic-affairs/academic-affairs.component').then(m => m.AcademicAffairsComponent),
+        title: 'Academic Affairs | Jungle in English Dashboard'
+      },
+      {
+        path: 'statistics',
+        loadComponent: () => import('./pages/dashboard/statistics/statistics.component').then(m => m.StatisticsComponent),
+        title: 'Statistics | Jungle in English Dashboard'
+      },
+      {
+        path: 'schedules',
+        loadComponent: () => import('./pages/dashboard/schedules/schedules.component').then(m => m.SchedulesComponent),
+        title: 'Schedules | Jungle in English Dashboard'
+      },
+      {
+        path: 'schedules/manage',
+        loadComponent: () => import('./pages/dashboard/schedules-manage/schedules-manage.component').then(m => m.SchedulesManageComponent),
+        title: 'Manage Schedules | Jungle in English Dashboard'
+      },
+      {
+        path: 'refunds',
+        loadComponent: () => import('./pages/dashboard/refunds/refunds.component').then(m => m.RefundsComponent),
+        title: 'Manage Refunds | Jungle in English Dashboard'
+      },
+      {
+        path: 'payments',
+        loadComponent: () => import('./pages/dashboard/payments/payments.component').then(m => m.PaymentsComponent),
+        title: 'Manage Payments | Jungle in English Dashboard'
+      },
+      {
+        path: 'subscriptions',
+        loadComponent: () => import('./pages/dashboard/subscriptions/subscriptions.component').then(m => m.SubscriptionsComponent),
+        title: 'Manage Subscriptions | Jungle in English Dashboard'
+      },
+      {
+        path: 'events',
+        loadComponent: () => import('./pages/dashboard/events/events.component').then(m => m.EventsComponent),
+        title: 'Events | Jungle in English Dashboard'
+      },
+      {
+        path: 'events/manage',
+        loadComponent: () => import('./pages/dashboard/events-manage/events-manage.component').then(m => m.EventsManageComponent),
+        title: 'Manage Events | Jungle in English Dashboard'
+      },
+      {
+        path: 'complaints',
+        loadComponent: () => import('./pages/dashboard/complaints/complaints.component').then(m => m.ComplaintsComponent),
+        title: 'Manage Complaints | Jungle in English Dashboard'
+      },
+      {
+        path: 'feedbacks',
+        loadComponent: () => import('./pages/dashboard/feedbacks/feedbacks.component').then(m => m.FeedbacksComponent),
+        title: 'Manage Feedbacks | Jungle in English Dashboard'
+      },
+      {
         path: 'clubs',
         loadComponent: () => import('./pages/clubs/clubs-list/clubs-list.component').then(m => m.ClubsListComponent),
         title: 'Clubs | Jungle in English Dashboard'
+      },
+      {
+        path: 'clubs/manage',
+        loadComponent: () => import('./pages/clubs/clubs-manage/clubs-manage.component').then(m => m.ClubsManageComponent),
+        title: 'Manage Clubs | Jungle in English Dashboard'
       },
       {
         path: 'clubs/requests',

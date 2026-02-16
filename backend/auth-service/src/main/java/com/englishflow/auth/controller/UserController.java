@@ -1,55 +1,69 @@
 package com.englishflow.auth.controller;
 
-import com.englishflow.auth.dto.CreateTutorRequest;
-import com.englishflow.auth.dto.UserDTO;
-import com.englishflow.auth.service.UserService;
+import com.englishflow.auth.dto.AuthResponse;
+import com.englishflow.auth.dto.UpdateUserRequest;
+import com.englishflow.auth.entity.User;
+import com.englishflow.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "*")
 public class UserController {
 
-    private final UserService userService;
-
-    @GetMapping
-    public ResponseEntity<List<UserDTO>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.getUserById(id));
-    }
-
-    @GetMapping("/role/{role}")
-    public ResponseEntity<List<UserDTO>> getUsersByRole(@PathVariable String role) {
-        return ResponseEntity.ok(userService.getUsersByRole(role));
-    }
+    private final UserRepository userRepository;
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, userDTO));
-    }
+    public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
-        userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
-    }
+        // Update fields if provided
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName());
+        }
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail());
+        }
+        if (request.getPhone() != null) {
+            user.setPhone(request.getPhone());
+        }
+        if (request.getProfilePhoto() != null) {
+            user.setProfilePhoto(request.getProfilePhoto());
+        }
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth());
+        }
+        if (request.getAddress() != null) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getCity() != null) {
+            user.setCity(request.getCity());
+        }
+        if (request.getPostalCode() != null) {
+            user.setPostalCode(request.getPostalCode());
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
 
-    @PatchMapping("/{id}/toggle-status")
-    public ResponseEntity<UserDTO> toggleUserStatus(@PathVariable Long id) {
-        return ResponseEntity.ok(userService.toggleUserStatus(id));
-    }
+        user = userRepository.save(user);
 
-    @PostMapping("/create-tutor")
-    public ResponseEntity<UserDTO> createTutor(@RequestBody CreateTutorRequest request) {
-        return ResponseEntity.ok(userService.createTutor(request));
+        return ResponseEntity.ok(new AuthResponse(
+                null, // No new token
+                user.getId(),
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getRole().name(),
+                user.getProfilePhoto(),
+                user.getPhone()
+        ));
     }
 }

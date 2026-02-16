@@ -73,4 +73,22 @@ export class AuthService {
       })
     );
   }
+
+  updateProfile(data: any): Observable<AuthResponse> {
+    const currentUser = this.currentUserValue;
+    if (!currentUser) {
+      throw new Error('No user logged in');
+    }
+    
+    return this.http.put<AuthResponse>(`${this.apiUrl}/users/${currentUser.id}`, data).pipe(
+      tap(response => {
+        // Mettre à jour le currentUser avec les nouvelles données
+        const updated = {
+          ...currentUser,
+          ...response
+        };
+        this.setCurrentUser(updated);
+      })
+    );
+  }
 }

@@ -79,7 +79,9 @@ public class AuthService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRole().name()
+                user.getRole().name(),
+                user.getProfilePhoto(),
+                user.getPhone()
         );
     }
 
@@ -115,7 +117,9 @@ public class AuthService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRole().name()
+                user.getRole().name(),
+                user.getProfilePhoto(),
+                user.getPhone()
         );
     }
 
@@ -139,7 +143,9 @@ public class AuthService {
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getRole().name()
+                user.getRole().name(),
+                user.getProfilePhoto(),
+                user.getPhone()
         );
     }
 

@@ -96,15 +96,32 @@ export class TutorsComponent implements OnInit {
     return Array.from({ length: this.totalPages }, (_, i) => i + 1);
   }
 
-  toggleUserStatus(user: User): void {
-    this.userService.toggleUserStatus(user.id).subscribe({
-      next: (updatedUser) => {
+  activateUser(user: User): void {
+    this.userService.activateUser(user.id).subscribe({
+      next: (updatedUser: User) => {
         user.isActive = updatedUser.isActive;
+        alert('Tutor activated successfully!');
       },
-      error: (error) => {
-        console.error('Error toggling user status:', error);
+      error: (error: any) => {
+        console.error('Error activating tutor:', error);
+        alert('Failed to activate tutor.');
       }
     });
+  }
+
+  deactivateUser(user: User): void {
+    if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
+      this.userService.deactivateUser(user.id).subscribe({
+        next: (updatedUser: User) => {
+          user.isActive = updatedUser.isActive;
+          alert('Tutor deactivated successfully!');
+        },
+        error: (error: any) => {
+          console.error('Error deactivating tutor:', error);
+          alert('Failed to deactivate tutor.');
+        }
+      });
+    }
   }
 
   deleteUser(user: User): void {

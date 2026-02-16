@@ -5,7 +5,9 @@
       <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Students</h1>
       <p class="text-gray-600 dark:text-gray-400 mt-1">Manage student accounts and information</p>
     </div>
-    <button class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors">
+    <button 
+      (click)="openCreateModal()"
+      class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors">
       <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
       </svg>
@@ -134,7 +136,7 @@
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
               <div class="flex items-center justify-end space-x-2">
                 <button
-                  (click)="viewUser(user)"
+                  (click)="openViewModal(user)"
                   class="text-primary hover:text-primary-700"
                   title="View"
                 >
@@ -144,7 +146,7 @@
                   </svg>
                 </button>
                 <button
-                  (click)="editUser(user)"
+                  (click)="openEditModal(user)"
                   class="text-primary hover:text-primary-700"
                   title="Edit"
                 >
@@ -153,17 +155,22 @@
                   </svg>
                 </button>
                 <button
-                  (click)="toggleUserStatus(user)"
-                  [class.text-green-600]="!user.isActive"
-                  [class.hover:text-green-900]="!user.isActive"
-                  [class.text-red-600]="user.isActive"
-                  [class.hover:text-red-900]="user.isActive"
-                  [title]="user.isActive ? 'Deactivate' : 'Activate'"
+                  *ngIf="user.isActive"
+                  (click)="deactivateUser(user)"
+                  class="text-red-600 hover:text-red-900"
+                  title="Deactivate"
                 >
-                  <svg *ngIf="user.isActive" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
                   </svg>
-                  <svg *ngIf="!user.isActive" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                </button>
+                <button
+                  *ngIf="!user.isActive"
+                  (click)="activateUser(user)"
+                  class="text-green-600 hover:text-green-900"
+                  title="Activate"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </button>
