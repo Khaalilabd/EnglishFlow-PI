@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Subject } from 'rxjs';
 
 export interface Toast {
   id: number;
-  type: 'success' | 'error' | 'info' | 'warning';
+  type: 'success' | 'error' | 'warning' | 'info';
   message: string;
   duration?: number;
 }
@@ -12,24 +12,18 @@ export interface Toast {
   providedIn: 'root'
 })
 export class ToastService {
-  private toastsSubject = new BehaviorSubject<Toast[]>([]);
-  public toasts$ = this.toastsSubject.asObservable();
-  private nextId = 1;
+  private toastSubject = new Subject<Toast>();
+  public toast$ = this.toastSubject.asObservable();
+  private toastId = 0;
 
-  show(type: Toast['type'], message: string, duration: number = 3000) {
+  show(type: Toast['type'], message: string, duration: number = 5000) {
     const toast: Toast = {
-      id: this.nextId++,
+      id: ++this.toastId,
       type,
       message,
       duration
     };
-
-    const currentToasts = this.toastsSubject.value;
-    this.toastsSubject.next([...currentToasts, toast]);
-
-    if (duration > 0) {
-      setTimeout(() => this.remove(toast.id), duration);
-    }
+    this.toastSubject.next(toast);
   }
 
   success(message: string, duration?: number) {
@@ -40,16 +34,11 @@ export class ToastService {
     this.show('error', message, duration);
   }
 
-  info(message: string, duration?: number) {
-    this.show('info', message, duration);
-  }
-
   warning(message: string, duration?: number) {
     this.show('warning', message, duration);
   }
 
-  remove(id: number) {
-    const currentToasts = this.toastsSubject.value;
-    this.toastsSubject.next(currentToasts.filter(t => t.id !== id));
+  info(message: string, duration?: number) {
+    this.show('info', message, duration);
   }
 }

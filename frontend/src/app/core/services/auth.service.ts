@@ -50,6 +50,11 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  updateCurrentUser(user: AuthResponse): void {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUserSubject.next(user);
+  }
+
   get isAuthenticated(): boolean {
     return !!this.currentUserSubject.value;
   }

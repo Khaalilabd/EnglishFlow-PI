@@ -49,6 +49,13 @@ export interface AuthResponse {
   firstName: string;
   lastName: string;
   role: string;
-  profilePhoto?: string;
+  profilePhoto?: string | null;
   phone?: string;
+  cin?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  bio?: string;
+  englishLevel?: string;
 }

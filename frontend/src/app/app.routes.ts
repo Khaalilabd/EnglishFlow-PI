@@ -220,6 +220,11 @@ export const routes: Routes = [
   
   // Pages d'authentification (hors du layout dashboard)
   {
+    path: 'auth/login',
+    component: LoginComponent,
+    title: 'Login | Jungle in English'
+  },
+  {
     path: 'login',
     component: LoginComponent,
     title: 'Login | Jungle in English'
@@ -248,6 +253,11 @@ export const routes: Routes = [
     path: 'oauth2/callback',
     component: OAuth2CallbackComponent,
     title: 'Signing in... | Jungle in English'
+  },
+  {
+    path: 'complete-profile',
+    loadComponent: () => import('./auth/complete-profile/complete-profile.component').then(m => m.CompleteProfileComponent),
+    title: 'Complete Profile | Jungle in English'
   },
   {
     path: 'signin',

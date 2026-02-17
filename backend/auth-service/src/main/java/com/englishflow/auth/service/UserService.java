@@ -2,14 +2,18 @@ package com.englishflow.auth.service;
 
 import com.englishflow.auth.dto.CreateTutorRequest;
 import com.englishflow.auth.dto.UserDTO;
+import com.englishflow.auth.entity.ActivationToken;
 import com.englishflow.auth.entity.User;
+import com.englishflow.auth.repository.ActivationTokenRepository;
 import com.englishflow.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,6 +22,8 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final ActivationTokenRepository activationTokenRepository;
 
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -192,13 +198,33 @@ public class UserService {
             user.setBio(request.getBio());
             user.setEnglishLevel(request.getEnglishLevel());
             user.setRole(userRole);
-            user.setActive(true);
+            user.setActive(false); // Require email activation
             user.setRegistrationFeePaid(false);
             
             // Encode password
             user.setPassword(passwordEncoder.encode(request.getPassword()));
 
             User savedUser = userRepository.save(user);
+            
+            // Create activation token
+            String activationToken = UUID.randomUUID().toString();
+            ActivationToken token = ActivationToken.builder()
+                    .token(activationToken)
+                    .user(savedUser)
+                    .expiryDate(LocalDateTime.now().plusHours(24))
+                    .used(false)
+                    .build();
+            activationTokenRepository.save(token);
+            
+            // Send activation email
+            try {
+                emailService.sendActivationEmail(savedUser.getEmail(), savedUser.getFirstName(), activationToken);
+                System.out.println("✅ Activation email sent to: " + savedUser.getEmail());
+            } catch (Exception e) {
+                System.err.println("❌ Failed to send activation email: " + e.getMessage());
+                // Continue anyway - admin can activate manually
+            }
+            
             return UserDTO.fromEntity(savedUser);
         } catch (Exception e) {
             throw new RuntimeException("Failed to create user: " + e.getMessage(), e);
@@ -214,11 +240,22 @@ public class UserService {
         
         System.out.println("👤 Found user: " + user.getEmail() + ", current status: " + user.isActive());
         
+        boolean wasInactive = !user.isActive();
         user.setActive(true);
         System.out.println("✏️ Setting user to active...");
         
         User updatedUser = userRepository.save(user);
         System.out.println("💾 User saved, new status: " + updatedUser.isActive());
+        
+        // Send welcome email if user was previously inactive
+        if (wasInactive) {
+            try {
+                emailService.sendWelcomeEmail(updatedUser.getEmail(), updatedUser.getFirstName());
+                System.out.println("✅ Welcome email sent to: " + updatedUser.getEmail());
+            } catch (Exception e) {
+                System.err.println("❌ Failed to send welcome email: " + e.getMessage());
+            }
+        }
         
         UserDTO dto = UserDTO.fromEntity(updatedUser);
         System.out.println("📦 DTO created successfully");

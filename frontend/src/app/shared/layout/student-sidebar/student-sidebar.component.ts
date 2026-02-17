@@ -25,6 +25,11 @@ export class StudentSidebarComponent {
   navItems: NavItem[] = [
     {
       icon: 'fas fa-home',
+      name: "Home",
+      path: "/",
+    },
+    {
+      icon: 'fas fa-th-large',
       name: "Dashboard",
       path: "/user-panel/dashboard",
     },

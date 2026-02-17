@@ -12,18 +12,26 @@
   <!-- Header with Logo -->
   <div class="p-6 border-b border-white/10">
     <div class="flex items-center justify-between">
-      <div [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'flex items-center space-x-3' : 'hidden'">
-        <div class="w-10 h-10 bg-gradient-to-br from-[#F6BD60] to-[#C84630] rounded-lg flex items-center justify-center shadow-lg">
-          <i class="fas fa-graduation-cap text-white text-xl"></i>
+      <a 
+        routerLink="/"
+        [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'flex items-center space-x-3 hover:opacity-80 transition-opacity' : 'hidden'">
+        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl">
+          <span class="text-2xl font-black bg-gradient-to-br from-[#2D5757] to-[#F6BD60] bg-clip-text text-transparent">JE</span>
         </div>
         <div>
-          <h1 class="text-xl font-bold text-[#F7EDE2]">Student Panel</h1>
-          <p class="text-xs text-[#F7EDE2]/80">Jungle in English</p>
+          <h1 class="text-lg font-bold text-[#F7EDE2] leading-tight">Jungle in English</h1>
+          <p class="text-xs text-[#F6BD60] font-medium">Student Panel</p>
         </div>
-      </div>
+      </a>
+      <a 
+        routerLink="/"
+        *ngIf="!(isExpanded$ | async) && !(isHovered$ | async)"
+        class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl hover:opacity-80 transition-opacity">
+        <span class="text-xl font-black bg-gradient-to-br from-[#2D5757] to-[#F6BD60] bg-clip-text text-transparent">JE</span>
+      </a>
       <button 
         (click)="sidebarService.toggleExpanded()"
-        class="p-2 hover:bg-white/10 rounded-lg transition-colors">
+        class="p-2 hover:bg-white/10 rounded-lg transition-colors ml-auto">
         <i [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'fas fa-chevron-left text-[#F7EDE2]' : 'fas fa-chevron-right text-[#F7EDE2]'"></i>
       </button>
     </div>

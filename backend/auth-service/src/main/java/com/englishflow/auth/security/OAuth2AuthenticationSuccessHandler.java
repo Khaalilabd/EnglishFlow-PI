@@ -64,10 +64,10 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // Check if user is active
         if (!user.isActive()) {
-            // Redirect to frontend with error - account not activated
-            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/login")
-                    .queryParam("error", "account_not_activated")
+            // Redirect to backend waiting page - account pending activation
+            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8081/activation-pending")
                     .queryParam("email", userInfo.email)
+                    .queryParam("firstName", user.getFirstName())
                     .build().toUriString();
             
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -85,6 +85,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("firstName", user.getFirstName())
                 .queryParam("lastName", user.getLastName())
                 .queryParam("role", user.getRole().name())
+                .queryParam("profileCompleted", user.isProfileCompleted())
                 .build().toUriString();
         
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -142,6 +143,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         user.setRole(User.Role.STUDENT); // Default role for OAuth2 users
         user.setActive(false); // OAuth2 users need activation
         user.setRegistrationFeePaid(false);
+        user.setProfileCompleted(false); // OAuth2 users need to complete profile
         user.setPassword(""); // No password for OAuth2 users
         
         User savedUser = userRepository.save(user);

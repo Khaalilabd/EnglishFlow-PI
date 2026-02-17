@@ -1,50 +1,48 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ToastService, Toast } from '../../../core/services/toast.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-toast',
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="fixed top-4 right-4 z-50 space-y-2">
+    <div class="fixed bottom-6 right-6 z-[9999] space-y-3 max-w-sm">
       <div
-        *ngFor="let toast of toasts$ | async"
-        [class]="getToastClass(toast.type)"
-        class="min-w-[300px] max-w-md rounded-lg shadow-lg p-4 flex items-start gap-3 animate-slide-in"
-      >
-        <div class="flex-shrink-0">
-          <svg *ngIf="toast.type === 'success'" class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <svg *ngIf="toast.type === 'error'" class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <svg *ngIf="toast.type === 'warning'" class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-          <svg *ngIf="toast.type === 'info'" class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+        *ngFor="let toast of toasts"
+        [ngClass]="{
+          'bg-white border-l-4 border-green-500': toast.type === 'success',
+          'bg-white border-l-4 border-red-500': toast.type === 'error',
+          'bg-white border-l-4 border-[#F6BD60]': toast.type === 'warning',
+          'bg-white border-l-4 border-[#2D5757]': toast.type === 'info'
+        }"
+        class="px-5 py-4 rounded-lg shadow-2xl flex items-start gap-3 animate-slide-in">
+        <div class="flex-shrink-0 mt-0.5">
+          <i *ngIf="toast.type === 'success'" class="fas fa-check-circle text-xl text-green-500"></i>
+          <i *ngIf="toast.type === 'error'" class="fas fa-times-circle text-xl text-red-500"></i>
+          <i *ngIf="toast.type === 'warning'" class="fas fa-exclamation-triangle text-xl text-[#F6BD60]"></i>
+          <i *ngIf="toast.type === 'info'" class="fas fa-info-circle text-xl text-[#2D5757]"></i>
         </div>
-        <div class="flex-1">
-          <p class="text-sm font-medium text-white">{{ toast.message }}</p>
+        <div class="flex-1 min-w-0">
+          <p class="font-semibold text-sm text-gray-900 mb-0.5" *ngIf="toast.type === 'success'">Success</p>
+          <p class="font-semibold text-sm text-gray-900 mb-0.5" *ngIf="toast.type === 'error'">Error</p>
+          <p class="font-semibold text-sm text-gray-900 mb-0.5" *ngIf="toast.type === 'warning'">Warning</p>
+          <p class="font-semibold text-sm text-gray-900 mb-0.5" *ngIf="toast.type === 'info'">Info</p>
+          <p class="text-sm text-gray-600 leading-relaxed break-words">{{ toast.message }}</p>
         </div>
         <button
-          (click)="toastService.remove(toast.id)"
-          class="flex-shrink-0 text-white hover:text-gray-200 transition-colors"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
+          (click)="removeToast(toast.id)"
+          class="flex-shrink-0 hover:bg-gray-100 rounded-lg p-1.5 transition-all text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times text-sm"></i>
         </button>
       </div>
     </div>
   `,
   styles: [`
-    @keyframes slide-in {
+    @keyframes slideIn {
       from {
-        transform: translateX(100%);
+        transform: translateX(120%);
         opacity: 0;
       }
       to {
@@ -53,31 +51,49 @@ import { ToastService, Toast } from '../../../core/services/toast.service';
       }
     }
 
+    @keyframes slideOut {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(120%);
+        opacity: 0;
+      }
+    }
+
     .animate-slide-in {
-      animation: slide-in 0.3s ease-out;
+      animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .animate-slide-out {
+      animation: slideOut 0.3s ease-in;
     }
   `]
 })
-export class ToastComponent {
-  toasts$;
+export class ToastComponent implements OnInit, OnDestroy {
+  toasts: Toast[] = [];
+  private subscription?: Subscription;
 
-  constructor(public toastService: ToastService) {
-    this.toasts$ = this.toastService.toasts$;
+  constructor(private toastService: ToastService) {}
+
+  ngOnInit() {
+    this.subscription = this.toastService.toast$.subscribe(toast => {
+      this.toasts.push(toast);
+      
+      if (toast.duration) {
+        setTimeout(() => {
+          this.removeToast(toast.id);
+        }, toast.duration);
+      }
+    });
   }
 
-  getToastClass(type: Toast['type']): string {
-    const baseClasses = 'backdrop-blur-sm';
-    switch (type) {
-      case 'success':
-        return `${baseClasses} bg-green-500/90`;
-      case 'error':
-        return `${baseClasses} bg-red-500/90`;
-      case 'warning':
-        return `${baseClasses} bg-yellow-500/90`;
-      case 'info':
-        return `${baseClasses} bg-blue-500/90`;
-      default:
-        return `${baseClasses} bg-gray-500/90`;
-    }
+  ngOnDestroy() {
+    this.subscription?.unsubscribe();
+  }
+
+  removeToast(id: number) {
+    this.toasts = this.toasts.filter(t => t.id !== id);
   }
 }

@@ -5,6 +5,7 @@ import { SidebarService } from '../../services/sidebar.service';
 import { StudentSidebarComponent } from '../student-sidebar/student-sidebar.component';
 import { BackdropComponent } from '../backdrop/backdrop.component';
 import { StudentHeaderComponent } from '../student-header/student-header.component';
+import { ToastComponent } from '../../components/toast/toast.component';
 
 @Component({
   standalone: true,
@@ -14,7 +15,8 @@ import { StudentHeaderComponent } from '../student-header/student-header.compone
     RouterModule,
     StudentHeaderComponent,
     StudentSidebarComponent,
-    BackdropComponent
+    BackdropComponent,
+    ToastComponent
   ],
   templateUrl: './student-layout.component.html',
 })

@@ -18,6 +18,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -50,6 +52,32 @@ public class AuthService {
         // Set CIN if provided
         if (request.getCin() != null && !request.getCin().isEmpty()) {
             user.setCin(request.getCin());
+        }
+        
+        // Map optional fields from RegisterRequest
+        if (request.getProfilePhoto() != null && !request.getProfilePhoto().isEmpty()) {
+            user.setProfilePhoto(request.getProfilePhoto());
+        }
+        if (request.getDateOfBirth() != null) {
+            user.setDateOfBirth(request.getDateOfBirth().toString());
+        }
+        if (request.getAddress() != null && !request.getAddress().isEmpty()) {
+            user.setAddress(request.getAddress());
+        }
+        if (request.getCity() != null && !request.getCity().isEmpty()) {
+            user.setCity(request.getCity());
+        }
+        if (request.getPostalCode() != null && !request.getPostalCode().isEmpty()) {
+            user.setPostalCode(request.getPostalCode());
+        }
+        if (request.getBio() != null && !request.getBio().isEmpty()) {
+            user.setBio(request.getBio());
+        }
+        if (request.getEnglishLevel() != null && !request.getEnglishLevel().isEmpty()) {
+            user.setEnglishLevel(request.getEnglishLevel());
+        }
+        if (request.getYearsOfExperience() != null) {
+            user.setYearsOfExperience(request.getYearsOfExperience());
         }
 
         user = userRepository.save(user);
@@ -152,6 +180,32 @@ public class AuthService {
     public boolean validateToken(String token) {
         return jwtUtil.validateToken(token);
     }
+    public Map<String, Object> checkActivationStatus(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("activated", user.isActive());
+
+        if (user.isActive()) {
+            // Generate JWT token for activated user
+            String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+            response.put("token", jwtToken);
+            response.put("userId", user.getId());
+            response.put("email", user.getEmail());
+            response.put("firstName", user.getFirstName());
+            response.put("lastName", user.getLastName());
+            response.put("role", user.getRole().name());
+            response.put("profilePhoto", user.getProfilePhoto());
+            response.put("profileCompleted", user.isProfileCompleted());
+            response.put("message", "Account activated successfully!");
+        } else {
+            response.put("message", "Waiting for account activation...");
+        }
+
+        return response;
+    }
+
 
     @Transactional
     public void requestPasswordReset(PasswordResetRequest request) {
@@ -193,4 +247,40 @@ public class AuthService {
         resetToken.setUsed(true);
         passwordResetTokenRepository.save(resetToken);
     }
+    @Transactional
+    public void completeProfile(Long userId, Map<String, String> profileData) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Update optional fields
+        if (profileData.containsKey("phone") && profileData.get("phone") != null) {
+            user.setPhone(profileData.get("phone"));
+        }
+        if (profileData.containsKey("cin") && profileData.get("cin") != null) {
+            user.setCin(profileData.get("cin"));
+        }
+        if (profileData.containsKey("dateOfBirth") && profileData.get("dateOfBirth") != null) {
+            user.setDateOfBirth(profileData.get("dateOfBirth"));
+        }
+        if (profileData.containsKey("address") && profileData.get("address") != null) {
+            user.setAddress(profileData.get("address"));
+        }
+        if (profileData.containsKey("city") && profileData.get("city") != null) {
+            user.setCity(profileData.get("city"));
+        }
+        if (profileData.containsKey("postalCode") && profileData.get("postalCode") != null) {
+            user.setPostalCode(profileData.get("postalCode"));
+        }
+        if (profileData.containsKey("bio") && profileData.get("bio") != null) {
+            user.setBio(profileData.get("bio"));
+        }
+        if (profileData.containsKey("englishLevel") && profileData.get("englishLevel") != null) {
+            user.setEnglishLevel(profileData.get("englishLevel"));
+        }
+
+        // Mark profile as completed
+        user.setProfileCompleted(true);
+        userRepository.save(user);
+    }
+
 }

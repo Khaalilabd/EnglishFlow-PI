@@ -69,6 +69,8 @@ public class User {
 
     @Column(nullable = false)
     private boolean registrationFeePaid = false;
+    @Column(nullable = false)
+    private boolean profileCompleted = false; // For OAuth2 users who need to complete their profile
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

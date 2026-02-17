@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { AuthResponse } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-frontoffice-user-dropdown',
@@ -14,8 +15,8 @@ import { AuthService } from '../../core/services/auth.service';
         class="user-btn"
       >
         <img
-          src="/images/user/user-01.jpg"
-          alt="User"
+          [src]="getProfilePhotoUrl(currentUser?.profilePhoto)"
+          [alt]="currentUser?.firstName + ' ' + currentUser?.lastName"
           class="user-avatar"
         />
         <span class="user-name">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span>
@@ -116,16 +117,49 @@ import { AuthService } from '../../core/services/auth.service';
     }
   `]
 })
-export class FrontofficeUserDropdownComponent {
+export class FrontofficeUserDropdownComponent implements OnInit {
   isOpen = false;
+  currentUser: AuthResponse | null = null;
   
   constructor(
     public authService: AuthService,
     private router: Router
-  ) {}
-  
-  get currentUser() {
-    return this.authService.currentUserValue;
+  ) {
+    this.currentUser = this.authService.currentUserValue;
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+    });
+  }
+
+  ngOnInit() {
+    // Listen for profile photo updates
+    window.addEventListener('profilePhotoUpdated', (event: any) => {
+      if (this.currentUser) {
+        this.currentUser = {
+          ...this.currentUser,
+          profilePhoto: event.detail.profilePhoto
+        };
+      }
+    });
+  }
+
+  getProfilePhotoUrl(photoUrl: string | null | undefined): string {
+    if (!photoUrl) {
+      return this.getDefaultAvatar();
+    }
+    
+    // Si l'URL commence par http, la retourner telle quelle
+    if (photoUrl.startsWith('http')) {
+      return photoUrl;
+    }
+    
+    // Sinon, ajouter le préfixe du backend
+    return `http://localhost:8081${photoUrl}`;
+  }
+
+  getDefaultAvatar(): string {
+    const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
+    return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=128`;
   }
 
   get userPanelLabel(): string {

@@ -1,23 +1,22 @@
 package com.englishflow.auth.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateUserRequest {
+public class ActivationStatusResponse {
+    private boolean activated;
+    private String token;  // JWT token if activated
+    private Long userId;
     private String email;
     private String firstName;
     private String lastName;
-    private String phone;
+    private String role;
     private String profilePhoto;
-    private String dateOfBirth;
-    private String address;
-    private String city;
-    private String postalCode;
-    private String bio;
-    private String cin;
-    private String englishLevel;
+    private String message;
 }

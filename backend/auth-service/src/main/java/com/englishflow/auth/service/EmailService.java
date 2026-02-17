@@ -25,11 +25,14 @@ public class EmailService {
     @Value("${app.frontend.url:http://localhost:4200}")
     private String frontendUrl;
 
+    @Value("${app.backend.url:http://localhost:8081}")
+    private String backendUrl;
+
     public void sendActivationEmail(String to, String firstName, String activationToken) {
         try {
             Context context = new Context();
             context.setVariable("firstName", firstName);
-            context.setVariable("activationLink", frontendUrl + "/activate?token=" + activationToken);
+            context.setVariable("activationLink", backendUrl + "/auth/activate?token=" + activationToken);
             
             String htmlContent = templateEngine.process("activation-email", context);
             

@@ -55,7 +55,7 @@ import { AuthResponse } from '../../../core/models/user.model';
             (click)="toggleUserMenu()"
             class="flex items-center space-x-3 pl-4 border-l border-gray-200 hover:bg-[#F7EDE2] rounded-lg px-3 py-2 transition-colors">
             <img 
-              [src]="currentUser?.profilePhoto || 'https://ui-avatars.com/api/?name=' + (currentUser?.firstName || 'User') + '+' + (currentUser?.lastName || 'Name') + '&background=F6BD60&color=fff&size=128'"
+              [src]="getProfilePhotoUrl(currentUser?.profilePhoto)"
               [alt]="currentUser?.firstName + ' ' + currentUser?.lastName"
               class="w-10 h-10 rounded-full border-2 border-[#F6BD60] shadow-sm object-cover">
             <div class="hidden md:block text-left">
@@ -146,6 +146,31 @@ export class StudentHeaderComponent {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
     });
+
+    // Listen for profile photo updates
+    window.addEventListener('profilePhotoUpdated', (event: any) => {
+      if (this.currentUser) {
+        this.currentUser = {
+          ...this.currentUser,
+          profilePhoto: event.detail.profilePhoto
+        };
+      }
+    });
+  }
+
+  getProfilePhotoUrl(photoUrl: string | null | undefined): string {
+    if (!photoUrl) {
+      const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
+      return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=128`;
+    }
+    
+    // Si l'URL commence par http, la retourner telle quelle
+    if (photoUrl.startsWith('http')) {
+      return photoUrl;
+    }
+    
+    // Sinon, ajouter le préfixe du backend
+    return `http://localhost:8081${photoUrl}`;
   }
 
   toggleSidebar() {

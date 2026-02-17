@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Activated - Jungle in English</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #2D5757;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .success-icon {
+            font-size: 100px;
+            margin-bottom: 20px;
+            animation: bounce 1s ease-in-out;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateY(0);
+            }
+            40% {
+                transform: translateY(-20px);
+            }
+            60% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .status-message {
+            font-size: 28px;
+            color: #28a745;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .status-description {
+            color: #666;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 25px;
+        }
+
+        .info-box {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            box-shadow: 0 4px 10px rgba(40, 167, 69, 0.2);
+        }
+
+        .info-box strong {
+            display: block;
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #0d4521;
+        }
+
+        .info-box p {
+            font-size: 16px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .checkmark {
+            display: inline-block;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #28a745;
+            position: relative;
+            margin-bottom: 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .checkmark::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+        }
+
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px 20px;
+            margin-top: 20px;
+            border-radius: 8px;
+            text-align: left;
+        }
+
+        .note strong {
+            color: #856404;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .note p {
+            color: #856404;
+            font-size: 14px;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌴</div>
+        <h1>Jungle in English</h1>
+        <p class="subtitle">جنقل بال ANGLAIS</p>
+
+        <div class="checkmark"></div>
+        <div class="status-message">🎉 Account Activated Successfully!</div>
+        <div class="status-description">
+            Congratulations! Your account is now active and ready to use.
+        </div>
+
+        <div class="info-box">
+            <strong>✨ What Happens Next?</strong>
+            <p>
+                The waiting page will automatically detect your activation and redirect you to complete your profile. 
+                This window can be closed safely.
+            </p>
+        </div>
+
+        <div class="note">
+            <strong>💡 Tip</strong>
+            <p>
+                If the previous page doesn't redirect automatically within a few seconds, 
+                please refresh it manually or return to the waiting page.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

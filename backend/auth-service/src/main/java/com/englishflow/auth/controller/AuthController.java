@@ -36,8 +36,24 @@ public class AuthController {
     }
 
     @GetMapping("/activate")
-    public ResponseEntity<AuthResponse> activateAccount(@RequestParam String token) {
+    public String activateAccountView(@RequestParam String token, org.springframework.ui.Model model) {
+        try {
+            authService.activateAccount(token);
+            return "activation-success";
+        } catch (Exception e) {
+            model.addAttribute("error", e.getMessage());
+            return "activation-error";
+        }
+    }
+
+    @GetMapping("/activate-api")
+    public ResponseEntity<AuthResponse> activateAccountApi(@RequestParam String token) {
         return ResponseEntity.ok(authService.activateAccount(token));
+    }
+
+    @GetMapping("/activation-status/{email}")
+    public ResponseEntity<Map<String, Object>> checkActivationStatus(@PathVariable String email) {
+        return ResponseEntity.ok(authService.checkActivationStatus(email));
     }
 
     @PostMapping("/login")
@@ -66,5 +82,13 @@ public class AuthController {
     public ResponseEntity<Map<String, String>> confirmPasswordReset(@Valid @RequestBody PasswordResetConfirm request) {
         authService.resetPassword(request);
         return ResponseEntity.ok(Map.of("message", "Password reset successful"));
+    }
+
+    @PostMapping("/complete-profile/{userId}")
+    public ResponseEntity<Map<String, String>> completeProfile(
+            @PathVariable Long userId,
+            @RequestBody Map<String, String> profileData) {
+        authService.completeProfile(userId, profileData);
+        return ResponseEntity.ok(Map.of("message", "Profile completed successfully"));
     }
 }

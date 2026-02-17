@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activation Pending - Jungle in English</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #2D5757;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .status-container {
+            margin: 40px 0;
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 30px;
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #2D5757;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-message {
+            font-size: 20px;
+            color: #2D5757;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .status-description {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .email-info {
+            background: #f8f9fa;
+            border-left: 4px solid #2D5757;
+            padding: 15px 20px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+        }
+
+        .email-info strong {
+            color: #2D5757;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .email-info span {
+            color: #333;
+            word-break: break-all;
+        }
+
+        .success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .checkmark-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #28a745;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: scaleIn 0.5s ease-out;
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .checkmark-icon {
+            color: white;
+            font-size: 60px;
+            font-weight: bold;
+            animation: checkmarkPop 0.3s ease-out 0.3s both;
+        }
+
+        @keyframes checkmarkPop {
+            from {
+                transform: scale(0);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            animation: fillProgress 2s ease-out forwards;
+            border-radius: 10px;
+        }
+
+        @keyframes fillProgress {
+            to {
+                width: 100%;
+            }
+        }
+
+        .success-message {
+            display: none;
+        }
+
+        .redirect-info {
+            color: #666;
+            font-size: 14px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(45, 87, 87, 0.3);
+        }
+
+        .error-message {
+            display: none;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🌴</div>
+        <h1>Jungle in English</h1>
+        <p class="subtitle">جنقل بال ANGLAIS</p>
+
+        <div class="status-container" id="pendingStatus">
+            <div class="spinner"></div>
+            <div class="status-message">Waiting for Account Activation...</div>
+            <div class="status-description">
+                We've sent an activation link to your email address. 
+                Please check your inbox and click the activation link to complete your registration.
+            </div>
+            <div class="email-info">
+                <strong>📧 Email sent to:</strong>
+                <span id="userEmail"></span>
+            </div>
+            <div class="status-description">
+                This page will automatically redirect once your account is activated.
+                <br><br>
+                <strong>Don't see the email?</strong> Check your spam folder.
+            </div>
+        </div>
+
+        <div class="status-container success-message" id="successStatus">
+            <div class="checkmark-circle">
+                <div class="checkmark-icon">✓</div>
+            </div>
+            <div class="status-message" style="color: #28a745;">🎉 Account Activated!</div>
+            <div class="status-description">
+                Your account has been successfully activated. Redirecting you to complete your profile...
+            </div>
+            <div class="redirect-info">
+                <div class="progress-bar">
+                    <div class="progress-fill"></div>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 14px;">Please wait...</p>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <script>
+        // Get email from URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const firstName = urlParams.get('firstName') || 'there';
+
+        // Display email
+        document.getElementById('userEmail').textContent = email || 'your email';
+
+        // Polling function to check activation status
+        let pollInterval;
+        
+        function checkActivationStatus() {
+            if (!email) {
+                showError('Email parameter is missing. Please use the link from your email.');
+                return;
+            }
+
+            fetch(`/auth/activation-status/${encodeURIComponent(email)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to check activation status');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.activated) {
+                        // Account is activated!
+                        clearInterval(pollInterval);
+                        showSuccess(data);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking activation status:', error);
+                    // Continue polling even on error
+                });
+        }
+
+        function showSuccess(data) {
+            document.getElementById('pendingStatus').style.display = 'none';
+            document.getElementById('successStatus').style.display = 'block';
+
+            // Store auth data
+            if (data.token) {
+                localStorage.setItem('authToken', data.token);
+                localStorage.setItem('userId', data.userId);
+                localStorage.setItem('userEmail', data.email);
+                localStorage.setItem('userRole', data.role);
+                localStorage.setItem('firstName', data.firstName);
+                localStorage.setItem('lastName', data.lastName);
+            }
+
+            // Redirect based on profile completion status
+            setTimeout(() => {
+                if (data.profileCompleted === false) {
+                    // Redirect to Angular profile completion page with token
+                    window.location.href = `http://localhost:4200/complete-profile?token=${data.token}&userId=${data.userId}&email=${data.email}&firstName=${data.firstName}&lastName=${data.lastName}`;
+                } else {
+                    // Redirect to Angular landing page with token
+                    window.location.href = `http://localhost:4200/oauth2/callback?token=${data.token}&id=${data.userId}&email=${data.email}&firstName=${data.firstName}&lastName=${data.lastName}&role=${data.role}&profileCompleted=true`;
+                }
+            }, 2000);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            document.querySelector('.spinner').style.display = 'none';
+        }
+
+        // Start polling every 3 seconds
+        checkActivationStatus(); // Check immediately
+        pollInterval = setInterval(checkActivationStatus, 3000);
+
+        // Stop polling when page is hidden/closed
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(pollInterval);
+            } else {
+                pollInterval = setInterval(checkActivationStatus, 3000);
+            }
+        });
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(pollInterval);
+        });
+    </script>
+</body>
+</html>
