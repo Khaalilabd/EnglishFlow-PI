@@ -24,15 +24,19 @@ export class TaskService {
   }
 
   createTask(task: CreateTaskRequest): Observable<Task> {
-    return this.http.post<Task>(this.apiUrl, task);
+    // Add userId as query parameter
+    const userId = task.createdBy || 0;
+    return this.http.post<Task>(`${this.apiUrl}?userId=${userId}`, task);
   }
 
-  updateTask(id: number, task: UpdateTaskRequest): Observable<Task> {
-    return this.http.put<Task>(`${this.apiUrl}/${id}`, task);
+  updateTask(id: number, task: UpdateTaskRequest, userId?: number): Observable<Task> {
+    const userIdParam = userId || 0;
+    return this.http.put<Task>(`${this.apiUrl}/${id}?userId=${userIdParam}`, task);
   }
 
-  deleteTask(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deleteTask(id: number, userId?: number): Observable<void> {
+    const userIdParam = userId || 0;
+    return this.http.delete<void>(`${this.apiUrl}/${id}?userId=${userIdParam}`);
   }
 
   countTasksByStatus(clubId: number, status: TaskStatus): Observable<number> {

@@ -102,6 +102,11 @@ export const routes: Routes = [
         title: 'My Clubs | Jungle in English'
       },
       {
+        path: 'clubs/:id',
+        loadComponent: () => import('./pages/student-panel/clubs/clubs.component').then(m => m.ClubsComponent),
+        title: 'Club Details | Jungle in English'
+      },
+      {
         path: 'club-requests',
         loadComponent: () => import('./pages/student-panel/club-requests/club-requests.component').then(m => m.ClubRequestsComponent),
         title: 'Club Requests | Jungle in English'

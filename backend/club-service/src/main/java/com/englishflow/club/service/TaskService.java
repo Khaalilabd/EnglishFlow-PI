@@ -19,9 +19,15 @@ public class TaskService {
     
     private final TaskRepository taskRepository;
     private final ClubRepository clubRepository;
+    private final MemberService memberService;
     
     @Transactional(readOnly = true)
-    public List<TaskDTO> getTasksByClubId(Integer clubId) {
+    public List<TaskDTO> getTasksByClubId(Integer clubId, Long userId) {
+        // Check if user is a member of the club
+        if (!memberService.isMember(clubId, userId)) {
+            throw new RuntimeException("Only club members can view tasks");
+        }
+        
         return taskRepository.findByClubId(clubId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -42,9 +48,14 @@ public class TaskService {
     }
     
     @Transactional
-    public TaskDTO createTask(TaskDTO taskDTO) {
+    public TaskDTO createTask(TaskDTO taskDTO, Long userId) {
         Club club = clubRepository.findById(taskDTO.getClubId())
                 .orElseThrow(() -> new RuntimeException("Club not found with id: " + taskDTO.getClubId()));
+        
+        // Check if user is the president of the club
+        if (!memberService.isPresident(taskDTO.getClubId(), userId)) {
+            throw new RuntimeException("Only the president can create tasks");
+        }
         
         Task task = Task.builder()
                 .text(taskDTO.getText())
@@ -58,9 +69,14 @@ public class TaskService {
     }
     
     @Transactional
-    public TaskDTO updateTask(Integer id, TaskDTO taskDTO) {
+    public TaskDTO updateTask(Integer id, TaskDTO taskDTO, Long userId) {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        
+        // Check if user is the president of the club
+        if (!memberService.isPresident(task.getClub().getId(), userId)) {
+            throw new RuntimeException("Only the president can update tasks");
+        }
         
         // Update only non-null fields (partial update)
         if (taskDTO.getText() != null) {
@@ -75,10 +91,15 @@ public class TaskService {
     }
     
     @Transactional
-    public void deleteTask(Integer id) {
-        if (!taskRepository.existsById(id)) {
-            throw new RuntimeException("Task not found with id: " + id);
+    public void deleteTask(Integer id, Long userId) {
+        Task task = taskRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
+        
+        // Check if user is the president of the club
+        if (!memberService.isPresident(task.getClub().getId(), userId)) {
+            throw new RuntimeException("Only the president can delete tasks");
         }
+        
         taskRepository.deleteById(id);
     }
     

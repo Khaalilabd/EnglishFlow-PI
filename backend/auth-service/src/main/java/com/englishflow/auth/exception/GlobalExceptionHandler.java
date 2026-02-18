@@ -13,6 +13,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        System.err.println("❌ RuntimeException caught: " + ex.getMessage());
+        ex.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("message", ex.getMessage());
         error.put("error", "Bad Request");
@@ -21,6 +23,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleException(Exception ex) {
+        System.err.println("❌ Exception caught: " + ex.getMessage());
+        ex.printStackTrace();
         Map<String, String> error = new HashMap<>();
         error.put("message", "An unexpected error occurred: " + ex.getMessage());
         error.put("error", "Internal Server Error");

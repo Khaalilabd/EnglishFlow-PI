@@ -19,8 +19,10 @@ public class TaskController {
     private final TaskService taskService;
     
     @GetMapping("/club/{clubId}")
-    public ResponseEntity<List<TaskDTO>> getTasksByClubId(@PathVariable Integer clubId) {
-        return ResponseEntity.ok(taskService.getTasksByClubId(clubId));
+    public ResponseEntity<List<TaskDTO>> getTasksByClubId(
+            @PathVariable Integer clubId,
+            @RequestParam Long userId) {
+        return ResponseEntity.ok(taskService.getTasksByClubId(clubId, userId));
     }
     
     @GetMapping("/club/{clubId}/status/{status}")
@@ -36,22 +38,27 @@ public class TaskController {
     }
     
     @PostMapping
-    public ResponseEntity<TaskDTO> createTask(@Valid @RequestBody TaskDTO taskDTO) {
-        TaskDTO createdTask = taskService.createTask(taskDTO);
+    public ResponseEntity<TaskDTO> createTask(
+            @Valid @RequestBody TaskDTO taskDTO,
+            @RequestParam Long userId) {
+        TaskDTO createdTask = taskService.createTask(taskDTO, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
     
     @PutMapping("/{id}")
     public ResponseEntity<TaskDTO> updateTask(
             @PathVariable Integer id,
-            @RequestBody TaskDTO taskDTO) {
-        TaskDTO updatedTask = taskService.updateTask(id, taskDTO);
+            @RequestBody TaskDTO taskDTO,
+            @RequestParam Long userId) {
+        TaskDTO updatedTask = taskService.updateTask(id, taskDTO, userId);
         return ResponseEntity.ok(updatedTask);
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteTask(@PathVariable Integer id) {
-        taskService.deleteTask(id);
+    public ResponseEntity<Void> deleteTask(
+            @PathVariable Integer id,
+            @RequestParam Long userId) {
+        taskService.deleteTask(id, userId);
         return ResponseEntity.noContent().build();
     }
     

@@ -2,6 +2,8 @@ package com.englishflow.auth.controller;
 
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.dto.UpdateUserRequest;
+import com.englishflow.auth.dto.UserDetailsResponse;
+import com.englishflow.auth.dto.UserIdsRequest;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.service.FileStorageService;
@@ -12,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/users")
@@ -99,10 +104,40 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUser(@PathVariable Long id) {
+    public ResponseEntity<UserDetailsResponse> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return ResponseEntity.ok(user);
+        
+        return ResponseEntity.ok(UserDetailsResponse.fromEntity(user));
+    }
+
+    @PostMapping("/batch")
+    public ResponseEntity<List<UserDetailsResponse>> getUsersByIds(@RequestBody UserIdsRequest request) {
+        try {
+            System.out.println("📥 Received batch request for user IDs: " + request.getUserIds());
+            
+            if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+                System.out.println("⚠️ Empty or null user IDs list");
+                return ResponseEntity.ok(List.of());
+            }
+            
+            List<User> users = userRepository.findAllById(request.getUserIds());
+            System.out.println("✅ Found " + users.size() + " users in database");
+            
+            List<UserDetailsResponse> response = users.stream()
+                    .map(user -> {
+                        System.out.println("  - User ID " + user.getId() + ": " + user.getFirstName() + " " + user.getLastName());
+                        return UserDetailsResponse.fromEntity(user);
+                    })
+                    .collect(Collectors.toList());
+            
+            System.out.println("📤 Returning " + response.size() + " user details");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("❌ Error in getUsersByIds: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Error fetching users: " + e.getMessage(), e);
+        }
     }
 
     @PostMapping("/{id}/upload-photo")

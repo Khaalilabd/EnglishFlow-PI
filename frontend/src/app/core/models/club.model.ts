@@ -48,9 +48,14 @@ export interface Member {
 }
 
 export enum RankType {
-  MEMBER = 'MEMBER',
-  SECRETARY = 'SECRETARY',
-  PRESIDENT = 'PRESIDENT'
+  PRESIDENT = 'PRESIDENT',                      // Président(e)
+  VICE_PRESIDENT = 'VICE_PRESIDENT',            // Vice-président(e)
+  SECRETARY = 'SECRETARY',                      // Secrétaire
+  TREASURER = 'TREASURER',                      // Trésorier(ère)
+  COMMUNICATION_MANAGER = 'COMMUNICATION_MANAGER', // Responsable Communication
+  EVENT_MANAGER = 'EVENT_MANAGER',              // Responsable Événementiel
+  PARTNERSHIP_MANAGER = 'PARTNERSHIP_MANAGER',  // Responsable Partenariats / Sponsoring
+  MEMBER = 'MEMBER'                             // Membre
 }
 
 export interface CreateClubRequest {

@@ -38,14 +38,54 @@ public class MemberController {
     @PutMapping("/{memberId}/rank")
     public ResponseEntity<MemberDTO> updateMemberRank(
             @PathVariable Integer memberId,
-            @RequestParam RankType rank) {
-        MemberDTO updatedMember = memberService.updateMemberRank(memberId, rank);
+            @RequestParam RankType rank,
+            @RequestParam Long requesterId) {
+        MemberDTO updatedMember = memberService.updateMemberRank(memberId, rank, requesterId);
         return ResponseEntity.ok(updatedMember);
     }
     
+    @PatchMapping("/{memberId}/role")
+    public ResponseEntity<MemberDTO> updateMemberRole(
+            @PathVariable Integer memberId,
+            @RequestBody UpdateRoleRequest request,
+            @RequestParam(required = true) Long requesterId) {
+        try {
+            System.out.println("🔧 Controller: Updating role for memberId: " + memberId + ", newRank: " + request.getRank() + ", requesterId: " + requesterId);
+            
+            if (request.getRank() == null || request.getRank().trim().isEmpty()) {
+                System.err.println("❌ Rank is null or empty");
+                throw new IllegalArgumentException("Rank cannot be null or empty");
+            }
+            
+            RankType rank = RankType.valueOf(request.getRank().toUpperCase());
+            System.out.println("✅ Rank parsed successfully: " + rank);
+            
+            MemberDTO updatedMember = memberService.updateMemberRank(memberId, rank, requesterId);
+            System.out.println("✅ Role updated successfully for memberId: " + memberId);
+            return ResponseEntity.ok(updatedMember);
+        } catch (IllegalArgumentException e) {
+            System.err.println("❌ Invalid rank type: " + request.getRank());
+            System.err.println("❌ Error details: " + e.getMessage());
+            throw new IllegalArgumentException("Invalid rank type: " + request.getRank() + ". Valid values are: " + 
+                String.join(", ", java.util.Arrays.stream(RankType.values()).map(Enum::name).toArray(String[]::new)));
+        } catch (Exception e) {
+            System.err.println("❌ Error updating role: " + e.getMessage());
+            e.printStackTrace();
+            throw e;
+        }
+    }
+    
+    // Inner class for request body
+    @lombok.Data
+    public static class UpdateRoleRequest {
+        private String rank;
+    }
+    
     @DeleteMapping("/{memberId}")
-    public ResponseEntity<Void> removeMember(@PathVariable Integer memberId) {
-        memberService.removeMemberFromClub(memberId);
+    public ResponseEntity<Void> removeMember(
+            @PathVariable Integer memberId,
+            @RequestParam Long requesterId) {
+        memberService.removeMemberFromClub(memberId, requesterId);
         return ResponseEntity.noContent().build();
     }
     
@@ -60,5 +100,19 @@ public class MemberController {
     @GetMapping("/club/{clubId}/count")
     public ResponseEntity<Long> getClubMemberCount(@PathVariable Integer clubId) {
         return ResponseEntity.ok(memberService.getClubMemberCount(clubId));
+    }
+    
+    @GetMapping("/club/{clubId}/user/{userId}/is-president")
+    public ResponseEntity<Boolean> isPresident(
+            @PathVariable Integer clubId,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(memberService.isPresident(clubId, userId));
+    }
+    
+    @GetMapping("/club/{clubId}/user/{userId}/is-member")
+    public ResponseEntity<Boolean> isMember(
+            @PathVariable Integer clubId,
+            @PathVariable Long userId) {
+        return ResponseEntity.ok(memberService.isMember(clubId, userId));
     }
 }
