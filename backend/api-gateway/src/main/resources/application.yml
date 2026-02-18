@@ -22,6 +22,13 @@ spring:
           filters:
             - StripPrefix=1
             
+        - id: community-service
+          uri: lb://community-service
+          predicates:
+            - Path=/api/community/**
+          filters:
+            - StripPrefix=1
+            
         - id: learning-service
           uri: lb://learning-service
           predicates:
@@ -57,6 +64,11 @@ spring:
           filters:
             - StripPrefix=1
             
+        - id: public-users
+          uri: lb://auth-service
+          predicates:
+            - Path=/public/**
+            
         - id: admin-users-service
           uri: lb://auth-service
           predicates:
@@ -64,19 +76,17 @@ spring:
           filters:
             - StripPrefix=1
             
-        - id: course-service
-          uri: lb://course-service
+        - id: messaging-service
+          uri: lb://messaging-service
           predicates:
-            - Path=/api/courses/**
+            - Path=/api/messaging/**
           filters:
             - StripPrefix=1
             
-        - id: payment-service
-          uri: lb://payment-service
+        - id: messaging-websocket
+          uri: lb://messaging-service
           predicates:
-            - Path=/api/payments/**
-          filters:
-            - StripPrefix=1
+            - Path=/ws/**
             
         - id: notification-service
           uri: lb://notification-service
@@ -110,4 +120,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway
+        include: health,info,gateway,routes
+  endpoint:
+    gateway:
+      enabled: true

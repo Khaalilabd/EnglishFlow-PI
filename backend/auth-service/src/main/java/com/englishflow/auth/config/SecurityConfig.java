@@ -29,13 +29,14 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/actuator/**", "/oauth2/**", "/login/oauth2/**", "/api/users", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()  // Permettre toutes les requêtes OPTIONS pour CORS
+                        .requestMatchers("/auth/**", "/actuator/**", "/oauth2/**", "/login/oauth2/**", "/public/**", "/api/users/**", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .successHandler(oAuth2AuthenticationSuccessHandler)
-                );
+                )
+                .formLogin(form -> form.disable());  // Désactiver la redirection automatique
 
         return http.build();
     }

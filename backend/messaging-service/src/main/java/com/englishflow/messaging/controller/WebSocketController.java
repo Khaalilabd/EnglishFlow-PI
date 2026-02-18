@@ -1,5 +1,6 @@
 package com.englishflow.messaging.controller;
 
+import com.englishflow.messaging.client.AuthServiceClient;
 import com.englishflow.messaging.dto.MessageDTO;
 import com.englishflow.messaging.dto.SendMessageRequest;
 import com.englishflow.messaging.service.MessagingService;
@@ -23,6 +24,7 @@ public class WebSocketController {
     
     private final SimpMessagingTemplate messagingTemplate;
     private final MessagingService messagingService;
+    private final AuthServiceClient authServiceClient;
     
     @MessageMapping("/chat/{conversationId}")
     public void sendMessage(@DestinationVariable Long conversationId,
@@ -35,9 +37,10 @@ public class WebSocketController {
             // Récupérer l'ID utilisateur depuis le principal
             Long userId = Long.parseLong(principal.getName());
             
-            // TODO: Récupérer les infos utilisateur
-            String senderName = "User " + userId;
-            String senderAvatar = null;
+            // Récupérer les infos utilisateur depuis auth-service
+            AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+            String senderName = userInfo.getFullName();
+            String senderAvatar = userInfo.getProfilePhotoUrl();
             
             // Enregistrer le message
             MessageDTO message = messagingService.sendMessage(
@@ -62,10 +65,13 @@ public class WebSocketController {
         try {
             Long userId = Long.parseLong(principal.getName());
             
+            // Récupérer les infos utilisateur
+            AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+            
             Map<String, Object> typingIndicator = new HashMap<>();
             typingIndicator.put("conversationId", conversationId);
             typingIndicator.put("userId", userId);
-            typingIndicator.put("userName", "User " + userId);
+            typingIndicator.put("userName", userInfo.getFullName());
             typingIndicator.put("isTyping", payload.get("isTyping"));
             
             // Envoyer l'indicateur de frappe aux autres participants

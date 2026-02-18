@@ -24,8 +24,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()  // Permettre OPTIONS pour CORS
-                .requestMatchers("/ws/**").permitAll()  // Permettre WebSocket
+                .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()  // Permettre OPTIONS pour CORS en premier
+                .requestMatchers("/ws/**", "/actuator/**").permitAll()  // Permettre WebSocket et actuator
                 .anyRequest().authenticated()  // Toutes les autres requêtes nécessitent une authentification
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

@@ -1,5 +1,6 @@
 package com.englishflow.messaging.controller;
 
+import com.englishflow.messaging.client.AuthServiceClient;
 import com.englishflow.messaging.config.JwtUtil;
 import com.englishflow.messaging.dto.*;
 import com.englishflow.messaging.service.MessagingService;
@@ -23,6 +24,7 @@ public class MessagingController {
     
     private final MessagingService messagingService;
     private final JwtUtil jwtUtil;
+    private final AuthServiceClient authServiceClient;
     
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationDTO>> getConversations(Authentication authentication) {
@@ -57,9 +59,10 @@ public class MessagingController {
         String userEmail = jwtUtil.extractEmail(token);
         String userRole = jwtUtil.extractRole(token);
         
-        // TODO: Récupérer le nom et l'avatar depuis auth-service
-        String userName = "User " + userId;
-        String userAvatar = null;
+        // Récupérer le nom et l'avatar depuis auth-service
+        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+        String userName = userInfo.getFullName();
+        String userAvatar = userInfo.getProfilePhotoUrl();
         
         ConversationDTO conversation = messagingService.createConversation(
             request, userId, userName, userEmail, userRole, userAvatar);
@@ -89,12 +92,10 @@ public class MessagingController {
         Long userId = (Long) authentication.getPrincipal();
         log.debug("POST /conversations/{}/messages for user: {}", conversationId, userId);
         
-        // Extraire les infos utilisateur du token
-        String token = authHeader.substring(7);
-        
-        // TODO: Récupérer le nom et l'avatar depuis auth-service
-        String senderName = "User " + userId;
-        String senderAvatar = null;
+        // Récupérer le nom et l'avatar depuis auth-service
+        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+        String senderName = userInfo.getFullName();
+        String senderAvatar = userInfo.getProfilePhotoUrl();
         
         MessageDTO message = messagingService.sendMessage(
             conversationId, request, userId, senderName, senderAvatar);

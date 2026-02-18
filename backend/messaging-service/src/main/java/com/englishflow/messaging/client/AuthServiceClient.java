@@ -38,6 +38,7 @@ public class AuthServiceClient {
             this.id = id;
             this.firstName = firstName;
             this.lastName = lastName;
+            this.email = "user" + id + "@unknown.com";  // Email par défaut
             this.role = role;
             this.profilePhotoUrl = profilePhotoUrl;
         }

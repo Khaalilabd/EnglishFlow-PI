@@ -108,7 +108,7 @@ export class AuthService {
   }
 
   getAllUsers(): Observable<any[]> {
-    // Utiliser l'endpoint via API Gateway
-    return this.http.get<any[]>('http://localhost:8080/api/users');
+    // Utiliser l'endpoint public via API Gateway
+    return this.http.get<any[]>('http://localhost:8080/public/users');
   }
 }
