@@ -1,0 +1,117 @@
+<div class="container-fluid py-4">
+  <div *ngIf="loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">{{ error }}</div>
+
+  <div *ngIf="!loading && !error && lesson" class="row">
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <div class="card mb-4">
+        <div class="card-body">
+          <!-- Breadcrumb -->
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a routerLink="/student-panel/courses">My Courses</a></li>
+              <li class="breadcrumb-item" *ngIf="chapter">{{ chapter.title }}</li>
+              <li class="breadcrumb-item active">{{ lesson.title }}</li>
+            </ol>
+          </nav>
+
+          <!-- Lesson Header -->
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+              <h2>{{ lesson.title }}</h2>
+              <div class="d-flex gap-3 text-muted">
+                <span><i class="bi bi-clock"></i> {{ lesson.duration }} minutes</span>
+                <span><i class="bi bi-tag"></i> {{ lesson.type }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Content -->
+          <div *ngIf="lesson.type === LessonType.VIDEO && lesson.videoUrl" class="mb-4">
+            <div class="ratio ratio-16x9">
+              <iframe [src]="safeVideoUrl" allowfullscreen></iframe>
+            </div>
+          </div>
+
+          <!-- Text Content -->
+          <div *ngIf="lesson.content" class="lesson-content mb-4">
+            <div class="card bg-light">
+              <div class="card-body">
+                <div [innerHTML]="lesson.content" style="white-space: pre-wrap;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- File Download -->
+          <div *ngIf="lesson.fileUrl" class="mb-4">
+            <div class="card border-primary">
+              <div class="card-body">
+                <h5><i class="bi bi-file-earmark-arrow-down"></i> Downloadable Resources</h5>
+                <a [href]="lesson.fileUrl" target="_blank" class="btn btn-primary">
+                  <i class="bi bi-download"></i> Download File
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Navigation Buttons -->
+          <div class="d-flex justify-content-between mt-4">
+            <button 
+              *ngIf="getPreviousLesson()" 
+              (click)="navigateToLesson(getPreviousLesson()!.id!)" 
+              class="btn btn-outline-primary">
+              <i class="bi bi-arrow-left"></i> Previous Lesson
+            </button>
+            <div *ngIf="!getPreviousLesson()"></div>
+            
+            <button 
+              *ngIf="getNextLesson()" 
+              (click)="navigateToLesson(getNextLesson()!.id!)" 
+              class="btn btn-primary">
+              Next Lesson <i class="bi bi-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar - Chapter Lessons -->
+    <div class="col-lg-3">
+      <div class="card sticky-top" style="top: 20px;">
+        <div class="card-header">
+          <h5 class="mb-0">Chapter Lessons</h5>
+        </div>
+        <div class="card-body p-0">
+          <div class="list-group list-group-flush">
+            <a 
+              *ngFor="let l of chapterLessons; let i = index"
+              (click)="navigateToLesson(l.id!)"
+              class="list-group-item list-group-item-action"
+              [class.active]="l.id === lesson.id"
+              style="cursor: pointer;">
+              <div class="d-flex align-items-center">
+                <span class="badge bg-secondary me-2">{{ i + 1 }}</span>
+                <div class="flex-grow-1">
+                  <div class="fw-bold">{{ l.title }}</div>
+                  <small class="text-muted">{{ l.duration }} min</small>
+                </div>
+                <i class="bi" [ngClass]="{
+                  'bi-play-circle': l.type === LessonType.VIDEO,
+                  'bi-file-text': l.type === LessonType.TEXT,
+                  'bi-file-earmark': l.type === LessonType.FILE,
+                  'bi-collection': l.type === LessonType.MIXED
+                }"></i>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

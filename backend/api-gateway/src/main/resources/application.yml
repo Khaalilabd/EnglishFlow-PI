@@ -1,10 +1,12 @@
 server:
-  port: 8080
+  port: 8088
 
 spring:
   application:
     name: api-gateway
   cloud:
+    config:
+      enabled: false
     gateway:
       discovery:
         locator:
@@ -25,12 +27,12 @@ spring:
           filters:
             - StripPrefix=1
             
-        - id: course-service
-          uri: lb://course-service
+        - id: courses-service
+          uri: http://localhost:8082
           predicates:
-            - Path=/api/courses/**
+            - Path=/api/courses/**,/api/chapters/**,/api/lessons/**,/api/enrollments/**,/api/lesson-progress/**,/api/chapter-progress/**,/api/progress/**
           filters:
-            - StripPrefix=1
+            - StripPrefix=0
             
         - id: payment-service
           uri: lb://payment-service

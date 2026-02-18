@@ -6,8 +6,8 @@ spring:
     name: courses-service
   datasource:
     url: jdbc:postgresql://postgres-courses:5432/englishflow_courses
-    username: englishflow
-    password: englishflow123
+    username: postgres
+    password: root
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

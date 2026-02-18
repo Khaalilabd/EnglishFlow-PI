@@ -14,7 +14,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/learning_db
     username: postgres
-    password: ismail
+    password: root
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:

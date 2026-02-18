@@ -9,8 +9,8 @@ spring:
       enabled: false
   datasource:
     url: jdbc:postgresql://localhost:5432/englishflow_identity
-    username: englishflow
-    password: englishflow123
+    username: postgres
+    password: root
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -26,8 +26,8 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: azizlouati338@gmail.com
+    password: "nian oowo umut qggc"
     properties:
       mail:
         smtp:
@@ -43,8 +43,8 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID}
-            client-secret: ${GOOGLE_CLIENT_SECRET}
+            client-id: "dummy-client-id"
+            client-secret: "dummy-client-secret"
             scope:
               - email
               - profile
@@ -52,10 +52,10 @@ spring:
 
 app:
   frontend:
-    url: ${FRONTEND_URL:http://localhost:4200}
+    url: "http://localhost:4200"
 
 recaptcha:
-  secret: ${RECAPTCHA_SECRET:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
+  secret: "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe"
 
 jwt:
   secret: englishflow-secret-key-change-this-in-production-with-a-very-long-secure-key
