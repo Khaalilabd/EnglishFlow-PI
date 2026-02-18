@@ -68,7 +68,7 @@ export interface UpdateUserRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081/api';
+  private apiUrl = 'http://localhost:8080/api'; // Via API Gateway
 
   constructor(private http: HttpClient) {}
 
@@ -81,7 +81,7 @@ export class UserService {
   }
 
   updateUser(userId: number, userData: UpdateUserRequest): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/users/${userId}`, userData);
+    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}`, userData);
   }
 
   activateUser(userId: number): Observable<User> {

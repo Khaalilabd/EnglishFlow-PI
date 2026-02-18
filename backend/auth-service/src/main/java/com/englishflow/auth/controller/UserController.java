@@ -3,6 +3,7 @@ package com.englishflow.auth.controller;
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.dto.UpdateUserRequest;
 import com.englishflow.auth.dto.UserDetailsResponse;
+import com.englishflow.auth.dto.UserDTO;
 import com.englishflow.auth.dto.UserIdsRequest;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.repository.UserRepository;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/users")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -99,16 +100,17 @@ public class UserController {
                 user.getLastName(),
                 user.getRole().name(),
                 user.getProfilePhoto(),
-                user.getPhone()
+                user.getPhone(),
+                user.isProfileCompleted()
         ));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserDetailsResponse> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
-        return ResponseEntity.ok(UserDetailsResponse.fromEntity(user));
+        return ResponseEntity.ok(UserDTO.fromEntity(user));
     }
 
     @PostMapping("/batch")

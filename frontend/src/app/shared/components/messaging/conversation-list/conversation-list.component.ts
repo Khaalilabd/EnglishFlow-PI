@@ -8,86 +8,79 @@ import { Conversation } from '../../../../core/models/conversation.model';
   standalone: true,
   imports: [CommonModule, FormsModule],
   template: `
-    <div class="h-full flex flex-col bg-[#111b21]">
+    <div class="conversation-list-container">
       <!-- Header -->
-      <div class="p-4 bg-[#202c33]">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold text-white">Conversations</h2>
-          <button 
-            (click)="newConversation.emit()"
-            class="p-2 text-[#00a884] hover:bg-[#2a3942] rounded-full transition-colors"
-            title="Nouvelle conversation"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
-        </div>
-        <div class="relative">
+      <div class="list-header">
+        <h2 class="list-title">Chats</h2>
+        <button 
+          (click)="newConversation.emit()"
+          class="btn-new-chat"
+          title="Nouvelle conversation"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-container">
+        <div class="search-wrapper">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
           <input 
             type="text" 
             [(ngModel)]="searchQuery"
             (ngModelChange)="onSearchChange()"
-            placeholder="Rechercher ou démarrer une discussion" 
-            class="w-full px-4 py-2 pl-10 bg-[#2a3942] border border-[#3b4a54] rounded-lg text-white placeholder-[#aebac1] focus:outline-none focus:border-[#00a884]"
+            placeholder="Search..." 
+            class="search-input"
           />
-          <svg class="w-5 h-5 text-[#aebac1] absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
         </div>
       </div>
-      
+
       <!-- Conversations List -->
-      <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div *ngIf="filteredConversations.length === 0" class="p-8 text-center">
-          <svg class="w-16 h-16 mx-auto mb-3 text-[#667781]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="conversations-list">
+        <div *ngIf="filteredConversations.length === 0" class="empty-list">
+          <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
           </svg>
-          <p class="text-[#aebac1]">Aucune conversation</p>
+          <p class="empty-text">Aucune conversation</p>
         </div>
-        
+
         <div 
           *ngFor="let conversation of filteredConversations"
           (click)="conversationSelected.emit(conversation.id)"
-          class="px-4 py-3 border-b border-[#2a3942] hover:bg-[#202c33] cursor-pointer transition-colors"
-          [ngClass]="{'bg-[#2a3942]': selectedConversationId === conversation.id}"
+          class="conversation-item"
+          [class.active]="selectedConversationId === conversation.id"
         >
-          <div class="flex items-center gap-3">
-            <!-- Avatar -->
-            <div class="relative flex-shrink-0">
-              <img 
-                [src]="getConversationAvatar(conversation)" 
-                [alt]="getConversationTitle(conversation)" 
-                class="w-12 h-12 rounded-full object-cover ring-2 ring-[#2a3942]"
-              >
-              <span 
-                *ngIf="isParticipantOnline(conversation)"
-                class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] border-2 border-[#111b21] rounded-full"
-              ></span>
+          <div class="conversation-avatar">
+            <img 
+              [src]="getConversationAvatar(conversation)" 
+              [alt]="getConversationTitle(conversation)"
+            >
+            <span 
+              *ngIf="isParticipantOnline(conversation)"
+              class="status-indicator online"
+            ></span>
+          </div>
+
+          <div class="conversation-content">
+            <div class="conversation-header">
+              <h3 class="conversation-name">{{ getConversationTitle(conversation) }}</h3>
+              <span class="conversation-time">{{ formatTime(conversation.lastMessageAt) }}</span>
             </div>
-            
-            <!-- Content -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center justify-between mb-1">
-                <h3 class="font-medium text-white truncate">
-                  {{ getConversationTitle(conversation) }}
-                </h3>
-                <span class="text-xs text-[#aebac1] flex-shrink-0 ml-2">
-                  {{ formatTime(conversation.lastMessageAt) }}
-                </span>
-              </div>
-              <div class="flex items-center justify-between">
-                <p class="text-sm text-[#aebac1] truncate flex-1">
-                  {{ conversation.lastMessage?.content || 'Aucun message' }}
-                </p>
-                <!-- Unread Badge -->
-                <span 
-                  *ngIf="conversation.unreadCount > 0"
-                  class="ml-2 px-2 py-0.5 bg-[#00a884] text-[#111b21] text-xs rounded-full font-semibold flex-shrink-0"
-                >
-                  {{ conversation.unreadCount > 99 ? '99+' : conversation.unreadCount }}
-                </span>
-              </div>
+            <div class="conversation-preview">
+              <p class="last-message">
+                <span *ngIf="conversation.lastMessage?.senderId === currentUserId" class="you-prefix">Vous: </span>
+                {{ conversation.lastMessage?.content || 'Aucun message' }}
+              </p>
+              <span 
+                *ngIf="conversation.unreadCount > 0"
+                class="unread-badge"
+              >
+                {{ conversation.unreadCount > 9 ? '9+' : conversation.unreadCount }}
+              </span>
             </div>
           </div>
         </div>
@@ -95,21 +88,239 @@ import { Conversation } from '../../../../core/models/conversation.model';
     </div>
   `,
   styles: [`
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
+    .conversation-list-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: #111b21;
+
+    /* Header */
+    .list-header {
+      padding: 1.5rem 1.5rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #f0f0f0;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #374045;
-      border-radius: 3px;
+
+    .list-title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #4a5459;
+
+    .btn-new-chat {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+      border: none;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-new-chat:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(45, 87, 87, 0.3);
+    }
+
+    .btn-new-chat svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Search */
+    .search-container {
+      padding: 0 1.5rem 1rem;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .search-wrapper {
+      position: relative;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #f9fafb;
+      transition: all 0.2s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #2D5757;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
+    }
+
+    .search-input::placeholder {
+      color: #9ca3af;
+    }
+
+    /* Conversations List */
+    .conversations-list {
+      flex: 1;
+      overflow-y: auto;
+      /* Cacher la scrollbar mais garder le scroll */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE et Edge */
+    }
+
+    .conversations-list::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
+    /* Empty State */
+    .empty-list {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1.5rem;
+      text-align: center;
+    }
+
+    .empty-icon {
+      width: 64px;
+      height: 64px;
+      color: #d1d5db;
+      margin-bottom: 1rem;
+    }
+
+    .empty-text {
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    /* Conversation Item */
+    .conversation-item {
+      display: flex;
+      gap: 12px;
+      padding: 14px 1.5rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .conversation-item:hover {
+      background: #f9fafb;
+    }
+
+    .conversation-item.active {
+      background: #F7EDE2;
+      border-left-color: #2D5757;
+    }
+
+    /* Avatar */
+    .conversation-avatar {
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .conversation-avatar img {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .status-indicator {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+
+    .status-indicator.online {
+      background: #10b981;
+    }
+
+    /* Content */
+    .conversation-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .conversation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .conversation-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .conversation-time {
+      font-size: 12px;
+      color: #9ca3af;
+      flex-shrink: 0;
+      margin-left: 8px;
+    }
+
+    .conversation-preview {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .last-message {
+      font-size: 13px;
+      color: #6b7280;
+      margin: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+    }
+
+    .you-prefix {
+      color: #2D5757;
+      font-weight: 500;
+    }
+
+    .unread-badge {
+      background: #2D5757;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      min-width: 20px;
+      text-align: center;
     }
   `]
 })
@@ -125,7 +336,6 @@ export class ConversationListComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['conversations']) {
-      console.log('📋 ConversationList: Conversations changed', this.conversations);
       this.filterConversations();
     }
   }
@@ -152,7 +362,6 @@ export class ConversationListComponent implements OnChanges {
       return conversation.title;
     }
     
-    // For direct conversations, show the other participant's name
     const otherParticipant = conversation.participants.find(
       p => p.userId !== this.currentUserId
     );
@@ -165,7 +374,11 @@ export class ConversationListComponent implements OnChanges {
       p => p.userId !== this.currentUserId
     );
     
-    return otherParticipant?.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle(conversation))}&background=2D5757&color=fff`;
+    if (otherParticipant?.userAvatar && !otherParticipant.userAvatar.includes('ui-avatars.com')) {
+      return `http://localhost:8080${otherParticipant.userAvatar}`;
+    }
+    
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle(conversation))}&background=2D5757&color=fff&bold=true&size=128`;
   }
 
   isParticipantOnline(conversation: Conversation): boolean {
@@ -186,11 +399,11 @@ export class ConversationListComponent implements OnChanges {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
     
-    if (diffMins < 1) return 'À l\'instant';
+    if (diffMins < 1) return 'now';
     if (diffMins < 60) return `${diffMins}m`;
     if (diffHours < 24) return `${diffHours}h`;
-    if (diffDays < 7) return `${diffDays}j`;
+    if (diffDays < 7) return `${diffDays}d`;
     
-    return messageDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    return messageDate.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' });
   }
 }

@@ -1,6 +1,7 @@
 package com.englishflow.auth.controller;
 
 import com.englishflow.auth.dto.CreateTutorRequest;
+import com.englishflow.auth.dto.UpdateUserRequest;
 import com.englishflow.auth.dto.UserDTO;
 import com.englishflow.auth.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/auth/admin/users")
+@RequestMapping("/admin/users")
 @RequiredArgsConstructor
 public class AdminUserController {
 
@@ -39,8 +40,8 @@ public class AdminUserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserDTO userDTO) {
-        return ResponseEntity.ok(userService.updateUser(id, userDTO));
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+        return ResponseEntity.ok(userService.updateUserByAdmin(id, request));
     }
 
     @DeleteMapping("/{id}")

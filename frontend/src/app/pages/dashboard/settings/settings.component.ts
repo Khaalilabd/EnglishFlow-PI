@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   selector: 'app-settings',
@@ -31,9 +32,12 @@ export class SettingsComponent implements OnInit {
   courseUpdates = true;
   assignmentReminders = true;
 
+  private apiUrl = 'http://localhost:8080/api';
+
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -48,6 +52,13 @@ export class SettingsComponent implements OnInit {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', [Validators.pattern(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/)]],
+      cin: [''],
+      dateOfBirth: [''],
+      address: [''],
+      city: [''],
+      postalCode: [''],
+      bio: ['', [Validators.maxLength(500)]],
+      yearsOfExperience: ['']
     });
 
     this.passwordForm = this.fb.group({
@@ -59,14 +70,50 @@ export class SettingsComponent implements OnInit {
 
   loadUserData() {
     if (this.currentUser) {
-      this.profileForm.patchValue({
-        firstName: this.currentUser.firstName,
-        lastName: this.currentUser.lastName,
-        email: this.currentUser.email,
-        phone: this.currentUser.phone || ''
-      });
+      // Charger les données complètes de l'utilisateur depuis l'API
+      const endpoint = (this.currentUser.role === 'ADMIN' || this.currentUser.role === 'ACADEMIC_OFFICE_AFFAIR')
+        ? `${this.apiUrl}/admin/users/${this.currentUser.id}`
+        : `${this.apiUrl}/users/${this.currentUser.id}`;
       
-      this.profilePicturePreview = this.currentUser.profilePhoto || this.getDefaultAvatar();
+      this.http.get<any>(endpoint).subscribe({
+        next: (userData) => {
+          console.log('User data loaded:', userData);
+          this.profileForm.patchValue({
+            firstName: userData.firstName || '',
+            lastName: userData.lastName || '',
+            email: userData.email || '',
+            phone: userData.phone || '',
+            cin: userData.cin || '',
+            dateOfBirth: userData.dateOfBirth || '',
+            address: userData.address || '',
+            city: userData.city || '',
+            postalCode: userData.postalCode || '',
+            bio: userData.bio || '',
+            yearsOfExperience: userData.yearsOfExperience || ''
+          });
+          
+          // Construire l'URL complète de la photo
+          if (userData.profilePhoto) {
+            this.profilePicturePreview = `http://localhost:8081${userData.profilePhoto}`;
+            console.log('Profile photo URL:', this.profilePicturePreview);
+          } else {
+            this.profilePicturePreview = this.getDefaultAvatar();
+          }
+        },
+        error: (error) => {
+          console.error('Error loading user data:', error);
+          // Fallback to currentUser data
+          this.profileForm.patchValue({
+            firstName: this.currentUser?.firstName || '',
+            lastName: this.currentUser?.lastName || '',
+            email: this.currentUser?.email || '',
+            phone: this.currentUser?.phone || ''
+          });
+          this.profilePicturePreview = this.currentUser?.profilePhoto 
+            ? `http://localhost:8081${this.currentUser.profilePhoto}`
+            : this.getDefaultAvatar();
+        }
+      });
     }
   }
 
@@ -108,44 +155,40 @@ export class SettingsComponent implements OnInit {
   }
 
   saveProfile() {
-    if (this.profileForm.valid) {
+    if (this.profileForm.valid && this.currentUser) {
       this.isSavingProfile = true;
       
-      const updateData: any = {
-        ...this.profileForm.value
-      };
+      const updateData = this.profileForm.value;
       
-      // Ajouter la photo si elle a été modifiée
-      if (this.selectedFile) {
-        updateData.profilePhoto = this.profilePicturePreview;
-      }
+      // Utiliser l'endpoint admin pour ADMIN et ACADEMIC_OFFICE_AFFAIR
+      const endpoint = (this.currentUser.role === 'ADMIN' || this.currentUser.role === 'ACADEMIC_OFFICE_AFFAIR')
+        ? `${this.apiUrl}/admin/users/${this.currentUser.id}`
+        : `${this.apiUrl}/users/${this.currentUser.id}`;
       
       // Appel API pour mettre à jour le profil
-      this.authService.updateProfile(updateData).subscribe({
+      this.http.put<any>(endpoint, updateData).subscribe({
         next: (updatedUser) => {
           console.log('Profile updated:', updatedUser);
           this.isSavingProfile = false;
           this.isEditingProfile = false;
           
           // Mettre à jour le currentUser dans le service et localStorage
-          const currentUser = this.authService.currentUserValue;
-          if (currentUser) {
-            const updated = {
-              ...currentUser,
-              firstName: updatedUser.firstName,
-              lastName: updatedUser.lastName,
-              email: updatedUser.email,
-              phone: updatedUser.phone,
-              profilePhoto: updatedUser.profilePhoto
-            };
-            
-            // Mettre à jour dans le localStorage
-            localStorage.setItem('currentUser', JSON.stringify(updated));
-            
-            // Recharger les données
-            this.currentUser = updated;
-            this.profilePicturePreview = updated.profilePhoto || this.getDefaultAvatar();
-          }
+          const updated = {
+            ...this.currentUser!,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            profilePhoto: updatedUser.profilePhoto
+          };
+          
+          // Mettre à jour dans le localStorage
+          localStorage.setItem('currentUser', JSON.stringify(updated));
+          this.authService.updateCurrentUser(updated);
+          
+          // Recharger les données
+          this.currentUser = updated;
+          this.profilePicturePreview = updated.profilePhoto || this.getDefaultAvatar();
           
           alert('Profile updated successfully!');
         },
@@ -173,5 +216,9 @@ export class SettingsComponent implements OnInit {
 
   setActiveTab(tab: 'profile' | 'security' | 'notifications') {
     this.activeTab = tab;
+  }
+
+  get bioLength(): number {
+    return this.profileForm.get('bio')?.value?.length || 0;
   }
 }

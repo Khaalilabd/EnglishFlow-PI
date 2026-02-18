@@ -37,12 +37,21 @@ export class ActivateComponent implements OnInit {
 
   activateAccount(): void {
     this.authService.activateAccount(this.token).subscribe({
-      next: () => {
+      next: (response) => {
         this.success = true;
         this.loading = false;
+        
+        // Stocker les données utilisateur
+        localStorage.setItem('currentUser', JSON.stringify(response));
+        localStorage.setItem('token', response.token);
+        this.authService.updateCurrentUser(response);
+        
+        // Vérifier si le profil est complet
         setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 3000);
+          // Si le profil n'est pas complet, rediriger vers complete-profile
+          // Sinon, rediriger selon le rôle
+          this.checkProfileCompletion(response);
+        }, 2000);
       },
       error: (error) => {
         console.error('Activation error:', error);
@@ -50,5 +59,32 @@ export class ActivateComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private checkProfileCompletion(user: any): void {
+    // Utiliser le champ profileCompleted retourné par l'API
+    const isProfileComplete = user.profileCompleted === true;
+    
+    console.log('Profile completion check:', {
+      profileCompleted: user.profileCompleted,
+      isProfileComplete,
+      user
+    });
+    
+    if (!isProfileComplete) {
+      // Rediriger vers la page de complétion de profil
+      this.router.navigate(['/auth/complete-profile'], {
+        queryParams: {
+          token: user.token,
+          userId: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName
+        }
+      });
+    } else {
+      // Profil complet, rediriger vers la home page
+      this.router.navigate(['/']);
+    }
   }
 }

@@ -326,8 +326,8 @@
                     // Redirect to Angular profile completion page with token
                     window.location.href = `http://localhost:4200/complete-profile?token=${data.token}&userId=${data.userId}&email=${data.email}&firstName=${data.firstName}&lastName=${data.lastName}`;
                 } else {
-                    // Redirect to Angular landing page with token
-                    window.location.href = `http://localhost:4200/oauth2/callback?token=${data.token}&id=${data.userId}&email=${data.email}&firstName=${data.firstName}&lastName=${data.lastName}&role=${data.role}&profileCompleted=true`;
+                    // Redirect to Angular home page
+                    window.location.href = `http://localhost:4200/?token=${data.token}&id=${data.userId}&email=${data.email}&firstName=${data.firstName}&lastName=${data.lastName}&role=${data.role}&profileCompleted=true`;
                 }
             }, 2000);
         }

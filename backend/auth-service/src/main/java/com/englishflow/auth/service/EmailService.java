@@ -32,6 +32,7 @@ public class EmailService {
         try {
             Context context = new Context();
             context.setVariable("firstName", firstName);
+            // Pointer vers le backend pour afficher la page activation-success
             context.setVariable("activationLink", backendUrl + "/auth/activate?token=" + activationToken);
             
             String htmlContent = templateEngine.process("activation-email", context);
@@ -71,6 +72,25 @@ public class EmailService {
             log.info("Welcome email sent to: {}", to);
         } catch (Exception e) {
             log.error("Failed to send welcome email to: {}", to, e);
+        }
+    }
+
+    public void sendAccountCreatedEmail(String to, String firstName, String email, String password, String role, String activationToken) {
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("email", email);
+            context.setVariable("password", password);
+            context.setVariable("role", role);
+            context.setVariable("activationLink", backendUrl + "/auth/activate?token=" + activationToken);
+            
+            String htmlContent = templateEngine.process("account-created-email", context);
+            
+            sendHtmlEmail(to, "Your Jungle in English Account - Login Credentials", htmlContent);
+            log.info("Account created email sent to: {}", to);
+        } catch (Exception e) {
+            log.error("Failed to send account created email to: {}", to, e);
+            throw new RuntimeException("Failed to send account created email", e);
         }
     }
 

@@ -79,6 +79,14 @@ public class AuthService {
         if (request.getYearsOfExperience() != null) {
             user.setYearsOfExperience(request.getYearsOfExperience());
         }
+        
+        // Marquer le profil comme complet si phone et CIN sont fournis
+        if (request.getPhone() != null && !request.getPhone().isEmpty() && 
+            request.getCin() != null && !request.getCin().isEmpty()) {
+            user.setProfileCompleted(true);
+        } else {
+            user.setProfileCompleted(false);
+        }
 
         user = userRepository.save(user);
 
@@ -147,7 +155,8 @@ public class AuthService {
                 user.getLastName(),
                 user.getRole().name(),
                 user.getProfilePhoto(),
-                user.getPhone()
+                user.getPhone(),
+                user.isProfileCompleted()
         );
     }
 
@@ -173,7 +182,8 @@ public class AuthService {
                 user.getLastName(),
                 user.getRole().name(),
                 user.getProfilePhoto(),
-                user.getPhone()
+                user.getPhone(),
+                user.isProfileCompleted()
         );
     }
 

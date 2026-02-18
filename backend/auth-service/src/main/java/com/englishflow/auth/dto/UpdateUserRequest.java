@@ -20,4 +20,5 @@ public class UpdateUserRequest {
     private String bio;
     private String cin;
     private String englishLevel;
+    private Integer yearsOfExperience;
 }

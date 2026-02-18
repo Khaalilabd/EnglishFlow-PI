@@ -58,4 +58,5 @@ export interface AuthResponse {
   postalCode?: string;
   bio?: string;
   englishLevel?: string;
+  profileCompleted?: boolean;
 }

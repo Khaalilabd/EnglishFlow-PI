@@ -11,213 +11,442 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
   standalone: true,
   imports: [CommonModule, FormsModule, MessageBubbleComponent, TypingIndicatorComponent],
   template: `
-    <div class="flex flex-col h-full bg-[#0b141a]">
+    <div class="chat-window">
       <!-- Chat Header -->
-      <div class="px-4 py-3 bg-[#202c33] flex items-center gap-3 shadow-md">
-        <img 
-          [src]="getConversationAvatar()" 
-          [alt]="getConversationTitle()" 
-          class="w-10 h-10 rounded-full object-cover ring-2 ring-[#2a3942]"
-        >
-        <div class="flex-1">
-          <h3 class="font-medium text-white">{{ getConversationTitle() }}</h3>
-          <p class="text-xs text-[#00a884]" *ngIf="isOnline()">en ligne</p>
-          <p class="text-xs text-[#aebac1]" *ngIf="!isOnline()">hors ligne</p>
+      <div class="chat-header">
+        <div class="header-user-info">
+          <div class="user-avatar">
+            <img [src]="getConversationAvatar()" [alt]="getConversationTitle()">
+            <span *ngIf="isOnline()" class="status-dot"></span>
+          </div>
+          <div class="user-details">
+            <h3 class="user-name">{{ getConversationTitle() }}</h3>
+            <span class="user-status">{{ isOnline() ? 'En ligne' : 'Hors ligne' }}</span>
+          </div>
         </div>
-        <div class="flex gap-2">
-          <!-- Search in conversation -->
-          <button 
-            (click)="toggleSearch()"
-            class="p-2 text-[#aebac1] hover:bg-[#2a3942] rounded-full transition-colors"
-            title="Rechercher"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        <div class="header-actions">
+          <button class="action-btn" title="Appel vocal">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
             </svg>
           </button>
-          
-          <!-- More options -->
-          <button class="p-2 text-[#aebac1] hover:bg-[#2a3942] rounded-full transition-colors">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <button class="action-btn" title="Appel vidéo">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+            </svg>
+          </button>
+          <button class="action-btn" title="Plus d'options">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"></path>
             </svg>
           </button>
         </div>
       </div>
 
-      <!-- Search Bar (collapsible) -->
-      <div *ngIf="showSearch" class="px-4 py-2 bg-[#202c33] border-b border-[#2a3942]">
-        <div class="relative">
-          <input 
-            type="text" 
-            [(ngModel)]="searchQuery"
-            (ngModelChange)="onSearchMessages()"
-            placeholder="Rechercher dans la conversation..." 
-            class="w-full px-4 py-2 pl-10 bg-[#2a3942] border border-[#3b4a54] rounded-lg text-white placeholder-[#aebac1] focus:outline-none focus:border-[#00a884]"
-          />
-          <svg class="w-5 h-5 text-[#aebac1] absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
-      </div>
-
-      <!-- Messages Area with WhatsApp Background Pattern -->
-      <div 
-        #messagesContainer
-        class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar chat-background"
-        (scroll)="onScroll($event)"
-      >
-        <!-- Load More Button -->
-        <div *ngIf="messages.length >= 50" class="text-center py-2">
-          <button 
-            (click)="loadMore.emit()"
-            class="px-4 py-2 text-sm text-[#00a884] bg-[#202c33] hover:bg-[#2a3942] rounded-full transition-colors shadow-lg"
-          >
-            ↑ Charger plus de messages
+      <!-- Messages Area -->
+      <div #messagesContainer class="messages-area" (scroll)="onScroll($event)">
+        <!-- Load More -->
+        <div *ngIf="messages.length >= 50" class="load-more-container">
+          <button (click)="loadMore.emit()" class="btn-load-more">
+            Charger plus de messages
           </button>
         </div>
 
         <!-- Messages -->
-        <app-message-bubble
-          *ngFor="let message of filteredMessages; trackBy: trackByMessageId"
-          [message]="message"
-          [isMine]="message.senderId === currentUserId"
-          (react)="onReact($event)"
-        ></app-message-bubble>
+        <div *ngFor="let message of filteredMessages; trackBy: trackByMessageId" class="message-wrapper">
+          <div class="message" [class.message-mine]="message.senderId === currentUserId">
+            <div *ngIf="message.senderId !== currentUserId" class="message-avatar">
+              <img [src]="getConversationAvatar()" [alt]="getConversationTitle()">
+            </div>
+            <div class="message-content">
+              <div class="message-bubble" [class.bubble-mine]="message.senderId === currentUserId">
+                <p class="message-text">{{ message.content }}</p>
+                <span class="message-time">{{ formatMessageTime(message.createdAt) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- Typing Indicator -->
-        <app-typing-indicator
-          *ngIf="isTyping"
-          [userName]="typingUserName"
-        ></app-typing-indicator>
+        <div *ngIf="isTyping" class="message-wrapper">
+          <div class="message">
+            <div class="message-avatar">
+              <img [src]="getConversationAvatar()" [alt]="typingUserName">
+            </div>
+            <div class="message-content">
+              <div class="typing-indicator">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Message Input -->
-      <div class="px-4 py-3 bg-[#202c33]">
-        <div class="flex items-center gap-2">
-          <!-- Emoji Picker Button -->
-          <button 
-            (click)="toggleEmojiPicker()"
-            class="p-2 text-[#aebac1] hover:bg-[#2a3942] rounded-full transition-colors"
-            title="Emoji"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="message-input-container">
+        <div class="input-wrapper">
+          <button class="input-action-btn" title="Emoji">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </button>
           
-          <!-- Attach File Button -->
-          <button 
-            (click)="fileInput.click()"
-            class="p-2 text-[#aebac1] hover:bg-[#2a3942] rounded-full transition-colors"
-            title="Joindre un fichier"
-          >
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <input 
+            [(ngModel)]="newMessage"
+            (keyup.enter)="sendMessage()"
+            (input)="onTyping()"
+            type="text" 
+            placeholder="Type a message..." 
+            class="message-input"
+          />
+          
+          <button class="input-action-btn" (click)="fileInput.click()" title="Joindre un fichier">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
             </svg>
           </button>
-          <input 
-            #fileInput
-            type="file" 
-            (change)="onFileSelected($event)"
-            accept="image/*,.pdf,.doc,.docx,.txt"
-            class="hidden"
-          />
+          <input #fileInput type="file" (change)="onFileSelected($event)" class="hidden" />
           
-          <!-- Input Field -->
-          <div class="flex-1 relative">
-            <input 
-              [(ngModel)]="newMessage"
-              (keyup.enter)="sendMessage()"
-              (input)="onTyping()"
-              type="text" 
-              placeholder="Tapez un message" 
-              class="w-full px-4 py-2.5 bg-[#2a3942] text-white placeholder-[#aebac1] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00a884]"
-            />
-          </div>
-          
-          <!-- Send/Voice Button -->
           <button 
             *ngIf="newMessage.trim()"
             (click)="sendMessage()"
-            class="p-2.5 bg-[#00a884] text-[#111b21] rounded-full hover:bg-[#06cf9c] transition-all transform hover:scale-105 shadow-lg"
+            class="btn-send"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
             </svg>
-          </button>
-          
-          <button 
-            *ngIf="!newMessage.trim()"
-            (click)="startVoiceRecording()"
-            [class.recording]="isRecording"
-            class="p-2 text-[#aebac1] hover:bg-[#2a3942] rounded-full transition-colors"
-            title="Message vocal"
-          >
-            <svg class="w-6 h-6" [class.text-red-500]="isRecording" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-            </svg>
-          </button>
-        </div>
-        
-        <!-- File Preview -->
-        <div *ngIf="selectedFile" class="mt-2 p-3 bg-[#2a3942] rounded-lg flex items-center justify-between">
-          <div class="flex items-center gap-2">
-            <svg class="w-5 h-5 text-[#00a884]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <span class="text-sm text-white">{{ selectedFile.name }}</span>
-          </div>
-          <button (click)="selectedFile = null" class="text-[#aebac1] hover:text-white">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Emoji Picker (Simple) -->
-      <div *ngIf="showEmojiPicker" class="absolute bottom-20 left-4 bg-[#202c33] rounded-lg shadow-2xl p-4 z-50 border border-[#2a3942]">
-        <div class="grid grid-cols-8 gap-2">
-          <button 
-            *ngFor="let emoji of emojis"
-            (click)="insertEmoji(emoji)"
-            class="text-2xl hover:bg-[#2a3942] rounded p-1 transition-colors"
-          >
-            {{ emoji }}
           </button>
         </div>
       </div>
     </div>
   `,
   styles: [`
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
+    .chat-window {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-track {
+
+    /* Header */
+    .chat-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+    }
+
+    .header-user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .user-avatar {
+      position: relative;
+    }
+
+    .user-avatar img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+
+    .status-dot {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 12px;
+      height: 12px;
+      background: #10b981;
+      border: 2px solid #fff;
+      border-radius: 50%;
+    }
+
+    .user-details {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin: 0;
+    }
+
+    .user-status {
+      font-size: 13px;
+      color: #10b981;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      border: none;
+      background: #f9fafb;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: #F7EDE2;
+      color: #2D5757;
+    }
+
+    .action-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* Messages Area */
+    .messages-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      background: #fafafa;
+      /* Cacher la scrollbar mais garder le scroll */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE et Edge */
+    }
+
+    .messages-area::-webkit-scrollbar {
+      display: none; /* Chrome, Safari, Opera */
+    }
+
+    .load-more-container {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+
+    .btn-load-more {
+      padding: 8px 20px;
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 20px;
+      font-size: 13px;
+      color: #6b7280;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-load-more:hover {
+      background: #f9fafb;
+      border-color: #2D5757;
+      color: #2D5757;
+    }
+
+    /* Messages */
+    .message-wrapper {
+      margin-bottom: 1rem;
+    }
+
+    .message {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .message.message-mine {
+      flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+      flex-shrink: 0;
+    }
+
+    .message-avatar img {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      object-fit: cover;
+    }
+
+    .message-content {
+      max-width: 60%;
+    }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: #fff;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .message-bubble.bubble-mine {
+      background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+      color: #fff;
+    }
+
+    .message-text {
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 4px 0;
+      color: #1a1a1a;
+      word-wrap: break-word;
+    }
+
+    .bubble-mine .message-text {
+      color: #fff;
+    }
+
+    .message-time {
+      font-size: 11px;
+      color: #9ca3af;
+      display: block;
+    }
+
+    .bubble-mine .message-time {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      padding: 12px 16px;
+      background: #fff;
+      border-radius: 16px;
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .typing-indicator span {
+      width: 8px;
+      height: 8px;
+      background: #9ca3af;
+      border-radius: 50%;
+      animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+      0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.7;
+      }
+      30% {
+        transform: translateY(-10px);
+        opacity: 1;
+      }
+    }
+
+    /* Message Input */
+    .message-input-container {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #f0f0f0;
+      background: #fff;
+    }
+
+    .input-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 8px 12px;
+      transition: all 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: #2D5757;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
+    }
+
+    .input-action-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
       background: transparent;
+      color: #6b7280;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 3px;
+
+    .input-action-btn:hover {
+      background: #e5e7eb;
+      color: #2D5757;
     }
-    
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
+
+    .input-action-btn svg {
+      width: 20px;
+      height: 20px;
     }
-    
-    .chat-background {
-      background-color: #0b141a;
-      background-image: 
-        repeating-linear-gradient(
-          45deg,
-          transparent,
-          transparent 10px,
-          rgba(255, 255, 255, 0.02) 10px,
-          rgba(255, 255, 255, 0.02) 20px
-        );
+
+    .message-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: 14px;
+      color: #1a1a1a;
+      padding: 8px 4px;
+    }
+
+    .message-input:focus {
+      outline: none;
+    }
+
+    .message-input::placeholder {
+      color: #9ca3af;
+    }
+
+    .btn-send {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: none;
+      background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-send:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(45, 87, 87, 0.3);
+    }
+
+    .btn-send svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .hidden {
+      display: none;
     }
   `]
 })
@@ -235,29 +464,11 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
 
   newMessage: string = '';
   searchQuery: string = '';
-  showSearch: boolean = false;
-  showEmojiPicker: boolean = false;
   selectedFile: File | null = null;
-  isRecording: boolean = false;
   filteredMessages: Message[] = [];
   
   private shouldScrollToBottom = true;
   private typingTimeout: any;
-
-  // Emojis populaires
-  emojis: string[] = [
-    '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊',
-    '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘',
-    '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪',
-    '🤨', '🧐', '🤓', '😎', '🥳', '😏', '😒', '😞',
-    '😔', '😟', '😕', '🙁', '☹️', '😣', '😖', '😫',
-    '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬',
-    '👍', '👎', '👌', '✌️', '🤞', '🤟', '🤘', '🤙',
-    '👏', '🙌', '👐', '🤲', '🤝', '🙏', '✍️', '💪',
-    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍',
-    '💯', '💢', '💥', '💫', '💦', '💨', '🕳️', '💬',
-    '🎉', '🎊', '🎈', '🎁', '🏆', '🥇', '🥈', '🥉'
-  ];
 
   ngOnChanges(): void {
     this.shouldScrollToBottom = true;
@@ -269,27 +480,6 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
       this.scrollToBottom();
       this.shouldScrollToBottom = false;
     }
-  }
-
-  toggleSearch(): void {
-    this.showSearch = !this.showSearch;
-    if (!this.showSearch) {
-      this.searchQuery = '';
-      this.filterMessages();
-    }
-  }
-
-  toggleEmojiPicker(): void {
-    this.showEmojiPicker = !this.showEmojiPicker;
-  }
-
-  insertEmoji(emoji: string): void {
-    this.newMessage += emoji;
-    this.showEmojiPicker = false;
-  }
-
-  onSearchMessages(): void {
-    this.filterMessages();
   }
 
   private filterMessages(): void {
@@ -307,24 +497,8 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      // TODO: Implémenter l'upload de fichier
       console.log('File selected:', file.name);
     }
-  }
-
-  startVoiceRecording(): void {
-    this.isRecording = !this.isRecording;
-    if (this.isRecording) {
-      console.log('🎤 Recording started...');
-      // TODO: Implémenter l'enregistrement vocal
-    } else {
-      console.log('🎤 Recording stopped');
-    }
-  }
-
-  onReact(data: { messageId: number, reaction: string }): void {
-    console.log('React to message:', data);
-    // TODO: Implémenter les réactions
   }
 
   getConversationTitle(): string {
@@ -344,7 +518,11 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
       p => p.userId !== this.currentUserId
     );
     
-    return otherParticipant?.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle())}&background=2D5757&color=fff`;
+    if (otherParticipant?.userAvatar && !otherParticipant.userAvatar.includes('ui-avatars.com')) {
+      return `http://localhost:8080${otherParticipant.userAvatar}`;
+    }
+    
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle())}&background=2D5757&color=fff&bold=true&size=128`;
   }
 
   isOnline(): boolean {
@@ -365,15 +543,12 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
   }
 
   onTyping(): void {
-    // Clear previous timeout
     if (this.typingTimeout) {
       clearTimeout(this.typingTimeout);
     }
 
-    // Send typing indicator
     this.typing.emit(true);
 
-    // Stop typing after 2 seconds of inactivity
     this.typingTimeout = setTimeout(() => {
       this.typing.emit(false);
     }, 2000);
@@ -381,7 +556,6 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
 
   onScroll(event: any): void {
     const element = event.target;
-    // Check if scrolled to top
     if (element.scrollTop === 0) {
       this.loadMore.emit();
     }
@@ -396,6 +570,16 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
     } catch (err) {
       console.error('Error scrolling to bottom:', err);
     }
+  }
+
+  formatMessageTime(date?: Date): string {
+    if (!date) return '';
+    
+    const messageDate = new Date(date);
+    const hours = messageDate.getHours().toString().padStart(2, '0');
+    const minutes = messageDate.getMinutes().toString().padStart(2, '0');
+    
+    return `${hours}:${minutes}`;
   }
 
   trackByMessageId(index: number, message: Message): number {

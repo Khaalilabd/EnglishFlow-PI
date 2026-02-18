@@ -15,47 +15,14 @@ spring:
           enabled: true
           lower-case-service-id: true
       routes:
-        - id: auth-service
+        # Routes les plus spécifiques en premier
+        - id: admin-users-service
           uri: lb://auth-service
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/admin/users/**
           filters:
             - StripPrefix=1
-            
-        - id: community-service
-          uri: lb://community-service
-          predicates:
-            - Path=/api/community/**
-          filters:
-            - StripPrefix=1
-            
-        - id: learning-service
-          uri: lb://learning-service
-          predicates:
-            - Path=/api/learning/**
-          filters:
-            - StripPrefix=1
-            
-        - id: club-service
-          uri: lb://club-service
-          predicates:
-            - Path=/api/clubs/**
-          filters:
-            - StripPrefix=1
-            
-        - id: club-members-service
-          uri: lb://club-service
-          predicates:
-            - Path=/api/members/**
-          filters:
-            - StripPrefix=1
-            
-        - id: club-tasks-service
-          uri: lb://club-service
-          predicates:
-            - Path=/api/tasks/**
-          filters:
-            - StripPrefix=1
+          order: 1
             
         - id: user-service
           uri: lb://auth-service
@@ -63,18 +30,61 @@ spring:
             - Path=/api/users/**
           filters:
             - StripPrefix=1
+          order: 2
+        
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+          order: 3
+            
+        - id: community-service
+          uri: lb://community-service
+          predicates:
+            - Path=/api/community/**
+          filters:
+            - StripPrefix=1
+          order: 10
+            
+        - id: learning-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/learning/**
+          filters:
+            - StripPrefix=1
+          order: 11
+            
+        - id: club-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/clubs/**
+          filters:
+            - StripPrefix=1
+          order: 12
+            
+        - id: club-members-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/members/**
+          filters:
+            - StripPrefix=1
+          order: 13
+            
+        - id: club-tasks-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - StripPrefix=1
+          order: 14
             
         - id: public-users
           uri: lb://auth-service
           predicates:
             - Path=/public/**
-            
-        - id: admin-users-service
-          uri: lb://auth-service
-          predicates:
-            - Path=/api/admin/users/**
-          filters:
-            - StripPrefix=1
+          order: 20
             
         - id: messaging-service
           uri: lb://messaging-service
@@ -82,11 +92,13 @@ spring:
             - Path=/api/messaging/**
           filters:
             - StripPrefix=1
+          order: 21
             
         - id: messaging-websocket
           uri: lb://messaging-service
           predicates:
             - Path=/ws/**
+          order: 22
             
         - id: notification-service
           uri: lb://notification-service
@@ -94,6 +106,7 @@ spring:
             - Path=/api/notifications/**
           filters:
             - StripPrefix=1
+          order: 23
       globalcors:
         cors-configurations:
           '[/**]':

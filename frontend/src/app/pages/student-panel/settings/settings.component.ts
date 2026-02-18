@@ -36,7 +36,7 @@ export class SettingsComponent implements OnInit {
 
   englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
 
-  private apiUrl = 'http://localhost:8081/api/users';
+  private apiUrl = 'http://localhost:8080/api/users'; // Via API Gateway
 
   constructor(
     private fb: FormBuilder,
@@ -279,8 +279,15 @@ export class SettingsComponent implements OnInit {
       
       const updateData = this.profileForm.value;
       
+      // Utiliser l'endpoint approprié selon le rôle
+      // ADMIN et ACADEMIC_OFFICE_AFFAIR utilisent l'endpoint admin
+      // STUDENT et TUTOR utilisent l'endpoint users
+      const endpoint = (this.currentUser.role === 'ADMIN' || this.currentUser.role === 'ACADEMIC_OFFICE_AFFAIR')
+        ? `http://localhost:8080/api/admin/users/${this.currentUser.id}`
+        : `${this.apiUrl}/${this.currentUser.id}`;
+      
       // Appel API pour mettre à jour le profil
-      this.http.put<any>(`${this.apiUrl}/${this.currentUser.id}`, updateData).subscribe({
+      this.http.put<any>(endpoint, updateData).subscribe({
         next: (updatedUser) => {
           this.isSavingProfile = false;
           this.isEditingProfile = false;

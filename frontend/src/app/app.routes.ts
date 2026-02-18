@@ -290,7 +290,6 @@ export const routes: Routes = [
   {
     path: 'complete-profile',
     loadComponent: () => import('./auth/complete-profile/complete-profile.component').then(m => m.CompleteProfileComponent),
-    canActivate: [authGuard],
     title: 'Complete Profile | Jungle in English'
   },
   {

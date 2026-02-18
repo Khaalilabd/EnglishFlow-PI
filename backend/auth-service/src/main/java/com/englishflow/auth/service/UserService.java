@@ -1,6 +1,7 @@
 package com.englishflow.auth.service;
 
 import com.englishflow.auth.dto.CreateTutorRequest;
+import com.englishflow.auth.dto.UpdateUserRequest;
 import com.englishflow.auth.dto.UserDTO;
 import com.englishflow.auth.entity.ActivationToken;
 import com.englishflow.auth.entity.User;
@@ -76,10 +77,39 @@ public class UserService {
     }
 
     @Transactional
+    public UserDTO updateUserByAdmin(Long id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+
+        // Update only non-null fields from UpdateUserRequest
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getEmail() != null) user.setEmail(request.getEmail());
+        if (request.getPhone() != null) user.setPhone(request.getPhone());
+        if (request.getCin() != null) user.setCin(request.getCin());
+        if (request.getProfilePhoto() != null) user.setProfilePhoto(request.getProfilePhoto());
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
+        if (request.getAddress() != null) user.setAddress(request.getAddress());
+        if (request.getCity() != null) user.setCity(request.getCity());
+        if (request.getPostalCode() != null) user.setPostalCode(request.getPostalCode());
+        if (request.getBio() != null) user.setBio(request.getBio());
+        if (request.getEnglishLevel() != null) user.setEnglishLevel(request.getEnglishLevel());
+        if (request.getYearsOfExperience() != null) user.setYearsOfExperience(request.getYearsOfExperience());
+
+        User updatedUser = userRepository.save(user);
+        return UserDTO.fromEntity(updatedUser);
+    }
+
+    @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);
         }
+        
+        // Delete all activation tokens associated with this user first
+        activationTokenRepository.deleteByUserId(id);
+        
+        // Now delete the user
         userRepository.deleteById(id);
     }
 
@@ -216,12 +246,19 @@ public class UserService {
                     .build();
             activationTokenRepository.save(token);
             
-            // Send activation email
+            // Send account created email with credentials
             try {
-                emailService.sendActivationEmail(savedUser.getEmail(), savedUser.getFirstName(), activationToken);
-                System.out.println("✅ Activation email sent to: " + savedUser.getEmail());
+                emailService.sendAccountCreatedEmail(
+                    savedUser.getEmail(), 
+                    savedUser.getFirstName(), 
+                    savedUser.getEmail(),
+                    request.getPassword(), // Le mot de passe en clair (avant encodage)
+                    savedUser.getRole().name(),
+                    activationToken
+                );
+                System.out.println("✅ Account created email sent to: " + savedUser.getEmail());
             } catch (Exception e) {
-                System.err.println("❌ Failed to send activation email: " + e.getMessage());
+                System.err.println("❌ Failed to send account created email: " + e.getMessage());
                 // Continue anyway - admin can activate manually
             }
             

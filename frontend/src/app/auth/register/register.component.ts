@@ -126,8 +126,10 @@ export class RegisterComponent {
     this.authService.register(formData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
-        // Students always go to landing page after registration
-        this.router.navigate(['/']);
+        // Rediriger vers la page activation-pending du backend
+        const email = this.registerForm.get('email')?.value;
+        const firstName = this.registerForm.get('firstName')?.value;
+        window.location.href = `http://localhost:8081/activation-pending?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(firstName)}`;
       },
       error: (error) => {
         console.error('Registration error:', error);

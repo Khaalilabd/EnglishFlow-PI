@@ -82,7 +82,8 @@ export class AuthService {
   }
 
   activateAccount(token: string): Observable<AuthResponse> {
-    return this.http.get<AuthResponse>(`${this.apiUrl}/activate?token=${token}`).pipe(
+    // Utiliser l'endpoint activate-api qui retourne un AuthResponse avec le token
+    return this.http.get<AuthResponse>(`${this.apiUrl}/activate-api?token=${token}`).pipe(
       tap(response => {
         this.setCurrentUser(response);
       })
@@ -95,7 +96,8 @@ export class AuthService {
       throw new Error('No user logged in');
     }
     
-    return this.http.put<AuthResponse>(`${this.apiUrl}/users/${currentUser.id}`, data).pipe(
+    // Utiliser l'endpoint /api/users/{id} via API Gateway
+    return this.http.put<AuthResponse>(`http://localhost:8080/api/users/${currentUser.id}`, data).pipe(
       tap(response => {
         // Mettre à jour le currentUser avec les nouvelles données
         const updated = {

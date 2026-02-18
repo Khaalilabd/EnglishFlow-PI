@@ -38,6 +38,7 @@ export class OAuth2CallbackComponent implements OnInit {
       const firstName = params['firstName'];
       const lastName = params['lastName'];
       const role = params['role'] || 'STUDENT';
+      const profileCompleted = params['profileCompleted'] === 'true';
 
       if (token && email && id) {
         // Store user data
@@ -48,7 +49,9 @@ export class OAuth2CallbackComponent implements OnInit {
           email,
           firstName,
           lastName,
-          role
+          role,
+          profilePhoto: params['profilePhoto'] || null,
+          phone: params['phone'] || null
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
@@ -57,13 +60,21 @@ export class OAuth2CallbackComponent implements OnInit {
         // Update auth service subject to trigger navbar update
         this.authService['currentUserSubject'].next(userData);
         
-        // Redirect based on role
+        // Redirect based on profile completion
         setTimeout(() => {
-          if (role === 'TEACHER') {
-            // Teachers go to dashboard
-            this.router.navigate(['/dashboard']);
+          if (!profileCompleted) {
+            // Profil incomplet, rediriger vers complete-profile
+            this.router.navigate(['/auth/complete-profile'], {
+              queryParams: {
+                token,
+                userId: id,
+                email,
+                firstName,
+                lastName
+              }
+            });
           } else {
-            // Students go to landing page
+            // Profil complet, rediriger vers la home page
             this.router.navigate(['/']);
           }
         }, 1000);

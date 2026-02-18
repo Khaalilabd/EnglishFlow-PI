@@ -16,11 +16,30 @@ public class AuthServiceClient {
     public UserInfo getUserInfo(Long userId) {
         try {
             String url = "http://auth-service/auth/users/" + userId;
-            return restTemplate.getForObject(url, UserInfo.class);
+            log.info("Fetching user info from: {}", url);
+            UserInfo userInfo = restTemplate.getForObject(url, UserInfo.class);
+            if (userInfo != null) {
+                log.info("Successfully fetched user info for userId {}: {} {}", userId, userInfo.getFirstName(), userInfo.getLastName());
+                return userInfo;
+            } else {
+                log.warn("User info is null for userId: {}", userId);
+                return createDefaultUserInfo(userId);
+            }
         } catch (Exception e) {
             log.error("Failed to fetch user info for userId: {}", userId, e);
-            return new UserInfo(userId, "User " + userId, "", "STUDENT", null);
+            return createDefaultUserInfo(userId);
         }
+    }
+    
+    private UserInfo createDefaultUserInfo(Long userId) {
+        UserInfo defaultInfo = new UserInfo();
+        defaultInfo.setId(userId);
+        defaultInfo.setFirstName("User");
+        defaultInfo.setLastName(String.valueOf(userId));
+        defaultInfo.setEmail("user" + userId + "@unknown.com");
+        defaultInfo.setRole("STUDENT");
+        defaultInfo.setProfilePhotoUrl(null);
+        return defaultInfo;
     }
     
     @Data
@@ -34,17 +53,15 @@ public class AuthServiceClient {
         
         public UserInfo() {}
         
-        public UserInfo(Long id, String firstName, String lastName, String role, String profilePhotoUrl) {
-            this.id = id;
-            this.firstName = firstName;
-            this.lastName = lastName;
-            this.email = "user" + id + "@unknown.com";  // Email par défaut
-            this.role = role;
-            this.profilePhotoUrl = profilePhotoUrl;
-        }
-        
         public String getFullName() {
-            return firstName + " " + lastName;
+            if (firstName != null && lastName != null) {
+                return firstName + " " + lastName;
+            } else if (firstName != null) {
+                return firstName;
+            } else if (lastName != null) {
+                return lastName;
+            }
+            return "User " + id;
         }
     }
 }

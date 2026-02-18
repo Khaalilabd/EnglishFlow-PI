@@ -70,11 +70,26 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
-        // Redirect based on user role
-        if (response.role === 'ADMIN') {
-          this.router.navigate(['/dashboard']); // Admin dashboard
+        
+        // Vérifier si le profil est complet
+        if (response.profileCompleted === false) {
+          // Profil incomplet, rediriger vers complete-profile
+          this.router.navigate(['/auth/complete-profile'], {
+            queryParams: {
+              token: response.token,
+              userId: response.id,
+              email: response.email,
+              firstName: response.firstName,
+              lastName: response.lastName
+            }
+          });
         } else {
-          this.router.navigate(['/']); // Landing page for students and tutors
+          // Profil complet, rediriger selon le rôle
+          if (response.role === 'ADMIN') {
+            this.router.navigate(['/dashboard']); // Admin dashboard
+          } else {
+            this.router.navigate(['/']); // Landing page for students and tutors
+          }
         }
       },
       error: (error) => {

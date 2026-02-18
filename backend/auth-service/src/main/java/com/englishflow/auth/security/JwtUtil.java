@@ -45,6 +45,30 @@ public class JwtUtil {
         return claims.getSubject();
     }
 
+    public String extractEmail(String token) {
+        return getEmailFromToken(token);
+    }
+
+    public Long extractUserId(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("userId", Long.class);
+    }
+
+    public String extractRole(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.get("role", String.class);
+    }
+
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()

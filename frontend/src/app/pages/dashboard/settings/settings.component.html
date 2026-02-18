@@ -155,6 +155,106 @@
               Please enter a valid phone number
             </p>
           </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              CIN
+            </label>
+            <input
+              type="text"
+              formControlName="cin"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              placeholder="National ID Number"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Date of Birth
+            </label>
+            <input
+              type="date"
+              formControlName="dateOfBirth"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Address
+            </label>
+            <input
+              type="text"
+              formControlName="address"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              placeholder="Street address"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              City
+            </label>
+            <input
+              type="text"
+              formControlName="city"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              placeholder="City"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Postal Code
+            </label>
+            <input
+              type="text"
+              formControlName="postalCode"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              placeholder="Postal code"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Years of Experience
+            </label>
+            <input
+              type="number"
+              formControlName="yearsOfExperience"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              placeholder="Years of experience"
+              min="0"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
+          </div>
+
+          <div class="md:col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-2">
+              Bio
+            </label>
+            <textarea
+              formControlName="bio"
+              [readonly]="!isEditingProfile"
+              [class.bg-gray-50]="!isEditingProfile"
+              rows="4"
+              placeholder="Tell us about yourself..."
+              maxlength="500"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all resize-none"></textarea>
+            <div class="flex justify-between items-center mt-1">
+              <p *ngIf="profileForm.get('bio')?.invalid && profileForm.get('bio')?.touched" class="text-red-500 text-xs">
+                Bio is too long
+              </p>
+              <p class="text-xs text-gray-500 ml-auto">
+                {{bioLength}}/500 characters
+              </p>
+            </div>
+          </div>
         </div>
 
         <div *ngIf="isEditingProfile" class="flex gap-3 pt-6 border-t border-gray-200">

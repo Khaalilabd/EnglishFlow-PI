@@ -34,7 +34,7 @@ export class CompleteProfileComponent implements OnInit {
   error = '';
   success = false;
 
-  private apiUrl = 'http://localhost:8081/auth';
+  private apiUrl = 'http://localhost:8080/api/auth'; // Via API Gateway
 
   constructor(
     private route: ActivatedRoute,
@@ -51,13 +51,21 @@ export class CompleteProfileComponent implements OnInit {
       this.firstName = params['firstName'] || '';
       this.lastName = params['lastName'] || '';
 
-      // Stocker le token
-      if (this.token) {
-        localStorage.setItem('authToken', this.token);
-        localStorage.setItem('userId', this.userId);
-        localStorage.setItem('userEmail', this.email);
-        localStorage.setItem('firstName', this.firstName);
-        localStorage.setItem('lastName', this.lastName);
+      // Stocker les données utilisateur dans le format attendu par AuthService
+      if (this.token && this.userId) {
+        const userData = {
+          token: this.token,
+          type: 'Bearer',
+          id: parseInt(this.userId),
+          email: this.email,
+          firstName: this.firstName,
+          lastName: this.lastName,
+          role: 'STUDENT', // Par défaut pour les nouveaux utilisateurs
+          profileCompleted: false
+        };
+        
+        localStorage.setItem('currentUser', JSON.stringify(userData));
+        localStorage.setItem('token', this.token);
       }
 
       // Vérifier que tous les paramètres sont présents
@@ -93,12 +101,15 @@ export class CompleteProfileComponent implements OnInit {
         console.log('Profile completed:', response);
         this.success = true;
         
-        // Marquer le profil comme complété dans localStorage
-        localStorage.setItem('profileCompleted', 'true');
+        // Mettre à jour le currentUser avec profileCompleted = true
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        currentUser.profileCompleted = true;
+        localStorage.setItem('currentUser', JSON.stringify(currentUser));
         
-        // Rediriger vers le landing page (home) après 1.5 secondes
+        // Rediriger vers la home page après 1.5 secondes
         setTimeout(() => {
-          this.router.navigate(['/']);
+          // Recharger la page pour que le AuthService détecte l'utilisateur connecté
+          window.location.href = '/';
         }, 1500);
       },
       error: (error) => {

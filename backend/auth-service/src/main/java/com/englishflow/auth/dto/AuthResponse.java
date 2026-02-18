@@ -18,6 +18,7 @@ public class AuthResponse {
     private String role;
     private String profilePhoto;
     private String phone;
+    private Boolean profileCompleted;
 
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone) {
         this.token = token;
@@ -28,5 +29,18 @@ public class AuthResponse {
         this.role = role;
         this.profilePhoto = profilePhoto;
         this.phone = phone;
+        this.profileCompleted = false; // Default value
+    }
+    
+    public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone, Boolean profileCompleted) {
+        this.token = token;
+        this.id = id;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.profilePhoto = profilePhoto;
+        this.phone = phone;
+        this.profileCompleted = profileCompleted;
     }
 }
