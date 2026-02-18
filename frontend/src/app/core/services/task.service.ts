@@ -7,7 +7,7 @@ import { Task, TaskStatus, CreateTaskRequest, UpdateTaskRequest } from '../model
   providedIn: 'root'
 })
 export class TaskService {
-  private apiUrl = 'http://localhost:8084/api/tasks';
+  private apiUrl = 'http://localhost:8080/api/tasks';
 
   constructor(private http: HttpClient) {}
 

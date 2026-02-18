@@ -7,7 +7,7 @@ import { Club, CreateClubRequest, UpdateClubRequest, Member, JoinClubRequest, Cl
   providedIn: 'root'
 })
 export class ClubService {
-  private apiUrl = 'http://localhost:8084/clubs';
+  private apiUrl = 'http://localhost:8080/api/clubs';
   
   // Subject to notify when user joins or leaves a club
   private clubMembershipChanged = new Subject<void>();
