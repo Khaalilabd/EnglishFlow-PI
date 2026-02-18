@@ -1,16 +1,19 @@
 /* ===== STUDENTS MANAGEMENT - MODERN DESIGN ===== */
 .students-management {
-  padding: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  background: #f8f9fa;
   min-height: 100vh;
+  padding: 2rem;
+  position: relative;
+  z-index: 1; /* En dessous de la sidebar (z-50) */
 }
 
 /* ===== PAGE HEADER ===== */
 .page-header {
   background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+  border-radius: 24px;
   padding: 2.5rem 2rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 20px rgba(45, 87, 87, 0.2);
+  box-shadow: 0 10px 40px rgba(45, 87, 87, 0.3);
 }
 
 .header-content {

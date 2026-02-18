@@ -7,7 +7,7 @@ import { AuthResponse, LoginRequest, RegisterRequest } from '../models/user.mode
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8081/auth';  // Direct vers Auth Service
+  private apiUrl = 'http://localhost:8080/api/auth';  // Via API Gateway
   private currentUserSubject = new BehaviorSubject<AuthResponse | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -59,6 +59,16 @@ export class AuthService {
     return !!this.currentUserSubject.value;
   }
 
+  hasRole(roles: string[]): boolean {
+    const currentUser = this.currentUserValue;
+    return currentUser ? roles.includes(currentUser.role) : false;
+  }
+
+  getUserRole(): string | null {
+    const currentUser = this.currentUserValue;
+    return currentUser ? currentUser.role : null;
+  }
+
   getToken(): string | null {
     return localStorage.getItem('token');
   }
@@ -95,5 +105,10 @@ export class AuthService {
         this.setCurrentUser(updated);
       })
     );
+  }
+
+  getAllUsers(): Observable<any[]> {
+    // Utiliser l'endpoint via API Gateway
+    return this.http.get<any[]>('http://localhost:8080/api/users');
   }
 }

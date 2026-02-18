@@ -27,6 +27,9 @@ import { ActivateComponent } from './auth/activate/activate.component';
 import { OAuth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback.component';
 import { StudentLayoutComponent } from './shared/layout/student-layout/student-layout.component';
 import { TutorLayoutComponent } from './shared/layout/tutor-layout/tutor-layout.component';
+import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
+import { guestGuard } from './core/guards/guest.guard';
 
 export const routes: Routes = [
   // Page d'accueil Jungle in English
@@ -42,10 +45,11 @@ export const routes: Routes = [
     title: 'Clubs | Jungle in English'
   },
   
-  // Student Panel avec layout et sidebar
+  // Student Panel avec layout et sidebar - Protégé pour STUDENT uniquement
   {
     path: 'user-panel',
     component: StudentLayoutComponent,
+    canActivate: [roleGuard(['STUDENT'])],
     children: [
       {
         path: '',
@@ -145,10 +149,11 @@ export const routes: Routes = [
     ]
   },
   
-  // Tutor Panel avec layout et sidebar
+  // Tutor Panel avec layout et sidebar - Protégé pour TUTOR et TEACHER
   {
     path: 'tutor-panel',
     component: TutorLayoutComponent,
+    canActivate: [roleGuard(['TUTOR', 'TEACHER'])],
     children: [
       {
         path: '',
@@ -206,6 +211,21 @@ export const routes: Routes = [
         title: 'Messages | Jungle in English'
       },
       {
+        path: 'forum',
+        loadComponent: () => import('./pages/student-panel/forum/forum.component').then(m => m.ForumComponent),
+        title: 'Community Forum | Jungle in English'
+      },
+      {
+        path: 'forum/topics/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Topics | Jungle in English'
+      },
+      {
+        path: 'forum/topic/:topicId',
+        loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
+        title: 'Topic Details | Jungle in English'
+      },
+      {
         path: 'support',
         loadComponent: () => import('./pages/student-panel/support/support.component').then(m => m.SupportComponent),
         title: 'Help & Support | Jungle in English'
@@ -218,30 +238,38 @@ export const routes: Routes = [
     ]
   },
   
-  // Pages d'authentification (hors du layout dashboard)
+  // Pages d'authentification (hors du layout dashboard) - Accessible uniquement aux visiteurs non connectés
   {
     path: 'auth/login',
     component: LoginComponent,
-    title: 'Login | Jungle in English'
+    canActivate: [guestGuard],
+    title: 'Login | Jungle in English',
+    data: { animation: 'LoginPage' }
   },
   {
     path: 'login',
     component: LoginComponent,
-    title: 'Login | Jungle in English'
+    canActivate: [guestGuard],
+    title: 'Login | Jungle in English',
+    data: { animation: 'LoginPage' }
   },
   {
     path: 'register',
     component: RegisterComponent,
-    title: 'Register | Jungle in English'
+    canActivate: [guestGuard],
+    title: 'Register | Jungle in English',
+    data: { animation: 'RegisterPage' }
   },
   {
     path: 'forgot-password',
     component: ForgotPasswordComponent,
+    canActivate: [guestGuard],
     title: 'Forgot Password | Jungle in English'
   },
   {
     path: 'reset-password',
     component: ResetPasswordComponent,
+    canActivate: [guestGuard],
     title: 'Reset Password | Jungle in English'
   },
   {
@@ -257,23 +285,27 @@ export const routes: Routes = [
   {
     path: 'complete-profile',
     loadComponent: () => import('./auth/complete-profile/complete-profile.component').then(m => m.CompleteProfileComponent),
+    canActivate: [authGuard],
     title: 'Complete Profile | Jungle in English'
   },
   {
     path: 'signin',
     component: SignInComponent,
+    canActivate: [guestGuard],
     title: 'Sign In | Jungle in English'
   },
   {
     path: 'signup',
     component: SignUpComponent,
+    canActivate: [guestGuard],
     title: 'Sign Up | Jungle in English'
   },
   
-  // Dashboard avec toutes ses routes
+  // Dashboard avec toutes ses routes - Protégé pour ADMIN et ACADEMIC_OFFICE_AFFAIR
   {
     path: 'dashboard',
     component: AppLayoutComponent,
+    canActivate: [roleGuard(['ADMIN', 'ACADEMIC_OFFICE_AFFAIR'])],
     children: [
       {
         path: '',
@@ -379,6 +411,21 @@ export const routes: Routes = [
         path: 'forum/topic/:topicId',
         loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
         title: 'Topic Details | Jungle in English Dashboard'
+      },
+      {
+        path: 'ebooks',
+        loadComponent: () => import('./pages/student-panel/ebooks/ebooks.component').then(m => m.EbooksComponent),
+        title: 'Ebooks Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'assignments',
+        loadComponent: () => import('./pages/student-panel/assignments/assignments.component').then(m => m.AssignmentsComponent),
+        title: 'Assignments Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'messages',
+        loadComponent: () => import('./pages/student-panel/messages/messages.component').then(m => m.MessagesComponent),
+        title: 'Messages | Jungle in English Dashboard'
       },
       {
         path: 'clubs',

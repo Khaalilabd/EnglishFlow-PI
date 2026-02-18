@@ -16,11 +16,30 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class UserController {
 
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+
+    @GetMapping
+    public ResponseEntity<?> getAllUsers() {
+        try {
+            // Retourner uniquement les étudiants pour la messagerie
+            return ResponseEntity.ok(userRepository.findAll().stream()
+                .filter(user -> user.getRole() == User.Role.STUDENT)
+                .map(user -> Map.of(
+                    "id", user.getId(),
+                    "firstName", user.getFirstName(),
+                    "lastName", user.getLastName(),
+                    "email", user.getEmail(),
+                    "profilePhotoUrl", user.getProfilePhoto() != null ? user.getProfilePhoto() : ""
+                ))
+                .toList());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to fetch users: " + e.getMessage()));
+        }
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {

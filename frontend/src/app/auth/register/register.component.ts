@@ -82,6 +82,13 @@ export class RegisterComponent {
     }
   }
 
+  goToStep(step: number): void {
+    // Allow navigation to completed steps or next step if current is valid
+    if (step <= this.currentStep || (step === this.currentStep + 1 && this.isStepValid(this.currentStep))) {
+      this.currentStep = step;
+    }
+  }
+
   isStepValid(step: number): boolean {
     switch(step) {
       case 1:

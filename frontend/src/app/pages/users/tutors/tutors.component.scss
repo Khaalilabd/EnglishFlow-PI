@@ -1,15 +1,20 @@
 /* ===== TUTORS MANAGEMENT STYLES ===== */
 .tutors-management {
-  padding: 2rem;
-  background: linear-gradient(135deg, #F7EDE2 0%, #fff 100%);
+  background: #f8f9fa;
   min-height: 100vh;
-  margin-top: 0;
-  padding-top: 2rem;
+  padding: 2rem;
+  position: relative;
+  z-index: 1; /* En dessous de la sidebar (z-50) */
 }
 
 /* ===== PAGE HEADER ===== */
 .page-header {
+  background: #ffffff;
+  border: 2px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 2.5rem 2rem;
   margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .header-content {
@@ -40,7 +45,7 @@
 
 .page-subtitle {
   font-size: 16px;
-  color: #4a4a4a;
+  color: #6b7280;
   margin: 0;
 }
 
@@ -62,6 +67,7 @@
 .btn-create:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(45, 87, 87, 0.4);
+  background: linear-gradient(135deg, #3D3D60 0%, #2D5757 100%);
 }
 
 .btn-icon {

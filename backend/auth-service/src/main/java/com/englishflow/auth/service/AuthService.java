@@ -137,7 +137,7 @@ public class AuthService {
         emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
 
         // Generate JWT token
-        String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
         return new AuthResponse(
                 jwtToken,
@@ -163,7 +163,7 @@ public class AuthService {
             throw new RuntimeException("Account not activated. Please check your email.");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 
         return new AuthResponse(
                 token,
@@ -189,7 +189,7 @@ public class AuthService {
 
         if (user.isActive()) {
             // Generate JWT token for activated user
-            String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+            String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
             response.put("token", jwtToken);
             response.put("userId", user.getId());
             response.put("email", user.getEmail());

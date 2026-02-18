@@ -25,23 +25,33 @@
 
 @layer components {
   .menu-item {
-    @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
+    @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm transition-all duration-200;
   }
 
   .menu-item-active {
-    @apply bg-secondary/20 text-secondary dark:bg-secondary/10 dark:text-secondary backdrop-blur-sm;
+    @apply bg-[#F6BD60]/20 text-[#F6BD60] dark:bg-[#F6BD60]/10 dark:text-[#F6BD60] backdrop-blur-sm border-l-4 border-[#F6BD60] shadow-lg;
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 10px rgba(246, 189, 96, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 20px rgba(246, 189, 96, 0.5);
+    }
   }
 
   .menu-item-inactive {
-    @apply text-secondary/80 hover:bg-white/10 group-hover:text-secondary dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300;
+    @apply text-white/80 hover:bg-white/10 hover:text-white dark:text-gray-300 dark:hover:bg-white/5 dark:hover:text-gray-300 transition-all duration-200;
   }
 
   .menu-item-icon {
-    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400;
+    @apply text-white/70 group-hover:text-white dark:text-gray-400 transition-colors duration-200;
   }
 
   .menu-item-icon-active {
-    @apply text-secondary dark:text-secondary;
+    @apply text-[#F6BD60] dark:text-[#F6BD60];
   }
 
   .menu-item-icon-size svg {
@@ -49,19 +59,19 @@
   }
 
   .menu-item-icon-inactive {
-    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400 dark:group-hover:text-gray-300;
+    @apply text-white/70 group-hover:text-white dark:text-gray-400 dark:group-hover:text-gray-300 transition-colors duration-200;
   }
 
   .menu-item-arrow {
-    @apply relative;
+    @apply relative transition-transform duration-200;
   }
 
   .menu-item-arrow-active {
-    @apply rotate-180 text-secondary dark:text-secondary;
+    @apply rotate-180 text-[#F6BD60] dark:text-[#F6BD60];
   }
 
   .menu-item-arrow-inactive {
-    @apply text-secondary/70 group-hover:text-secondary dark:text-gray-400 dark:group-hover:text-gray-300;
+    @apply text-white/70 group-hover:text-white dark:text-gray-400 dark:group-hover:text-gray-300;
   }
 
   .menu-dropdown-item {

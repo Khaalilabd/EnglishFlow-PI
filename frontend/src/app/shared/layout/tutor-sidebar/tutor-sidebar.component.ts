@@ -27,6 +27,7 @@ export class TutorSidebarComponent implements OnInit {
   
   menuItems: MenuItem[] = [
     { icon: 'fas fa-home', label: 'Dashboard', route: '/tutor-panel', section: 'menu' },
+    { icon: 'fas fa-globe', label: 'Home', route: '/', section: 'menu' },
     { icon: 'fas fa-book', label: 'My Courses', route: '/tutor-panel/courses', badge: 5, section: 'menu' },
     { icon: 'fas fa-clipboard-list', label: 'Quiz Management', route: '/tutor-panel/quiz-management', section: 'menu' },
     { icon: 'fas fa-book-open', label: 'Ebooks', route: '/tutor-panel/ebooks', section: 'menu' },
@@ -35,6 +36,7 @@ export class TutorSidebarComponent implements OnInit {
     { icon: 'fas fa-tasks', label: 'Assignments', route: '/tutor-panel/assignments', section: 'menu' },
     { icon: 'fas fa-chart-line', label: 'Analytics', route: '/tutor-panel/analytics', section: 'menu' },
     { icon: 'fas fa-comments', label: 'Messages', route: '/tutor-panel/messages', badge: 3, section: 'menu' },
+    { icon: 'fas fa-comment-dots', label: 'Forum', route: '/tutor-panel/forum', section: 'menu' },
   ];
 
   supportItems: MenuItem[] = [

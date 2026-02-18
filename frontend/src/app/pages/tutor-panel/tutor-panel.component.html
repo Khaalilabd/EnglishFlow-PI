@@ -1,4 +1,4 @@
-<div class="min-h-screen bg-gray-50 p-6">
+<div class="min-h-screen bg-gray-50 p-6 animate-fade-in">
   <!-- Page Header -->
   <div class="mb-8">
     <h1 class="text-3xl font-bold text-gray-800 mb-2">Welcome back, Tutor! 👋</h1>
@@ -6,14 +6,21 @@
   </div>
 
   <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-    <div *ngFor="let stat of stats" 
-         class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div *ngFor="let stat of stats; let i = index" 
+         class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow animate-slide-up"
+         [style.animation-delay]="i * 100 + 'ms'">
       <div class="flex items-center justify-between mb-4">
-        <div [class]="'w-12 h-12 rounded-xl flex items-center justify-center bg-' + stat.color + '-100'">
-          <i [class]="stat.icon + ' text-' + stat.color + '-600 text-xl'"></i>
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-[#F7EDE2]">
+          <i [class]="stat.icon + ' text-[#2D5757] text-xl'"></i>
         </div>
-        <span [class]="'text-sm font-semibold px-3 py-1 rounded-full ' + (stat.change.includes('+') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600')">
+        <span 
+          class="text-sm font-semibold px-3 py-1 rounded-full"
+          [ngClass]="{
+            'bg-green-100 text-green-600': stat.change.includes('+'),
+            'bg-[#C84630]/10 text-[#C84630]': !stat.change.includes('+')
+          }"
+        >
           {{ stat.change }}
         </span>
       </div>
@@ -24,19 +31,23 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Recent Quizzes -->
-    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6">
+    <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
       <div class="flex items-center justify-between mb-6">
-        <h2 class="text-xl font-bold text-gray-800">Recent Quizzes</h2>
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 mb-1">Recent Quizzes</h2>
+          <p class="text-sm text-gray-500">Manage your assessments</p>
+        </div>
         <button routerLink="/tutor-panel/quiz-management" 
-                class="text-purple-600 hover:text-purple-700 font-medium text-sm flex items-center space-x-2">
+                class="text-[#2D5757] hover:text-[#3D3D60] font-medium text-sm flex items-center space-x-2 transition-colors">
           <span>View All</span>
           <i class="fas fa-arrow-right"></i>
         </button>
       </div>
 
       <div class="space-y-4">
-        <div *ngFor="let quiz of recentQuizzes" 
-             class="border border-gray-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+        <div *ngFor="let quiz of recentQuizzes; let i = index" 
+             class="border border-gray-200 rounded-xl p-4 hover:border-[#F6BD60] transition-colors animate-slide-up"
+             [style.animation-delay]="i * 100 + 'ms'">
           <div class="flex items-start justify-between mb-3">
             <div class="flex-1">
               <h3 class="font-semibold text-gray-800 mb-1">{{ quiz.title }}</h3>
@@ -46,12 +57,18 @@
                 <span><i class="fas fa-calendar mr-1"></i>{{ quiz.dueDate }}</span>
               </div>
             </div>
-            <span [class]="'px-3 py-1 rounded-full text-xs font-semibold ' + (quiz.status === 'active' ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-600')">
+            <span 
+              class="px-3 py-1 rounded-full text-xs font-semibold"
+              [ngClass]="{
+                'bg-green-100 text-green-600': quiz.status === 'active',
+                'bg-gray-100 text-gray-600': quiz.status === 'completed'
+              }"
+            >
               {{ quiz.status }}
             </span>
           </div>
           <div class="flex space-x-2">
-            <button class="flex-1 bg-teal-50 text-teal-600 hover:bg-teal-100 py-2 px-4 rounded-lg text-sm font-medium transition-colors">
+            <button class="flex-1 bg-[#F7EDE2] text-[#2D5757] hover:bg-[#F6BD60] py-2 px-4 rounded-lg text-sm font-medium transition-colors">
               <i class="fas fa-eye mr-2"></i>View Results
             </button>
             <button class="flex-1 bg-gray-50 text-gray-700 hover:bg-gray-100 py-2 px-4 rounded-lg text-sm font-medium transition-colors">
@@ -62,20 +79,29 @@
       </div>
 
       <button routerLink="/tutor-panel/quiz-management/create" 
-              class="w-full mt-4 bg-gradient-to-r from-teal-600 to-slate-700 hover:from-teal-700 hover:to-slate-800 text-white py-3 px-6 rounded-xl font-medium transition-all shadow-lg shadow-teal-500/30">
+              class="w-full mt-4 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] hover:from-[#3D3D60] hover:to-[#2D5757] text-white py-3 px-6 rounded-xl font-medium transition-all shadow-lg hover:shadow-xl">
         <i class="fas fa-plus mr-2"></i>Create New Quiz
       </button>
     </div>
 
     <!-- Upcoming Classes -->
-    <div class="bg-white rounded-2xl shadow-sm p-6">
-      <h2 class="text-xl font-bold text-gray-800 mb-6">Today's Classes</h2>
-      <div class="space-y-4">
-        <div *ngFor="let class of upcomingClasses" 
-             class="border-l-4 border-teal-600 bg-teal-50 rounded-r-xl p-4">
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 mb-1">Today's Classes</h2>
+          <p class="text-sm text-gray-500">Your schedule</p>
+        </div>
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-[#F6BD60]/10 to-[#C84630]/10">
+          <span class="text-xl">📅</span>
+        </div>
+      </div>
+      <div class="space-y-3">
+        <div *ngFor="let class of upcomingClasses; let i = index" 
+             class="border-l-4 border-[#2D5757] bg-[#F7EDE2] rounded-r-xl p-4 hover:bg-[#F6BD60]/20 transition-colors animate-slide-up"
+             [style.animation-delay]="i * 100 + 'ms'">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-lg font-bold text-teal-600">{{ class.time }}</span>
-            <span class="text-xs bg-teal-200 text-teal-700 px-2 py-1 rounded-full">{{ class.room }}</span>
+            <span class="text-lg font-bold text-[#2D5757]">{{ class.time }}</span>
+            <span class="text-xs bg-[#2D5757] text-white px-2 py-1 rounded-full">{{ class.room }}</span>
           </div>
           <h3 class="font-semibold text-gray-800 mb-1">{{ class.course }}</h3>
           <p class="text-sm text-gray-600">
@@ -87,20 +113,32 @@
   </div>
 
   <!-- Recent Activity -->
-  <div class="mt-6 bg-white rounded-2xl shadow-sm p-6">
-    <h2 class="text-xl font-bold text-gray-800 mb-6">Recent Student Activity</h2>
-    <div class="space-y-4">
-      <div *ngFor="let activity of recentActivity" 
-           class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors">
+  <div class="mt-6 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 mb-1">Recent Student Activity</h2>
+        <p class="text-sm text-gray-500">Latest submissions and completions</p>
+      </div>
+      <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50">
+        <span class="text-xl">📊</span>
+      </div>
+    </div>
+    <div class="space-y-3">
+      <div *ngFor="let activity of recentActivity; let i = index" 
+           class="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gradient-to-r hover:from-gray-100 hover:to-transparent transition-all cursor-pointer border border-transparent hover:border-gray-200 animate-slide-up"
+           [style.animation-delay]="i * 100 + 'ms'">
         <div class="flex items-center space-x-4">
-          <img [src]="'https://ui-avatars.com/api/?name=' + activity.student + '&background=random'" 
-               [alt]="activity.student"
-               class="w-12 h-12 rounded-full">
+          <div class="relative">
+            <img [src]="'https://ui-avatars.com/api/?name=' + activity.student + '&background=random'" 
+                 [alt]="activity.student"
+                 class="w-12 h-12 rounded-full ring-2 ring-gray-100">
+            <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white"></div>
+          </div>
           <div>
             <p class="text-sm text-gray-800">
               <span class="font-semibold">{{ activity.student }}</span>
               <span class="text-gray-600"> {{ activity.action }} </span>
-              <span class="font-semibold text-purple-600">{{ activity.quiz }}</span>
+              <span class="font-semibold text-[#2D5757]">{{ activity.quiz }}</span>
             </p>
             <p class="text-xs text-gray-500 mt-1">{{ activity.time }}</p>
           </div>

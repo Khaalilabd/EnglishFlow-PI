@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { RouterModule } from '@angular/router';
 import { EcommerceMetricsComponent } from '../../../shared/components/ecommerce/ecommerce-metrics/ecommerce-metrics.component';
 import { MonthlySalesChartComponent } from '../../../shared/components/ecommerce/monthly-sales-chart/monthly-sales-chart.component';
 import { MonthlyTargetComponent } from '../../../shared/components/ecommerce/monthly-target/monthly-target.component';
@@ -10,6 +11,7 @@ import { RecentOrdersComponent } from '../../../shared/components/ecommerce/rece
   standalone: true,
   selector: 'app-ecommerce',
   imports: [
+    RouterModule,
     EcommerceMetricsComponent,
     MonthlySalesChartComponent,
     MonthlyTargetComponent,

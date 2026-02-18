@@ -75,7 +75,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         }
         
         // Generate JWT token
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
+        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
         
         // Redirect to frontend with token and role
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
