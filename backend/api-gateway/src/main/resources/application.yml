@@ -36,10 +36,31 @@ spring:
           filters:
             - StripPrefix=1
             
+        - id: club-members-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/members/**
+          filters:
+            - StripPrefix=1
+            
+        - id: club-tasks-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - StripPrefix=1
+            
         - id: user-service
-          uri: lb://user-service
+          uri: lb://auth-service
           predicates:
             - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+            
+        - id: admin-users-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/admin/users/**
           filters:
             - StripPrefix=1
             

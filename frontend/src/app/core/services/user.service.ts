@@ -24,6 +24,14 @@ export interface User {
   updatedAt?: string;
 }
 
+export interface UserDetails {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  image?: string;
+}
+
 export interface CreateUserRequest {
   email: string;
   password: string;
@@ -42,11 +50,10 @@ export interface CreateUserRequest {
 }
 
 export interface UpdateUserRequest {
-  email?: string;
   firstName?: string;
   lastName?: string;
+  email?: string;
   phone?: string;
-  cin?: string;
   profilePhoto?: string;
   dateOfBirth?: string;
   address?: string;
@@ -55,60 +62,46 @@ export interface UpdateUserRequest {
   bio?: string;
   englishLevel?: string;
   yearsOfExperience?: number;
-  isActive?: boolean;
-  registrationFeePaid?: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8081/auth/admin/users';
+  private apiUrl = 'http://localhost:8081/api';
 
   constructor(private http: HttpClient) {}
 
-  // Get all users
-  getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.apiUrl);
-  }
-
-  // Get users by role
   getUsersByRole(role: string): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/role/${role}`);
+    return this.http.get<User[]>(`${this.apiUrl}/admin/users/role/${role}`);
   }
 
-  // Get user by ID
-  getUserById(id: number): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/${id}`);
+  createUser(userData: CreateUserRequest): Observable<User> {
+    return this.http.post<User>(`${this.apiUrl}/admin/users`, userData);
   }
 
-  // Create user
-  createUser(user: CreateUserRequest): Observable<User> {
-    return this.http.post<User>(this.apiUrl, user);
+  updateUser(userId: number, userData: UpdateUserRequest): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/users/${userId}`, userData);
   }
 
-  // Update user
-  updateUser(id: number, user: UpdateUserRequest): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}`, user);
+  activateUser(userId: number): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}/activate`, {});
   }
 
-  // Delete user
-  deleteUser(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  deactivateUser(userId: number): Observable<User> {
+    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}/deactivate`, {});
   }
 
-  // Activate user
-  activateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}/activate`, {});
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/admin/users/${userId}`);
   }
 
-  // Deactivate user
-  deactivateUser(id: number): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/${id}/deactivate`, {});
+  // New methods for club member details
+  getUserById(userId: number): Observable<UserDetails> {
+    return this.http.get<UserDetails>(`${this.apiUrl}/users/${userId}`);
   }
 
-  // Update profile photo
-  updateProfilePhoto(id: number, photoBase64: string): Observable<User> {
-    return this.http.patch<User>(`${this.apiUrl}/${id}/photo`, { profilePhoto: photoBase64 });
+  getUsersByIds(userIds: number[]): Observable<UserDetails[]> {
+    return this.http.post<UserDetails[]>(`${this.apiUrl}/users/batch`, { userIds });
   }
 }

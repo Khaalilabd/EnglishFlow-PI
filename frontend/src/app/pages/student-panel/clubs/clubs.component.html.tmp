@@ -1,0 +1,258 @@
+<div class="w-full">
+  <!-- Welcome Header -->
+  <div class="bg-gradient-to-r from-[#2D5757] via-[#356666] to-[#3D3D60] rounded-2xl p-8 mb-8 text-white shadow-xl relative overflow-hidden">
+    <!-- Decorative elements -->
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32"></div>
+    <div class="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24"></div>
+    
+    <div class="flex items-center justify-between relative z-10">
+      <div>
+        <h1 class="text-3xl font-bold mb-2 flex items-center gap-3 tracking-tight">
+          <span class="text-4xl">🎯</span>
+          @if (showDetailsView && selectedClub) {
+            {{ selectedClub.name }}
+          } @else {
+            My English Clubs
+          }
+        </h1>
+        <p class="text-gray-100 text-base leading-relaxed tracking-tight">
+          @if (showDetailsView && selectedClub) {
+            Club details and tasks management
+          } @else {
+            Join clubs to practice English with other students and improve your skills
+          }
+        </p>
+      </div>
+      @if (showDetailsView) {
+        <button
+          (click)="closeDetailsView()"
+          class="inline-flex items-center px-6 py-3 bg-[#F6BD60] text-gray-900 rounded-xl hover:bg-[#e5ac4f] transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform tracking-tight"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+          </svg>
+          Back to Clubs
+        </button>
+      } @else {
+        <button
+          (click)="openCreateModal()"
+          class="inline-flex items-center px-6 py-3 bg-[#F6BD60] text-gray-900 rounded-xl hover:bg-[#e5ac4f] transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform tracking-tight"
+        >
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Create New Club
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
+    </div>
+  } @else if (error) {
+    <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center">
+          <svg class="w-6 h-6 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+        </div>
+        <button
+          (click)="loadClubs()"
+          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  } @else if (showDetailsView && selectedClub) {
+    <!-- Club Details View - Clean & Simple Design -->
+    
+    <!-- Club Header with Image -->
+    @if (selectedClub.image) {
+      <div class="relative h-80 rounded-2xl overflow-hidden shadow-lg mb-6">
+        <img 
+          [src]="selectedClub.image" 
+          [alt]="selectedClub.name" 
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+      </div>
+    }
+
+    <!-- Club Info Cards -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Category Card -->
+      <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div [class]="'w-14 h-14 rounded-xl flex items-center justify-center text-2xl ' + getCategoryColorClass(selectedClub.category)">
+            {{ getCategoryIcon(selectedClub.category) }}
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium uppercase">Category</p>
+            <p class="text-lg font-bold text-gray-900">{{ selectedClub.category }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Status Card -->
+      <div class="bg-white rounded-xl p-6 shadow-md border border-gray-100">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-xl bg-gray-100 flex items-center justify-center text-2xl">
+            @if (selectedClub.status === ClubStatus.PENDING) {
+              ⏳
+            } @else if (selectedClub.status === ClubStatus.APPROVED) {
+              ✅
+            } @else if (selectedClub.status === ClubStatus.REJECTED) {
+              ❌
+            }
+          </div>
+          <div>
+            <p class="text-xs text-gray-500 font-medium uppercase">Status</p>
+            <p class="text-lg font-bold text-gray-900">{{ selectedClub.status }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Members Card -->
+      <div class="bg-gradient-to-br from-[#2D5757] to-[#3D3D60] rounded-xl p-6 shadow-md text-white">
+        <div class="flex items-center gap-3">
+          <div class="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center">
+            <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <p class="text-xs text-white/80 font-medium uppercase">Members</p>
+            <p class="text-2xl font-bold">{{ selectedClub.currentMembersCount || 0 }}<span class="text-lg text-white/70">/{{ selectedClub.maxMembers }}</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Description Section -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-6">
+      <button 
+        (click)="toggleDescription()"
+        class="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-lg bg-[#F7EDE2] flex items-center justify-center">
+            <span class="text-xl">📝</span>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900">Description</h3>
+        </div>
+        <svg [class]="'w-5 h-5 text-gray-500 transition-transform ' + (showDescription ? 'rotate-180' : '')" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+      </button>
+      @if (showDescription) {
+        <div class="px-6 pb-6">
+          <p class="text-gray-700 leading-relaxed">{{ selectedClub.description }}</p>
+        </div>
+      }
+    </div>
+
+    <!-- Objective Section -->
+    @if (selectedClub.objective) {
+      <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-6">
+        <button 
+          (click)="toggleObjective()"
+          class="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-[#F6BD60]/20 flex items-center justify-center">
+              <span class="text-xl">🎯</span>
+            </div>
+            <h3 class="text-lg font-bold text-gray-900">Objective</h3>
+          </div>
+          <svg [class]="'w-5 h-5 text-gray-500 transition-transform ' + (showObjective ? 'rotate-180' : '')" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+        </button>
+        @if (showObjective) {
+          <div class="px-6 pb-6">
+            <p class="text-gray-700 leading-relaxed">{{ selectedClub.objective }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Tasks Section -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-100 p-6">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+          <span class="text-xl">✅</span>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900">Club Tasks</h3>
+          <p class="text-sm text-gray-500">Manage your activities</p>
+        </div>
+      </div>
+      
+      <!-- Add Task -->
+      <div class="mb-6">
+        <div class="flex gap-3">
+          <input
+            type="text"
+            [(ngModel)]="newTaskText"
+            (keyup.enter)="addTask(selectedClub.id!)"
+            placeholder="Add a new task..."
+            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#F6BD60] focus:border-[#F6BD60] transition-all"
+          />
+          <button
+            (click)="addTask(selectedClub.id!)"
+            [disabled]="!newTaskText.trim()"
+            class="px-6 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed font-semibold"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+
+      <!-- Tasks List -->
+      @if (loadingTasks) {
+        <div class="flex items-center justify-center py-8">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#F6BD60]"></div>
+        </div>
+      } @else {
+        <div class="space-y-3">
+          @for (task of getTasksForClub(selectedClub.id!); track task.id) {
+            <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors group">
+              <select
+                [value]="task.status"
+                (change)="updateTaskStatus(selectedClub.id!, task.id!, $any($event.target).value)"
+                [class]="'px-3 py-2 text-xs font-bold rounded-lg border-0 cursor-pointer ' + getTaskStatusColor(task.status)"
+              >
+                <option [value]="TaskStatus.TODO">{{ getTaskStatusLabel(TaskStatus.TODO) }}</option>
+                <option [value]="TaskStatus.IN_PROGRESS">{{ getTaskStatusLabel(TaskStatus.IN_PROGRESS) }}</option>
+                <option [value]="TaskStatus.DONE">{{ getTaskStatusLabel(TaskStatus.DONE) }}</option>
+              </select>
+              <span class="flex-1 text-gray-800">{{ task.text }}</span>
+              <button
+                (click)="deleteTask(selectedClub.id!, task.id!)"
+                class="opacity-0 group-hover:opacity-100 p-2 text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                title="Delete task"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </button>
+            </div>
+          } @empty {
+            <div class="text-center py-8">
+              <div class="w-16 h-16 mx-auto mb-3 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                </svg>
+              </div>
+              <p class="text-gray-500 font-medium">No tasks yet</p>
+              <p class="text-sm text-gray-400">Add your first task above!</p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  } @else {

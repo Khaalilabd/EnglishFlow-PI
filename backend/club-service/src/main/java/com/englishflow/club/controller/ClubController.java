@@ -1,6 +1,7 @@
 package com.englishflow.club.controller;
 
 import com.englishflow.club.dto.ClubDTO;
+import com.englishflow.club.dto.ClubWithRoleDTO;
 import com.englishflow.club.enums.ClubCategory;
 import com.englishflow.club.service.ClubService;
 import jakarta.validation.Valid;
@@ -72,6 +73,11 @@ public class ClubController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<ClubDTO>> getClubsByUser(@PathVariable Integer userId) {
         return ResponseEntity.ok(clubService.getClubsByUser(userId));
+    }
+    
+    @GetMapping("/user/{userId}/with-role")
+    public ResponseEntity<List<ClubWithRoleDTO>> getClubsWithRoleByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(clubService.getClubsWithRoleByUser(userId));
     }
     
     @PostMapping("/{id}/approve")

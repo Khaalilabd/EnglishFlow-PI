@@ -1,9 +1,12 @@
 package com.englishflow.club.service;
 
 import com.englishflow.club.dto.ClubDTO;
+import com.englishflow.club.dto.ClubWithRoleDTO;
 import com.englishflow.club.entity.Club;
+import com.englishflow.club.entity.Member;
 import com.englishflow.club.enums.ClubCategory;
 import com.englishflow.club.repository.ClubRepository;
+import com.englishflow.club.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +19,8 @@ import java.util.stream.Collectors;
 public class ClubService {
     
     private final ClubRepository clubRepository;
+    private final MemberService memberService;
+    private final MemberRepository memberRepository;
     
     @Transactional(readOnly = true)
     public List<ClubDTO> getAllClubs() {
@@ -49,6 +54,12 @@ public class ClubService {
     public ClubDTO createClub(ClubDTO clubDTO) {
         Club club = convertToEntity(clubDTO);
         Club savedClub = clubRepository.save(club);
+        
+        // Automatically add the creator as PRESIDENT
+        if (clubDTO.getCreatedBy() != null) {
+            memberService.addPresidentToClub(savedClub.getId(), clubDTO.getCreatedBy().longValue());
+        }
+        
         return convertToDTO(savedClub);
     }
     
@@ -99,6 +110,36 @@ public class ClubService {
     public List<ClubDTO> getClubsByUser(Integer userId) {
         return clubRepository.findByCreatedBy(userId).stream()
                 .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<ClubWithRoleDTO> getClubsWithRoleByUser(Long userId) {
+        // Get all memberships for the user
+        List<Member> memberships = memberRepository.findByUserId(userId);
+        
+        // Convert to ClubWithRoleDTO
+        return memberships.stream()
+                .map(member -> {
+                    Club club = member.getClub();
+                    return ClubWithRoleDTO.builder()
+                            .id(club.getId())
+                            .name(club.getName())
+                            .description(club.getDescription())
+                            .objective(club.getObjective())
+                            .category(club.getCategory())
+                            .maxMembers(club.getMaxMembers())
+                            .image(club.getImage())
+                            .status(club.getStatus())
+                            .createdBy(club.getCreatedBy())
+                            .reviewedBy(club.getReviewedBy())
+                            .reviewComment(club.getReviewComment())
+                            .createdAt(club.getCreatedAt())
+                            .updatedAt(club.getUpdatedAt())
+                            .userRole(member.getRank())
+                            .joinedAt(member.getJoinedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
     
