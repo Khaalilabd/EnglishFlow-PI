@@ -20,6 +20,7 @@ export class LoginComponent implements OnInit {
   selectedRole: 'STUDENT' | 'TEACHER' = 'STUDENT';
   recaptchaToken: string | null = null;
   siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
+  showPassword = false;
 
   constructor(
     private fb: FormBuilder,
@@ -29,7 +30,7 @@ export class LoginComponent implements OnInit {
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      password: ['', [Validators.required, Validators.minLength(8)]]
     });
   }
 

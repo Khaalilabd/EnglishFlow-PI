@@ -28,6 +28,12 @@
   gap: 1.5rem;
 }
 
+.header-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .icon-badge {
   width: 64px;
   height: 64px;
@@ -85,6 +91,34 @@
 }
 
 .btn-add svg {
+  width: 20px;
+  height: 20px;
+}
+
+.btn-invite {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+}
+
+.btn-invite:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.btn-invite svg {
   width: 20px;
   height: 20px;
 }
@@ -682,7 +716,13 @@
     text-align: center;
   }
 
-  .btn-add {
+  .header-actions {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .btn-add,
+  .btn-invite {
     width: 100%;
     justify-content: center;
   }

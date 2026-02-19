@@ -21,7 +21,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ebooks")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:4200")
+// CORS est géré par l'API Gateway - pas besoin d'annotation @CrossOrigin ici
 public class EbookController {
     
     private final EbookService ebookService;

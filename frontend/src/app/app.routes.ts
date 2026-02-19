@@ -362,6 +362,11 @@ export const routes: Routes = [
         title: 'Academic Affairs | Jungle in English Dashboard'
       },
       {
+        path: 'users/academic-affairs/create',
+        loadComponent: () => import('./pages/users/create-academic/create-academic.component').then(m => m.CreateAcademicComponent),
+        title: 'Invite Academic Staff | Jungle in English Dashboard'
+      },
+      {
         path: 'invitations',
         loadComponent: () => import('./pages/dashboard/invitations/invitations.component').then(m => m.InvitationsComponent),
         title: 'Invitations | Jungle in English Dashboard'

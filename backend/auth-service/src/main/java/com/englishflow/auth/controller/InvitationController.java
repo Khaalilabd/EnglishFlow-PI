@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/invitations")
+@RequestMapping("/auth/invitations")
 @RequiredArgsConstructor
 public class InvitationController {
 

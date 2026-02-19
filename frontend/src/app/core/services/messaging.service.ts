@@ -4,12 +4,13 @@ import { Observable } from 'rxjs';
 import { Conversation, CreateConversationRequest } from '../models/conversation.model';
 import { Message, SendMessageRequest, Page } from '../models/message.model';
 import { User } from '../models/user.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class MessagingService {
-  private apiUrl = 'http://localhost:8080/api/messaging'; // Via API Gateway
+  private apiUrl = `${environment.apiUrl}/messaging`; // Via API Gateway
 
   constructor(private http: HttpClient) {}
 

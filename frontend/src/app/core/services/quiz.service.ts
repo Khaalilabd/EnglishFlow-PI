@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Quiz, Question, QuizAttempt, AttemptRequest, AttemptResult } from '../models/quiz.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class QuizService {
-  private apiUrl = 'http://localhost:8083/api';
+  private apiUrl = `${environment.apiUrl}/learning`; // Via API Gateway
 
   constructor(private http: HttpClient) {}
 

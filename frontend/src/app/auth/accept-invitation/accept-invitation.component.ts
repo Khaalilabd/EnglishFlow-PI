@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { InvitationService } from '../../core/services/invitation.service';
+import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
+import { CustomValidators } from '../../shared/validators/custom-validators';
 
 interface InvitationDetails {
   id: number;
@@ -16,7 +17,7 @@ interface InvitationDetails {
 @Component({
   selector: 'app-accept-invitation',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, PhoneInputComponent],
   templateUrl: './accept-invitation.component.html',
   styleUrls: ['./accept-invitation.component.scss']
 })
@@ -30,32 +31,40 @@ export class AcceptInvitationComponent implements OnInit {
   invitationToken = '';
   invitationDetails: InvitationDetails | null = null;
   showPassword = false;
+  showConfirmPassword = false;
+  maxDate: string;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
+    private invitationService: InvitationService
   ) {
+    // Set max date to today
+    const today = new Date();
+    this.maxDate = today.toISOString().split('T')[0];
+    
     this.acceptForm = this.fb.group({
       // Step 1: Personal Information
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required, Validators.minLength(8), CustomValidators.strongPasswordValidator()]],
       confirmPassword: ['', Validators.required],
       
       // Step 2: Contact Information
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-      cin: ['', Validators.pattern(/^[A-Z]{1,2}[0-9]{5,8}$/)],
-      dateOfBirth: [''],
+      phone: ['', CustomValidators.phoneValidator()],
+      cin: ['', [CustomValidators.cinValidator(), Validators.minLength(5), Validators.maxLength(20)]],
+      dateOfBirth: ['', CustomValidators.minAgeValidator(18)],
       
       // Step 3: Address & Professional
       address: [''],
       city: [''],
-      postalCode: ['', Validators.pattern(/^[0-9]{4,5}$/)],
+      postalCode: ['', CustomValidators.postalCodeValidator()],
       bio: ['', Validators.maxLength(500)],
       yearsOfExperience: ['', [Validators.min(0), Validators.max(50)]]
-    }, { validators: this.passwordMatchValidator });
+    }, { 
+      validators: CustomValidators.passwordMatchValidator('password', 'confirmPassword')
+    });
   }
 
   ngOnInit(): void {
@@ -71,15 +80,9 @@ export class AcceptInvitationComponent implements OnInit {
     });
   }
 
-  passwordMatchValidator(group: FormGroup) {
-    const password = group.get('password')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { passwordMismatch: true };
-  }
-
   verifyInvitation(): void {
     this.verifyingToken = true;
-    this.http.get<InvitationDetails>(`${environment.apiUrl}/invitations/token/${this.invitationToken}`)
+    this.invitationService.verifyInvitation(this.invitationToken)
       .subscribe({
         next: (details) => {
           this.invitationDetails = details;
@@ -115,11 +118,11 @@ export class AcceptInvitationComponent implements OnInit {
         this.markStepAsTouched(1);
         return;
       }
-      if (this.acceptForm.hasError('passwordMismatch')) {
+      if (this.acceptForm.errors?.['passwordMismatch']) {
         return;
       }
     } else if (this.currentStep === 2) {
-      if (this.f['phone'].invalid) {
+      if (this.f['cin'].invalid || this.f['dateOfBirth'].invalid) {
         this.markStepAsTouched(2);
         return;
       }
@@ -128,6 +131,22 @@ export class AcceptInvitationComponent implements OnInit {
     if (this.currentStep < this.totalSteps) {
       this.currentStep++;
     }
+  }
+
+  get passwordStrength(): string {
+    const password = this.f['password']?.value || '';
+    if (password.length === 0) return '';
+    if (password.length < 8) return 'weak';
+    
+    let strength = 0;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^A-Za-z0-9]/.test(password)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength === 3) return 'medium';
+    return 'strong';
   }
 
   previousStep(): void {
@@ -180,7 +199,7 @@ export class AcceptInvitationComponent implements OnInit {
       yearsOfExperience: formValue.yearsOfExperience || null
     };
 
-    this.http.post<any>(`${environment.apiUrl}/invitations/accept`, requestData)
+    this.invitationService.acceptInvitation(requestData)
       .subscribe({
         next: (response) => {
           this.loading = false;

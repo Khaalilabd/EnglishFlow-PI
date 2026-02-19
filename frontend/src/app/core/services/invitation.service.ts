@@ -51,7 +51,7 @@ export interface AcceptInvitationResponse {
   providedIn: 'root'
 })
 export class InvitationService {
-  private apiUrl = `${environment.apiUrl}/invitations`;
+  private apiUrl = `${environment.apiUrl}/auth/invitations`;
 
   constructor(private http: HttpClient) {}
 

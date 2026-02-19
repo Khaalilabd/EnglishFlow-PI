@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, Subject } from 'rxjs';
 import { Club, CreateClubRequest, UpdateClubRequest, Member, JoinClubRequest, ClubCategory } from '../models/club.model';
+import { environment } from '../../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ClubService {
-  private apiUrl = 'http://localhost:8080/api/clubs';
+  private apiUrl = `${environment.apiUrl}/clubs`;
   
   // Subject to notify when user joins or leaves a club
   private clubMembershipChanged = new Subject<void>();

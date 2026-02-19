@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface User {
   id: number;
@@ -68,40 +69,40 @@ export interface UpdateUserRequest {
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = 'http://localhost:8080/api'; // Via API Gateway
+  private apiUrl = environment.apiUrl; // Via API Gateway
 
   constructor(private http: HttpClient) {}
 
   getUsersByRole(role: string): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/admin/users/role/${role}`);
+    return this.http.get<User[]>(`${this.apiUrl}/auth/admin/users/role/${role}`);
   }
 
   createUser(userData: CreateUserRequest): Observable<User> {
-    return this.http.post<User>(`${this.apiUrl}/admin/users`, userData);
+    return this.http.post<User>(`${this.apiUrl}/auth/admin/users`, userData);
   }
 
   updateUser(userId: number, userData: UpdateUserRequest): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}`, userData);
+    return this.http.put<User>(`${this.apiUrl}/auth/admin/users/${userId}`, userData);
   }
 
   activateUser(userId: number): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}/activate`, {});
+    return this.http.put<User>(`${this.apiUrl}/auth/admin/users/${userId}/activate`, {});
   }
 
   deactivateUser(userId: number): Observable<User> {
-    return this.http.put<User>(`${this.apiUrl}/admin/users/${userId}/deactivate`, {});
+    return this.http.put<User>(`${this.apiUrl}/auth/admin/users/${userId}/deactivate`, {});
   }
 
   deleteUser(userId: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/admin/users/${userId}`);
+    return this.http.delete<void>(`${this.apiUrl}/auth/admin/users/${userId}`);
   }
 
   // New methods for club member details
   getUserById(userId: number): Observable<UserDetails> {
-    return this.http.get<UserDetails>(`${this.apiUrl}/users/${userId}`);
+    return this.http.get<UserDetails>(`${this.apiUrl}/auth/users/${userId}`);
   }
 
   getUsersByIds(userIds: number[]): Observable<UserDetails[]> {
-    return this.http.post<UserDetails[]>(`${this.apiUrl}/users/batch`, { userIds });
+    return this.http.post<UserDetails[]>(`${this.apiUrl}/auth/users/batch`, { userIds });
   }
 }

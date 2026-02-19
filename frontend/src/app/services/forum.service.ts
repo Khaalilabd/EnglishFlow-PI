@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface Category {
   id: number;
@@ -83,7 +84,7 @@ export interface PageResponse<T> {
   providedIn: 'root'
 })
 export class ForumService {
-  private apiUrl = 'http://localhost:8080/api/community';
+  private apiUrl = `${environment.apiUrl}/community`;
 
   constructor(private http: HttpClient) {}
 

@@ -1,0 +1,173 @@
+<!-- STEP 2: PERSONAL DETAILS - VERSION AMÉLIORÉE -->
+<div *ngIf="currentStep === 2" class="space-y-4 animate-fadeIn">
+  <h2 class="text-lg font-bold text-primary mb-4 flex items-center">
+    <span class="w-8 h-8 bg-gradient-to-r from-amber-500 to-amber-600 rounded-full flex items-center justify-center text-white mr-2">2</span>
+    Informations Personnelles
+  </h2>
+
+  <!-- CIN & Date of Birth -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- CIN -->
+    <div class="form-field">
+      <label for="cin" class="field-label">
+        Numéro CIN
+        <span class="required-star">*</span>
+      </label>
+      <input 
+        id="cin"
+        type="text" 
+        formControlName="cin"
+        placeholder="Ex: 12345678"
+        maxlength="20"
+        class="field-input"
+        [class.error-border]="cin?.invalid && cin?.touched">
+      <p class="text-xs text-gray-500 mt-1">Numéros uniquement (5-20 chiffres)</p>
+      <div *ngIf="cin?.invalid && cin?.touched" class="error-message">
+        <span *ngIf="cin?.errors?.['required']">Le CIN est requis</span>
+        <span *ngIf="cin?.errors?.['invalidCin']">Le CIN ne peut contenir que des chiffres</span>
+        <span *ngIf="cin?.errors?.['minlength']">Minimum 5 chiffres</span>
+        <span *ngIf="cin?.errors?.['maxlength']">Maximum 20 chiffres</span>
+      </div>
+    </div>
+
+    <!-- Date of Birth with Calendar -->
+    <div class="form-field">
+      <label for="dateOfBirth" class="field-label">
+        Date de Naissance
+        <span class="required-star">*</span>
+      </label>
+      <input 
+        id="dateOfBirth"
+        type="date" 
+        formControlName="dateOfBirth"
+        [max]="maxDate"
+        class="field-input date-input"
+        [class.error-border]="dateOfBirth?.invalid && dateOfBirth?.touched">
+      <p class="text-xs text-gray-500 mt-1">Vous devez avoir au moins 13 ans</p>
+      <div *ngIf="dateOfBirth?.invalid && dateOfBirth?.touched" class="error-message">
+        <span *ngIf="dateOfBirth?.errors?.['required']">La date de naissance est requise</span>
+        <span *ngIf="dateOfBirth?.errors?.['minAge']">
+          Vous devez avoir au moins {{ dateOfBirth?.errors?.['minAge'].requiredAge }} ans
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Phone Number with Country Selector -->
+  <div class="form-field">
+    <app-phone-input
+      formControlName="phone"
+      label="Numéro de Téléphone"
+      [required]="false"
+      placeholder="Ex: 612345678">
+    </app-phone-input>
+    <p class="text-xs text-gray-500 mt-1">Optionnel - Sélectionnez votre pays et entrez votre numéro</p>
+    <div *ngIf="phone?.invalid && phone?.touched" class="error-message">
+      <span *ngIf="phone?.errors?.['invalidPhone']">Format de téléphone invalide</span>
+    </div>
+  </div>
+
+  <!-- Address -->
+  <div class="form-field">
+    <label for="address" class="field-label">
+      Adresse
+    </label>
+    <input 
+      id="address"
+      type="text" 
+      formControlName="address"
+      placeholder="Ex: 123 Rue Mohammed V"
+      class="field-input">
+    <p class="text-xs text-gray-500 mt-1">Optionnel</p>
+  </div>
+
+  <!-- City & Postal Code -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- City -->
+    <div class="form-field">
+      <label for="city" class="field-label">
+        Ville
+      </label>
+      <input 
+        id="city"
+        type="text" 
+        formControlName="city"
+        placeholder="Ex: Casablanca"
+        class="field-input">
+    </div>
+
+    <!-- Postal Code -->
+    <div class="form-field">
+      <label for="postalCode" class="field-label">
+        Code Postal
+      </label>
+      <input 
+        id="postalCode"
+        type="text" 
+        formControlName="postalCode"
+        placeholder="Ex: 20000"
+        maxlength="10"
+        class="field-input"
+        [class.error-border]="postalCode?.invalid && postalCode?.touched">
+      <div *ngIf="postalCode?.invalid && postalCode?.touched" class="error-message">
+        <span *ngIf="postalCode?.errors?.['invalidPostalCode']">Code postal invalide (4-10 chiffres)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navigation Buttons -->
+  <div class="flex justify-between gap-3 pt-4">
+    <button 
+      type="button"
+      (click)="previousStep()"
+      class="btn-secondary">
+      <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
+      </svg>
+      Précédent
+    </button>
+    <button 
+      type="button"
+      (click)="nextStep()"
+      [disabled]="!isStepValid(2)"
+      class="btn-primary">
+      Suivant
+      <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<style>
+.date-input {
+  cursor: pointer;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  background-color: #f3f4f6;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: white;
+  color: #6366f1;
+  border: 2px solid #6366f1;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+}
+</style>

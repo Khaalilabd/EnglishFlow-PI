@@ -22,7 +22,7 @@
       {{ error }}
     </div>
 
-    <form (ngSubmit)="onSubmit()" class="profile-form">
+    <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">
       <!-- Account Information (Read-only) -->
       <div class="form-section">
         <h3>Account Information</h3>
@@ -45,26 +45,32 @@
       <!-- Required Information -->
       <div class="form-section">
         <h3>Required Information</h3>
-        <div class="form-row">
-          <div class="form-group">
-            <label>Phone Number <span class="required">*</span></label>
-            <input 
-              type="tel" 
-              [(ngModel)]="profileForm.phone" 
-              name="phone"
-              placeholder="+212612345678"
-              required
-              [disabled]="loading">
+        
+        <div class="form-group">
+          <label>Phone Number</label>
+          <app-phone-input
+            formControlName="phone"
+            [required]="false"
+            placeholder="Ex: 612345678">
+          </app-phone-input>
+          <div *ngIf="f['phone'].invalid && f['phone'].touched" class="error-text">
+            <span *ngIf="f['phone'].errors?.['invalidPhone']">Format de téléphone invalide</span>
           </div>
-          <div class="form-group">
-            <label>CIN <span class="required">*</span></label>
-            <input 
-              type="text" 
-              [(ngModel)]="profileForm.cin" 
-              name="cin"
-              placeholder="AB123456"
-              required
-              [disabled]="loading">
+        </div>
+        
+        <div class="form-group">
+          <label>CIN <span class="required">*</span></label>
+          <input 
+            type="text" 
+            formControlName="cin"
+            placeholder="Ex: 12345678"
+            maxlength="20"
+            [disabled]="loading">
+          <small class="help-text">Numéros uniquement (5-20 chiffres)</small>
+          <div *ngIf="f['cin'].invalid && f['cin'].touched" class="error-text">
+            <span *ngIf="f['cin'].errors?.['required']">Le CIN est requis</span>
+            <span *ngIf="f['cin'].errors?.['invalidCin']">Le CIN ne peut contenir que des chiffres</span>
+            <span *ngIf="f['cin'].errors?.['minlength']">Minimum 5 chiffres</span>
           </div>
         </div>
       </div>
@@ -74,19 +80,23 @@
         <h3>Additional Information (Optional)</h3>
         
         <div class="form-group">
-          <label>Date of Birth</label>
+          <label>Date of Birth <span class="required">*</span></label>
           <input 
             type="date" 
-            [(ngModel)]="profileForm.dateOfBirth" 
-            name="dateOfBirth"
+            formControlName="dateOfBirth"
+            [max]="maxDate"
             [disabled]="loading">
+          <small class="help-text">Vous devez avoir au moins 13 ans</small>
+          <div *ngIf="f['dateOfBirth'].invalid && f['dateOfBirth'].touched" class="error-text">
+            <span *ngIf="f['dateOfBirth'].errors?.['required']">La date de naissance est requise</span>
+            <span *ngIf="f['dateOfBirth'].errors?.['minAge']">Vous devez avoir au moins 13 ans</span>
+          </div>
         </div>
 
         <div class="form-group">
           <label>Address</label>
           <textarea 
-            [(ngModel)]="profileForm.address" 
-            name="address"
+            formControlName="address"
             rows="2"
             placeholder="Your address"
             [disabled]="loading"></textarea>
@@ -97,8 +107,7 @@
             <label>City</label>
             <input 
               type="text" 
-              [(ngModel)]="profileForm.city" 
-              name="city"
+              formControlName="city"
               placeholder="Casablanca"
               [disabled]="loading">
           </div>
@@ -106,28 +115,33 @@
             <label>Postal Code</label>
             <input 
               type="text" 
-              [(ngModel)]="profileForm.postalCode" 
-              name="postalCode"
+              formControlName="postalCode"
               placeholder="20000"
+              maxlength="10"
               [disabled]="loading">
+            <div *ngIf="f['postalCode'].invalid && f['postalCode'].touched" class="error-text">
+              <span *ngIf="f['postalCode'].errors?.['invalidPostalCode']">Code postal invalide (4-10 chiffres)</span>
+            </div>
           </div>
         </div>
 
         <div class="form-group">
-          <label>English Level</label>
-          <select [(ngModel)]="profileForm.englishLevel" name="englishLevel" [disabled]="loading">
+          <label>English Level <span class="required">*</span></label>
+          <select formControlName="englishLevel" [disabled]="loading">
             <option value="">Select your level</option>
             <option *ngFor="let level of englishLevels" [value]="level">
               {{ level }}
             </option>
           </select>
+          <div *ngIf="f['englishLevel'].invalid && f['englishLevel'].touched" class="error-text">
+            <span *ngIf="f['englishLevel'].errors?.['required']">Veuillez sélectionner votre niveau</span>
+          </div>
         </div>
 
         <div class="form-group">
           <label>Bio (max 500 characters)</label>
           <textarea 
-            [(ngModel)]="profileForm.bio" 
-            name="bio"
+            formControlName="bio"
             rows="4"
             maxlength="500"
             placeholder="Tell us about yourself..."
@@ -139,7 +153,7 @@
       <button 
         type="submit" 
         class="submit-btn"
-        [disabled]="loading || !profileForm.phone || !profileForm.cin">
+        [disabled]="loading || profileForm.invalid">
         <span *ngIf="!loading">✨ Complete Profile</span>
         <span *ngIf="loading">
           <span class="spinner"></span>

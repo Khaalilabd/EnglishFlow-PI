@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { UserService, User, CreateUserRequest, UpdateUserRequest } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -34,7 +35,8 @@ export class AcademicAffairsComponent implements OnInit {
   constructor(
     private userService: UserService,
     private fb: FormBuilder,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private router: Router
   ) {
     this.initForms();
   }
@@ -306,6 +308,10 @@ export class AcademicAffairsComponent implements OnInit {
 
   getUserInitials(user: User): string {
     return `${user.firstName.charAt(0)}${user.lastName.charAt(0)}`.toUpperCase();
+  }
+
+  goToInvitePage(): void {
+    this.router.navigate(['/dashboard/users/academic-affairs/create']);
   }
 
   get Math() {

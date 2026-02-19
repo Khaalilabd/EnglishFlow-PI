@@ -2,12 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
+import { CustomValidators } from '../../shared/validators/custom-validators';
 
 @Component({
   selector: 'app-complete-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, PhoneInputComponent],
   templateUrl: './complete-profile.component.html',
   styleUrls: ['./complete-profile.component.scss']
 })
@@ -17,19 +19,10 @@ export class CompleteProfileComponent implements OnInit {
   email: string = '';
   firstName: string = '';
   lastName: string = '';
+  profileForm!: FormGroup;
+  maxDate: string;
 
-  profileForm = {
-    phone: '',
-    cin: '',
-    dateOfBirth: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    bio: '',
-    englishLevel: ''
-  };
-
-  englishLevels = ['Beginner', 'Intermediate', 'Advanced'];
+  englishLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Proficient'];
   loading = false;
   error = '';
   success = false;
@@ -39,8 +32,24 @@ export class CompleteProfileComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private http: HttpClient
-  ) {}
+    private http: HttpClient,
+    private fb: FormBuilder
+  ) {
+    // Set max date to today
+    const today = new Date();
+    this.maxDate = today.toISOString().split('T')[0];
+    
+    this.profileForm = this.fb.group({
+      phone: ['', CustomValidators.phoneValidator()],
+      cin: ['', [Validators.required, CustomValidators.cinValidator(), Validators.minLength(5), Validators.maxLength(20)]],
+      dateOfBirth: ['', [Validators.required, CustomValidators.minAgeValidator(13)]],
+      address: [''],
+      city: [''],
+      postalCode: ['', CustomValidators.postalCodeValidator()],
+      bio: ['', Validators.maxLength(500)],
+      englishLevel: ['', Validators.required]
+    });
+  }
 
   ngOnInit() {
     // Récupérer les paramètres URL
@@ -79,9 +88,9 @@ export class CompleteProfileComponent implements OnInit {
   }
 
   onSubmit() {
-    // Validation
-    if (!this.profileForm.phone || !this.profileForm.cin) {
-      this.error = 'Phone and CIN are required';
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      this.error = 'Please fill in all required fields correctly';
       return;
     }
 
@@ -94,7 +103,7 @@ export class CompleteProfileComponent implements OnInit {
 
     this.http.post(
       `${this.apiUrl}/complete-profile/${this.userId}`,
-      this.profileForm,
+      this.profileForm.value,
       { headers }
     ).subscribe({
       next: (response: any) => {
@@ -120,7 +129,11 @@ export class CompleteProfileComponent implements OnInit {
     });
   }
 
+  get f() {
+    return this.profileForm.controls;
+  }
+
   get bioLength(): number {
-    return this.profileForm.bio.length;
+    return this.profileForm.get('bio')?.value?.length || 0;
   }
 }

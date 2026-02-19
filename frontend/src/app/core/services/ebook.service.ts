@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Ebook } from '../models/ebook.model';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EbookService {
-  private apiUrl = 'http://localhost:8083/api/ebooks';
+  private apiUrl = `${environment.apiUrl}/learning/ebooks`; // Via API Gateway
 
   constructor(private http: HttpClient) {}
 
