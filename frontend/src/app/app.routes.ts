@@ -293,6 +293,16 @@ export const routes: Routes = [
     title: 'Complete Profile | Jungle in English'
   },
   {
+    path: 'accept-invitation',
+    loadComponent: () => import('./auth/accept-invitation/accept-invitation.component').then(m => m.AcceptInvitationComponent),
+    title: 'Accept Invitation | Jungle in English'
+  },
+  {
+    path: 'activation-pending',
+    loadComponent: () => import('./auth/activation-pending/activation-pending.component').then(m => m.ActivationPendingComponent),
+    title: 'Activation Pending | Jungle in English'
+  },
+  {
     path: 'signin',
     component: SignInComponent,
     canActivate: [guestGuard],
@@ -350,6 +360,11 @@ export const routes: Routes = [
         path: 'users/academic-affairs',
         loadComponent: () => import('./pages/users/academic-affairs/academic-affairs.component').then(m => m.AcademicAffairsComponent),
         title: 'Academic Affairs | Jungle in English Dashboard'
+      },
+      {
+        path: 'invitations',
+        loadComponent: () => import('./pages/dashboard/invitations/invitations.component').then(m => m.InvitationsComponent),
+        title: 'Invitations | Jungle in English Dashboard'
       },
       {
         path: 'statistics',

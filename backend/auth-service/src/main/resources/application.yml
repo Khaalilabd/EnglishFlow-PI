@@ -13,9 +13,9 @@ spring:
     config:
       enabled: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/englishflow_identity
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/englishflow_identity}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
@@ -68,8 +68,8 @@ recaptcha:
   secret: ${RECAPTCHA_SECRET:6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe}
 
 jwt:
-  secret: englishflow-secret-key-change-this-in-production-with-a-very-long-secure-key
-  expiration: 86400000
+  secret: ${JWT_SECRET:englishflow-secret-key-change-this-in-production-with-a-very-long-secure-key}
+  expiration: ${JWT_EXPIRATION:86400000}
 
 eureka:
   client:

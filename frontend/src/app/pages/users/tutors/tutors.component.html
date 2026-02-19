@@ -47,11 +47,11 @@
     <div class="stat-card stat-inactive">
       <div class="stat-icon">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
       </div>
       <div class="stat-content">
-        <span class="stat-label">Inactive</span>
+        <span class="stat-label">Pending</span>
         <span class="stat-value">{{ users.length - getActiveCount() }}</span>
       </div>
     </div>
@@ -100,6 +100,13 @@
         Active
       </button>
       <button
+        [class.active]="selectedStatus === 'PENDING'"
+        (click)="selectedStatus = 'PENDING'; applyFilters()"
+        class="filter-btn"
+      >
+        Pending Activation
+      </button>
+      <button
         [class.active]="selectedStatus === 'INACTIVE'"
         (click)="selectedStatus = 'INACTIVE'; applyFilters()"
         class="filter-btn"
@@ -120,8 +127,8 @@
     <div *ngFor="let tutor of paginatedUsers" class="tutor-card">
       <!-- Card Header with Status Badge -->
       <div class="card-header">
-        <span [class]="'status-badge ' + (tutor.isActive ? 'status-active' : 'status-inactive')">
-          {{ tutor.isActive ? 'Active' : 'Inactive' }}
+        <span [class]="'status-badge ' + (tutor.isActive ? 'status-active' : 'status-pending')">
+          {{ tutor.isActive ? 'Active' : 'Pending Activation' }}
         </span>
       </div>
 
@@ -369,8 +376,8 @@
         <div class="view-avatar-circle">
           <span class="view-avatar-initials">{{ getUserInitials(selectedUser) }}</span>
         </div>
-        <span [class]="'view-status-badge ' + (selectedUser.isActive ? 'status-active' : 'status-inactive')">
-          {{ selectedUser.isActive ? 'Active' : 'Inactive' }}
+        <span [class]="'view-status-badge ' + (selectedUser.isActive ? 'status-active' : 'status-pending')">
+          {{ selectedUser.isActive ? 'Active' : 'Pending Activation' }}
         </span>
       </div>
       

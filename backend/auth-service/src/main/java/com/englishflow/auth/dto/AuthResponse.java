@@ -1,15 +1,18 @@
 package com.englishflow.auth.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class AuthResponse {
 
     private String token;
+    @Builder.Default
     private String type = "Bearer";
     private Long id;
     private String email;
@@ -22,6 +25,7 @@ public class AuthResponse {
 
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone) {
         this.token = token;
+        this.type = "Bearer";
         this.id = id;
         this.email = email;
         this.firstName = firstName;
@@ -34,6 +38,7 @@ public class AuthResponse {
     
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone, Boolean profileCompleted) {
         this.token = token;
+        this.type = "Bearer";
         this.id = id;
         this.email = email;
         this.firstName = firstName;

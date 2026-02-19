@@ -99,6 +99,8 @@ export class TutorsComponent implements OnInit {
     // Status filter
     if (this.selectedStatus === 'ACTIVE') {
       filtered = filtered.filter(user => user.isActive);
+    } else if (this.selectedStatus === 'PENDING') {
+      filtered = filtered.filter(user => !user.isActive);
     } else if (this.selectedStatus === 'INACTIVE') {
       filtered = filtered.filter(user => !user.isActive);
     }

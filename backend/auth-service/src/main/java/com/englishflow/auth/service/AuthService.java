@@ -32,6 +32,7 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final RateLimitService rateLimitService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -161,16 +162,28 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request) {
+        // Check rate limit
+        if (rateLimitService.isBlocked(request.getEmail())) {
+            throw new RuntimeException("Too many failed login attempts. Please try again in 15 minutes.");
+        }
+
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> {
+                    rateLimitService.recordFailedAttempt(request.getEmail());
+                    return new RuntimeException("Invalid credentials");
+                });
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            rateLimitService.recordFailedAttempt(request.getEmail());
             throw new RuntimeException("Invalid credentials");
         }
 
         if (!user.isActive()) {
             throw new RuntimeException("Account not activated. Please check your email.");
         }
+
+        // Reset rate limit on successful login
+        rateLimitService.resetAttempts(request.getEmail());
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
 

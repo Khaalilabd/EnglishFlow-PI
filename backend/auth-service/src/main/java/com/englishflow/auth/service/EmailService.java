@@ -94,6 +94,26 @@ public class EmailService {
         }
     }
 
+    public void sendInvitationEmail(String to, String role, String invitationToken) {
+        try {
+            log.info("Preparing to send invitation email to: {}", to);
+            Context context = new Context();
+            context.setVariable("role", role);
+            context.setVariable("invitationLink", frontendUrl + "/accept-invitation?token=" + invitationToken);
+            
+            log.info("Processing email template...");
+            String htmlContent = templateEngine.process("invitation-email", context);
+            
+            log.info("Sending invitation email...");
+            sendHtmlEmail(to, "You're Invited to Join Jungle in English! 🎉", htmlContent);
+            log.info("✅ Invitation email sent successfully to: {}", to);
+        } catch (Exception e) {
+            log.error("❌ Failed to send invitation email to: {}", to, e);
+            log.error("Error details: {}", e.getMessage());
+            throw new RuntimeException("Failed to send invitation email: " + e.getMessage(), e);
+        }
+    }
+
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");

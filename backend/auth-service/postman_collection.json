@@ -1,0 +1,258 @@
+{
+  "info": {
+    "name": "Auth Service - Invitation System",
+    "description": "Collection pour tester le système d'invitation",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invitation_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Login Admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    pm.collectionVariables.set('admin_token', jsonData.token);",
+              "    pm.environment.set('admin_token', jsonData.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"admin123\",\n  \"recaptchaToken\": \"test\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/auth/login",
+          "host": ["{{base_url}}"],
+          "path": ["auth", "login"]
+        }
+      }
+    },
+    {
+      "name": "2. Send Invitation (Tutor)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    console.log('✅ Invitation sent successfully');",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"tutor.test@example.com\",\n  \"role\": \"TUTOR\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invitations/send",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "send"]
+        }
+      }
+    },
+    {
+      "name": "3. Send Invitation (Academic)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"academic.test@example.com\",\n  \"role\": \"ACADEMIC_OFFICE_AFFAIR\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invitations/send",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "send"]
+        }
+      }
+    },
+    {
+      "name": "4. Get Pending Invitations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invitations/pending",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "pending"]
+        }
+      }
+    },
+    {
+      "name": "5. Verify Invitation by Token",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/invitations/token/{{invitation_token}}",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "token", "{{invitation_token}}"]
+        },
+        "description": "Copier le token depuis l'email ou depuis la liste des invitations"
+      }
+    },
+    {
+      "name": "6. Accept Invitation",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) {",
+              "    var jsonData = pm.response.json();",
+              "    console.log('✅ Account created successfully');",
+              "    console.log('JWT Token:', jsonData.token);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"token\": \"{{invitation_token}}\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"password\": \"SecurePassword123!\",\n  \"phone\": \"0612345678\",\n  \"cin\": \"AB123456\",\n  \"dateOfBirth\": \"1990-01-15\",\n  \"address\": \"123 Main Street\",\n  \"city\": \"Casablanca\",\n  \"postalCode\": \"20000\",\n  \"bio\": \"Experienced English tutor with 5 years of teaching experience.\",\n  \"yearsOfExperience\": 5\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/invitations/accept",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "accept"]
+        }
+      }
+    },
+    {
+      "name": "7. Resend Invitation",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invitations/1/resend",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "1", "resend"]
+        },
+        "description": "Remplacer '1' par l'ID de l'invitation"
+      }
+    },
+    {
+      "name": "8. Cancel Invitation",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invitations/1",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "1"]
+        },
+        "description": "Remplacer '1' par l'ID de l'invitation"
+      }
+    },
+    {
+      "name": "9. Cleanup Expired Invitations",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invitations/cleanup",
+          "host": ["{{base_url}}"],
+          "path": ["invitations", "cleanup"]
+        }
+      }
+    },
+    {
+      "name": "10. Get All Invitations",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/invitations",
+          "host": ["{{base_url}}"],
+          "path": ["invitations"]
+        }
+      }
+    }
+  ]
+}

@@ -2,170 +2,90 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { UserService } from '../../../core/services/user.service';
-import { PasswordModalComponent } from './password-modal/password-modal.component';
+import { InvitationService } from '../../../core/services/invitation.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-create-tutor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, PasswordModalComponent],
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './create-tutor.component.html',
   styleUrls: ['./create-tutor.component.scss']
 })
 export class CreateTutorComponent {
-  tutorForm: FormGroup;
-  currentStep = 1;
-  totalSteps = 3;
+  inviteForm: FormGroup;
   loading = false;
   errorMessage = '';
-  showPasswordModal = false;
-  generatedPassword = '';
-  createdTutorName = '';
-  createdTutorEmail = '';
+  successMessage = '';
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService,
+    private invitationService: InvitationService,
+    private toastService: ToastService,
     private router: Router
   ) {
-    this.tutorForm = this.fb.group({
-      // Step 1: Basic Information
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
-      cin: ['', [Validators.required, Validators.pattern(/^[A-Z]{1,2}[0-9]{5,8}$/)]],
-      dateOfBirth: ['', Validators.required],
-      
-      // Step 2: Address Information
-      address: ['', Validators.required],
-      city: ['', Validators.required],
-      postalCode: ['', [Validators.required, Validators.pattern(/^[0-9]{4,5}$/)]],
-      
-      // Step 3: Professional Information
-      yearsOfExperience: ['', [Validators.required, Validators.min(0), Validators.max(50)]],
-      bio: ['', [Validators.required, Validators.minLength(50), Validators.maxLength(500)]],
-      
-      // Password (generated automatically)
-      password: ['']
+    this.inviteForm = this.fb.group({
+      email: ['', [Validators.required, Validators.email]]
     });
   }
 
   get f() {
-    return this.tutorForm.controls;
-  }
-
-  nextStep(): void {
-    if (this.currentStep === 1) {
-      if (this.f['firstName'].invalid || this.f['lastName'].invalid || 
-          this.f['email'].invalid || this.f['phone'].invalid || 
-          this.f['cin'].invalid || this.f['dateOfBirth'].invalid) {
-        this.markStepAsTouched(1);
-        return;
-      }
-    } else if (this.currentStep === 2) {
-      if (this.f['address'].invalid || this.f['city'].invalid || this.f['postalCode'].invalid) {
-        this.markStepAsTouched(2);
-        return;
-      }
-    }
-
-    if (this.currentStep < this.totalSteps) {
-      this.currentStep++;
-    }
-  }
-
-  previousStep(): void {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-    }
-  }
-
-  markStepAsTouched(step: number): void {
-    if (step === 1) {
-      this.f['firstName'].markAsTouched();
-      this.f['lastName'].markAsTouched();
-      this.f['email'].markAsTouched();
-      this.f['phone'].markAsTouched();
-      this.f['cin'].markAsTouched();
-      this.f['dateOfBirth'].markAsTouched();
-    } else if (step === 2) {
-      this.f['address'].markAsTouched();
-      this.f['city'].markAsTouched();
-      this.f['postalCode'].markAsTouched();
-    } else if (step === 3) {
-      this.f['yearsOfExperience'].markAsTouched();
-      this.f['bio'].markAsTouched();
-    }
+    return this.inviteForm.controls;
   }
 
   onSubmit(): void {
-    if (this.tutorForm.invalid) {
-      this.markStepAsTouched(3);
+    if (this.inviteForm.invalid) {
+      this.inviteForm.markAllAsTouched();
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    // Generate a temporary password
-    const tempPassword = this.generatePassword();
-    this.tutorForm.patchValue({ password: tempPassword });
-
-    const tutorData = {
-      ...this.tutorForm.value,
-      role: 'TUTOR'
+    const request = {
+      email: this.inviteForm.value.email,
+      role: 'TUTOR' as const
     };
 
-    this.userService.createUser(tutorData).subscribe({
-      next: (response: any) => {
+    this.invitationService.sendInvitation(request).subscribe({
+      next: (response) => {
         this.loading = false;
-        this.generatedPassword = tempPassword;
-        this.createdTutorName = `${this.tutorForm.value.firstName} ${this.tutorForm.value.lastName}`;
-        this.createdTutorEmail = this.tutorForm.value.email;
-        this.showPasswordModal = true;
+        this.successMessage = `Invitation sent successfully to ${response.email}!`;
+        this.toastService.success(`Invitation sent to ${response.email}`);
+        
+        // Reset form
+        this.inviteForm.reset();
       },
-      error: (error: any) => {
+      error: (error) => {
         this.loading = false;
-        console.error('Full error object:', error);
-        console.error('Error status:', error.status);
-        console.error('Error message:', error.error);
+        console.error('Error sending invitation:', error);
         
         if (error.error?.message) {
           this.errorMessage = error.error.message;
-        } else if (error.message) {
-          this.errorMessage = error.message;
         } else if (error.status === 0) {
-          this.errorMessage = 'Cannot connect to server. Please make sure the backend is running on port 8081.';
+          this.errorMessage = 'Cannot connect to server. Please make sure the backend is running.';
         } else {
-          this.errorMessage = `Failed to create tutor (Error ${error.status}). Please try again.`;
+          this.errorMessage = 'Failed to send invitation. Please try again.';
         }
+        
+        this.toastService.error(this.errorMessage);
       }
     });
   }
 
-  generatePassword(): string {
-    const length = 12;
-    const charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*';
-    let password = '';
-    for (let i = 0; i < length; i++) {
-      password += charset.charAt(Math.floor(Math.random() * charset.length));
-    }
-    return password;
+  sendAnotherInvitation(): void {
+    this.successMessage = '';
+    this.inviteForm.reset();
+  }
+
+  goToTutorsList(): void {
+    this.router.navigate(['/dashboard/users/tutors']);
   }
 
   cancel(): void {
-    if (confirm('Are you sure you want to cancel? All entered data will be lost.')) {
+    if (confirm('Are you sure you want to cancel?')) {
       this.router.navigate(['/dashboard/users/tutors']);
     }
-  }
-
-  getProgressPercentage(): number {
-    return (this.currentStep / this.totalSteps) * 100;
-  }
-
-  closePasswordModal(): void {
-    this.showPasswordModal = false;
-    this.router.navigate(['/dashboard/users/tutors']);
   }
 }
