@@ -377,6 +377,11 @@ export const routes: Routes = [
         title: 'Invitations | Jungle in English Dashboard'
       },
       {
+        path: 'sessions',
+        loadComponent: () => import('./pages/dashboard/admin-sessions/admin-sessions.component').then(m => m.AdminSessionsComponent),
+        title: 'Session Management | Jungle in English Dashboard'
+      },
+      {
         path: 'statistics',
         loadComponent: () => import('./pages/dashboard/statistics/statistics.component').then(m => m.StatisticsComponent),
         title: 'Statistics | Jungle in English Dashboard'

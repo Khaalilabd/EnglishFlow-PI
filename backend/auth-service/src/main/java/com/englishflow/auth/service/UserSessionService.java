@@ -1,6 +1,8 @@
 package com.englishflow.auth.service;
 
+import com.englishflow.auth.entity.User;
 import com.englishflow.auth.entity.UserSession;
+import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.repository.UserSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class UserSessionService {
 
     private final UserSessionRepository userSessionRepository;
+    private final UserRepository userRepository;
     private final AuditLogService auditLogService;
     
     // Configuration constants
@@ -152,8 +155,14 @@ public class UserSessionService {
                                           String deviceType, String ipAddress, String country,
                                           Boolean suspicious, LocalDateTime startDate,
                                           LocalDateTime endDate, Pageable pageable) {
-        return userSessionRepository.searchSessions(userId, status, deviceType, ipAddress,
-                country, suspicious, startDate, endDate, pageable);
+        // Use different query based on whether date filters are present
+        if (startDate != null && endDate != null) {
+            return userSessionRepository.searchSessionsWithDateRange(userId, status, deviceType, 
+                    ipAddress, country, suspicious, startDate, endDate, pageable);
+        } else {
+            return userSessionRepository.searchSessionsBasic(userId, status, deviceType, 
+                    ipAddress, country, suspicious, pageable);
+        }
     }
 
     /**

@@ -26,6 +26,7 @@ public class SessionController {
 
     private final UserSessionService userSessionService;
     private final JwtUtil jwtUtil;
+    private final com.englishflow.auth.repository.UserRepository userRepository;
 
     /**
      * Get current user's active sessions
@@ -158,10 +159,25 @@ public class SessionController {
             pageable
         );
         
-        // Convert to response DTOs
-        Page<UserSessionResponse> response = sessions.map(UserSessionResponse::fromEntity);
+        // Convert to response DTOs and enrich with user information
+        Page<UserSessionResponse> response = sessions.map(session -> enrichSessionWithUserInfo(session));
         
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Enrich session with user information
+     */
+    private UserSessionResponse enrichSessionWithUserInfo(UserSession session) {
+        UserSessionResponse response = UserSessionResponse.fromEntity(session);
+        
+        // Get user information
+        userRepository.findById(session.getUserId()).ifPresent(user -> {
+            response.setUserName(user.getFirstName() + " " + user.getLastName());
+            response.setUserEmail(user.getEmail());
+        });
+        
+        return response;
     }
 
     /**

@@ -17,6 +17,8 @@ public class UserSessionResponse {
     
     private Long id;
     private Long userId;
+    private String userName;  // Nom complet de l'utilisateur
+    private String userEmail; // Email de l'utilisateur
     private String sessionToken;
     private String deviceInfo;
     private String browserName;
@@ -142,6 +144,20 @@ public class UserSessionResponse {
     private static String getLocationDisplayName(UserSession session) {
         StringBuilder location = new StringBuilder();
         
+        // Handle localhost/local IPs
+        String ipAddress = session.getIpAddress();
+        boolean isLocalhost = ipAddress != null && 
+            (ipAddress.equals("127.0.0.1") || 
+             ipAddress.equals("::1") || 
+             ipAddress.equals("0:0:0:0:0:0:0:1") ||
+             ipAddress.startsWith("192.168.") ||
+             ipAddress.startsWith("10.") ||
+             ipAddress.startsWith("172."));
+        
+        if (isLocalhost) {
+            return "Connexion locale (" + ipAddress + ")";
+        }
+        
         if (session.getCity() != null && !session.getCity().equals("Unknown")) {
             location.append(session.getCity());
         }
@@ -153,11 +169,11 @@ public class UserSessionResponse {
             location.append(session.getCountry());
         }
         
-        if (session.getIpAddress() != null) {
+        if (ipAddress != null) {
             if (location.length() > 0) {
-                location.append(" (").append(session.getIpAddress()).append(")");
+                location.append(" (").append(ipAddress).append(")");
             } else {
-                location.append(session.getIpAddress());
+                location.append(ipAddress);
             }
         }
         

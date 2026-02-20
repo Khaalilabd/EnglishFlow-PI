@@ -135,7 +135,25 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
     int deleteOldTerminatedSessions(@Param("cutoffDate") LocalDateTime cutoffDate);
 
     /**
-     * Search sessions with multiple criteria
+     * Search sessions with multiple criteria - simplified version
+     */
+    @Query("SELECT s FROM UserSession s WHERE " +
+           "(:userId IS NULL OR s.userId = :userId) AND " +
+           "(:status IS NULL OR s.status = :status) AND " +
+           "(:deviceType IS NULL OR s.deviceType = :deviceType) AND " +
+           "(:ipAddress IS NULL OR s.ipAddress = :ipAddress) AND " +
+           "(:country IS NULL OR s.country = :country) AND " +
+           "(:suspicious IS NULL OR s.suspicious = :suspicious)")
+    Page<UserSession> searchSessionsBasic(@Param("userId") Long userId,
+                                   @Param("status") UserSession.SessionStatus status,
+                                   @Param("deviceType") String deviceType,
+                                   @Param("ipAddress") String ipAddress,
+                                   @Param("country") String country,
+                                   @Param("suspicious") Boolean suspicious,
+                                   Pageable pageable);
+    
+    /**
+     * Search sessions with date range
      */
     @Query("SELECT s FROM UserSession s WHERE " +
            "(:userId IS NULL OR s.userId = :userId) AND " +
@@ -144,10 +162,8 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
            "(:ipAddress IS NULL OR s.ipAddress = :ipAddress) AND " +
            "(:country IS NULL OR s.country = :country) AND " +
            "(:suspicious IS NULL OR s.suspicious = :suspicious) AND " +
-           "(:startDate IS NULL OR s.createdAt >= :startDate) AND " +
-           "(:endDate IS NULL OR s.createdAt <= :endDate) " +
-           "ORDER BY s.lastActivity DESC")
-    Page<UserSession> searchSessions(@Param("userId") Long userId,
+           "s.createdAt >= :startDate AND s.createdAt <= :endDate")
+    Page<UserSession> searchSessionsWithDateRange(@Param("userId") Long userId,
                                    @Param("status") UserSession.SessionStatus status,
                                    @Param("deviceType") String deviceType,
                                    @Param("ipAddress") String ipAddress,
