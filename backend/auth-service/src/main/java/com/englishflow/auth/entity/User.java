@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -69,6 +70,7 @@ public class User {
 
     @Column(nullable = false)
     private boolean registrationFeePaid = false;
+    
     @Column(nullable = false)
     private boolean profileCompleted = false; // For OAuth2 users who need to complete their profile
 
@@ -89,10 +91,32 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
+    // Legacy enum for backward compatibility
     public enum Role {
         ADMIN,
         TUTOR,
         STUDENT,
         ACADEMIC_OFFICE_AFFAIR
+    }
+
+    // Helper methods for permissions
+    public boolean isAdmin() {
+        return role == Role.ADMIN;
+    }
+
+    public boolean isStudent() {
+        return role == Role.STUDENT;
+    }
+
+    public boolean isTutor() {
+        return role == Role.TUTOR;
+    }
+
+    public boolean isAcademicStaff() {
+        return role == Role.ACADEMIC_OFFICE_AFFAIR;
+    }
+
+    public String getRoleName() {
+        return role != null ? role.name() : "UNKNOWN";
     }
 }

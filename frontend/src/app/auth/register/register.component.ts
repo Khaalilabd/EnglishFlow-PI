@@ -152,10 +152,13 @@ export class RegisterComponent {
     this.authService.register(formData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
-        // Rediriger vers la page activation-pending du backend
-        const email = this.registerForm.get('email')?.value;
-        const firstName = this.registerForm.get('firstName')?.value;
-        window.location.href = `http://localhost:8081/activation-pending?email=${encodeURIComponent(email)}&firstName=${encodeURIComponent(firstName)}`;
+        // Redirect to activation-pending page
+        this.router.navigate(['/activation-pending'], {
+          queryParams: {
+            email: this.registerForm.get('email')?.value,
+            firstName: this.registerForm.get('firstName')?.value
+          }
+        });
       },
       error: (error) => {
         console.error('Registration error:', error);

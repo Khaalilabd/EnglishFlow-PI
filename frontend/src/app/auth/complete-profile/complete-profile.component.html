@@ -47,12 +47,13 @@
         <h3>Required Information</h3>
         
         <div class="form-group">
-          <label>Phone Number</label>
-          <app-phone-input
+          <label>Phone Number (Optional)</label>
+          <input 
+            type="text" 
             formControlName="phone"
-            [required]="false"
-            placeholder="Ex: 612345678">
-          </app-phone-input>
+            placeholder="Ex: +212612345678 ou 0612345678"
+            [disabled]="loading">
+          <small class="help-text">Format: +212XXXXXXXXX ou 0XXXXXXXXX</small>
           <div *ngIf="f['phone'].invalid && f['phone'].touched" class="error-text">
             <span *ngIf="f['phone'].errors?.['invalidPhone']">Format de téléphone invalide</span>
           </div>

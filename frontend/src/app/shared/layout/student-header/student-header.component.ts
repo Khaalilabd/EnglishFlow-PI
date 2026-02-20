@@ -186,7 +186,10 @@ export class StudentHeaderComponent {
   }
 
   logout() {
-    this.authService.logout();
-    window.location.href = '/';
+    this.authService.logout().subscribe({
+      complete: () => {
+        window.location.href = '/';
+      }
+    });
   }
 }

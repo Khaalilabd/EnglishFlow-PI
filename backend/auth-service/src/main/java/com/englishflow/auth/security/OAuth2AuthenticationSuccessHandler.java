@@ -64,10 +64,29 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // Check if user is active
         if (!user.isActive()) {
-            // Redirect to backend waiting page - account pending activation
-            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8081/activation-pending")
+            // Redirect to activation-pending page (Angular frontend) - user needs to activate account via email
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/activation-pending")
                     .queryParam("email", userInfo.email)
                     .queryParam("firstName", user.getFirstName())
+                    .queryParam("type", "email")
+                    .build().toUriString();
+            
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            return;
+        }
+        
+        // Check if profile is not completed - redirect to complete profile
+        if (!user.isProfileCompleted()) {
+            // Generate temporary JWT token for profile completion
+            String tempToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
+            
+            // Redirect to complete-profile page
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/auth/complete-profile")
+                    .queryParam("token", tempToken)
+                    .queryParam("userId", user.getId())
+                    .queryParam("email", user.getEmail())
+                    .queryParam("firstName", user.getFirstName())
+                    .queryParam("lastName", user.getLastName())
                     .build().toUriString();
             
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
@@ -141,7 +160,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         user.setLastName(userInfo.lastName != null ? userInfo.lastName : "");
         user.setProfilePhoto(userInfo.picture);
         user.setRole(User.Role.STUDENT); // Default role for OAuth2 users
-        user.setActive(false); // OAuth2 users need activation
+        user.setActive(false); // Will be activated after profile completion
         user.setRegistrationFeePaid(false);
         user.setProfileCompleted(false); // OAuth2 users need to complete profile
         user.setPassword(""); // No password for OAuth2 users
@@ -164,6 +183,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         } catch (Exception e) {
             log.error("Failed to send activation email to OAuth2 user: {}", userInfo.email, e);
         }
+        
+        log.info("OAuth2 user created: {}", userInfo.email);
         
         return savedUser;
     }

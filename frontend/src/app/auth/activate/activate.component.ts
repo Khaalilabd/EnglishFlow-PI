@@ -72,7 +72,7 @@ export class ActivateComponent implements OnInit {
     });
     
     if (!isProfileComplete) {
-      // Rediriger vers la page de complétion de profil
+      // OAuth2 user - redirect to complete-profile
       this.router.navigate(['/auth/complete-profile'], {
         queryParams: {
           token: user.token,
@@ -83,7 +83,7 @@ export class ActivateComponent implements OnInit {
         }
       });
     } else {
-      // Profil complet, rediriger vers la home page
+      // Manual registration - profile already complete, redirect to home
       this.router.navigate(['/']);
     }
   }

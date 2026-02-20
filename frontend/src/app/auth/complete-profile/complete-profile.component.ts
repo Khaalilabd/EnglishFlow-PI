@@ -3,13 +3,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { PhoneInputComponent } from '../../shared/components/phone-input/phone-input.component';
 import { CustomValidators } from '../../shared/validators/custom-validators';
 
 @Component({
   selector: 'app-complete-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, PhoneInputComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './complete-profile.component.html',
   styleUrls: ['./complete-profile.component.scss']
 })
@@ -27,7 +26,7 @@ export class CompleteProfileComponent implements OnInit {
   error = '';
   success = false;
 
-  private apiUrl = 'http://localhost:8080/api/auth'; // Via API Gateway
+  private apiUrl = 'http://localhost:8081/auth'; // Direct auth service
 
   constructor(
     private route: ActivatedRoute,

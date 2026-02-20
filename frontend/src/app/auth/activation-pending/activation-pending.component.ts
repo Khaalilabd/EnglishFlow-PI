@@ -12,6 +12,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 export class ActivationPendingComponent implements OnInit {
   email = '';
   firstName = '';
+  activationType: 'email' | 'admin' = 'email'; // 'email' pour activation par email, 'admin' pour activation par admin
 
   constructor(
     private route: ActivatedRoute,
@@ -22,6 +23,7 @@ export class ActivationPendingComponent implements OnInit {
     this.route.queryParams.subscribe(params => {
       this.email = params['email'] || '';
       this.firstName = params['firstName'] || '';
+      this.activationType = params['type'] || 'email'; // Par défaut: activation par email
     });
   }
 

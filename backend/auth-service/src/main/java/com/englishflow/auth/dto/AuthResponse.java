@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -12,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class AuthResponse {
 
     private String token;
+    private String refreshToken;
     @Builder.Default
     private String type = "Bearer";
     private Long id;
@@ -22,6 +25,8 @@ public class AuthResponse {
     private String profilePhoto;
     private String phone;
     private Boolean profileCompleted;
+    private long expiresIn; // Access token expiry in seconds
+    private LocalDateTime refreshTokenExpiryDate;
 
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone) {
         this.token = token;

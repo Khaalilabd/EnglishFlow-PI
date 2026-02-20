@@ -286,7 +286,7 @@
                 return;
             }
 
-            fetch(`/auth/activation-status/${encodeURIComponent(email)}`)
+            fetch(`http://localhost:8081/auth/activation-status/${encodeURIComponent(email)}`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error('Failed to check activation status');

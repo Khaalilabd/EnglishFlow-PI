@@ -14,7 +14,7 @@ public class JwtUtil {
     @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration}")
+    @Value("${jwt.expiration:900000}") // 15 minutes default
     private Long expiration;
 
     private Key getSigningKey() {
@@ -67,6 +67,29 @@ public class JwtUtil {
                 .getBody();
 
         return claims.get("role", String.class);
+    }
+
+    public Date extractExpiration(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getExpiration();
+    }
+
+    public boolean isTokenExpired(String token) {
+        try {
+            Date expiration = extractExpiration(token);
+            return expiration.before(new Date());
+        } catch (JwtException e) {
+            return true;
+        }
+    }
+
+    public long getExpirationTimeInSeconds() {
+        return expiration / 1000;
     }
 
     public boolean validateToken(String token) {

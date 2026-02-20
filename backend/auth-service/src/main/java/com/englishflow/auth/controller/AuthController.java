@@ -5,9 +5,12 @@ import com.englishflow.auth.dto.LoginRequest;
 import com.englishflow.auth.dto.RegisterRequest;
 import com.englishflow.auth.dto.PasswordResetRequest;
 import com.englishflow.auth.dto.PasswordResetConfirm;
+import com.englishflow.auth.dto.RefreshTokenRequest;
+import com.englishflow.auth.dto.RefreshTokenResponse;
 import com.englishflow.auth.service.AuthService;
 import com.englishflow.auth.service.RecaptchaService;
 import jakarta.validation.Valid;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,14 +60,14 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletRequest httpRequest) {
         // Verify reCAPTCHA
         if (!recaptchaService.verifyRecaptcha(request.getRecaptchaToken())) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(null);
         }
         
-        return ResponseEntity.ok(authService.login(request));
+        return ResponseEntity.ok(authService.login(request, httpRequest));
     }
 
     @GetMapping("/validate")
@@ -90,5 +93,32 @@ public class AuthController {
             @RequestBody Map<String, String> profileData) {
         authService.completeProfile(userId, profileData);
         return ResponseEntity.ok(Map.of("message", "Profile completed successfully"));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshTokenResponse> refreshToken(
+            @Valid @RequestBody RefreshTokenRequest request,
+            HttpServletRequest httpRequest) {
+        try {
+            RefreshTokenResponse response = authService.refreshToken(request, httpRequest);
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout(@RequestBody Map<String, String> request) {
+        String refreshToken = request.get("refreshToken");
+        authService.logout(refreshToken);
+        return ResponseEntity.ok(Map.of("message", "Logged out successfully"));
+    }
+
+    @PostMapping("/logout-all")
+    public ResponseEntity<Map<String, String>> logoutFromAllDevices(@RequestBody Map<String, Long> request) {
+        Long userId = request.get("userId");
+        authService.logoutFromAllDevices(userId);
+        return ResponseEntity.ok(Map.of("message", "Logged out from all devices successfully"));
     }
 }

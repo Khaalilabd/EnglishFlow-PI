@@ -43,6 +43,7 @@ export interface RegisterRequest {
 
 export interface AuthResponse {
   token: string;
+  refreshToken?: string;
   type: string;
   id: number;
   email: string;
@@ -59,4 +60,6 @@ export interface AuthResponse {
   bio?: string;
   englishLevel?: string;
   profileCompleted?: boolean;
+  expiresIn?: number;
+  refreshTokenExpiryDate?: string;
 }

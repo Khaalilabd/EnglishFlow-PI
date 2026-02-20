@@ -5,18 +5,23 @@ import com.englishflow.auth.dto.LoginRequest;
 import com.englishflow.auth.dto.RegisterRequest;
 import com.englishflow.auth.dto.PasswordResetRequest;
 import com.englishflow.auth.dto.PasswordResetConfirm;
+import com.englishflow.auth.dto.RefreshTokenRequest;
+import com.englishflow.auth.dto.RefreshTokenResponse;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.entity.PasswordResetToken;
 import com.englishflow.auth.entity.ActivationToken;
+import com.englishflow.auth.entity.RefreshToken;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.repository.PasswordResetTokenRepository;
 import com.englishflow.auth.repository.ActivationTokenRepository;
 import com.englishflow.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -24,6 +29,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthService {
 
     private final UserRepository userRepository;
@@ -33,6 +39,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     private final RateLimitService rateLimitService;
+    private final RefreshTokenService refreshTokenService;
+    private final AuditLogService auditLogService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -81,9 +89,9 @@ public class AuthService {
             user.setYearsOfExperience(request.getYearsOfExperience());
         }
         
-        // Marquer le profil comme complet si phone et CIN sont fournis
-        if (request.getPhone() != null && !request.getPhone().isEmpty() && 
-            request.getCin() != null && !request.getCin().isEmpty()) {
+        // Marquer le profil comme complet si CIN est fourni (champ obligatoire pour inscription manuelle)
+        // Pour OAuth2, le profil sera incomplet car pas de CIN
+        if (request.getCin() != null && !request.getCin().isEmpty()) {
             user.setProfileCompleted(true);
         } else {
             user.setProfileCompleted(false);
@@ -142,8 +150,16 @@ public class AuthService {
         activationToken.setUsed(true);
         activationTokenRepository.save(activationToken);
 
-        // Send welcome email
-        emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+        // Send welcome email for manual registrations (profile already complete)
+        // For OAuth2 users, welcome email is sent after profile completion
+        if (user.isProfileCompleted()) {
+            try {
+                emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+                log.info("Welcome email sent to user after activation: {}", user.getEmail());
+            } catch (Exception e) {
+                log.error("Failed to send welcome email to user: {}", user.getEmail(), e);
+            }
+        }
 
         // Generate JWT token
         String jwtToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
@@ -161,7 +177,7 @@ public class AuthService {
         );
     }
 
-    public AuthResponse login(LoginRequest request) {
+    public AuthResponse login(LoginRequest request, HttpServletRequest httpRequest) {
         // Check rate limit
         if (rateLimitService.isBlocked(request.getEmail())) {
             throw new RuntimeException("Too many failed login attempts. Please try again in 15 minutes.");
@@ -185,19 +201,8 @@ public class AuthService {
         // Reset rate limit on successful login
         rateLimitService.resetAttempts(request.getEmail());
 
-        String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
-
-        return new AuthResponse(
-                token,
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRole().name(),
-                user.getProfilePhoto(),
-                user.getPhone(),
-                user.isProfileCompleted()
-        );
+        // Create AuthResponse with refresh token
+        return createAuthResponse(user, httpRequest);
     }
 
     public boolean validateToken(String token) {
@@ -301,9 +306,125 @@ public class AuthService {
             user.setEnglishLevel(profileData.get("englishLevel"));
         }
 
-        // Mark profile as completed
+        // Mark profile as completed (account is already activated via email link)
         user.setProfileCompleted(true);
         userRepository.save(user);
+        
+        // Send welcome email only after profile completion
+        try {
+            emailService.sendWelcomeEmail(user.getEmail(), user.getFirstName());
+            log.info("Welcome email sent to user: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to user: {}", user.getEmail(), e);
+        }
+    }
+
+    /**
+     * Create AuthResponse with both access and refresh tokens
+     */
+    private AuthResponse createAuthResponse(User user, HttpServletRequest request) {
+        String accessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
+        
+        // Extract device info and IP address
+        String deviceInfo = extractDeviceInfo(request);
+        String ipAddress = extractIpAddress(request);
+        
+        // Create refresh token
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo, ipAddress);
+        
+        return AuthResponse.builder()
+                .token(accessToken)
+                .refreshToken(refreshToken.getToken())
+                .type("Bearer")
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().name())
+                .profilePhoto(user.getProfilePhoto())
+                .phone(user.getPhone())
+                .profileCompleted(user.isProfileCompleted())
+                .expiresIn(jwtUtil.getExpirationTimeInSeconds())
+                .refreshTokenExpiryDate(refreshToken.getExpiryDate())
+                .build();
+    }
+
+    /**
+     * Refresh access token using refresh token
+     */
+    @Transactional
+    public RefreshTokenResponse refreshToken(RefreshTokenRequest request, HttpServletRequest httpRequest) {
+        String requestRefreshToken = request.getRefreshToken();
+        
+        RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+        
+        refreshToken = refreshTokenService.verifyExpiration(refreshToken);
+        
+        User user = userRepository.findById(refreshToken.getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Generate new access token
+        String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
+        
+        // Create new refresh token (token rotation for security)
+        String deviceInfo = extractDeviceInfo(httpRequest);
+        String ipAddress = extractIpAddress(httpRequest);
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo, ipAddress);
+        
+        // Revoke old refresh token
+        refreshTokenService.revokeToken(requestRefreshToken);
+        
+        return new RefreshTokenResponse(
+                newAccessToken,
+                newRefreshToken.getToken(),
+                "Bearer",
+                jwtUtil.getExpirationTimeInSeconds(),
+                newRefreshToken.getExpiryDate()
+        );
+    }
+
+    /**
+     * Logout user by revoking refresh token
+     */
+    @Transactional
+    public void logout(String refreshToken) {
+        if (refreshToken != null) {
+            refreshTokenService.revokeToken(refreshToken);
+        }
+    }
+
+    /**
+     * Logout user from all devices
+     */
+    @Transactional
+    public void logoutFromAllDevices(Long userId) {
+        refreshTokenService.revokeAllUserTokens(userId);
+    }
+
+    /**
+     * Extract device information from request
+     */
+    private String extractDeviceInfo(HttpServletRequest request) {
+        String userAgent = request.getHeader("User-Agent");
+        return userAgent != null ? userAgent : "Unknown Device";
+    }
+
+    /**
+     * Extract IP address from request
+     */
+    private String extractIpAddress(HttpServletRequest request) {
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isEmpty()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        
+        String xRealIp = request.getHeader("X-Real-IP");
+        if (xRealIp != null && !xRealIp.isEmpty()) {
+            return xRealIp;
+        }
+        
+        return request.getRemoteAddr();
     }
 
 }

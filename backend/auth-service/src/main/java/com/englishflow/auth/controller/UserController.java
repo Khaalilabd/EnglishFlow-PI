@@ -32,7 +32,7 @@ public class UserController {
         try {
             // Retourner uniquement les étudiants pour la messagerie
             return ResponseEntity.ok(userRepository.findAll().stream()
-                .filter(user -> user.getRole() == User.Role.STUDENT)
+                .filter(user -> user.isStudent())
                 .map(user -> Map.of(
                     "id", user.getId(),
                     "firstName", user.getFirstName(),

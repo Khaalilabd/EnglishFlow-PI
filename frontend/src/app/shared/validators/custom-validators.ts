@@ -18,18 +18,29 @@ export class CustomValidators {
   }
 
   /**
-   * Validator for phone number - only numbers allowed
+   * Validator for phone number - accepts various formats
    */
   static phoneValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
       if (!control.value) {
-        return null;
+        return null; // Optional field
       }
       
-      // Remove country code prefix if present
-      const phoneNumber = control.value.replace(/^\+\d+/, '');
-      const phonePattern = /^[0-9]{6,15}$/;
-      const valid = phonePattern.test(phoneNumber);
+      // Clean the phone number (remove spaces, dashes, etc.)
+      const cleanPhone = control.value.replace(/[\s\-\(\)]/g, '');
+      
+      // Accept various formats:
+      // +212XXXXXXXXX (international)
+      // 0XXXXXXXXX (national with 0)
+      // XXXXXXXXX (without 0)
+      const phonePatterns = [
+        /^\+212[0-9]{9}$/, // +212XXXXXXXXX
+        /^0[0-9]{9}$/, // 0XXXXXXXXX
+        /^[0-9]{9}$/, // XXXXXXXXX
+        /^\+[1-9][0-9]{1,3}[0-9]{6,12}$/ // International format
+      ];
+      
+      const valid = phonePatterns.some(pattern => pattern.test(cleanPhone));
       
       return valid ? null : { invalidPhone: { value: control.value } };
     };

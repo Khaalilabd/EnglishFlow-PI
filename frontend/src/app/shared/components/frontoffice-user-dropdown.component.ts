@@ -197,8 +197,11 @@ export class FrontofficeUserDropdownComponent implements OnInit {
   }
 
   logout() {
-    this.authService.logout();
-    this.closeDropdown();
-    this.router.navigate(['/']);
+    this.authService.logout().subscribe({
+      complete: () => {
+        this.closeDropdown();
+        this.router.navigate(['/']);
+      }
+    });
   }
 }
