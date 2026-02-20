@@ -83,7 +83,9 @@ public class SessionController {
         // Verify the session belongs to the current user
         userSessionService.getSessionByToken("dummy").ifPresent(session -> {
             if (!session.getUserId().equals(userId)) {
-                throw new RuntimeException("Unauthorized to terminate this session");
+                throw new com.englishflow.auth.exception.UnauthorizedSessionAccessException(
+                    "Unauthorized to terminate session " + sessionId + " for user " + userId
+                );
             }
         });
         
@@ -93,7 +95,7 @@ public class SessionController {
         if (terminated) {
             return ResponseEntity.ok(Map.of("message", "Session terminated successfully"));
         } else {
-            return ResponseEntity.badRequest().body(Map.of("error", "Failed to terminate session"));
+            throw new com.englishflow.auth.exception.SessionNotFoundException(sessionId);
         }
     }
 
@@ -308,10 +310,10 @@ public class SessionController {
                 // Extract user ID from JWT token using JwtUtil
                 return jwtUtil.extractUserId(token);
             } catch (Exception e) {
-                throw new RuntimeException("Invalid JWT token: " + e.getMessage());
+                throw new com.englishflow.auth.exception.InvalidTokenException("Invalid JWT token");
             }
         }
         
-        throw new RuntimeException("No valid authentication token found");
+        throw new com.englishflow.auth.exception.InvalidTokenException("No valid authentication token found");
     }
 }

@@ -31,14 +31,31 @@ export class OAuth2CallbackComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    // Get params from both query params and fragment (in case of hash routing issues)
     this.route.queryParams.subscribe(params => {
-      const token = params['token'];
-      const id = params['id'] ? parseInt(params['id'], 10) : 0;
-      const email = params['email'];
-      const firstName = params['firstName'];
-      const lastName = params['lastName'];
-      const role = params['role'] || 'STUDENT';
-      const profileCompleted = params['profileCompleted'] === 'true';
+      // Also check fragment in case URL got mangled
+      const fragment = this.route.snapshot.fragment;
+      let actualParams = { ...params };
+      
+      // If fragment contains query params (OAuth2 redirect issue), parse them
+      if (fragment && fragment.includes('?')) {
+        const fragmentParams = new URLSearchParams(fragment.split('?')[1]);
+        fragmentParams.forEach((value, key) => {
+          if (!actualParams[key]) {
+            actualParams[key] = value;
+          }
+        });
+      }
+      
+      const token = actualParams['token'];
+      const id = actualParams['id'] ? parseInt(actualParams['id'], 10) : 0;
+      const email = actualParams['email'];
+      const firstName = actualParams['firstName'];
+      const lastName = actualParams['lastName'];
+      const role = actualParams['role'] || 'STUDENT';
+      const profileCompleted = actualParams['profileCompleted'] === 'true';
+
+      console.log('OAuth2 Callback - Received params:', { token: token ? 'present' : 'missing', id, email, role, profileCompleted });
 
       if (token && email && id) {
         // Store user data
@@ -50,8 +67,8 @@ export class OAuth2CallbackComponent implements OnInit {
           firstName,
           lastName,
           role,
-          profilePhoto: params['profilePhoto'] || null,
-          phone: params['phone'] || null
+          profilePhoto: actualParams['profilePhoto'] || null,
+          phone: actualParams['phone'] || null
         };
         
         localStorage.setItem('currentUser', JSON.stringify(userData));
@@ -60,10 +77,13 @@ export class OAuth2CallbackComponent implements OnInit {
         // Update auth service subject to trigger navbar update
         this.authService['currentUserSubject'].next(userData);
         
+        console.log('OAuth2 Callback - User authenticated, redirecting...');
+        
         // Redirect based on profile completion
         setTimeout(() => {
           if (!profileCompleted) {
             // Profil incomplet, rediriger vers complete-profile
+            console.log('OAuth2 Callback - Profile incomplete, redirecting to complete-profile');
             this.router.navigate(['/auth/complete-profile'], {
               queryParams: {
                 token,
@@ -75,13 +95,15 @@ export class OAuth2CallbackComponent implements OnInit {
             });
           } else {
             // Profil complet, rediriger vers la home page
+            console.log('OAuth2 Callback - Profile complete, redirecting to home');
             this.router.navigate(['/']);
           }
         }, 1000);
       } else {
         // Error - redirect to login
+        console.error('OAuth2 Callback - Missing required params:', { token: !!token, email: !!email, id: !!id });
         this.router.navigate(['/login'], { 
-          queryParams: { error: 'OAuth2 authentication failed' } 
+          queryParams: { error: 'OAuth2 authentication failed. Missing required parameters.' } 
         });
       }
     });

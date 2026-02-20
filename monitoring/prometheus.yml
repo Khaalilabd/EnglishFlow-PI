@@ -1,0 +1,58 @@
+# Prometheus Configuration for EnglishFlow Auth Service
+# Save this file in your project root directory
+
+global:
+  scrape_interval: 15s      # Scrape metrics every 15 seconds
+  evaluation_interval: 15s  # Evaluate rules every 15 seconds
+  external_labels:
+    cluster: 'development'
+    project: 'englishflow'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+          # - 'localhost:9093'  # Uncomment if you set up Alertmanager
+
+# Load alert rules
+rule_files:
+  - "alert-rules.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Auth Service - Main application
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['localhost:8081']
+        labels:
+          application: 'auth-service'
+          environment: 'development'
+          service: 'authentication'
+
+  # Prometheus itself (self-monitoring)
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          application: 'prometheus'
+          environment: 'development'
+
+# Optional: Add more services as you build them
+#  - job_name: 'club-service'
+#    metrics_path: '/actuator/prometheus'
+#    static_configs:
+#      - targets: ['localhost:8082']
+#        labels:
+#          application: 'club-service'
+#          environment: 'development'
+#
+#  - job_name: 'community-service'
+#    metrics_path: '/actuator/prometheus'
+#    static_configs:
+#      - targets: ['localhost:8083']
+#        labels:
+#          application: 'community-service'
+#          environment: 'development'

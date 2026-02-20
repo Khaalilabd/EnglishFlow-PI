@@ -8,6 +8,7 @@ import com.englishflow.auth.dto.UserIdsRequest;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.service.FileStorageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,9 +49,9 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<AuthResponse> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
 
         // Update fields if provided
         if (request.getFirstName() != null) {
@@ -108,38 +109,32 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         return ResponseEntity.ok(UserDTO.fromEntity(user));
     }
 
     @PostMapping("/batch")
     public ResponseEntity<List<UserDetailsResponse>> getUsersByIds(@RequestBody UserIdsRequest request) {
-        try {
-            System.out.println("📥 Received batch request for user IDs: " + request.getUserIds());
-            
-            if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
-                System.out.println("⚠️ Empty or null user IDs list");
-                return ResponseEntity.ok(List.of());
-            }
-            
-            List<User> users = userRepository.findAllById(request.getUserIds());
-            System.out.println("✅ Found " + users.size() + " users in database");
-            
-            List<UserDetailsResponse> response = users.stream()
-                    .map(user -> {
-                        System.out.println("  - User ID " + user.getId() + ": " + user.getFirstName() + " " + user.getLastName());
-                        return UserDetailsResponse.fromEntity(user);
-                    })
-                    .collect(Collectors.toList());
-            
-            System.out.println("📤 Returning " + response.size() + " user details");
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            System.err.println("❌ Error in getUsersByIds: " + e.getMessage());
-            e.printStackTrace();
-            throw new RuntimeException("Error fetching users: " + e.getMessage(), e);
+        System.out.println("📥 Received batch request for user IDs: " + request.getUserIds());
+        
+        if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+            System.out.println("⚠️ Empty or null user IDs list");
+            return ResponseEntity.ok(List.of());
         }
+        
+        List<User> users = userRepository.findAllById(request.getUserIds());
+        System.out.println("✅ Found " + users.size() + " users in database");
+        
+        List<UserDetailsResponse> response = users.stream()
+                .map(user -> {
+                    System.out.println("  - User ID " + user.getId() + ": " + user.getFirstName() + " " + user.getLastName());
+                    return UserDetailsResponse.fromEntity(user);
+                })
+                .collect(Collectors.toList());
+        
+        System.out.println("📤 Returning " + response.size() + " user details");
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/{id}/upload-photo")
@@ -169,7 +164,7 @@ public class UserController {
             
             // Trouver l'utilisateur
             User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
             
             // Supprimer l'ancienne photo si elle existe
             if (user.getProfilePhoto() != null) {
@@ -196,7 +191,7 @@ public class UserController {
     public ResponseEntity<Map<String, String>> deleteProfilePhoto(@PathVariable Long id) {
         try {
             User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
             
             // Supprimer le fichier physique
             if (user.getProfilePhoto() != null) {

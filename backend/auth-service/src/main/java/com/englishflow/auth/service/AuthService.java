@@ -42,106 +42,118 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final AuditLogService auditLogService;
     private final UserSessionService userSessionService;
+    private final MetricsService metricsService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists");
-        }
-
-        User user = new User();
-        user.setEmail(request.getEmail());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setFirstName(request.getFirstName());
-        user.setLastName(request.getLastName());
-        user.setPhone(request.getPhone());
-        user.setRole(User.Role.valueOf(request.getRole().toUpperCase()));
-        user.setActive(false); // Account inactive until email verification
-        user.setRegistrationFeePaid(false);
+        long startTime = System.currentTimeMillis();
         
-        // Set CIN if provided
-        if (request.getCin() != null && !request.getCin().isEmpty()) {
-            user.setCin(request.getCin());
-        }
-        
-        // Map optional fields from RegisterRequest
-        if (request.getProfilePhoto() != null && !request.getProfilePhoto().isEmpty()) {
-            user.setProfilePhoto(request.getProfilePhoto());
-        }
-        if (request.getDateOfBirth() != null) {
-            user.setDateOfBirth(request.getDateOfBirth().toString());
-        }
-        if (request.getAddress() != null && !request.getAddress().isEmpty()) {
-            user.setAddress(request.getAddress());
-        }
-        if (request.getCity() != null && !request.getCity().isEmpty()) {
-            user.setCity(request.getCity());
-        }
-        if (request.getPostalCode() != null && !request.getPostalCode().isEmpty()) {
-            user.setPostalCode(request.getPostalCode());
-        }
-        if (request.getBio() != null && !request.getBio().isEmpty()) {
-            user.setBio(request.getBio());
-        }
-        if (request.getEnglishLevel() != null && !request.getEnglishLevel().isEmpty()) {
-            user.setEnglishLevel(request.getEnglishLevel());
-        }
-        if (request.getYearsOfExperience() != null) {
-            user.setYearsOfExperience(request.getYearsOfExperience());
-        }
-        
-        // Marquer le profil comme complet si CIN est fourni (champ obligatoire pour inscription manuelle)
-        // Pour OAuth2, le profil sera incomplet car pas de CIN
-        if (request.getCin() != null && !request.getCin().isEmpty()) {
-            user.setProfileCompleted(true);
-        } else {
-            user.setProfileCompleted(false);
-        }
-
-        user = userRepository.save(user);
-
-        // Create activation token
-        String activationToken = UUID.randomUUID().toString();
-        ActivationToken token = ActivationToken.builder()
-                .token(activationToken)
-                .user(user)
-                .expiryDate(LocalDateTime.now().plusHours(24)) // Valid for 24 hours
-                .used(false)
-                .build();
-        activationTokenRepository.save(token);
-
-        // Send activation email (ne pas bloquer si ça échoue)
         try {
-            emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), activationToken);
-        } catch (Exception e) {
-            System.err.println("Failed to send activation email: " + e.getMessage());
-            // Continue anyway - admin can activate manually
-        }
+            if (userRepository.existsByEmail(request.getEmail())) {
+                throw new com.englishflow.auth.exception.EmailAlreadyExistsException(request.getEmail());
+            }
 
-        // Return response without JWT (user must activate first)
-        return new AuthResponse(
-                null, // No token until activation
-                user.getId(),
-                user.getEmail(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getRole().name(),
-                user.getProfilePhoto(),
-                user.getPhone()
-        );
+            User user = new User();
+            user.setEmail(request.getEmail());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setFirstName(request.getFirstName());
+            user.setLastName(request.getLastName());
+            user.setPhone(request.getPhone());
+            user.setRole(User.Role.valueOf(request.getRole().toUpperCase()));
+            user.setActive(false); // Account inactive until email verification
+            user.setRegistrationFeePaid(false);
+            
+            // Set CIN if provided
+            if (request.getCin() != null && !request.getCin().isEmpty()) {
+                user.setCin(request.getCin());
+            }
+            
+            // Map optional fields from RegisterRequest
+            if (request.getProfilePhoto() != null && !request.getProfilePhoto().isEmpty()) {
+                user.setProfilePhoto(request.getProfilePhoto());
+            }
+            if (request.getDateOfBirth() != null) {
+                user.setDateOfBirth(request.getDateOfBirth().toString());
+            }
+            if (request.getAddress() != null && !request.getAddress().isEmpty()) {
+                user.setAddress(request.getAddress());
+            }
+            if (request.getCity() != null && !request.getCity().isEmpty()) {
+                user.setCity(request.getCity());
+            }
+            if (request.getPostalCode() != null && !request.getPostalCode().isEmpty()) {
+                user.setPostalCode(request.getPostalCode());
+            }
+            if (request.getBio() != null && !request.getBio().isEmpty()) {
+                user.setBio(request.getBio());
+            }
+            if (request.getEnglishLevel() != null && !request.getEnglishLevel().isEmpty()) {
+                user.setEnglishLevel(request.getEnglishLevel());
+            }
+            if (request.getYearsOfExperience() != null) {
+                user.setYearsOfExperience(request.getYearsOfExperience());
+            }
+            
+            // Marquer le profil comme complet si CIN est fourni (champ obligatoire pour inscription manuelle)
+            // Pour OAuth2, le profil sera incomplet car pas de CIN
+            if (request.getCin() != null && !request.getCin().isEmpty()) {
+                user.setProfileCompleted(true);
+            } else {
+                user.setProfileCompleted(false);
+            }
+
+            user = userRepository.save(user);
+
+            // Create activation token
+            String activationToken = UUID.randomUUID().toString();
+            ActivationToken token = ActivationToken.builder()
+                    .token(activationToken)
+                    .user(user)
+                    .expiryDate(LocalDateTime.now().plusHours(24)) // Valid for 24 hours
+                    .used(false)
+                    .build();
+            activationTokenRepository.save(token);
+
+            // Send activation email (ne pas bloquer si ça échoue)
+            try {
+                emailService.sendActivationEmail(user.getEmail(), user.getFirstName(), activationToken);
+            } catch (Exception e) {
+                System.err.println("Failed to send activation email: " + e.getMessage());
+                // Continue anyway - admin can activate manually
+            }
+            
+            // Record metrics
+            metricsService.recordRegistration();
+            metricsService.recordRegistrationDuration(System.currentTimeMillis() - startTime);
+            
+            return AuthResponse.builder()
+                    .token(null) // No token until activation
+                    .id(user.getId())
+                    .email(user.getEmail())
+                    .firstName(user.getFirstName())
+                    .lastName(user.getLastName())
+                    .role(user.getRole().name())
+                    .profilePhoto(user.getProfilePhoto())
+                    .phone(user.getPhone())
+                    .profileCompleted(user.isProfileCompleted())
+                    .build();
+        } catch (Exception e) {
+            metricsService.recordRegistrationDuration(System.currentTimeMillis() - startTime);
+            throw e;
+        }
     }
 
     @Transactional
     public AuthResponse activateAccount(String token) {
         ActivationToken activationToken = activationTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid activation token"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Activation", "Token not found"));
 
         if (activationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Activation token has expired");
+            throw new com.englishflow.auth.exception.TokenExpiredException("Activation");
         }
 
         if (activationToken.isUsed()) {
-            throw new RuntimeException("Activation token has already been used");
+            throw new com.englishflow.auth.exception.InvalidTokenException("Activation", "Token already used");
         }
 
         User user = activationToken.getUser();
@@ -179,31 +191,47 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-        // Check rate limit
-        if (rateLimitService.isBlocked(request.getEmail())) {
-            throw new RuntimeException("Too many failed login attempts. Please try again in 15 minutes.");
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            // Check rate limit
+            if (rateLimitService.isBlocked(request.getEmail())) {
+                metricsService.recordRateLimitExceeded();
+                long retryAfter = 900; // 15 minutes in seconds
+                throw new com.englishflow.auth.exception.RateLimitExceededException("login", retryAfter);
+            }
+
+            User user = userRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> {
+                        rateLimitService.recordFailedAttempt(request.getEmail());
+                        metricsService.recordLoginFailure();
+                        return new com.englishflow.auth.exception.InvalidCredentialsException();
+                    });
+
+            if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+                rateLimitService.recordFailedAttempt(request.getEmail());
+                metricsService.recordLoginFailure();
+                throw new com.englishflow.auth.exception.InvalidCredentialsException();
+            }
+
+            if (!user.isActive()) {
+                metricsService.recordLoginFailure();
+                throw new com.englishflow.auth.exception.AccountNotActivatedException(user.getEmail());
+            }
+
+            // Reset rate limit on successful login
+            rateLimitService.resetAttempts(request.getEmail());
+            
+            // Record metrics
+            metricsService.recordLoginSuccess();
+            metricsService.recordLoginDuration(System.currentTimeMillis() - startTime);
+
+            // Create AuthResponse with refresh token
+            return createAuthResponse(user, httpRequest);
+        } catch (Exception e) {
+            metricsService.recordLoginDuration(System.currentTimeMillis() - startTime);
+            throw e;
         }
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> {
-                    rateLimitService.recordFailedAttempt(request.getEmail());
-                    return new RuntimeException("Invalid credentials");
-                });
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            rateLimitService.recordFailedAttempt(request.getEmail());
-            throw new RuntimeException("Invalid credentials");
-        }
-
-        if (!user.isActive()) {
-            throw new RuntimeException("Account not activated. Please check your email.");
-        }
-
-        // Reset rate limit on successful login
-        rateLimitService.resetAttempts(request.getEmail());
-
-        // Create AuthResponse with refresh token
-        return createAuthResponse(user, httpRequest);
     }
 
     public boolean validateToken(String token) {
@@ -211,7 +239,7 @@ public class AuthService {
     }
     public Map<String, Object> checkActivationStatus(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException("email", email));
 
         Map<String, Object> response = new HashMap<>();
         response.put("activated", user.isActive());
@@ -239,7 +267,7 @@ public class AuthService {
     @Transactional
     public void requestPasswordReset(PasswordResetRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException("email", request.getEmail()));
 
         // Create new reset token
         String token = UUID.randomUUID().toString();
@@ -259,14 +287,14 @@ public class AuthService {
     @Transactional
     public void resetPassword(PasswordResetConfirm request) {
         PasswordResetToken resetToken = passwordResetTokenRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Password reset", "Token not found"));
 
         if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Reset token has expired");
+            throw new com.englishflow.auth.exception.TokenExpiredException("Password reset");
         }
 
         if (resetToken.getUsed()) {
-            throw new RuntimeException("Reset token has already been used");
+            throw new com.englishflow.auth.exception.InvalidTokenException("Password reset", "Token already used");
         }
 
         User user = resetToken.getUser();
@@ -279,7 +307,7 @@ public class AuthService {
     @Transactional
     public void completeProfile(Long userId, Map<String, String> profileData) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(userId));
 
         // Update optional fields
         if (profileData.containsKey("phone") && profileData.get("phone") != null) {
@@ -367,12 +395,12 @@ public class AuthService {
         String requestRefreshToken = request.getRefreshToken();
         
         RefreshToken refreshToken = refreshTokenService.findByToken(requestRefreshToken)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Refresh", "Token not found"));
         
-        refreshToken = refreshTokenService.verifyExpiration(refreshToken);
+        RefreshToken verifiedToken = refreshTokenService.verifyExpiration(refreshToken);
         
-        User user = userRepository.findById(refreshToken.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(verifiedToken.getUserId())
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(verifiedToken.getUserId()));
         
         // Generate new access token
         String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());

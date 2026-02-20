@@ -4,6 +4,7 @@ import com.englishflow.auth.dto.CreateTutorRequest;
 import com.englishflow.auth.dto.UpdateUserRequest;
 import com.englishflow.auth.dto.UserDTO;
 import com.englishflow.auth.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,13 +35,13 @@ public class AdminUserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> createUser(@RequestBody CreateTutorRequest request) {
+    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody CreateTutorRequest request) {
         UserDTO createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UpdateUserRequest request) {
+    public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest request) {
         return ResponseEntity.ok(userService.updateUserByAdmin(id, request));
     }
 

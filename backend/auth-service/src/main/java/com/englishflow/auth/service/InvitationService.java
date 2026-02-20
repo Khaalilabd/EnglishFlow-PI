@@ -35,22 +35,22 @@ public class InvitationService {
         try {
             role = User.Role.valueOf(request.getRole().toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + request.getRole());
+            throw new IllegalArgumentException("Invalid role: " + request.getRole());
         }
 
         // Only TUTOR and ACADEMIC_OFFICE_AFFAIR can be invited
         if (role != User.Role.TUTOR && role != User.Role.ACADEMIC_OFFICE_AFFAIR) {
-            throw new RuntimeException("Only TUTOR and ACADEMIC_OFFICE_AFFAIR roles can be invited");
+            throw new IllegalArgumentException("Only TUTOR and ACADEMIC_OFFICE_AFFAIR roles can be invited");
         }
 
         // Check if email already exists
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User with this email already exists");
+            throw new com.englishflow.auth.exception.EmailAlreadyExistsException(request.getEmail());
         }
 
         // Check if there's already a pending invitation
         if (invitationRepository.existsByEmailAndUsedFalse(request.getEmail())) {
-            throw new RuntimeException("An invitation has already been sent to this email");
+            throw new IllegalArgumentException("An invitation has already been sent to this email");
         }
 
         // Create invitation
@@ -76,7 +76,8 @@ public class InvitationService {
             log.info("Invitation email sent to: {}", request.getEmail());
         } catch (Exception e) {
             log.error("Failed to send invitation email to: {}", request.getEmail(), e);
-            throw new RuntimeException("Failed to send invitation email", e);
+            // Don't throw exception - invitation is saved, can be resent
+            log.warn("Invitation created but email failed. Can be resent later.");
         }
 
         return InvitationResponse.fromEntity(savedInvitation);
@@ -85,14 +86,14 @@ public class InvitationService {
     @Transactional(readOnly = true)
     public InvitationResponse getInvitationByToken(String token) {
         Invitation invitation = invitationRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Invalid invitation token"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Invitation", "Token not found"));
 
         if (invitation.isUsed()) {
-            throw new RuntimeException("This invitation has already been used");
+            throw new com.englishflow.auth.exception.InvitationAlreadyUsedException();
         }
 
         if (invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("This invitation has expired");
+            throw new com.englishflow.auth.exception.InvitationExpiredException();
         }
 
         return InvitationResponse.fromEntity(invitation);
@@ -102,20 +103,20 @@ public class InvitationService {
     public User acceptInvitation(AcceptInvitationRequest request) {
         // Find invitation
         Invitation invitation = invitationRepository.findByToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid invitation token"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Invitation", "Token not found"));
 
         // Validate invitation
         if (invitation.isUsed()) {
-            throw new RuntimeException("This invitation has already been used");
+            throw new com.englishflow.auth.exception.InvitationAlreadyUsedException();
         }
 
         if (invitation.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("This invitation has expired");
+            throw new com.englishflow.auth.exception.InvitationExpiredException();
         }
 
         // Check if email already exists (double check)
         if (userRepository.existsByEmail(invitation.getEmail())) {
-            throw new RuntimeException("User with this email already exists");
+            throw new com.englishflow.auth.exception.EmailAlreadyExistsException(invitation.getEmail());
         }
 
         // Create user
@@ -172,10 +173,10 @@ public class InvitationService {
     @Transactional
     public void cancelInvitation(Long invitationId) {
         Invitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Invitation", "Invitation not found"));
 
         if (invitation.isUsed()) {
-            throw new RuntimeException("Cannot cancel an invitation that has already been used");
+            throw new com.englishflow.auth.exception.InvitationAlreadyUsedException();
         }
 
         invitationRepository.delete(invitation);
@@ -184,10 +185,10 @@ public class InvitationService {
     @Transactional
     public InvitationResponse resendInvitation(Long invitationId) {
         Invitation invitation = invitationRepository.findById(invitationId)
-                .orElseThrow(() -> new RuntimeException("Invitation not found"));
+                .orElseThrow(() -> new com.englishflow.auth.exception.InvalidTokenException("Invitation", "Invitation not found"));
 
         if (invitation.isUsed()) {
-            throw new RuntimeException("Cannot resend an invitation that has already been used");
+            throw new com.englishflow.auth.exception.InvitationAlreadyUsedException();
         }
 
         // Extend expiry date
@@ -204,7 +205,8 @@ public class InvitationService {
             log.info("Invitation email resent to: {}", invitation.getEmail());
         } catch (Exception e) {
             log.error("Failed to resend invitation email to: {}", invitation.getEmail(), e);
-            throw new RuntimeException("Failed to resend invitation email", e);
+            // Don't throw - invitation is updated, email can be retried
+            log.warn("Invitation updated but email failed. Can be resent again.");
         }
 
         return InvitationResponse.fromEntity(updatedInvitation);

@@ -97,6 +97,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
         
         // Redirect to frontend with token and role
+        // Use encode() to properly encode the URL and avoid Safari issues
         String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/oauth2/callback")
                 .queryParam("token", token)
                 .queryParam("id", user.getId())
@@ -105,8 +106,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("lastName", user.getLastName())
                 .queryParam("role", user.getRole().name())
                 .queryParam("profileCompleted", user.isProfileCompleted())
-                .build().toUriString();
+                .build()
+                .encode() // Encode the URL to avoid special characters issues
+                .toUriString();
         
+        log.info("Redirecting OAuth2 user {} to: {}", user.getEmail(), targetUrl);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
     }
 

@@ -34,7 +34,7 @@ public class UserService {
 
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         return UserDTO.fromEntity(user);
     }
 
@@ -43,7 +43,7 @@ public class UserService {
         try {
             userRole = User.Role.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("Invalid role: " + role);
+            throw new IllegalArgumentException("Invalid role: " + role);
         }
 
         return userRepository.findByRole(userRole).stream()
@@ -54,7 +54,7 @@ public class UserService {
     @Transactional
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
 
         // Update only non-null fields
         if (userDTO.getFirstName() != null) user.setFirstName(userDTO.getFirstName());
@@ -79,7 +79,7 @@ public class UserService {
     @Transactional
     public UserDTO updateUserByAdmin(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
 
         // Update only non-null fields from UpdateUserRequest
         if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
@@ -103,7 +103,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("User not found with id: " + id);
+            throw new com.englishflow.auth.exception.UserNotFoundException(id);
         }
         
         // Delete all activation tokens associated with this user first
@@ -116,7 +116,7 @@ public class UserService {
     @Transactional
     public UserDTO toggleUserStatus(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         user.setActive(!user.isActive());
         User updatedUser = userRepository.save(user);
@@ -125,29 +125,28 @@ public class UserService {
 
     @Transactional
     public UserDTO createTutor(CreateTutorRequest request) {
-        try {
-            // Validate request
-            if (request.getEmail() == null || request.getEmail().isEmpty()) {
-                throw new RuntimeException("Email is required");
-            }
-            if (request.getPassword() == null || request.getPassword().isEmpty()) {
-                throw new RuntimeException("Password is required");
-            }
-            
-            // Check if email already exists
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already exists: " + request.getEmail());
-            }
+        // Validate request
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new com.englishflow.auth.exception.EmailAlreadyExistsException(request.getEmail());
+        }
 
-            // Check if CIN already exists
-            if (request.getCin() != null && !request.getCin().isEmpty()) {
-                userRepository.findAll().stream()
-                    .filter(u -> request.getCin().equals(u.getCin()))
-                    .findFirst()
-                    .ifPresent(u -> {
-                        throw new RuntimeException("CIN already exists: " + request.getCin());
-                    });
-            }
+        // Check if CIN already exists
+        if (request.getCin() != null && !request.getCin().isEmpty()) {
+            userRepository.findAll().stream()
+                .filter(u -> request.getCin().equals(u.getCin()))
+                .findFirst()
+                .ifPresent(u -> {
+                    throw new IllegalArgumentException("CIN already exists: " + request.getCin());
+                });
+        }
 
             // Create new tutor user
             User tutor = new User();
@@ -171,47 +170,43 @@ public class UserService {
 
             User savedTutor = userRepository.save(tutor);
             return UserDTO.fromEntity(savedTutor);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create tutor: " + e.getMessage(), e);
-        }
     }
 
     @Transactional
     public UserDTO createUser(CreateTutorRequest request) {
+        // Validate request
+        if (request.getEmail() == null || request.getEmail().isEmpty()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        if (request.getPassword() == null || request.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        if (request.getRole() == null || request.getRole().isEmpty()) {
+            throw new IllegalArgumentException("Role is required");
+        }
+        
+        // Check if email already exists
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new com.englishflow.auth.exception.EmailAlreadyExistsException(request.getEmail());
+        }
+
+        // Check if CIN already exists
+        if (request.getCin() != null && !request.getCin().isEmpty()) {
+            userRepository.findAll().stream()
+                .filter(u -> request.getCin().equals(u.getCin()))
+                .findFirst()
+                .ifPresent(u -> {
+                    throw new IllegalArgumentException("CIN already exists: " + request.getCin());
+                });
+        }
+
+        // Parse role
+        User.Role userRole;
         try {
-            // Validate request
-            if (request.getEmail() == null || request.getEmail().isEmpty()) {
-                throw new RuntimeException("Email is required");
-            }
-            if (request.getPassword() == null || request.getPassword().isEmpty()) {
-                throw new RuntimeException("Password is required");
-            }
-            if (request.getRole() == null || request.getRole().isEmpty()) {
-                throw new RuntimeException("Role is required");
-            }
-            
-            // Check if email already exists
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email already exists: " + request.getEmail());
-            }
-
-            // Check if CIN already exists
-            if (request.getCin() != null && !request.getCin().isEmpty()) {
-                userRepository.findAll().stream()
-                    .filter(u -> request.getCin().equals(u.getCin()))
-                    .findFirst()
-                    .ifPresent(u -> {
-                        throw new RuntimeException("CIN already exists: " + request.getCin());
-                    });
-            }
-
-            // Parse role
-            User.Role userRole;
-            try {
-                userRole = User.Role.valueOf(request.getRole().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Invalid role: " + request.getRole());
-            }
+            userRole = User.Role.valueOf(request.getRole().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid role: " + request.getRole());
+        }
 
             // Create new user
             User user = new User();
@@ -263,9 +258,6 @@ public class UserService {
             }
             
             return UserDTO.fromEntity(savedUser);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create user: " + e.getMessage(), e);
-        }
     }
 
     @Transactional
@@ -273,7 +265,7 @@ public class UserService {
         System.out.println("📝 UserService.activateUser called with ID: " + id);
         
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         System.out.println("👤 Found user: " + user.getEmail() + ", current status: " + user.isActive());
         
@@ -303,7 +295,7 @@ public class UserService {
     @Transactional
     public UserDTO deactivateUser(Long id) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         user.setActive(false);
         User updatedUser = userRepository.save(user);
