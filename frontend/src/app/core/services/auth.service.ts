@@ -35,15 +35,40 @@ export class AuthService {
     );
   }
 
-  logout(): void {
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('token');
-    this.currentUserSubject.next(null);
+  logout(): Observable<void> {
+    return new Observable(observer => {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('token');
+      localStorage.removeItem('refreshToken');
+      this.currentUserSubject.next(null);
+      observer.next();
+      observer.complete();
+    });
+  }
+
+  getRefreshToken(): string | null {
+    return localStorage.getItem('refreshToken');
+  }
+
+  refreshToken(): Observable<AuthResponse> {
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+    
+    return this.http.post<AuthResponse>(`${this.apiUrl}/refresh-token`, { refreshToken }).pipe(
+      tap(response => {
+        this.setCurrentUser(response);
+      })
+    );
   }
 
   private setCurrentUser(user: AuthResponse): void {
     localStorage.setItem('currentUser', JSON.stringify(user));
     localStorage.setItem('token', user.token);
+    if (user.refreshToken) {
+      localStorage.setItem('refreshToken', user.refreshToken);
+    }
     this.currentUserSubject.next(user);
   }
 

@@ -39,6 +39,14 @@ spring:
           filters:
             - StripPrefix=1
           order: 3
+        
+        - id: sessions-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/sessions/**
+          filters:
+            - StripPrefix=1
+          order: 4
             
         - id: community-service
           uri: lb://community-service

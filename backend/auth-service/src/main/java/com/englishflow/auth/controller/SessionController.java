@@ -4,6 +4,7 @@ import com.englishflow.auth.dto.SessionSearchRequest;
 import com.englishflow.auth.dto.UserSessionResponse;
 import com.englishflow.auth.entity.UserSession;
 import com.englishflow.auth.service.UserSessionService;
+import com.englishflow.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class SessionController {
 
     private final UserSessionService userSessionService;
+    private final JwtUtil jwtUtil;
 
     /**
      * Get current user's active sessions
@@ -283,15 +285,15 @@ public class SessionController {
 
     // Helper method to extract user ID from JWT token
     private Long extractUserIdFromRequest(HttpServletRequest request) {
-        // This is a placeholder - you'll need to implement JWT token parsing
-        // to extract the user ID from the Authorization header
-        
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            // Parse JWT token and extract user ID
-            // For now, return a dummy value
-            return 1L; // Replace with actual JWT parsing logic
+            try {
+                // Extract user ID from JWT token using JwtUtil
+                return jwtUtil.extractUserId(token);
+            } catch (Exception e) {
+                throw new RuntimeException("Invalid JWT token: " + e.getMessage());
+            }
         }
         
         throw new RuntimeException("No valid authentication token found");

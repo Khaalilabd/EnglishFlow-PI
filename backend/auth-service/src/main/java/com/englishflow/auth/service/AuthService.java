@@ -41,6 +41,7 @@ public class AuthService {
     private final RateLimitService rateLimitService;
     private final RefreshTokenService refreshTokenService;
     private final AuditLogService auditLogService;
+    private final UserSessionService userSessionService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -331,6 +332,15 @@ public class AuthService {
         
         // Create refresh token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo, ipAddress);
+        
+        // Create user session
+        try {
+            userSessionService.createSession(user.getId(), request);
+            log.info("Session created for user: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to create session for user: {}", user.getEmail(), e);
+            // Continue anyway - session tracking is not critical for login
+        }
         
         return AuthResponse.builder()
                 .token(accessToken)

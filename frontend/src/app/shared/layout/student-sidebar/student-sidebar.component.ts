@@ -101,6 +101,11 @@ export class StudentSidebarComponent {
       path: "/user-panel/subscription",
     },
     {
+      icon: 'fas fa-desktop',
+      name: "My Sessions",
+      path: "/user-panel/sessions",
+    },
+    {
       icon: 'fas fa-life-ring',
       name: "Help & Support",
       path: "/user-panel/support",
