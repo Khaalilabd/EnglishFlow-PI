@@ -13,4 +13,9 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+    
+    @Bean("directRestTemplate")
+    public RestTemplate directRestTemplate() {
+        return new RestTemplate();
+    }
 }

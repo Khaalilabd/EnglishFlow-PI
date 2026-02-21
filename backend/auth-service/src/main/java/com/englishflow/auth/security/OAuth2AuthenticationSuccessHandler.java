@@ -30,6 +30,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final ActivationTokenRepository activationTokenRepository;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
+    private final com.englishflow.auth.service.UserSessionService userSessionService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -95,6 +96,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // Generate JWT token
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name(), user.getId());
+        
+        // Create user session for OAuth2 login
+        try {
+            log.info("Attempting to create session for OAuth2 user: {} (ID: {})", user.getEmail(), user.getId());
+            userSessionService.createSession(user.getId(), request);
+            log.info("Session created successfully for OAuth2 user: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("Failed to create session for OAuth2 user: {} - Error: {}", user.getEmail(), e.getMessage(), e);
+            // Continue anyway - session tracking is not critical for login
+        }
         
         // Redirect to frontend with token and role
         // Use encode() to properly encode the URL and avoid Safari issues

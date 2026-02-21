@@ -1,8 +1,11 @@
 package com.englishflow.messaging.controller;
 
 import com.englishflow.messaging.client.AuthServiceClient;
+import com.englishflow.messaging.constants.MessagingConstants;
 import com.englishflow.messaging.dto.MessageDTO;
 import com.englishflow.messaging.dto.SendMessageRequest;
+import com.englishflow.messaging.exception.MessageValidationException;
+import com.englishflow.messaging.exception.UnauthorizedAccessException;
 import com.englishflow.messaging.service.MessagingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +37,12 @@ public class WebSocketController {
         try {
             log.debug("WebSocket message received for conversation: {}", conversationId);
             
+            if (principal == null) {
+                log.error("No principal found in WebSocket message");
+                sendErrorToUser(conversationId, "Authentication required");
+                return;
+            }
+            
             // Récupérer l'ID utilisateur depuis le principal
             Long userId = Long.parseLong(principal.getName());
             
@@ -42,19 +51,26 @@ public class WebSocketController {
             String senderName = userInfo.getFullName();
             String senderAvatar = userInfo.getProfilePhotoUrl();
             
-            // Enregistrer le message
+            // Enregistrer le message (avec validation et vérification de sécurité)
             MessageDTO message = messagingService.sendMessage(
                 conversationId, request, userId, senderName, senderAvatar);
             
             // Envoyer le message à tous les participants de la conversation
-            messagingTemplate.convertAndSend(
-                "/topic/conversation/" + conversationId, 
-                message);
+            String destination = MessagingConstants.WS_CONVERSATION_TOPIC + conversationId;
+            messagingTemplate.convertAndSend(destination, message);
             
-            log.debug("Message sent to conversation: {}", conversationId);
+            log.info("Message {} sent successfully to conversation {} via WebSocket", 
+                     message.getId(), conversationId);
             
+        } catch (UnauthorizedAccessException e) {
+            log.error("Unauthorized access attempt to conversation {}", conversationId, e);
+            sendErrorToUser(conversationId, "You are not authorized to send messages to this conversation");
+        } catch (MessageValidationException e) {
+            log.error("Message validation failed for conversation {}", conversationId, e);
+            sendErrorToUser(conversationId, e.getMessage());
         } catch (Exception e) {
-            log.error("Error sending message via WebSocket", e);
+            log.error("Error sending message via WebSocket to conversation {}", conversationId, e);
+            sendErrorToUser(conversationId, "Failed to send message. Please try again.");
         }
     }
     
@@ -63,6 +79,11 @@ public class WebSocketController {
                                     @Payload Map<String, Object> payload,
                                     Principal principal) {
         try {
+            if (principal == null) {
+                log.error("No principal found in typing indicator");
+                return;
+            }
+            
             Long userId = Long.parseLong(principal.getName());
             
             // Récupérer les infos utilisateur
@@ -75,12 +96,24 @@ public class WebSocketController {
             typingIndicator.put("isTyping", payload.get("isTyping"));
             
             // Envoyer l'indicateur de frappe aux autres participants
-            messagingTemplate.convertAndSend(
-                "/topic/conversation/" + conversationId + "/typing",
-                typingIndicator);
+            String destination = MessagingConstants.WS_CONVERSATION_TOPIC + conversationId + 
+                               MessagingConstants.WS_TYPING_SUFFIX;
+            messagingTemplate.convertAndSend(destination, typingIndicator);
+            
+            log.debug("Typing indicator sent for conversation {} by user {}", conversationId, userId);
             
         } catch (Exception e) {
-            log.error("Error sending typing indicator", e);
+            log.error("Error sending typing indicator for conversation {}", conversationId, e);
         }
+    }
+    
+    private void sendErrorToUser(Long conversationId, String errorMessage) {
+        Map<String, Object> error = new HashMap<>();
+        error.put("error", true);
+        error.put("message", errorMessage);
+        error.put("conversationId", conversationId);
+        
+        String destination = MessagingConstants.WS_CONVERSATION_TOPIC + conversationId + "/error";
+        messagingTemplate.convertAndSend(destination, error);
     }
 }

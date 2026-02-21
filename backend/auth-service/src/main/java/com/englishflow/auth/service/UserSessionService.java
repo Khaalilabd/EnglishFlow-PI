@@ -36,6 +36,9 @@ public class UserSessionService {
     private static final int MAX_CONCURRENT_SESSIONS = 5;
     private static final int INACTIVITY_TIMEOUT_MINUTES = 30;
     private static final int SESSION_CLEANUP_DAYS = 30;
+    private static final int SUSPICIOUS_SESSIONS_THRESHOLD = 10;
+    private static final int RECENT_SESSIONS_WINDOW_HOURS = 1;
+    private static final int SESSION_EXPIRY_DAYS = 7;
 
     /**
      * Create a new user session
@@ -71,7 +74,7 @@ public class UserSessionService {
                 .city(locationInfo.getCity())
                 .isp(locationInfo.getIsp())
                 .status(UserSession.SessionStatus.ACTIVE)
-                .expiresAt(LocalDateTime.now().plusDays(7)) // 7 days expiry
+                .expiresAt(LocalDateTime.now().plusDays(SESSION_EXPIRY_DAYS))
                 .build();
 
         // Check for suspicious activity
@@ -256,17 +259,16 @@ public class UserSessionService {
      */
     private void checkSuspiciousActivity(UserSession session, HttpServletRequest request) {
         String ipAddress = session.getIpAddress();
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        LocalDateTime recentWindow = LocalDateTime.now().minusHours(RECENT_SESSIONS_WINDOW_HOURS);
         
         // Check for multiple sessions from same IP
-        List<UserSession> recentSessions = userSessionRepository.findRecentSessionsByIp(ipAddress, oneHourAgo);
-        if (recentSessions.size() > 10) {
+        List<UserSession> recentSessions = userSessionRepository.findRecentSessionsByIp(ipAddress, recentWindow);
+        if (recentSessions.size() > SUSPICIOUS_SESSIONS_THRESHOLD) {
             session.markSuspicious("Multiple sessions from same IP address in short time");
             log.warn("Suspicious activity detected: Multiple sessions from IP {}", ipAddress);
         }
         
         // Check for unusual device/location combination
-        // This could be enhanced with machine learning in the future
         if (isUnusualDeviceLocation(session)) {
             session.markSuspicious("Unusual device/location combination");
             log.warn("Suspicious activity detected: Unusual device/location for user {}", session.getUserId());

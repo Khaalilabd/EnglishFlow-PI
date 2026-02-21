@@ -8,43 +8,70 @@ import com.englishflow.auth.dto.UserIdsRequest;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.service.FileStorageService;
+import com.englishflow.auth.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/auth/users")
 @RequiredArgsConstructor
+@Slf4j
 public class UserController {
 
     private final UserRepository userRepository;
     private final FileStorageService fileStorageService;
+    private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<?> getAllUsers() {
+    public ResponseEntity<Page<UserDTO>> getAllUsers(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection) {
         try {
-            // Retourner uniquement les étudiants pour la messagerie
-            return ResponseEntity.ok(userRepository.findAll().stream()
-                .filter(user -> user.isStudent())
-                .map(user -> Map.of(
-                    "id", user.getId(),
-                    "firstName", user.getFirstName(),
-                    "lastName", user.getLastName(),
-                    "email", user.getEmail(),
-                    "profilePhotoUrl", user.getProfilePhoto() != null ? user.getProfilePhoto() : ""
-                ))
-                .toList());
+            Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+            Page<UserDTO> users = userService.getAllUsersPaginated(pageable);
+            return ResponseEntity.ok(users);
         } catch (Exception e) {
+            log.error("Failed to fetch users: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/students")
+    public ResponseEntity<List<Map<String, Object>>> getStudentsForMessaging() {
+        try {
+            // Retourner uniquement les étudiants actifs pour la messagerie
+            List<Map<String, Object>> students = userRepository.findByRoleAndIsActive(User.Role.STUDENT, true).stream()
+                .map(user -> {
+                    Map<String, Object> studentMap = new java.util.HashMap<>();
+                    studentMap.put("id", user.getId());
+                    studentMap.put("firstName", user.getFirstName());
+                    studentMap.put("lastName", user.getLastName());
+                    studentMap.put("email", user.getEmail());
+                    studentMap.put("profilePhotoUrl", user.getProfilePhoto() != null ? user.getProfilePhoto() : "");
+                    return studentMap;
+                })
+                .collect(Collectors.toList());
+            return ResponseEntity.ok(students);
+        } catch (Exception e) {
+            log.error("Failed to fetch students: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", "Failed to fetch users: " + e.getMessage()));
+                .body(List.of());
         }
     }
 
@@ -111,6 +138,16 @@ public class UserController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
+        return ResponseEntity.ok(UserDTO.fromEntity(user));
+    }
+    
+    @GetMapping("/{id}/public")
+    public ResponseEntity<UserDTO> getUserByIdPublic(@PathVariable Long id) {
+        log.info("Public endpoint called for user ID: {}", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
+        
+        log.info("Found user: {} {}", user.getFirstName(), user.getLastName());
         return ResponseEntity.ok(UserDTO.fromEntity(user));
     }
 

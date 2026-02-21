@@ -30,7 +30,7 @@ export class WebSocketService {
     }
 
     this.stompClient = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+      webSocketFactory: () => new SockJS('http://localhost:8084/ws'),
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
@@ -38,8 +38,8 @@ export class WebSocketService {
         console.log('STOMP: ' + str);
       },
       reconnectDelay: 5000,
-      heartbeatIncoming: 4000,
-      heartbeatOutgoing: 4000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
         console.log('WebSocket connected');
         this.connected$.next(true);

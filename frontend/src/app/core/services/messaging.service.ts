@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Conversation, CreateConversationRequest } from '../models/conversation.model';
-import { Message, SendMessageRequest, Page } from '../models/message.model';
+import { Message, SendMessageRequest, Page, ReactionSummary, AddReactionRequest } from '../models/message.model';
 import { User } from '../models/user.model';
 import { environment } from '../../../environments/environment';
 
@@ -56,5 +56,15 @@ export class MessagingService {
   // Unread count
   getUnreadCount(): Observable<{ count: number }> {
     return this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`);
+  }
+
+  // Reactions
+  toggleReaction(messageId: number, emoji: string): Observable<any> {
+    const request: AddReactionRequest = { emoji };
+    return this.http.post(`${this.apiUrl}/messages/${messageId}/reactions`, request);
+  }
+
+  getReactions(messageId: number): Observable<ReactionSummary[]> {
+    return this.http.get<ReactionSummary[]>(`${this.apiUrl}/messages/${messageId}/reactions`);
   }
 }

@@ -46,6 +46,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/login", "/auth/register", "/auth/activate/**", "/auth/activate-api", "/auth/forgot-password", "/auth/reset-password", "/auth/complete-profile/**", "/auth/activation-status/**").permitAll()
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/activate/**", "/api/auth/activate-api", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/complete-profile/**", "/api/auth/activation-status/**").permitAll()
                         .requestMatchers("/actuator/**", "/oauth2/**", "/login/oauth2/**", "/public/**", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
+                        // Endpoint public pour récupérer les infos utilisateur (pour inter-service communication)
+                        .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public").permitAll()
                         // Endpoints password reset
                         .requestMatchers("/auth/password-reset/**", "/api/auth/password-reset/**").permitAll()
                         // Endpoints d'invitation

@@ -6,6 +6,7 @@ import com.englishflow.auth.entity.UserSession;
 import com.englishflow.auth.service.UserSessionService;
 import com.englishflow.auth.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/sessions")
 @RequiredArgsConstructor
+@Slf4j
 public class SessionController {
 
     private final UserSessionService userSessionService;

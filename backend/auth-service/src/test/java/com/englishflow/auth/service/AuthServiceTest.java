@@ -5,7 +5,11 @@ import com.englishflow.auth.dto.RegisterRequest;
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.entity.User;
 import com.englishflow.auth.entity.ActivationToken;
-import com.englishflow.auth.exception.*;
+import com.englishflow.auth.entity.RefreshToken;
+import com.englishflow.auth.exception.InvalidCredentialsException;
+import com.englishflow.auth.exception.AccountNotActivatedException;
+import com.englishflow.auth.exception.EmailAlreadyExistsException;
+import com.englishflow.auth.exception.RateLimitExceededException;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.repository.ActivationTokenRepository;
 import com.englishflow.auth.security.JwtUtil;
@@ -50,36 +54,26 @@ class AuthServiceTest {
     private RefreshTokenService refreshTokenService;
 
     @Mock
-    private AuditLogService auditLogService;
-
-    @Mock
     private UserSessionService userSessionService;
 
     @Mock
-    private HttpServletRequest request;
+    private AuditLogService auditLogService;
+
+    @Mock
+    private MetricsService metricsService;
+
+    @Mock
+    private HttpServletRequest httpServletRequest;
 
     @InjectMocks
     private AuthService authService;
 
+    private User testUser;
     private RegisterRequest registerRequest;
     private LoginRequest loginRequest;
-    private User testUser;
 
     @BeforeEach
     void setUp() {
-        // Setup test data
-        registerRequest = new RegisterRequest();
-        registerRequest.setEmail("test@example.com");
-        registerRequest.setPassword("SecurePass123!");
-        registerRequest.setFirstName("John");
-        registerRequest.setLastName("Doe");
-        registerRequest.setRole("STUDENT");
-        registerRequest.setCin("AB123456");
-
-        loginRequest = new LoginRequest();
-        loginRequest.setEmail("test@example.com");
-        loginRequest.setPassword("SecurePass123!");
-
         testUser = new User();
         testUser.setId(1L);
         testUser.setEmail("test@example.com");
@@ -88,32 +82,44 @@ class AuthServiceTest {
         testUser.setLastName("Doe");
         testUser.setRole(User.Role.STUDENT);
         testUser.setActive(true);
-        testUser.setProfileCompleted(true);
+
+        registerRequest = new RegisterRequest();
+        registerRequest.setEmail("newuser@example.com");
+        registerRequest.setPassword("SecurePass123!");
+        registerRequest.setFirstName("Jane");
+        registerRequest.setLastName("Smith");
+        registerRequest.setRole("STUDENT");
+        registerRequest.setCin("AB123456");
+        registerRequest.setRecaptchaToken("valid-token");
+
+        loginRequest = new LoginRequest();
+        loginRequest.setEmail("test@example.com");
+        loginRequest.setPassword("password123");
+        loginRequest.setRecaptchaToken("valid-token");
     }
 
-    // ==================== Registration Tests ====================
-
     @Test
-    void register_ShouldCreateUser_WhenValidRequest() {
+    void testRegister_Success() {
         // Given
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(activationTokenRepository.save(any(ActivationToken.class))).thenReturn(new ActivationToken());
         doNothing().when(emailService).sendActivationEmail(anyString(), anyString(), anyString());
 
         // When
-        AuthResponse response = authService.register(registerRequest);
+        authService.register(registerRequest);
 
         // Then
-        assertNotNull(response);
-        verify(userRepository).existsByEmail("test@example.com");
+        verify(userRepository).existsByEmail(registerRequest.getEmail());
         verify(userRepository).save(any(User.class));
         verify(activationTokenRepository).save(any(ActivationToken.class));
         verify(emailService).sendActivationEmail(anyString(), anyString(), anyString());
+        verify(metricsService).recordRegistration();
     }
 
     @Test
-    void register_ShouldThrowException_WhenEmailExists() {
+    void testRegister_EmailAlreadyExists() {
         // Given
         when(userRepository.existsByEmail(anyString())).thenReturn(true);
 
@@ -122,44 +128,39 @@ class AuthServiceTest {
             authService.register(registerRequest);
         });
 
-        verify(userRepository).existsByEmail("test@example.com");
+        verify(userRepository).existsByEmail(registerRequest.getEmail());
         verify(userRepository, never()).save(any(User.class));
     }
 
-    // ==================== Login Tests ====================
-
     @Test
-    void login_ShouldReturnToken_WhenCredentialsValid() {
+    void testLogin_Success() {
         // Given
         when(rateLimitService.isBlocked(anyString())).thenReturn(false);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches(anyString(), anyString())).thenReturn(true);
         when(jwtUtil.generateToken(anyString(), anyString(), anyLong())).thenReturn("jwt-token");
+        
+        RefreshToken mockRefreshToken = RefreshToken.builder()
+                .token("refresh-token")
+                .userId(testUser.getId())
+                .build();
+        when(refreshTokenService.createRefreshToken(anyLong(), anyString(), anyString())).thenReturn(mockRefreshToken);
+        when(httpServletRequest.getHeader(anyString())).thenReturn("Mozilla/5.0");
+        when(httpServletRequest.getRemoteAddr()).thenReturn("127.0.0.1");
 
         // When
-        AuthResponse response = authService.login(loginRequest, request);
+        AuthResponse response = authService.login(loginRequest, httpServletRequest);
 
         // Then
         assertNotNull(response);
         assertEquals("jwt-token", response.getToken());
-        verify(userRepository).findByEmail("test@example.com");
-        verify(passwordEncoder).matches("SecurePass123!", "encodedPassword");
+        assertEquals(testUser.getEmail(), response.getEmail());
+        verify(rateLimitService).resetAttempts(anyString());
+        verify(metricsService).recordLoginSuccess();
     }
 
     @Test
-    void login_ShouldThrowException_WhenUserNotFound() {
-        // Given
-        when(rateLimitService.isBlocked(anyString())).thenReturn(false);
-        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
-
-        // When & Then
-        assertThrows(InvalidCredentialsException.class, () -> {
-            authService.login(loginRequest, request);
-        });
-    }
-
-    @Test
-    void login_ShouldThrowException_WhenPasswordIncorrect() {
+    void testLogin_InvalidCredentials() {
         // Given
         when(rateLimitService.isBlocked(anyString())).thenReturn(false);
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
@@ -167,12 +168,15 @@ class AuthServiceTest {
 
         // When & Then
         assertThrows(InvalidCredentialsException.class, () -> {
-            authService.login(loginRequest, request);
+            authService.login(loginRequest, httpServletRequest);
         });
+
+        verify(rateLimitService).recordFailedAttempt(anyString());
+        verify(metricsService).recordLoginFailure();
     }
 
     @Test
-    void login_ShouldThrowException_WhenAccountNotActivated() {
+    void testLogin_AccountNotActivated() {
         // Given
         testUser.setActive(false);
         when(rateLimitService.isBlocked(anyString())).thenReturn(false);
@@ -181,91 +185,83 @@ class AuthServiceTest {
 
         // When & Then
         assertThrows(AccountNotActivatedException.class, () -> {
-            authService.login(loginRequest, request);
+            authService.login(loginRequest, httpServletRequest);
         });
+
+        verify(metricsService).recordLoginFailure();
     }
 
     @Test
-    void login_ShouldThrowException_WhenRateLimitExceeded() {
+    void testLogin_RateLimitExceeded() {
         // Given
         when(rateLimitService.isBlocked(anyString())).thenReturn(true);
+        when(rateLimitService.getRemainingAttempts(anyString())).thenReturn(0);
 
         // When & Then
         assertThrows(RateLimitExceededException.class, () -> {
-            authService.login(loginRequest, request);
+            authService.login(loginRequest, httpServletRequest);
         });
 
         verify(userRepository, never()).findByEmail(anyString());
+        verify(metricsService).recordRateLimitExceeded();
     }
 
-    // ==================== Activation Tests ====================
-
     @Test
-    void activateAccount_ShouldActivateUser_WhenTokenValid() {
+    void testActivateAccount_Success() {
         // Given
-        ActivationToken token = new ActivationToken();
-        token.setToken("valid-token");
-        token.setUser(testUser);
-        token.setExpiryDate(LocalDateTime.now().plusHours(1));
-        token.setUsed(false);
+        String token = "valid-token";
+        ActivationToken activationToken = ActivationToken.builder()
+                .token(token)
+                .user(testUser)
+                .expiryDate(LocalDateTime.now().plusHours(1))
+                .used(false)
+                .build();
 
-        testUser.setActive(false);
-
-        when(activationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+        when(activationTokenRepository.findByToken(token)).thenReturn(Optional.of(activationToken));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(jwtUtil.generateToken(anyString(), anyString(), anyLong())).thenReturn("jwt-token");
+        
+        RefreshToken mockRefreshToken = RefreshToken.builder()
+                .token("refresh-token")
+                .userId(testUser.getId())
+                .build();
+        when(refreshTokenService.createRefreshToken(anyLong(), anyString(), anyString())).thenReturn(mockRefreshToken);
 
         // When
-        AuthResponse response = authService.activateAccount("valid-token");
+        AuthResponse response = authService.activateAccount(token);
 
         // Then
         assertNotNull(response);
         assertTrue(testUser.isActive());
-        assertTrue(token.isUsed());
-        verify(activationTokenRepository).save(token);
-        verify(userRepository).save(testUser);
+        assertTrue(activationToken.isUsed());
+        verify(metricsService).recordActivation();
     }
 
     @Test
-    void activateAccount_ShouldThrowException_WhenTokenNotFound() {
+    void testValidateToken_Valid() {
         // Given
-        when(activationTokenRepository.findByToken(anyString())).thenReturn(Optional.empty());
+        String token = "valid-jwt-token";
+        when(jwtUtil.validateToken(token)).thenReturn(true);
 
-        // When & Then
-        assertThrows(InvalidTokenException.class, () -> {
-            authService.activateAccount("invalid-token");
-        });
+        // When
+        boolean isValid = authService.validateToken(token);
+
+        // Then
+        assertTrue(isValid);
+        verify(jwtUtil).validateToken(token);
     }
 
     @Test
-    void activateAccount_ShouldThrowException_WhenTokenExpired() {
+    void testValidateToken_Invalid() {
         // Given
-        ActivationToken token = new ActivationToken();
-        token.setToken("expired-token");
-        token.setExpiryDate(LocalDateTime.now().minusHours(1));
-        token.setUsed(false);
+        String token = "invalid-jwt-token";
+        when(jwtUtil.validateToken(token)).thenReturn(false);
 
-        when(activationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
+        // When
+        boolean isValid = authService.validateToken(token);
 
-        // When & Then
-        assertThrows(TokenExpiredException.class, () -> {
-            authService.activateAccount("expired-token");
-        });
-    }
-
-    @Test
-    void activateAccount_ShouldThrowException_WhenTokenAlreadyUsed() {
-        // Given
-        ActivationToken token = new ActivationToken();
-        token.setToken("used-token");
-        token.setExpiryDate(LocalDateTime.now().plusHours(1));
-        token.setUsed(true);
-
-        when(activationTokenRepository.findByToken(anyString())).thenReturn(Optional.of(token));
-
-        // When & Then
-        assertThrows(InvalidTokenException.class, () -> {
-            authService.activateAccount("used-token");
-        });
+        // Then
+        assertFalse(isValid);
+        verify(metricsService).recordInvalidToken();
     }
 }

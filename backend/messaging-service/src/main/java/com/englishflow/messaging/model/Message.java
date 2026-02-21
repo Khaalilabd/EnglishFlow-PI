@@ -69,6 +69,9 @@ public class Message {
     @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MessageReadStatus> readStatuses = new ArrayList<>();
     
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MessageReaction> reactions = new ArrayList<>();
+    
     public enum MessageType {
         TEXT, FILE, IMAGE
     }

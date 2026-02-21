@@ -13,6 +13,7 @@ export interface Message {
   createdAt: Date;
   updatedAt: Date;
   readBy?: MessageReadStatus[];
+  reactions?: ReactionSummary[];
 }
 
 export enum MessageType {
@@ -48,4 +49,15 @@ export interface Page<T> {
   totalPages: number;
   size: number;
   number: number;
+}
+
+export interface ReactionSummary {
+  emoji: string;
+  count: number;
+  userNames: string[];
+  reactedByCurrentUser: boolean;
+}
+
+export interface AddReactionRequest {
+  emoji: string;
 }

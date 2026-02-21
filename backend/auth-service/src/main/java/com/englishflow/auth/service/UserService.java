@@ -8,6 +8,9 @@ import com.englishflow.auth.entity.User;
 import com.englishflow.auth.repository.ActivationTokenRepository;
 import com.englishflow.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +22,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class UserService {
 
     private final UserRepository userRepository;
@@ -30,6 +34,11 @@ public class UserService {
         return userRepository.findAll().stream()
                 .map(UserDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    public Page<UserDTO> getAllUsersPaginated(Pageable pageable) {
+        return userRepository.findAll(pageable)
+                .map(UserDTO::fromEntity);
     }
 
     public UserDTO getUserById(Long id) {
@@ -241,19 +250,16 @@ public class UserService {
                     .build();
             activationTokenRepository.save(token);
             
-            // Send account created email with credentials
+            // Send account created email with activation link (NO PASSWORD)
             try {
-                emailService.sendAccountCreatedEmail(
+                emailService.sendActivationEmail(
                     savedUser.getEmail(), 
                     savedUser.getFirstName(), 
-                    savedUser.getEmail(),
-                    request.getPassword(), // Le mot de passe en clair (avant encodage)
-                    savedUser.getRole().name(),
                     activationToken
                 );
-                System.out.println("✅ Account created email sent to: " + savedUser.getEmail());
+                log.info("Account created email sent to: {}", savedUser.getEmail());
             } catch (Exception e) {
-                System.err.println("❌ Failed to send account created email: " + e.getMessage());
+                log.error("Failed to send account created email to {}: {}", savedUser.getEmail(), e.getMessage());
                 // Continue anyway - admin can activate manually
             }
             

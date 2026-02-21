@@ -26,4 +26,5 @@ public class MessageDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ReadStatusDTO> readBy;
+    private List<ReactionSummaryDTO> reactions;
 }

@@ -1,7 +1,11 @@
 package com.englishflow.messaging.service;
 
 import com.englishflow.messaging.client.AuthServiceClient;
+import com.englishflow.messaging.constants.MessagingConstants;
 import com.englishflow.messaging.dto.*;
+import com.englishflow.messaging.exception.ConversationNotFoundException;
+import com.englishflow.messaging.exception.MessageValidationException;
+import com.englishflow.messaging.exception.UnauthorizedAccessException;
 import com.englishflow.messaging.model.*;
 import com.englishflow.messaging.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +47,7 @@ public class MessagingService {
     public ConversationDTO getConversation(Long conversationId, Long userId) {
         log.debug("Getting conversation {} for user {}", conversationId, userId);
         Conversation conversation = conversationRepository.findByIdAndUserId(conversationId, userId)
-            .orElseThrow(() -> new RuntimeException("Conversation not found or access denied"));
+            .orElseThrow(() -> new ConversationNotFoundException(conversationId));
         
         return convertToDTO(conversation, userId);
     }
@@ -87,7 +91,7 @@ public class MessagingService {
         
         // Recharger la conversation avec les participants pour éviter LazyInitializationException
         conversation = conversationRepository.findByIdWithParticipants(conversation.getId())
-            .orElseThrow(() -> new RuntimeException("Conversation not found after creation"));
+            .orElseThrow(() -> new ConversationNotFoundException("Conversation not found after creation"));
         
         return convertToDTO(conversation, currentUserId);
     }
@@ -113,7 +117,15 @@ public class MessagingService {
         
         // Vérifier que l'utilisateur est participant
         if (!participantRepository.existsByConversationIdAndUserId(conversationId, userId)) {
-            throw new RuntimeException("Access denied to this conversation");
+            throw new UnauthorizedAccessException(conversationId, userId);
+        }
+        
+        // Valider et limiter la taille de la page
+        if (size > MessagingConstants.MAX_PAGE_SIZE) {
+            size = MessagingConstants.MAX_PAGE_SIZE;
+        }
+        if (size < MessagingConstants.MIN_PAGE_SIZE) {
+            size = MessagingConstants.DEFAULT_PAGE_SIZE;
         }
         
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
@@ -127,12 +139,20 @@ public class MessagingService {
                                   String senderName, String senderAvatar) {
         log.debug("Sending message to conversation {} from user {}", conversationId, senderId);
         
-        Conversation conversation = conversationRepository.findById(conversationId)
-            .orElseThrow(() -> new RuntimeException("Conversation not found"));
+        // Validation du contenu
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_EMPTY);
+        }
+        if (request.getContent().length() > MessagingConstants.MAX_MESSAGE_LENGTH) {
+            throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_TOO_LONG);
+        }
         
-        // Vérifier que l'utilisateur est participant
+        Conversation conversation = conversationRepository.findById(conversationId)
+            .orElseThrow(() -> new ConversationNotFoundException(conversationId));
+        
+        // Vérifier que l'utilisateur est participant (SÉCURITÉ CRITIQUE)
         if (!participantRepository.existsByConversationIdAndUserId(conversationId, senderId)) {
-            throw new RuntimeException("Access denied to this conversation");
+            throw new UnauthorizedAccessException(conversationId, senderId);
         }
         
         Message message = new Message();
@@ -140,7 +160,7 @@ public class MessagingService {
         message.setSenderId(senderId);
         message.setSenderName(senderName);
         message.setSenderAvatar(senderAvatar);
-        message.setContent(request.getContent());
+        message.setContent(request.getContent().trim());
         message.setMessageType(request.getMessageType());
         message.setFileUrl(request.getFileUrl());
         message.setFileName(request.getFileName());
@@ -154,6 +174,9 @@ public class MessagingService {
         conversation.setLastMessageAt(LocalDateTime.now());
         conversationRepository.save(conversation);
         
+        log.info("Message {} sent successfully to conversation {} by user {}", 
+                 message.getId(), conversationId, senderId);
+        
         return convertToMessageDTO(message);
     }
     
@@ -163,7 +186,7 @@ public class MessagingService {
         
         ConversationParticipant participant = participantRepository
             .findByConversationIdAndUserId(conversationId, userId)
-            .orElseThrow(() -> new RuntimeException("Participant not found"));
+            .orElseThrow(() -> new UnauthorizedAccessException(conversationId, userId));
         
         participant.setLastReadAt(LocalDateTime.now());
         participantRepository.save(participant);
@@ -221,10 +244,23 @@ public class MessagingService {
     private ParticipantDTO convertToParticipantDTO(ConversationParticipant participant) {
         ParticipantDTO dto = new ParticipantDTO();
         dto.setUserId(participant.getUserId());
-        dto.setUserName(participant.getUserName());
-        dto.setUserEmail(participant.getUserEmail());
-        dto.setUserRole(participant.getUserRole());
-        dto.setUserAvatar(participant.getUserAvatar());
+        
+        // Récupérer les infos à jour depuis auth-service
+        try {
+            AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(participant.getUserId());
+            dto.setUserName(userInfo.getFullName());
+            dto.setUserEmail(userInfo.getEmail());
+            dto.setUserRole(userInfo.getRole());
+            dto.setUserAvatar(userInfo.getProfilePhotoUrl());
+        } catch (Exception e) {
+            log.warn("Failed to fetch user info for participant {}, using cached data", participant.getUserId());
+            // Fallback sur les données en cache
+            dto.setUserName(participant.getUserName());
+            dto.setUserEmail(participant.getUserEmail());
+            dto.setUserRole(participant.getUserRole());
+            dto.setUserAvatar(participant.getUserAvatar());
+        }
+        
         dto.setIsOnline(false); // TODO: Implémenter le statut en ligne
         dto.setLastReadAt(participant.getLastReadAt());
         return dto;
@@ -253,5 +289,9 @@ public class MessagingService {
         dto.setReadBy(readStatuses);
         
         return dto;
+    }
+    
+    public boolean hasAccessToConversation(Long conversationId, Long userId) {
+        return participantRepository.existsByConversationIdAndUserId(conversationId, userId);
     }
 }

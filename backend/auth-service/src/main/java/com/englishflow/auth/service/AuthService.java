@@ -8,6 +8,7 @@ import com.englishflow.auth.dto.PasswordResetConfirm;
 import com.englishflow.auth.dto.RefreshTokenRequest;
 import com.englishflow.auth.dto.RefreshTokenResponse;
 import com.englishflow.auth.entity.User;
+import com.englishflow.auth.entity.UserSession;
 import com.englishflow.auth.entity.PasswordResetToken;
 import com.englishflow.auth.entity.ActivationToken;
 import com.englishflow.auth.entity.RefreshToken;
@@ -363,10 +364,11 @@ public class AuthService {
         
         // Create user session
         try {
-            userSessionService.createSession(user.getId(), request);
-            log.info("Session created for user: {}", user.getEmail());
+            log.info("Attempting to create session for user: {} (ID: {})", user.getEmail(), user.getId());
+            UserSession session = userSessionService.createSession(user.getId(), request);
+            log.info("Session created successfully for user: {} with token: {}", user.getEmail(), session.getSessionToken());
         } catch (Exception e) {
-            log.error("Failed to create session for user: {}", user.getEmail(), e);
+            log.error("Failed to create session for user: {} - Error: {}", user.getEmail(), e.getMessage(), e);
             // Continue anyway - session tracking is not critical for login
         }
         
