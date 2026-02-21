@@ -87,18 +87,66 @@
       <!-- Messages -->
       <div class="messages-area" #messagesArea>
         <div *ngFor="let msg of messages" 
-             class="message"
-             [class.sent]="msg.senderId === currentUserId"
-             [class.received]="msg.senderId !== currentUserId">
-          <div class="message-avatar" *ngIf="msg.senderId !== currentUserId">
-            <img [src]="msg.senderAvatar && !msg.senderAvatar.includes('ui-avatars.com') ? 'http://localhost:8080' + msg.senderAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.senderName) + '&background=667eea&color=fff&bold=true&size=128'" 
-                 [alt]="msg.senderName">
-          </div>
-          <div class="message-bubble">
-            <div class="message-content">
-              <p>{{ msg.content }}</p>
-              <span class="message-time">{{ formatMessageTime(msg.createdAt) }}</span>
+             class="message-wrapper"
+             (mouseenter)="onMessageMouseEnter(msg.id)"
+             (mouseleave)="onMessageMouseLeave(msg.id)">
+          <div class="message"
+               [class.sent]="msg.senderId === currentUserId"
+               [class.received]="msg.senderId !== currentUserId"
+               [class.emoji-message]="msg.messageType === 'EMOJI'">
+            <div class="message-avatar" *ngIf="msg.senderId !== currentUserId">
+              <img [src]="msg.senderAvatar && !msg.senderAvatar.includes('ui-avatars.com') ? 'http://localhost:8080' + msg.senderAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(msg.senderName) + '&background=667eea&color=fff&bold=true&size=128'" 
+                   [alt]="msg.senderName">
             </div>
+            
+            <div class="message-content-wrapper">
+              <div class="message-bubble" [class.emoji-bubble]="msg.messageType === 'EMOJI'">
+                <div class="message-content">
+                  <p *ngIf="msg.messageType !== 'EMOJI'">{{ msg.content }}</p>
+                  <span *ngIf="msg.messageType === 'EMOJI'" class="emoji-large">{{ msg.content }}</span>
+                  <span class="message-time" *ngIf="msg.messageType !== 'EMOJI'">{{ formatMessageTime(msg.createdAt) }}</span>
+                </div>
+              </div>
+              
+              <!-- Reactions Display -->
+              <div class="reactions-container" *ngIf="hasReactions(msg)">
+                <button *ngFor="let reaction of msg.reactions"
+                        class="reaction-badge"
+                        [class.reacted]="reaction.reactedByCurrentUser"
+                        [title]="getReactionTooltip(reaction)"
+                        (click)="addReaction(msg.id, reaction.emoji)">
+                  <span class="reaction-emoji">{{ reaction.emoji }}</span>
+                  <span class="reaction-count">{{ reaction.count }}</span>
+                </button>
+              </div>
+              
+              <!-- Quick Reaction Picker -->
+              <div class="quick-reaction-picker" 
+                   *ngIf="showReactionPicker[msg.id]"
+                   (mouseenter)="onMessageMouseEnter(msg.id)"
+                   (mouseleave)="onMessageMouseLeave(msg.id)">
+                <button *ngFor="let emoji of quickReactionEmojis"
+                        class="quick-reaction-item"
+                        (click)="addReaction(msg.id, emoji)"
+                        [title]="emoji">
+                  {{ emoji }}
+                </button>
+              </div>
+            </div>
+            
+            <!-- Add Reaction Button (appears on hover next to message) -->
+            <button class="add-reaction-btn" 
+                    *ngIf="(hoveredMessageId === msg.id || showReactionPicker[msg.id]) && msg.messageType !== 'EMOJI'"
+                    (click)="toggleReactionPicker(msg.id)"
+                    (mouseenter)="onMessageMouseEnter(msg.id)"
+                    title="Ajouter une réaction">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="9" cy="9" r="1" fill="currentColor"/>
+                <circle cx="15" cy="9" r="1" fill="currentColor"/>
+              </svg>
+            </button>
           </div>
         </div>
 
@@ -153,12 +201,31 @@
             <h4>Choisir un emoji</h4>
             <button class="close-btn" (click)="toggleEmojiPicker()">×</button>
           </div>
-          <div class="emoji-grid">
-            <button *ngFor="let emoji of popularEmojis" 
-                    class="emoji-item" 
-                    (click)="insertEmoji(emoji)">
-              {{ emoji }}
-            </button>
+          
+          <!-- Quick Reactions -->
+          <div class="quick-reactions">
+            <span class="section-label">Réactions rapides</span>
+            <div class="quick-emoji-grid">
+              <button *ngFor="let emoji of quickReactionEmojis" 
+                      class="quick-emoji-item" 
+                      (click)="sendEmojiAsMessage(emoji)"
+                      [title]="'Envoyer ' + emoji">
+                {{ emoji }}
+              </button>
+            </div>
+          </div>
+          
+          <!-- All Emojis -->
+          <div class="all-emojis">
+            <span class="section-label">Tous les emojis</span>
+            <div class="emoji-grid">
+              <button *ngFor="let emoji of popularEmojis" 
+                      class="emoji-item" 
+                      (click)="insertEmoji(emoji)"
+                      [title]="'Insérer ' + emoji">
+                {{ emoji }}
+              </button>
+            </div>
           </div>
         </div>
       </div>

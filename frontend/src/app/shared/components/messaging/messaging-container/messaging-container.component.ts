@@ -31,6 +31,8 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   showNewConversationModal: boolean = false;
   showEmojiPicker: boolean = false;
   hoveredMessageId: number | null = null;
+  showReactionPicker: { [messageId: number]: boolean } = {};
+  private hoverTimeout: any = null;
   
   popularEmojis: string[] = [
     '😀', '😃', '😄', '😁', '😅', '😂', '🤣', '😊', '😇', '🙂',
@@ -44,6 +46,8 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️',
     '✨', '⭐', '🌟', '💫', '🔥', '💥', '💯', '✅', '🎉', '🎊'
   ];
+  
+  quickReactionEmojis: string[] = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
   
   private destroy$ = new Subject<void>();
   private typingTimeout: any;
@@ -144,6 +148,25 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
           }
         }
       });
+    
+    // S'abonner aux mises à jour de réactions pour tous les messages
+    this.subscribeToReactionUpdates();
+  }
+  
+  subscribeToReactionUpdates(): void {
+    // S'abonner aux mises à jour de réactions pour chaque message
+    this.messages.forEach(message => {
+      this.webSocketService.subscribeToReactions(message.id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (reactions) => {
+            const msg = this.messages.find(m => m.id === message.id);
+            if (msg) {
+              msg.reactions = reactions;
+            }
+          }
+        });
+    });
   }
 
   sendMessage(): void {
@@ -240,6 +263,25 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     this.showEmojiPicker = false;
     this.messageInput.nativeElement.focus();
   }
+  
+  sendEmojiAsMessage(emoji: string): void {
+    if (!this.selectedConversation) return;
+    
+    const emojiCode = this.getEmojiUnicode(emoji);
+    const request: SendMessageRequest = {
+      content: emoji,
+      messageType: MessageType.EMOJI,
+      emojiCode: emojiCode
+    };
+    
+    this.webSocketService.sendMessage(this.selectedConversation.id, request);
+    this.showEmojiPicker = false;
+  }
+  
+  getEmojiUnicode(emoji: string): string {
+    const codePoint = emoji.codePointAt(0);
+    return codePoint ? `U+${codePoint.toString(16).toUpperCase()}` : emoji;
+  }
 
   addEmoji(event: any): void {
     const emoji = event.emoji.native;
@@ -258,6 +300,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         next: () => {
           // La mise à jour sera reçue via WebSocket
           console.log('Reaction toggled:', emoji, 'on message', messageId);
+          this.closeReactionPicker(messageId);
         },
         error: (error) => console.error('Error toggling reaction:', error)
       });
@@ -270,5 +313,35 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
       return `${reaction.userNames[0]} et ${reaction.userNames[1]}`;
     }
     return `${reaction.userNames[0]}, ${reaction.userNames[1]} et ${reaction.userNames.length - 2} autre(s)`;
+  }
+  
+  toggleReactionPicker(messageId: number): void {
+    this.showReactionPicker[messageId] = !this.showReactionPicker[messageId];
+  }
+  
+  onMessageMouseEnter(messageId: number): void {
+    if (this.hoverTimeout) {
+      clearTimeout(this.hoverTimeout);
+    }
+    this.hoveredMessageId = messageId;
+  }
+  
+  onMessageMouseLeave(messageId: number): void {
+    // Délai avant de cacher le bouton pour permettre de cliquer
+    this.hoverTimeout = setTimeout(() => {
+      // Ne cacher que si le picker n'est pas ouvert
+      if (!this.showReactionPicker[messageId]) {
+        this.hoveredMessageId = null;
+      }
+    }, 300);
+  }
+  
+  closeReactionPicker(messageId: number): void {
+    this.showReactionPicker[messageId] = false;
+    this.hoveredMessageId = null;
+  }
+  
+  hasReactions(message: Message): boolean {
+    return !!(message.reactions && message.reactions.length > 0);
   }
 }

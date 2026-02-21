@@ -22,6 +22,7 @@ public class MessageDTO {
     private String fileUrl;
     private String fileName;
     private Long fileSize;
+    private String emojiCode;
     private Boolean isEdited;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

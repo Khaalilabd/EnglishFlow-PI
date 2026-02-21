@@ -139,12 +139,24 @@ public class MessagingService {
                                   String senderName, String senderAvatar) {
         log.debug("Sending message to conversation {} from user {}", conversationId, senderId);
         
-        // Validation du contenu
-        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
-            throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_EMPTY);
-        }
-        if (request.getContent().length() > MessagingConstants.MAX_MESSAGE_LENGTH) {
-            throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_TOO_LONG);
+        // Validation du contenu selon le type de message
+        if (request.getMessageType() == Message.MessageType.EMOJI) {
+            // Pour les emojis, le contenu peut être vide mais l'emojiCode doit être présent
+            if (request.getEmojiCode() == null || request.getEmojiCode().trim().isEmpty()) {
+                throw new MessageValidationException("Emoji code is required for EMOJI message type");
+            }
+            // Valider le format du code emoji (ex: U+1F600 ou emoji natif)
+            if (request.getEmojiCode().length() > 50) {
+                throw new MessageValidationException("Emoji code is too long");
+            }
+        } else {
+            // Pour les autres types, le contenu est obligatoire
+            if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+                throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_EMPTY);
+            }
+            if (request.getContent().length() > MessagingConstants.MAX_MESSAGE_LENGTH) {
+                throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_TOO_LONG);
+            }
         }
         
         Conversation conversation = conversationRepository.findById(conversationId)
@@ -160,11 +172,12 @@ public class MessagingService {
         message.setSenderId(senderId);
         message.setSenderName(senderName);
         message.setSenderAvatar(senderAvatar);
-        message.setContent(request.getContent().trim());
+        message.setContent(request.getContent() != null ? request.getContent().trim() : "");
         message.setMessageType(request.getMessageType());
         message.setFileUrl(request.getFileUrl());
         message.setFileName(request.getFileName());
         message.setFileSize(request.getFileSize());
+        message.setEmojiCode(request.getEmojiCode());
         message.setIsEdited(false);
         message.setCreatedAt(LocalDateTime.now());
         
@@ -278,6 +291,7 @@ public class MessagingService {
         dto.setFileUrl(message.getFileUrl());
         dto.setFileName(message.getFileName());
         dto.setFileSize(message.getFileSize());
+        dto.setEmojiCode(message.getEmojiCode());
         dto.setIsEdited(message.getIsEdited());
         dto.setCreatedAt(message.getCreatedAt());
         dto.setUpdatedAt(message.getUpdatedAt());

@@ -9,6 +9,7 @@ export interface Message {
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;
+  emojiCode?: string;
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -19,7 +20,8 @@ export interface Message {
 export enum MessageType {
   TEXT = 'TEXT',
   FILE = 'FILE',
-  IMAGE = 'IMAGE'
+  IMAGE = 'IMAGE',
+  EMOJI = 'EMOJI'
 }
 
 export interface MessageReadStatus {
@@ -34,6 +36,7 @@ export interface SendMessageRequest {
   fileUrl?: string;
   fileName?: string;
   fileSize?: number;
+  emojiCode?: string;
 }
 
 export interface TypingIndicator {

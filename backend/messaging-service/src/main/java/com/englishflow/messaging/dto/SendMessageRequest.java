@@ -27,4 +27,7 @@ public class SendMessageRequest {
     private String fileName;
     
     private Long fileSize;
+    
+    @Size(max = 50, message = "Emoji code must not exceed 50 characters")
+    private String emojiCode;
 }

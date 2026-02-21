@@ -502,7 +502,7 @@ $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
   background: transparent;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
   min-height: 0;
 
   &::-webkit-scrollbar {
@@ -519,47 +519,6 @@ $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
 
     &:hover {
       background: rgba($primary, 0.5);
-    }
-  }
-}
-
-.message {
-  display: flex;
-  gap: 10px;
-  animation: slideInUp 0.3s ease;
-  align-items: flex-end;
-  max-width: 70%;
-
-  &.sent {
-    flex-direction: row-reverse;
-    align-self: flex-end;
-
-    .message-bubble {
-      background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
-      color: white;
-      border-radius: 18px 18px 4px 18px;
-      box-shadow: 0 2px 8px rgba($primary, 0.3);
-      
-      .message-time {
-        color: rgba(255, 255, 255, 0.9);
-      }
-    }
-    
-    .message-avatar {
-      display: none;
-    }
-  }
-
-  &.received {
-    flex-direction: row;
-    align-self: flex-start;
-
-    .message-bubble {
-      background: $bg-white;
-      color: $text-dark;
-      border-radius: 18px 18px 18px 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border: 1px solid $border-color;
     }
   }
 }
@@ -894,4 +853,377 @@ $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
   &:active {
     transform: scale(1);
   }
+}
+
+// ===== EMOJI MESSAGE STYLES =====
+.message.emoji-message {
+  max-width: auto;
+  
+  .message-bubble.emoji-bubble {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 4px 8px !important;
+    
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: none !important;
+    }
+  }
+  
+  .emoji-large {
+    font-size: 48px;
+    line-height: 1;
+    display: block;
+    animation: bounce 0.5s ease;
+  }
+}
+
+// ===== QUICK REACTIONS SECTION =====
+.quick-reactions {
+  padding: 16px 20px;
+  border-bottom: 1px solid $border-color;
+  background: $bg-light;
+  
+  .section-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-gray;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+}
+
+.quick-emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.quick-emoji-item {
+  width: 100%;
+  aspect-ratio: 1;
+  border: 2px solid $border-color;
+  background: white;
+  font-size: 28px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: $shadow-sm;
+  
+  &:hover {
+    background: $primary;
+    border-color: $primary;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba($primary, 0.3);
+  }
+  
+  &:active {
+    transform: scale(1.05);
+  }
+}
+
+// ===== ALL EMOJIS SECTION =====
+.all-emojis {
+  padding: 16px 20px;
+  
+  .section-label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-gray;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+  }
+}
+
+// ===== MESSAGE REACTIONS =====
+.message-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  animation: slideInUp 0.3s ease;
+  margin-bottom: 8px;
+}
+
+.message {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  max-width: 70%;
+  position: relative;
+
+  &.sent {
+    flex-direction: row-reverse;
+    align-self: flex-end;
+
+    .message-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .message-bubble {
+      background: linear-gradient(135deg, $primary 0%, $primary-dark 100%);
+      color: white;
+      border-radius: 18px 18px 4px 18px;
+      box-shadow: 0 2px 8px rgba($primary, 0.3);
+      
+      .message-time {
+        color: rgba(255, 255, 255, 0.9);
+      }
+    }
+    
+    .message-avatar {
+      display: none;
+    }
+    
+    .add-reaction-btn {
+      left: -40px;
+      right: auto;
+    }
+    
+    .reactions-container {
+      justify-content: flex-end;
+    }
+  }
+
+  &.received {
+    flex-direction: row;
+    align-self: flex-start;
+
+    .message-content-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .message-bubble {
+      background: $bg-white;
+      color: $text-dark;
+      border-radius: 18px 18px 18px 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid $border-color;
+    }
+    
+    .add-reaction-btn {
+      right: -40px;
+      left: auto;
+    }
+  }
+  
+  &:hover {
+    .add-reaction-btn {
+      opacity: 1;
+      pointer-events: all;
+    }
+  }
+}
+
+.message-content-wrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.reactions-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 4px;
+}
+
+.reaction-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: rgba($primary, 0.08);
+  border: 1.5px solid rgba($primary, 0.2);
+  border-radius: 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  &:hover {
+    background: rgba($primary, 0.15);
+    border-color: rgba($primary, 0.4);
+    transform: scale(1.05);
+  }
+  
+  &.reacted {
+    background: rgba($primary, 0.2);
+    border-color: $primary;
+    
+    .reaction-emoji {
+      transform: scale(1.1);
+    }
+    
+    &:hover {
+      background: rgba($primary, 0.25);
+    }
+  }
+  
+  .reaction-emoji {
+    font-size: 16px;
+    line-height: 1;
+    transition: transform 0.2s ease;
+  }
+  
+  .reaction-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: $text-dark;
+    min-width: 12px;
+    text-align: center;
+  }
+}
+
+.add-reaction-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: $bg-white;
+  border: 1.5px solid $border-color;
+  color: $text-gray;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  
+  &:hover {
+    background: $primary;
+    border-color: $primary;
+    color: white;
+    transform: translateY(-50%) scale(1.15);
+  }
+  
+  &:active {
+    transform: translateY(-50%) scale(1);
+  }
+  
+  svg {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+  }
+}
+
+.quick-reaction-picker {
+  position: absolute;
+  top: -56px;
+  left: 0;
+  background: $bg-white;
+  border: 2px solid $border-color;
+  border-radius: 24px;
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  animation: slideInUp 0.2s ease;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 20px;
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 8px solid $bg-white;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -11px;
+    left: 19px;
+    width: 0;
+    height: 0;
+    border-left: 9px solid transparent;
+    border-right: 9px solid transparent;
+    border-top: 9px solid $border-color;
+    z-index: -1;
+  }
+}
+
+.message.sent .quick-reaction-picker {
+  left: auto;
+  right: 0;
+  
+  &::before {
+    left: auto;
+    right: 20px;
+  }
+  
+  &::after {
+    left: auto;
+    right: 19px;
+  }
+}
+
+.quick-reaction-item {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  &:hover {
+    background: rgba($primary, 0.1);
+    transform: scale(1.2);
+  }
+  
+  &:active {
+    transform: scale(1);
+  }
+}
+
+// Ajustements pour les messages avec réactions
+.message-bubble:has(.reactions-container) {
+  padding-bottom: 8px;
+}
+
+// Animation pour les nouvelles réactions
+@keyframes reactionPop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.reaction-badge {
+  animation: reactionPop 0.3s ease;
 }

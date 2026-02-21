@@ -55,6 +55,9 @@ public class Message {
     @Column(name = "file_size")
     private Long fileSize;
     
+    @Column(name = "emoji_code", length = 50)
+    private String emojiCode;
+    
     @Column(name = "is_edited", nullable = false)
     private Boolean isEdited = false;
     
@@ -73,6 +76,6 @@ public class Message {
     private List<MessageReaction> reactions = new ArrayList<>();
     
     public enum MessageType {
-        TEXT, FILE, IMAGE
+        TEXT, FILE, IMAGE, EMOJI
     }
 }

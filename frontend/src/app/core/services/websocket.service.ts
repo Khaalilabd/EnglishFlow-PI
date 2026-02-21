@@ -13,6 +13,7 @@ export class WebSocketService {
   private connected$ = new BehaviorSubject<boolean>(false);
   private messageSubject = new Subject<Message>();
   private typingSubject = new Subject<TypingIndicator>();
+  private reactionSubjects = new Map<number, Subject<any[]>>();
   private subscriptions: Map<string, StompSubscription> = new Map();
 
   constructor(private authService: AuthService) {}
@@ -150,5 +151,36 @@ export class WebSocketService {
       typingSubscription.unsubscribe();
       this.subscriptions.delete(typingDestination);
     }
+  }
+  
+  subscribeToReactions(messageId: number): Observable<any[]> {
+    const destination = `/topic/message/${messageId}/reactions`;
+    
+    if (!this.stompClient || !this.stompClient.connected) {
+      console.error('WebSocket not connected');
+      return new Observable();
+    }
+
+    // Créer un subject pour ce message si nécessaire
+    if (!this.reactionSubjects.has(messageId)) {
+      this.reactionSubjects.set(messageId, new Subject<any[]>());
+    }
+
+    // Unsubscribe if already subscribed
+    if (this.subscriptions.has(destination)) {
+      this.subscriptions.get(destination)?.unsubscribe();
+    }
+
+    const subscription = this.stompClient.subscribe(destination, (message) => {
+      const reactions = JSON.parse(message.body);
+      const subject = this.reactionSubjects.get(messageId);
+      if (subject) {
+        subject.next(reactions);
+      }
+    });
+
+    this.subscriptions.set(destination, subscription);
+
+    return this.reactionSubjects.get(messageId)!.asObservable();
   }
 }
