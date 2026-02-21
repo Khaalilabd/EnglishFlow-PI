@@ -65,11 +65,11 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // Check if user is active
         if (!user.isActive()) {
-            // Redirect to activation-pending page (Angular frontend) - user needs to activate account via email
-            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/activation-pending")
+            // Pour les STUDENTS OAuth2: rediriger vers la page HTML backend avec animation
+            // Cette page détecte automatiquement l'activation et redirige ensuite
+            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8081/activation-pending")
                     .queryParam("email", userInfo.email)
                     .queryParam("firstName", user.getFirstName())
-                    .queryParam("type", "email")
                     .build().toUriString();
             
             getRedirectStrategy().sendRedirect(request, response, targetUrl);

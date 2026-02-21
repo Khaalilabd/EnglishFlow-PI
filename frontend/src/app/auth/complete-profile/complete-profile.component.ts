@@ -21,7 +21,14 @@ export class CompleteProfileComponent implements OnInit {
   profileForm!: FormGroup;
   maxDate: string;
 
-  englishLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Proficient'];
+  englishLevels = [
+    { value: 'A1', label: 'A1 - Beginner' },
+    { value: 'A2', label: 'A2 - Elementary' },
+    { value: 'B1', label: 'B1 - Intermediate' },
+    { value: 'B2', label: 'B2 - Upper Intermediate' },
+    { value: 'C1', label: 'C1 - Advanced' },
+    { value: 'C2', label: 'C2 - Proficient' }
+  ];
   loading = false;
   error = '';
   success = false;
@@ -96,13 +103,27 @@ export class CompleteProfileComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
+    // Préparer les données en s'assurant que les valeurs vides sont null
+    const formData: any = {};
+    Object.keys(this.profileForm.value).forEach(key => {
+      const value = this.profileForm.value[key];
+      if (value !== null && value !== undefined && value !== '') {
+        formData[key] = value;
+      }
+    });
+
+    console.log('Submitting profile data:', formData);
+    console.log('User ID:', this.userId);
+    console.log('Token:', this.token ? 'Present' : 'Missing');
+
     const headers = new HttpHeaders({
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${this.token}`
     });
 
     this.http.post(
       `${this.apiUrl}/complete-profile/${this.userId}`,
-      this.profileForm.value,
+      formData,
       { headers }
     ).subscribe({
       next: (response: any) => {
@@ -122,6 +143,7 @@ export class CompleteProfileComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error completing profile:', error);
+        console.error('Error details:', error.error);
         this.error = error.error?.message || 'Failed to complete profile. Please try again.';
         this.loading = false;
       }

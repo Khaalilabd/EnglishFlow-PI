@@ -49,13 +49,13 @@
         <div class="form-group">
           <label>Phone Number (Optional)</label>
           <input 
-            type="text" 
+            type="tel" 
             formControlName="phone"
             placeholder="Ex: +212612345678 ou 0612345678"
             [disabled]="loading">
-          <small class="help-text">Format: +212XXXXXXXXX ou 0XXXXXXXXX</small>
+          <small class="help-text">Format international (+212...) ou national (06...)</small>
           <div *ngIf="f['phone'].invalid && f['phone'].touched" class="error-text">
-            <span *ngIf="f['phone'].errors?.['invalidPhone']">Format de téléphone invalide</span>
+            <span *ngIf="f['phone'].errors?.['invalidPhone']">Format invalide. Utilisez +212XXXXXXXXX ou 0XXXXXXXXX</span>
           </div>
         </div>
         
@@ -64,14 +64,14 @@
           <input 
             type="text" 
             formControlName="cin"
-            placeholder="Ex: 12345678"
+            placeholder="Ex: AB123456 ou 12345678"
             maxlength="20"
             [disabled]="loading">
-          <small class="help-text">Numéros uniquement (5-20 chiffres)</small>
+          <small class="help-text">Format: Lettres (optionnel) + 5-8 chiffres (ex: AB123456 ou 12345678)</small>
           <div *ngIf="f['cin'].invalid && f['cin'].touched" class="error-text">
             <span *ngIf="f['cin'].errors?.['required']">Le CIN est requis</span>
-            <span *ngIf="f['cin'].errors?.['invalidCin']">Le CIN ne peut contenir que des chiffres</span>
-            <span *ngIf="f['cin'].errors?.['minlength']">Minimum 5 chiffres</span>
+            <span *ngIf="f['cin'].errors?.['invalidCin']">Format invalide. Utilisez des lettres (optionnel) suivies de 5-8 chiffres</span>
+            <span *ngIf="f['cin'].errors?.['minlength']">Minimum 5 caractères</span>
           </div>
         </div>
       </div>
@@ -130,8 +130,8 @@
           <label>English Level <span class="required">*</span></label>
           <select formControlName="englishLevel" [disabled]="loading">
             <option value="">Select your level</option>
-            <option *ngFor="let level of englishLevels" [value]="level">
-              {{ level }}
+            <option *ngFor="let level of englishLevels" [value]="level.value">
+              {{ level.label }}
             </option>
           </select>
           <div *ngIf="f['englishLevel'].invalid && f['englishLevel'].touched" class="error-text">

@@ -2,7 +2,7 @@ import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
 
 export class CustomValidators {
   /**
-   * Validator for CIN - only numbers allowed
+   * Validator for CIN - accepts letters followed by numbers (AB123456) or just numbers (12345678)
    */
   static cinValidator(): ValidatorFn {
     return (control: AbstractControl): ValidationErrors | null => {
@@ -10,7 +10,8 @@ export class CustomValidators {
         return null; // Don't validate empty values (use Validators.required for that)
       }
       
-      const cinPattern = /^[0-9]+$/;
+      // Accept: AB123456 (letters + numbers) or 12345678 (just numbers)
+      const cinPattern = /^[A-Z]{0,2}[0-9]{5,8}$/;
       const valid = cinPattern.test(control.value);
       
       return valid ? null : { invalidCin: { value: control.value } };

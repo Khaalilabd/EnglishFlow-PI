@@ -341,9 +341,8 @@
         <div class="form-group">
           <label>English Level</label>
           <select formControlName="englishLevel">
-            <option value="BEGINNER">Beginner</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
+            <option value="">Select Level</option>
+            <option *ngFor="let level of englishLevels" [value]="level.value">{{ level.label }}</option>
           </select>
         </div>
       </div>
@@ -424,9 +423,8 @@
         <div class="form-group">
           <label>English Level</label>
           <select formControlName="englishLevel">
-            <option value="BEGINNER">Beginner</option>
-            <option value="INTERMEDIATE">Intermediate</option>
-            <option value="ADVANCED">Advanced</option>
+            <option value="">Select Level</option>
+            <option *ngFor="let level of englishLevels" [value]="level.value">{{ level.label }}</option>
           </select>
         </div>
       </div>

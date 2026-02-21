@@ -230,9 +230,7 @@
               [class.bg-gray-50]="!isEditingProfile"
               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
               <option value="">Select Level</option>
-              <option value="BEGINNER">Beginner (A1-A2)</option>
-              <option value="INTERMEDIATE">Intermediate (B1-B2)</option>
-              <option value="ADVANCED">Advanced (C1-C2)</option>
+              <option *ngFor="let level of englishLevels" [value]="level.value">{{ level.label }}</option>
             </select>
           </div>
         </div>

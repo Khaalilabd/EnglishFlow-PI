@@ -28,7 +28,14 @@ export class RegisterComponent {
   showConfirmPassword = false;
   maxDate: string;
 
-  englishLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Proficient'];
+  englishLevels = [
+    { value: 'A1', label: 'A1 - Beginner' },
+    { value: 'A2', label: 'A2 - Elementary' },
+    { value: 'B1', label: 'B1 - Intermediate' },
+    { value: 'B2', label: 'B2 - Upper Intermediate' },
+    { value: 'C1', label: 'C1 - Advanced' },
+    { value: 'C2', label: 'C2 - Proficient' }
+  ];
   experienceYears = Array.from({length: 31}, (_, i) => i); // 0-30 years
 
   constructor(
@@ -152,13 +159,21 @@ export class RegisterComponent {
     this.authService.register(formData).subscribe({
       next: (response) => {
         console.log('Registration successful:', response);
-        // Redirect to activation-pending page
-        this.router.navigate(['/activation-pending'], {
-          queryParams: {
-            email: this.registerForm.get('email')?.value,
-            firstName: this.registerForm.get('firstName')?.value
-          }
-        });
+        
+        // Pour les STUDENTS: rediriger vers la page HTML backend avec animation
+        // Cette page détecte automatiquement l'activation et redirige ensuite
+        if (this.registerForm.get('role')?.value === 'STUDENT') {
+          window.location.href = `http://localhost:8081/activation-pending?email=${encodeURIComponent(this.registerForm.get('email')?.value)}&firstName=${encodeURIComponent(this.registerForm.get('firstName')?.value)}`;
+        } else {
+          // Pour TUTOR/ACADEMIC: rediriger vers la page Angular statique (activation par admin)
+          this.router.navigate(['/activation-pending'], {
+            queryParams: {
+              email: this.registerForm.get('email')?.value,
+              firstName: this.registerForm.get('firstName')?.value,
+              type: 'admin'
+            }
+          });
+        }
       },
       error: (error) => {
         console.error('Registration error:', error);

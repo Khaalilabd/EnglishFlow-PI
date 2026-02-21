@@ -136,7 +136,7 @@ export class AuthService {
   }
 
   getAllUsers(): Observable<any[]> {
-    // Utiliser l'endpoint public via API Gateway
+    // Appel via API Gateway (architecture microservices correcte)
     return this.http.get<any[]>('http://localhost:8080/public/users');
   }
 }

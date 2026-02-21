@@ -34,7 +34,7 @@ public class RegisterRequest {
     @Size(max = 20, message = "Phone number must not exceed 20 characters")
     private String phone;
 
-    @Pattern(regexp = "^[A-Z]{1,2}\\d{5,8}$", message = "Invalid CIN format (e.g., AB123456)")
+    @Pattern(regexp = "^[A-Z]{0,2}\\d{5,8}$", message = "Invalid CIN format (e.g., AB123456 or 12345678)")
     @Size(max = 20, message = "CIN must not exceed 20 characters")
     private String cin;
 

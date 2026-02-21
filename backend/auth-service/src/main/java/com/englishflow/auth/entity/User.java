@@ -56,7 +56,7 @@ public class User {
     private String bio;
 
     @Column
-    private String englishLevel; // For students: Beginner, Intermediate, Advanced
+    private String englishLevel; // For students: A1, A2, B1, B2, C1, C2
 
     @Column
     private Integer yearsOfExperience; // For teachers

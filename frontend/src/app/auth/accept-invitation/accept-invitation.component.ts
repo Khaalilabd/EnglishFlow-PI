@@ -204,12 +204,12 @@ export class AcceptInvitationComponent implements OnInit {
         next: (response) => {
           this.loading = false;
           
-          // Don't store token or login - account needs activation
-          // Redirect to pending activation page
+          // Pour TUTOR/ACADEMIC: rediriger vers la page Angular statique (activation par admin)
           this.router.navigate(['/activation-pending'], {
             queryParams: {
               email: this.invitationDetails?.email,
-              firstName: formValue.firstName
+              firstName: formValue.firstName,
+              type: 'admin'
             }
           });
         },

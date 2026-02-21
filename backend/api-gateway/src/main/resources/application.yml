@@ -89,7 +89,7 @@ spring:
           order: 14
             
         - id: public-users
-          uri: lb://auth-service
+          uri: http://localhost:8081
           predicates:
             - Path=/public/**
           order: 20
