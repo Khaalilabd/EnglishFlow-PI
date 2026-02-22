@@ -158,7 +158,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.SettingsComponent),
+        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.StudentSettingsComponent),
         title: 'Settings | Jungle in English'
       }
     ]
@@ -236,6 +236,21 @@ export const routes: Routes = [
         title: 'Complaint Details | Jungle in English'
       },
       {
+        path: 'profile',
+        loadComponent: () => import('./pages/tutor-panel/profile/profile.component').then(m => m.TutorProfileComponent),
+        title: 'My Profile | Jungle in English'
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/tutor-panel/settings/settings.component').then(m => m.TutorSettingsComponent),
+        title: 'Settings | Jungle in English'
+      },
+      {
+        path: 'help',
+        loadComponent: () => import('./pages/tutor-panel/help/help.component').then(m => m.TutorHelpComponent),
+        title: 'Help & Support | Jungle in English'
+      },
+      {
         path: 'forum',
         loadComponent: () => import('./pages/student-panel/forum/forum.component').then(m => m.ForumComponent),
         title: 'Community Forum | Jungle in English'
@@ -254,11 +269,6 @@ export const routes: Routes = [
         path: 'support',
         loadComponent: () => import('./pages/student-panel/support/support.component').then(m => m.SupportComponent),
         title: 'Help & Support | Jungle in English'
-      },
-      {
-        path: 'settings',
-        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.SettingsComponent),
-        title: 'Settings | Jungle in English'
       }
     ]
   },
@@ -358,7 +368,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.SettingsComponent),
+        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.AdminSettingsComponent),
         title: 'Settings Profile | Jungle in English Dashboard'
       },
       {

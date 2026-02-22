@@ -22,7 +22,7 @@ public class UpdateUserRequest {
     @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s'-]+$", message = "Last name contains invalid characters")
     private String lastName;
 
-    @Pattern(regexp = "^\\+?[1-9]\\d{1,14}$", message = "Invalid phone number format (use international format, e.g., +212612345678)")
+    @Pattern(regexp = "^[0-9+\\s()-]{8,20}$", message = "Invalid phone number format")
     @Size(max = 20, message = "Phone number must not exceed 20 characters")
     private String phone;
 
@@ -43,7 +43,6 @@ public class UpdateUserRequest {
     @Size(max = 1000, message = "Bio must not exceed 1000 characters")
     private String bio;
 
-    @Pattern(regexp = "^[A-Z]{1,2}\\d{5,8}$", message = "Invalid CIN format (e.g., AB123456)")
     @Size(max = 20, message = "CIN must not exceed 20 characters")
     private String cin;
 

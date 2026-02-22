@@ -1,6 +1,6 @@
 // Custom toggle switch styles
 input[type="checkbox"]:checked + div {
-  background-color: #F6BD60;
+  background-color: #14b8a6;
 }
 
 // Smooth transitions
@@ -19,10 +19,10 @@ input[type="checkbox"]:checked + div {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #F6BD60;
+  background: #14b8a6;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #f5b041;
+  background: #0d9488;
 }

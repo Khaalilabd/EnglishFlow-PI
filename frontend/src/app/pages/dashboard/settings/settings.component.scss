@@ -1,3 +1,13 @@
+// Custom toggle switch styles
+input[type="checkbox"]:checked + div {
+  background-color: #3B82F6;
+}
+
+// Smooth transitions
+* {
+  transition: all 0.2s ease;
+}
+
 // Custom scrollbar
 ::-webkit-scrollbar {
   width: 8px;
@@ -9,26 +19,10 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #F6BD60;
+  background: #3B82F6;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #e5ac4f;
-}
-
-// Animations
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fadeIn {
-  animation: fadeIn 0.3s ease-out;
+  background: #2563eb;
 }

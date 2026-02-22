@@ -7,13 +7,13 @@ import { AuthResponse } from '../../../core/models/user.model';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-student-settings',
+  selector: 'app-tutor-settings',
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class StudentSettingsComponent implements OnInit {
+export class TutorSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
   activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
   
@@ -99,13 +99,13 @@ export class StudentSettingsComponent implements OnInit {
     formData.append('file', this.selectedFile);
     this.authService.uploadProfilePhoto(this.currentUser.id, formData).subscribe({
       next: (response) => {
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#14b8a6', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
         window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { profilePhoto: response.profilePhoto } }));
       },
       error: () => {
-        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to upload photo', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to upload photo', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -119,11 +119,11 @@ export class StudentSettingsComponent implements OnInit {
     this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
       next: () => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#14b8a6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -139,11 +139,11 @@ export class StudentSettingsComponent implements OnInit {
       next: () => {
         this.isLoadingPassword = false;
         this.passwordForm.reset();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#F6BD60', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#14b8a6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingPassword = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -152,7 +152,7 @@ export class StudentSettingsComponent implements OnInit {
     this.isLoadingNotifications = true;
     setTimeout(() => {
       this.isLoadingNotifications = false;
-      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#14b8a6', timer: 2000 });
     }, 1000);
   }
 
@@ -163,7 +163,7 @@ export class StudentSettingsComponent implements OnInit {
       return `http://localhost:8081${this.currentUser.profilePhoto}`;
     }
     const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
-    return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=256`;
+    return `https://ui-avatars.com/api/?name=${name}&background=2D5757&color=fff&size=256`;
   }
 
   getFieldError(formGroup: FormGroup, fieldName: string): string {

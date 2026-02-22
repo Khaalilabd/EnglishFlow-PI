@@ -301,7 +301,8 @@
                       title="Edit">
                 <i class="fas fa-edit"></i>
               </button>
-              <button (click)="deleteComplaint(complaint.id)" 
+              <button *ngIf="complaint.status === 'OPEN' || complaint.status === 'SUBMITTED'"
+                      (click)="deleteComplaint(complaint.id)" 
                       class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete">
                 <i class="fas fa-trash"></i>

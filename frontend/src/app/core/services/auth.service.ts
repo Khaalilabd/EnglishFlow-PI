@@ -139,4 +139,32 @@ export class AuthService {
     // Appel via API Gateway (architecture microservices correcte)
     return this.http.get<any[]>('http://localhost:8080/public/users');
   }
+
+  uploadProfilePhoto(userId: number, formData: FormData): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`http://localhost:8080/api/users/${userId}/profile-photo`, formData).pipe(
+      tap(response => {
+        const currentUser = this.currentUserValue;
+        if (currentUser) {
+          const updated = {
+            ...currentUser,
+            profilePhoto: response.profilePhoto
+          };
+          this.setCurrentUser(updated);
+        }
+      })
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (!currentUser) {
+      throw new Error('No user logged in');
+    }
+    
+    return this.http.post(`http://localhost:8080/api/users/${currentUser.id}/change-password`, {
+      currentPassword,
+      newPassword
+    });
+  }
 }
+

@@ -1,224 +1,178 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, FormsModule, Validators } from '@angular/forms';
+import { RouterModule } from '@angular/router';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
-import { HttpClient } from '@angular/common/http';
+import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-settings',
+  selector: 'app-admin-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class SettingsComponent implements OnInit {
+export class AdminSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
+  activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
+  
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
+  notificationForm!: FormGroup;
   
-  activeTab: 'profile' | 'security' | 'notifications' = 'profile';
+  isLoadingProfile = false;
+  isLoadingPassword = false;
+  isLoadingNotifications = false;
   
-  isEditingProfile = false;
-  isSavingProfile = false;
-  isChangingPassword = false;
-  
-  profilePicturePreview: string | null = null;
+  profilePhotoPreview: string | null = null;
   selectedFile: File | null = null;
-  
-  // Notification settings
-  emailNotifications = true;
-  pushNotifications = true;
-  courseUpdates = true;
-  assignmentReminders = true;
-
-  private apiUrl = 'http://localhost:8080/api';
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService,
-    private http: HttpClient
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      if (user) {
+        this.initializeForms();
+      }
+    });
+    
     this.initializeForms();
-    this.loadUserData();
   }
 
   initializeForms() {
     this.profileForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.pattern(/^[+]?[(]?[0-9]{1,4}[)]?[-\s.]?[(]?[0-9]{1,4}[)]?[-\s.]?[0-9]{1,9}$/)]],
-      cin: [''],
-      dateOfBirth: [''],
-      address: [''],
-      city: [''],
-      postalCode: [''],
-      bio: ['', [Validators.maxLength(500)]],
-      yearsOfExperience: ['']
+      firstName: [this.currentUser?.firstName || '', [Validators.required, Validators.minLength(2)]],
+      lastName: [this.currentUser?.lastName || '', [Validators.required, Validators.minLength(2)]],
+      email: [{ value: this.currentUser?.email || '', disabled: true }],
+      phone: [this.currentUser?.phone || ''],
+      dateOfBirth: [this.currentUser?.dateOfBirth || ''],
+      address: [this.currentUser?.address || ''],
+      city: [this.currentUser?.city || ''],
+      postalCode: [this.currentUser?.postalCode || ''],
+      bio: [this.currentUser?.bio || '', [Validators.maxLength(500)]]
     });
 
     this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      currentPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+
+    this.notificationForm = this.fb.group({
+      emailNotifications: [true],
+      pushNotifications: [true],
+      complaintUpdates: [true],
+      messageNotifications: [true],
+      weeklyDigest: [false]
+    });
   }
 
-  loadUserData() {
-    if (this.currentUser) {
-      // Charger les données complètes de l'utilisateur depuis l'API
-      const endpoint = (this.currentUser.role === 'ADMIN' || this.currentUser.role === 'ACADEMIC_OFFICE_AFFAIR')
-        ? `${this.apiUrl}/admin/users/${this.currentUser.id}`
-        : `${this.apiUrl}/users/${this.currentUser.id}`;
-      
-      this.http.get<any>(endpoint).subscribe({
-        next: (userData) => {
-          console.log('User data loaded:', userData);
-          this.profileForm.patchValue({
-            firstName: userData.firstName || '',
-            lastName: userData.lastName || '',
-            email: userData.email || '',
-            phone: userData.phone || '',
-            cin: userData.cin || '',
-            dateOfBirth: userData.dateOfBirth || '',
-            address: userData.address || '',
-            city: userData.city || '',
-            postalCode: userData.postalCode || '',
-            bio: userData.bio || '',
-            yearsOfExperience: userData.yearsOfExperience || ''
-          });
-          
-          // Construire l'URL complète de la photo
-          if (userData.profilePhoto) {
-            this.profilePicturePreview = `http://localhost:8081${userData.profilePhoto}`;
-            console.log('Profile photo URL:', this.profilePicturePreview);
-          } else {
-            this.profilePicturePreview = this.getDefaultAvatar();
-          }
-        },
-        error: (error) => {
-          console.error('Error loading user data:', error);
-          // Fallback to currentUser data
-          this.profileForm.patchValue({
-            firstName: this.currentUser?.firstName || '',
-            lastName: this.currentUser?.lastName || '',
-            email: this.currentUser?.email || '',
-            phone: this.currentUser?.phone || ''
-          });
-          this.profilePicturePreview = this.currentUser?.profilePhoto 
-            ? `http://localhost:8081${this.currentUser.profilePhoto}`
-            : this.getDefaultAvatar();
-        }
-      });
-    }
+  passwordMatchValidator(g: FormGroup) {
+    return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { 'mismatch': true };
   }
 
-  getDefaultAvatar(): string {
-    const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
-    return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=256`;
-  }
-
-  passwordMatchValidator(group: FormGroup) {
-    const newPassword = group.get('newPassword')?.value;
-    const confirmPassword = group.get('confirmPassword')?.value;
-    return newPassword === confirmPassword ? null : { passwordMismatch: true };
+  setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance') {
+    this.activeTab = tab;
   }
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
-      
-      // Preview
       const reader = new FileReader();
       reader.onload = (e: any) => {
-        this.profilePicturePreview = e.target.result;
+        this.profilePhotoPreview = e.target.result;
       };
       reader.readAsDataURL(file);
     }
   }
 
-  removeProfilePicture() {
-    this.profilePicturePreview = this.getDefaultAvatar();
-    this.selectedFile = null;
+  uploadProfilePhoto() {
+    if (!this.selectedFile || !this.currentUser) return;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile);
+    this.authService.uploadProfilePhoto(this.currentUser.id, formData).subscribe({
+      next: (response) => {
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+        this.profilePhotoPreview = null;
+        this.selectedFile = null;
+        window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { profilePhoto: response.profilePhoto } }));
+      },
+      error: () => {
+        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to upload photo', confirmButtonColor: '#3B82F6' });
+      }
+    });
   }
 
-  toggleEditProfile() {
-    this.isEditingProfile = !this.isEditingProfile;
-    if (!this.isEditingProfile) {
-      this.loadUserData();
+  onSubmitProfile() {
+    if (this.profileForm.invalid) {
+      Object.keys(this.profileForm.controls).forEach(key => this.profileForm.get(key)?.markAsTouched());
+      return;
     }
+    this.isLoadingProfile = true;
+    this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
+      next: () => {
+        this.isLoadingProfile = false;
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+      },
+      error: (error) => {
+        this.isLoadingProfile = false;
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#3B82F6' });
+      }
+    });
   }
 
-  saveProfile() {
-    if (this.profileForm.valid && this.currentUser) {
-      this.isSavingProfile = true;
-      
-      const updateData = this.profileForm.value;
-      
-      // Utiliser l'endpoint admin pour ADMIN et ACADEMIC_OFFICE_AFFAIR
-      const endpoint = (this.currentUser.role === 'ADMIN' || this.currentUser.role === 'ACADEMIC_OFFICE_AFFAIR')
-        ? `${this.apiUrl}/admin/users/${this.currentUser.id}`
-        : `${this.apiUrl}/users/${this.currentUser.id}`;
-      
-      // Appel API pour mettre à jour le profil
-      this.http.put<any>(endpoint, updateData).subscribe({
-        next: (updatedUser) => {
-          console.log('Profile updated:', updatedUser);
-          this.isSavingProfile = false;
-          this.isEditingProfile = false;
-          
-          // Mettre à jour le currentUser dans le service et localStorage
-          const updated = {
-            ...this.currentUser!,
-            firstName: updatedUser.firstName,
-            lastName: updatedUser.lastName,
-            email: updatedUser.email,
-            phone: updatedUser.phone,
-            profilePhoto: updatedUser.profilePhoto
-          };
-          
-          // Mettre à jour dans le localStorage
-          localStorage.setItem('currentUser', JSON.stringify(updated));
-          this.authService.updateCurrentUser(updated);
-          
-          // Recharger les données
-          this.currentUser = updated;
-          this.profilePicturePreview = updated.profilePhoto || this.getDefaultAvatar();
-          
-          alert('Profile updated successfully!');
-        },
-        error: (error) => {
-          console.error('Error updating profile:', error);
-          this.isSavingProfile = false;
-          alert('Failed to update profile. Please try again.');
-        }
-      });
+  onSubmitPassword() {
+    if (this.passwordForm.invalid) {
+      Object.keys(this.passwordForm.controls).forEach(key => this.passwordForm.get(key)?.markAsTouched());
+      return;
     }
-  }
-
-  changePassword() {
-    if (this.passwordForm.valid) {
-      this.isChangingPassword = true;
-      
-      // TODO: Implement API call to change password
-      setTimeout(() => {
-        console.log('Password changed');
-        this.isChangingPassword = false;
+    this.isLoadingPassword = true;
+    const { currentPassword, newPassword } = this.passwordForm.value;
+    this.authService.changePassword(currentPassword, newPassword).subscribe({
+      next: () => {
+        this.isLoadingPassword = false;
         this.passwordForm.reset();
-      }, 1000);
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#3B82F6', timer: 2000 });
+      },
+      error: (error) => {
+        this.isLoadingPassword = false;
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#3B82F6' });
+      }
+    });
+  }
+
+  onSubmitNotifications() {
+    this.isLoadingNotifications = true;
+    setTimeout(() => {
+      this.isLoadingNotifications = false;
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+    }, 1000);
+  }
+
+  getProfilePhotoUrl(): string {
+    if (this.profilePhotoPreview) return this.profilePhotoPreview;
+    if (this.currentUser?.profilePhoto) {
+      if (this.currentUser.profilePhoto.startsWith('http')) return this.currentUser.profilePhoto;
+      return `http://localhost:8081${this.currentUser.profilePhoto}`;
     }
+    const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
+    return `https://ui-avatars.com/api/?name=${name}&background=3B82F6&color=fff&size=256`;
   }
 
-  setActiveTab(tab: 'profile' | 'security' | 'notifications') {
-    this.activeTab = tab;
-  }
-
-  get bioLength(): number {
-    return this.profileForm.get('bio')?.value?.length || 0;
+  getFieldError(formGroup: FormGroup, fieldName: string): string {
+    const field = formGroup.get(fieldName);
+    if (field?.hasError('required')) return 'This field is required';
+    if (field?.hasError('minlength')) return `Minimum ${field.errors?.['minlength'].requiredLength} characters`;
+    if (field?.hasError('maxlength')) return `Maximum ${field.errors?.['maxlength'].requiredLength} characters`;
+    if (field?.hasError('pattern')) return 'Invalid format';
+    if (field?.hasError('email')) return 'Invalid email address';
+    return '';
   }
 }
