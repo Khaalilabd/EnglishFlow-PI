@@ -33,7 +33,7 @@ export class QuizzesComponent implements OnInit {
   showFilters: boolean = false;
   
   // View mode
-  viewMode: 'published' | 'drafts' | 'scheduled' | 'all' = 'published';
+  viewMode: 'published' | 'scheduled' = 'published';
   
   // Track question counts for each quiz
   quizQuestionCounts: { [quizId: number]: number } = {};
@@ -67,11 +67,18 @@ export class QuizzesComponent implements OnInit {
 
   loadQuizzes() {
     this.isLoading = true;
-    // Load only PUBLISHED quizzes for students
+    // Load only PUBLISHED and SCHEDULED quizzes for students
     this.quizService.getAllQuizzes().subscribe({
       next: (data) => {
-        // Filter to show only published quizzes
-        this.quizzes = data.filter(quiz => quiz.published === true);
+        const now = new Date();
+        // Filter to show only published (and not scheduled for future) OR scheduled quizzes
+        this.quizzes = data.filter(quiz => {
+          // Show if published and not scheduled for future
+          const isPublishedNow = quiz.published && (!quiz.publishAt || new Date(quiz.publishAt) <= now);
+          // Or if scheduled for future (regardless of published status)
+          const isScheduled = quiz.publishAt && new Date(quiz.publishAt) > now;
+          return isPublishedNow || isScheduled;
+        });
         // Load question counts for each quiz
         this.quizzes.forEach(quiz => {
           if (quiz.id) {
@@ -370,14 +377,8 @@ export class QuizzesComponent implements OnInit {
       case 'published':
         filtered = filtered.filter(q => q.published && (!q.publishAt || new Date(q.publishAt) <= now));
         break;
-      case 'drafts':
-        filtered = filtered.filter(q => !q.published && !q.publishAt);
-        break;
       case 'scheduled':
-        filtered = filtered.filter(q => !q.published && q.publishAt && new Date(q.publishAt) > now);
-        break;
-      case 'all':
-        // Show all quizzes
+        filtered = filtered.filter(q => q.publishAt && new Date(q.publishAt) > now);
         break;
     }
     
@@ -399,21 +400,17 @@ export class QuizzesComponent implements OnInit {
     return filtered;
   }
   
-  setViewMode(mode: 'published' | 'drafts' | 'scheduled' | 'all') {
+  setViewMode(mode: 'published' | 'scheduled') {
     this.viewMode = mode;
   }
   
-  getQuizCountByMode(mode: 'published' | 'drafts' | 'scheduled' | 'all'): number {
+  getQuizCountByMode(mode: 'published' | 'scheduled'): number {
     const now = new Date();
     switch (mode) {
       case 'published':
         return this.quizzes.filter(q => q.published && (!q.publishAt || new Date(q.publishAt) <= now)).length;
-      case 'drafts':
-        return this.quizzes.filter(q => !q.published && !q.publishAt).length;
       case 'scheduled':
-        return this.quizzes.filter(q => !q.published && q.publishAt && new Date(q.publishAt) > now).length;
-      case 'all':
-        return this.quizzes.length;
+        return this.quizzes.filter(q => q.publishAt && new Date(q.publishAt) > now).length;
     }
   }
   

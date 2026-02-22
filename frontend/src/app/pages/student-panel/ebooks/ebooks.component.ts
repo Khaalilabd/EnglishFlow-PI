@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EbookService } from '../../../core/services/ebook.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Ebook } from '../../../core/models/ebook.model';
 
 interface Chapter {
@@ -39,6 +40,18 @@ export class EbooksComponent implements OnInit {
   showUploadModal = false;
   selectedFile: File | null = null;
   
+  // View modes
+  displayMode: 'grid' | 'list' | 'carousel' | 'magazine' | 'shelf' = 'shelf';
+  
+  // Search and filters
+  searchQuery: string = '';
+  sortBy: 'newest' | 'popular' | 'rating' | 'title' = 'newest';
+  favorites: Set<number> = new Set();
+  
+  // Quick view
+  showQuickView = false;
+  quickViewEbook: Ebook | null = null;
+  
   // Enhanced features
   wizardStep = 1;
   totalWizardSteps = 4;
@@ -60,12 +73,15 @@ export class EbooksComponent implements OnInit {
   priceAmount: number = 0;
   
   // View mode
-  viewMode: 'published' | 'drafts' | 'scheduled' | 'all' = 'all';
+  viewMode: 'published' | 'scheduled' = 'published';
   showFilters: boolean = false;
   
   // Details modal
   showDetailsModal = false;
-  selectedEbookForDetails: Ebook | null = null; // Price for premium ebooks
+  selectedEbookForDetails: Ebook | null = null;
+  
+  // Confetti animation
+  showConfetti = false;
   
   newEbook: Ebook = {
     title: '',
@@ -76,16 +92,22 @@ export class EbooksComponent implements OnInit {
     free: true
   };
 
-  constructor(private ebookService: EbookService) {}
+  constructor(private ebookService: EbookService, private authService: AuthService) {}
 
   ngOnInit() {
     this.loadEbooks();
+  }
+
+  // Check if current user is a tutor
+  isTutor(): boolean {
+    return this.authService.hasRole(['TUTOR', 'ADMIN']);
   }
 
   loadEbooks() {
     this.isLoading = true;
     this.ebookService.getAllEbooks().subscribe({
       next: (data) => {
+        // Show all ebooks for students (no draft/published concept for ebooks)
         this.ebooks = data;
         this.filteredEbooks = data;
         this.isLoading = false;
@@ -97,32 +119,171 @@ export class EbooksComponent implements OnInit {
     });
   }
 
-  filterByLevel(level: string) {
-    this.selectedLevel = level;
-    if (level === 'all') {
-      this.filteredEbooks = this.ebooks;
-    } else {
-      this.ebookService.getEbooksByLevel(level).subscribe({
-        next: (data) => {
-          this.filteredEbooks = data;
-        },
-        error: (error) => console.error('Error filtering ebooks:', error)
-      });
+  // View mode switching
+  setDisplayMode(mode: 'grid' | 'list' | 'carousel' | 'magazine' | 'shelf') {
+    this.displayMode = mode;
+  }
+
+  // Search functionality
+  onSearch() {
+    this.applyFilters();
+  }
+
+  // Sorting
+  onSortChange() {
+    this.applyFilters();
+  }
+
+  // Apply all filters
+  applyFilters() {
+    let filtered = this.ebooks;
+
+    // Filter by view mode
+    if (this.viewMode === 'published') {
+      filtered = filtered.filter(e => this.isPublished(e));
+    } else if (this.viewMode === 'scheduled') {
+      filtered = filtered.filter(e => this.isScheduled(e));
+    }
+
+    // Filter by level
+    if (this.selectedLevel !== 'all') {
+      filtered = filtered.filter(e => e.level === this.selectedLevel);
+    }
+
+    // Search filter
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase();
+      filtered = filtered.filter(e => 
+        e.title?.toLowerCase().includes(query) ||
+        e.description?.toLowerCase().includes(query) ||
+        e.category?.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort
+    filtered = this.sortEbooks(filtered);
+
+    this.filteredEbooks = filtered;
+  }
+
+  sortEbooks(ebooks: Ebook[]): Ebook[] {
+    const sorted = [...ebooks];
+    switch (this.sortBy) {
+      case 'newest':
+        return sorted.sort((a, b) => (b.id || 0) - (a.id || 0));
+      case 'popular':
+        return sorted.sort((a, b) => (b.downloadCount || 0) - (a.downloadCount || 0));
+      case 'rating':
+        return sorted.sort((a, b) => (this.getAverageRating(b) - this.getAverageRating(a)));
+      case 'title':
+        return sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      default:
+        return sorted;
     }
   }
 
-  setViewMode(mode: 'published' | 'drafts' | 'scheduled' | 'all') {
+  // Favorites
+  toggleFavorite(ebookId: number, event: Event) {
+    event.stopPropagation();
+    if (this.favorites.has(ebookId)) {
+      this.favorites.delete(ebookId);
+    } else {
+      this.favorites.add(ebookId);
+    }
+    // TODO: Save to backend/localStorage
+  }
+
+  isFavorite(ebookId: number): boolean {
+    return this.favorites.has(ebookId);
+  }
+
+  // Quick view modal
+  openQuickView(ebook: Ebook, event: Event) {
+    event.stopPropagation();
+    this.quickViewEbook = ebook;
+    this.showQuickView = true;
+  }
+
+  closeQuickView() {
+    this.showQuickView = false;
+    this.quickViewEbook = null;
+  }
+
+  // Helper methods for badges
+  isNewEbook(ebook: Ebook): boolean {
+    if (!ebook.id) return false;
+    // Consider ebooks added in last 7 days as "new"
+    // Since we don't have createdAt, use ID as proxy (higher ID = newer)
+    const allIds = this.ebooks.map(e => e.id || 0);
+    const maxId = Math.max(...allIds);
+    return (ebook.id || 0) >= maxId - 5; // Last 5 ebooks
+  }
+
+  isPopular(ebook: Ebook): boolean {
+    const avgDownloads = this.ebooks.reduce((sum, e) => sum + (e.downloadCount || 0), 0) / this.ebooks.length;
+    return (ebook.downloadCount || 0) > avgDownloads * 1.5;
+  }
+
+  getEstimatedReadTime(ebook: Ebook): string {
+    const metadata = this.getMetadata(ebook.description);
+    if (metadata?.estimatedReadTime) {
+      return `${metadata.estimatedReadTime} min`;
+    }
+    // Estimate based on file size (rough approximation)
+    const pages = Math.floor((ebook.fileSize || 0) / 50000);
+    const minutes = pages * 2;
+    return minutes > 0 ? `${minutes} min` : '5 min';
+  }
+
+  // Star rating
+  getAverageRating(ebook: Ebook): number {
+    // TODO: Implement actual rating system
+    // For now, return random rating between 3.5 and 5
+    return 4.5; // Placeholder
+  }
+
+  getStarArray(rating: number): boolean[] {
+    return Array(5).fill(false).map((_, i) => i < Math.round(rating));
+  }
+
+  // Related ebooks
+  getRelatedEbooks(ebook: Ebook): Ebook[] {
+    return this.ebooks
+      .filter(e => e.id !== ebook.id && (e.level === ebook.level || e.category === ebook.category))
+      .slice(0, 3);
+  }
+
+  // Recently added section
+  getRecentlyAdded(): Ebook[] {
+    return [...this.ebooks]
+      .sort((a, b) => (b.id || 0) - (a.id || 0))
+      .slice(0, 6);
+  }
+
+  // Confetti animation on download
+  triggerConfetti() {
+    this.showConfetti = true;
+    setTimeout(() => {
+      this.showConfetti = false;
+    }, 3000);
+  }
+
+  filterByLevel(level: string) {
+    this.selectedLevel = level;
+    this.applyFilters();
+  }
+
+  setViewMode(mode: 'published' | 'scheduled') {
     this.viewMode = mode;
+    this.applyFilters();
   }
 
   getFilteredEbooks(): any[] {
     let filtered = this.filteredEbooks;
     
-    // Filter by view mode
+    // Filter by view mode - only show published and scheduled to students
     if (this.viewMode === 'published') {
       filtered = filtered.filter(e => this.isPublished(e));
-    } else if (this.viewMode === 'drafts') {
-      filtered = filtered.filter(e => this.isDraft(e));
     } else if (this.viewMode === 'scheduled') {
       filtered = filtered.filter(e => this.isScheduled(e));
     }
@@ -133,8 +294,6 @@ export class EbooksComponent implements OnInit {
   getEbookCountByMode(mode: string): number {
     if (mode === 'published') {
       return this.ebooks.filter(e => this.isPublished(e)).length;
-    } else if (mode === 'drafts') {
-      return this.ebooks.filter(e => this.isDraft(e)).length;
     } else if (mode === 'scheduled') {
       return this.ebooks.filter(e => this.isScheduled(e)).length;
     }
@@ -147,12 +306,8 @@ export class EbooksComponent implements OnInit {
       const scheduledDateTime = new Date(metadata.scheduledDate);
       return scheduledDateTime <= new Date();
     }
-    return metadata?.release === 'immediate' || !metadata;
-  }
-
-  isDraft(ebook: Ebook): boolean {
-    const metadata = this.getMetadata(ebook.description);
-    return metadata?.release === 'draft';
+    // If no metadata or release is 'immediate', consider it published
+    return !metadata || metadata.release === 'immediate' || !metadata.release;
   }
 
   isScheduled(ebook: Ebook): boolean {
@@ -177,7 +332,14 @@ export class EbooksComponent implements OnInit {
   }
 
   hasActiveFilters(): boolean {
-    return this.selectedLevel !== 'all';
+    return this.selectedLevel !== 'all' || this.searchQuery.trim() !== '' || this.sortBy !== 'newest';
+  }
+
+  clearFilters() {
+    this.searchQuery = '';
+    this.selectedLevel = 'all';
+    this.sortBy = 'newest';
+    this.applyFilters();
   }
 
   openDetailsModal(ebook: Ebook) {
@@ -234,16 +396,7 @@ export class EbooksComponent implements OnInit {
     }
   }
 
-  getPublicationStatus(ebook: Ebook): string {
-    if (this.isScheduled(ebook)) {
-      return `Will be published on ${this.getScheduledDate(ebook)}`;
-    } else if (this.isPublished(ebook)) {
-      return 'Published';
-    } else if (this.isDraft(ebook)) {
-      return 'Draft';
-    }
-    return 'Unknown';
-  }
+
 
   onFileSelected(event: any) {
     const file = event.target.files[0];
@@ -453,7 +606,7 @@ export class EbooksComponent implements OnInit {
     return this.targetAudience.includes(audience);
   }
 
-  getEstimatedReadTime(): string {
+  getEstimatedReadTimeForUpload(): string {
     if (!this.selectedFile) return '0 min';
     const pages = Math.floor(this.selectedFile.size / 50000);
     const minutes = pages * 2;
@@ -593,6 +746,9 @@ export class EbooksComponent implements OnInit {
           link.download = `${ebook.title}.pdf`;
           link.click();
           window.URL.revokeObjectURL(url);
+          
+          // Trigger confetti animation
+          this.triggerConfetti();
         },
         error: (error) => {
           console.error('Download error details:', error);

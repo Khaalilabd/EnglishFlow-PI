@@ -19,7 +19,7 @@ import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/ebooks")
+@RequestMapping("/learning/ebooks")
 @RequiredArgsConstructor
 // CORS est géré par l'API Gateway - pas besoin d'annotation @CrossOrigin ici
 public class EbookController {

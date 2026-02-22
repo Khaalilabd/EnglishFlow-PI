@@ -23,8 +23,8 @@
       <div class="relative flex gap-1">
         <!-- Sliding Background -->
         <div class="absolute inset-y-1 transition-all duration-300 ease-out bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] rounded-xl shadow-md"
-             [style.left]="viewMode === 'published' ? '4px' : viewMode === 'drafts' ? 'calc(25% + 2px)' : viewMode === 'scheduled' ? 'calc(50% + 2px)' : 'calc(75% + 2px)'"
-             [style.width]="'calc(25% - 8px)'"></div>
+             [style.left]="viewMode === 'published' ? '4px' : 'calc(50% + 2px)'"
+             [style.width]="'calc(50% - 8px)'"></div>
         
         <!-- Buttons -->
         <button 
@@ -48,26 +48,6 @@
         </button>
         
         <button 
-          (click)="setViewMode('drafts')"
-          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
-          [class.text-white]="viewMode === 'drafts'"
-          [class.text-gray-600]="viewMode !== 'drafts'">
-          <div class="flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
-            </svg>
-            <span>Drafts</span>
-            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
-                  [class.bg-white]="viewMode === 'drafts'"
-                  [class.text-[#2D5F5D]]="viewMode === 'drafts'"
-                  [class.bg-gray-100]="viewMode !== 'drafts'"
-                  [class.text-gray-600]="viewMode !== 'drafts'">
-              {{ getQuizCountByMode('drafts') }}
-            </span>
-          </div>
-        </button>
-        
-        <button 
           (click)="setViewMode('scheduled')"
           class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
           [class.text-white]="viewMode === 'scheduled'"
@@ -83,26 +63,6 @@
                   [class.bg-gray-100]="viewMode !== 'scheduled'"
                   [class.text-gray-600]="viewMode !== 'scheduled'">
               {{ getQuizCountByMode('scheduled') }}
-            </span>
-          </div>
-        </button>
-        
-        <button 
-          (click)="setViewMode('all')"
-          class="relative flex-1 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 z-10"
-          [class.text-white]="viewMode === 'all'"
-          [class.text-gray-600]="viewMode !== 'all'">
-          <div class="flex items-center justify-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            <span>All</span>
-            <span class="px-2 py-0.5 rounded-full text-xs font-bold"
-                  [class.bg-white]="viewMode === 'all'"
-                  [class.text-[#2D5F5D]]="viewMode === 'all'"
-                  [class.bg-gray-100]="viewMode !== 'all'"
-                  [class.text-gray-600]="viewMode !== 'all'">
-              {{ getQuizCountByMode('all') }}
             </span>
           </div>
         </button>
