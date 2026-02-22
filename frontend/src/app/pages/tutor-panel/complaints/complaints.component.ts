@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-complaints',
+  selector: 'app-tutor-complaints',
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './complaints.component.html',
@@ -25,7 +25,7 @@ export class ComplaintsComponent implements OnInit {
   showResponseModal = false;
   
   // Filters
-  filterView: 'all' | 'resolved' | 'overdue' | 'highPriority' = 'all';
+  filterView: 'all' | 'critical' | 'overdue' = 'all';
   filterStatus: string = 'all';
   filterPriority: string = 'all';
   searchTerm: string = '';
@@ -38,11 +38,11 @@ export class ComplaintsComponent implements OnInit {
   stats = {
     total: 0,
     open: 0,
+    noted: 0,
     inProgress: 0,
     resolved: 0,
     urgent: 0,
-    overdue: 0,
-    resolutionRate: 0
+    overdue: 0
   };
 
   constructor(
@@ -58,11 +58,17 @@ export class ComplaintsComponent implements OnInit {
   loadComplaints(): void {
     this.isLoading = true;
     
-    this.complaintService.getComplaintsForAcademicOffice().subscribe({
+    const loadMethod = this.filterView === 'critical' 
+      ? this.complaintService.getCriticalComplaints()
+      : this.filterView === 'overdue'
+      ? this.complaintService.getOverdueComplaints()
+      : this.complaintService.getComplaintsForTutor(); // Use tutor-specific method
+    
+    loadMethod.subscribe({
       next: (data) => {
         this.complaints = data;
+        this.applyFilters();
         this.calculateStats();
-        this.applySmartFilters();
         this.isLoading = false;
       },
       error: (error) => {
@@ -74,74 +80,72 @@ export class ComplaintsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.applySmartFilters();
+    this.filteredComplaints = this.complaints.filter(c => {
+      const matchStatus = this.filterStatus === 'all' || c.status === this.filterStatus;
+      const matchPriority = this.filterPriority === 'all' || c.priority === this.filterPriority;
+      const matchSearch = !this.searchTerm || 
+        c.username.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        c.subject.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        c.userEmail.toLowerCase().includes(this.searchTerm.toLowerCase());
+      
+      return matchStatus && matchPriority && matchSearch;
+    });
   }
 
   calculateStats(): void {
     this.stats.total = this.complaints.length;
     this.stats.open = this.complaints.filter(c => c.status === 'OPEN').length;
+    this.stats.noted = this.complaints.filter(c => c.status === 'NOTED').length;
     this.stats.inProgress = this.complaints.filter(c => c.status === 'IN_PROGRESS').length;
     this.stats.resolved = this.complaints.filter(c => c.status === 'RESOLVED').length;
     this.stats.urgent = this.complaints.filter(c => c.priority === 'URGENT').length;
     this.stats.overdue = this.complaints.filter(c => c.isOverdue).length;
-    
- 
-    
-    // Calculate resolution rate
-    const totalClosed = this.complaints.filter(c => c.status === 'RESOLVED' || c.status === 'REJECTED').length;
-    this.stats.resolutionRate = this.stats.total > 0 ? Math.round((totalClosed / this.stats.total) * 100) : 0;
   }
 
-  changeView(view: 'all' | 'resolved' | 'overdue' | 'highPriority'): void {
+  changeView(view: 'all' | 'critical' | 'overdue'): void {
     this.filterView = view;
-    this.applySmartFilters();
-  }
-
-  applySmartFilters(): void {
-    let filtered = [...this.complaints];
-
-    switch (this.filterView) {
-      case 'resolved':
-        filtered = filtered.filter(c => c.status === 'RESOLVED');
-        break;
-      case 'overdue':
-        filtered = filtered.filter(c => c.isOverdue);
-        break;
-      case 'highPriority':
-        filtered = filtered.filter(c => c.priority === 'HIGH' || c.priority === 'URGENT');
-        break;
-    }
-
-    // Apply additional filters
-    if (this.filterStatus !== 'all') {
-      filtered = filtered.filter(c => c.status === this.filterStatus);
-    }
-    if (this.filterPriority !== 'all') {
-      filtered = filtered.filter(c => c.priority === this.filterPriority);
-    }
-    if (this.searchTerm) {
-      const term = this.searchTerm.toLowerCase();
-      filtered = filtered.filter(c =>
-        c.username.toLowerCase().includes(term) ||
-        c.subject.toLowerCase().includes(term) ||
-        c.userEmail.toLowerCase().includes(term)
-      );
-    }
-
-    // Sort: overdue first, then by days open
-    filtered.sort((a, b) => {
-      if (a.isOverdue && !b.isOverdue) return -1;
-      if (!a.isOverdue && b.isOverdue) return 1;
-      return b.daysSinceCreation - a.daysSinceCreation;
-    });
-
-    this.filteredComplaints = filtered;
+    this.loadComplaints();
   }
 
   viewDetails(complaint: ComplaintWithUser): void {
-    this.router.navigate(['/dashboard/complaints', complaint.id]);
+    this.router.navigate(['/tutor-panel/complaints', complaint.id]);
   }
 
+  getSeverityBadge(priority: string): { text: string; class: string } {
+    const badges: any = {
+      'MEDIUM': { text: 'Medium', class: 'bg-yellow-500' },
+      'HIGH': { text: 'High', class: 'bg-orange-500' },
+      'URGENT': { text: 'Urgent', class: 'bg-red-500' }
+    };
+    return badges[priority] || badges['MEDIUM'];
+  }
+
+  getDaysOpenBadge(days: number): { text: string; class: string } {
+    if (days >= 5) {
+      return { text: `${days}d - Overdue`, class: 'bg-red-500' };
+    } else if (days >= 2) {
+      return { text: `${days}d - Delayed`, class: 'bg-orange-500' };
+    }
+    return { text: `${days}d waiting`, class: 'bg-blue-500' };
+  }
+
+  viewHistory(complaint: ComplaintWithUser): void {
+    this.selectedComplaint = complaint;
+    this.isLoading = true;
+    
+    this.complaintService.getComplaintHistory(complaint.id).subscribe({
+      next: (history) => {
+        this.complaintHistory = history;
+        this.showHistoryModal = true;
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error loading history:', error);
+        Swal.fire('Error', 'Failed to load complaint history', 'error');
+        this.isLoading = false;
+      }
+    });
+  }
 
   openResponseModal(complaint: ComplaintWithUser): void {
     this.selectedComplaint = complaint;
@@ -162,7 +166,7 @@ export class ComplaintsComponent implements OnInit {
     const data = {
       status: this.newStatus,
       actorId: currentUser.id,
-      actorRole: 'ACADEMIC_OFFICE_AFFAIR',
+      actorRole: 'TUTOR',
       response: this.responseText,
       comment: `Response added by ${currentUser.firstName} ${currentUser.lastName}`
     };
@@ -186,34 +190,25 @@ export class ComplaintsComponent implements OnInit {
       'URGENT': 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
       'HIGH': 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
       'MEDIUM': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-      'LOW': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+      'LOW': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
     };
-    return classes[priority] || 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200';
+    return classes[priority] || 'bg-gray-100 text-gray-800';
   }
 
   getStatusClass(status: string): string {
     const classes: any = {
       'OPEN': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
       'NOTED': 'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
-      'IN_PROGRESS': 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+      'IN_PROGRESS': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
       'RESOLVED': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
       'REJECTED': 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
     };
     return classes[status] || 'bg-gray-100 text-gray-800';
   }
 
-  getSeverityBadge(priority: string): { text: string; class: string } {
-    const badges: any = {
-      'MEDIUM': { text: 'Medium', class: 'bg-yellow-500' },
-      'HIGH': { text: 'High', class: 'bg-orange-500' },
-      'URGENT': { text: 'Urgent', class: 'bg-red-500' }
-    };
-    return badges[priority] || { text: 'Medium', class: 'bg-yellow-500' };
-  }
-
-
   closeModal(): void {
     this.showDetailModal = false;
+    this.showHistoryModal = false;
     this.showResponseModal = false;
     this.selectedComplaint = null;
     this.responseText = '';

@@ -1,0 +1,329 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="w-full space-y-6">
+    <h1 class="text-3xl font-bold text-gray-900 flex items-center gap-3">
+      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F59E0B] to-[#e5ac4f] flex items-center justify-center">
+        <i class="fas fa-headset text-white text-xl"></i>
+      </div>
+      Complaint Assistant
+    </h1>
+
+    <!-- Complaint Wizard -->
+    <div class="bg-white rounded-xl shadow-lg p-8">
+      <!-- Progress Bar -->
+      <div class="mb-8">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-gray-700">Step {{ currentStep + 1 }} of 4</span>
+          <span class="text-sm text-gray-500">{{ ['Problem Type', 'Details', 'Suggested Solutions', 'Description'][currentStep] }}</span>
+        </div>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+          <div class="bg-gradient-to-r from-[#F59E0B] to-[#e5ac4f] h-2 rounded-full transition-all duration-500" 
+               [style.width.%]="(currentStep + 1) * 25"></div>
+        </div>
+      </div>
+
+      <!-- Step 0: Category Selection -->
+      <div *ngIf="currentStep === 0" class="animate-fade-in">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">What type of problem do you have?</h2>
+        <p class="text-gray-600 mb-6">Select the category that best matches your situation</p>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div *ngFor="let cat of categories" 
+               (click)="selectCategory(cat.value)"
+               class="p-6 border-2 border-gray-200 rounded-xl hover:border-[#F59E0B] hover:shadow-lg transition-all cursor-pointer group">
+            <div class="flex items-start space-x-4">
+              <div class="w-14 h-14 rounded-xl flex items-center justify-center transition-all" 
+                   [ngClass]="cat.bgColor">
+                <i class="fas text-2xl transition-all" [ngClass]="[cat.icon, cat.color]"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="text-lg font-bold text-gray-900 group-hover:text-[#F59E0B] transition-colors">
+                  {{ cat.label }}
+                </h3>
+                <p class="text-sm text-gray-600 mt-1">{{ cat.description }}</p>
+              </div>
+              <i class="fas fa-arrow-right text-gray-400 group-hover:text-[#F59E0B] transition-colors"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 1: Dynamic Questions -->
+      <div *ngIf="currentStep === 1" class="animate-fade-in space-y-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Give us more details</h2>
+        
+        <!-- Pedagogical Questions -->
+        <div *ngIf="complaintForm.category === 'PEDAGOGICAL'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Which course?</label>
+            <select [(ngModel)]="complaintForm.courseType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select a course</option>
+              <option *ngFor="let course of courseTypes" [value]="course">{{ course }}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">What is the difficulty?</label>
+            <select [(ngModel)]="complaintForm.difficulty" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select a difficulty</option>
+              <option *ngFor="let diff of difficulties" [value]="diff">{{ diff }}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">For how many sessions?</label>
+            <input type="number" [(ngModel)]="complaintForm.sessionCount" min="1"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                   placeholder="Number of sessions">
+          </div>
+        </div>
+
+        <!-- Tutor Behavior Questions -->
+        <div *ngIf="complaintForm.category === 'TUTOR_BEHAVIOR'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Type of tutor issue</label>
+            <select [(ngModel)]="complaintForm.issueType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select type</option>
+              <option *ngFor="let issue of tutorIssues" [value]="issue">{{ issue }}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">For how many sessions?</label>
+            <input type="number" [(ngModel)]="complaintForm.sessionCount" min="1"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                   placeholder="Number of affected sessions">
+          </div>
+        </div>
+
+        <!-- Schedule Questions -->
+        <div *ngIf="complaintForm.category === 'SCHEDULE'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Type of schedule issue</label>
+            <select [(ngModel)]="complaintForm.issueType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select type</option>
+              <option value="Tutor absence">Tutor absence</option>
+              <option value="Tutor delay">Tutor delay</option>
+              <option value="Unnotified schedule change">Unnotified schedule change</option>
+              <option value="Incompatible schedule">Incompatible with my schedule</option>
+              <option value="Cancelled session">Session cancelled without notice</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Which course?</label>
+            <select [(ngModel)]="complaintForm.courseType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select a course</option>
+              <option *ngFor="let course of courseTypes" [value]="course">{{ course }}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">How many times?</label>
+            <input type="number" [(ngModel)]="complaintForm.sessionCount" min="1"
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                   placeholder="Number of occurrences">
+          </div>
+        </div>
+
+        <!-- Technical Questions -->
+        <div *ngIf="complaintForm.category === 'TECHNICAL'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Type of technical issue</label>
+            <select [(ngModel)]="complaintForm.issueType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select type</option>
+              <option *ngFor="let issue of technicalIssues" [value]="issue">{{ issue }}</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Is the issue blocking?</label>
+            <div class="flex gap-4">
+              <label class="flex items-center cursor-pointer">
+                <input type="radio" name="blocking" [(ngModel)]="complaintForm.difficulty" value="Blocking"
+                       class="mr-2 w-4 h-4 text-[#F59E0B] focus:ring-[#F59E0B]">
+                <span class="text-gray-700">Yes, I cannot continue</span>
+              </label>
+              <label class="flex items-center cursor-pointer">
+                <input type="radio" name="blocking" [(ngModel)]="complaintForm.difficulty" value="Non-blocking"
+                       class="mr-2 w-4 h-4 text-[#F59E0B] focus:ring-[#F59E0B]">
+                <span class="text-gray-700">No, it's annoying but I can continue</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Administrative Questions -->
+        <div *ngIf="complaintForm.category === 'ADMINISTRATIVE'" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Type of administrative issue</label>
+            <select [(ngModel)]="complaintForm.issueType" 
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+              <option value="">Select type</option>
+              <option value="Payment issue">Payment issue</option>
+              <option value="Incorrect invoice">Incorrect invoice</option>
+              <option value="Refund request">Refund request</option>
+              <option value="Registration not validated">Registration not validated</option>
+              <option value="Subscription modification">Subscription modification</option>
+              <option value="Certificate not received">Certificate not received</option>
+            </select>
+          </div>
+          
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Amount concerned (optional)</label>
+            <input type="text" [(ngModel)]="complaintForm.difficulty" 
+                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                   placeholder="Ex: 500 DH">
+          </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="flex justify-between pt-4">
+          <button (click)="previousStep()" 
+                  class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+          <button (click)="nextStep()" 
+                  class="px-6 py-3 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors font-semibold">
+            Continue <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Suggested Solutions (only for PEDAGOGICAL) -->
+      <div *ngIf="currentStep === 2 && complaintForm.category === 'PEDAGOGICAL'" class="animate-fade-in">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+          <i class="fas fa-lightbulb text-yellow-500"></i>
+          Suggested Solutions
+        </h2>
+        <p class="text-gray-600 mb-6">Before sending your complaint, try these resources that might help you</p>
+        
+        <div class="space-y-4 mb-6">
+          <div *ngFor="let solution of suggestedSolutions" 
+               class="p-4 border-2 border-blue-200 bg-blue-50 rounded-lg hover:border-blue-400 transition-all">
+            <div class="flex items-start space-x-3">
+              <div class="w-10 h-10 rounded-lg bg-white flex items-center justify-center flex-shrink-0">
+                <i class="fas text-lg" [ngClass]="[solution.icon, solution.color]"></i>
+              </div>
+              <div class="flex-1">
+                <h3 class="font-bold text-gray-900 mb-2">{{ solution.title }}</h3>
+                <p class="text-sm text-gray-600 mb-3">{{ solution.description }}</p>
+                <a [href]="solution.link" class="text-[#F59E0B] hover:underline font-semibold">
+                  Access resource <i class="fas fa-external-link-alt ml-1"></i>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-between">
+          <button (click)="previousStep()" 
+                  class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+          <button (click)="skipSolutions()" 
+                  class="px-6 py-3 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors font-semibold">
+            Continue anyway <i class="fas fa-arrow-right ml-2"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Final Description -->
+      <div *ngIf="currentStep === 3" class="animate-fade-in space-y-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4">Describe your problem</h2>
+        
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Subject</label>
+          <input type="text" [(ngModel)]="complaintForm.subject" 
+                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                 placeholder="Brief summary of your problem">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Detailed description</label>
+          <textarea [(ngModel)]="complaintForm.description" rows="6"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]"
+                    placeholder="Explain your problem in detail..."></textarea>
+        </div>
+
+        <div class="flex justify-between">
+          <button (click)="previousStep()" 
+                  class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+            <i class="fas fa-arrow-left mr-2"></i> Back
+          </button>
+          <button (click)="submitComplaint()" [disabled]="isSubmitting"
+                  class="px-6 py-3 bg-gradient-to-r from-[#F59E0B] to-[#e5ac4f] text-white rounded-lg hover:shadow-lg transition-all font-semibold disabled:opacity-50">
+            <i class="fas fa-paper-plane mr-2"></i> {{ isSubmitting ? 'Sending...' : 'Send Complaint' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Complaints -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+      <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-clipboard-list text-[#F59E0B]"></i>
+        My Complaints
+      </h2>
+      
+      <div *ngIf="complaints.length === 0" class="text-center py-12 text-gray-500">
+        <i class="fas fa-inbox text-6xl mb-4 opacity-50"></i>
+        <p class="text-lg">No complaints yet</p>
+      </div>
+
+      <div *ngIf="complaints.length > 0" class="space-y-4">
+        <div *ngFor="let complaint of complaints; trackBy: trackByComplaintId" 
+             class="border-2 border-gray-200 rounded-xl p-6 hover:border-[#F59E0B] transition-all">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-gray-900 mb-2">{{ complaint.subject }}</h3>
+              <p class="text-sm text-gray-600 mb-3">{{ complaint.description }}</p>
+              <div class="flex flex-wrap gap-2">
+                <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="getStatusClass(complaint.status)">
+                  {{ complaint.status }}
+                </span>
+                <span class="px-3 py-1 rounded-full text-xs font-semibold" [ngClass]="getPriorityClass(complaint.priority)">
+                  Priority: {{ getPriorityLabel(complaint.priority) }}
+                </span>
+                <span class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold">
+                  → {{ getTargetRole(complaint.targetRole, complaint.category) }}
+                </span>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button (click)="editComplaint(complaint.id)" 
+                      class="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                      title="Edit">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button (click)="deleteComplaint(complaint.id)" 
+                      class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Delete">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="text-sm text-gray-500 mb-3">
+            <i class="fas fa-clock mr-1"></i> {{ formatDate(complaint.createdAt) }}
+          </div>
+
+          <div *ngIf="complaint.response" class="mt-4 p-4 bg-green-50 border-l-4 border-green-500 rounded-lg">
+            <div class="flex justify-between items-start mb-2">
+              <p class="text-sm font-semibold text-green-900">
+                <i class="fas fa-reply mr-2"></i>Response from {{ getResponderInfo(complaint) }}
+              </p>
+              <span class="text-xs text-green-600">{{ getTimeAgo(complaint.updatedAt) }}</span>
+            </div>
+            <p class="text-sm text-green-800">{{ complaint.response }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

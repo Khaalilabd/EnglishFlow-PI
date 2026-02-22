@@ -10,6 +10,11 @@ spring:
     config:
       enabled: false
     gateway:
+      httpclient:
+        response-timeout: 300s
+        connect-timeout: 10000
+        pool:
+          max-idle-time: 300000
       discovery:
         locator:
           enabled: true
@@ -52,6 +57,23 @@ spring:
           uri: lb://community-service
           predicates:
             - Path=/api/community/**
+          filters:
+            - StripPrefix=1
+          order: 10
+            
+        # Complaints Service - SSE route must be before general complaints route
+        - id: complaints-service-sse
+          uri: lb://complaints-service
+          predicates:
+            - Path=/api/complaints/notifications/stream/**
+          filters:
+            - StripPrefix=1
+          order: 9
+            
+        - id: complaints-service
+          uri: lb://complaints-service
+          predicates:
+            - Path=/api/complaints/**
           filters:
             - StripPrefix=1
           order: 10
@@ -139,8 +161,10 @@ spring:
               - PUT
               - DELETE
               - OPTIONS
+              - PATCH
             allowed-headers: "*"
             allow-credentials: true
+            max-age: 3600
 
 eureka:
   client:
