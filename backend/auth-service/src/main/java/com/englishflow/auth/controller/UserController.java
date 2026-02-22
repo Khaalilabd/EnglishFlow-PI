@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/auth/users")
+@RequestMapping({"/users", "/auth/users"})
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -116,6 +116,9 @@ public class UserController {
         }
         if (request.getEnglishLevel() != null) {
             user.setEnglishLevel(request.getEnglishLevel());
+        }
+        if (request.getYearsOfExperience() != null) {
+            user.setYearsOfExperience(request.getYearsOfExperience());
         }
 
         user = userRepository.save(user);

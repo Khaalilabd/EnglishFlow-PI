@@ -19,7 +19,16 @@
 
     <div class="error-message" *ngIf="error">
       <span class="error-icon">⚠️</span>
-      {{ error }}
+      <div>
+        <div>{{ error }}</div>
+        
+        <!-- Backend Validation Errors -->
+        <div *ngIf="validationErrors.length > 0" class="validation-errors">
+          <div *ngFor="let validationError of validationErrors" class="validation-error-item">
+            <strong>{{ validationError.field }}:</strong> {{ validationError.message }}
+          </div>
+        </div>
+      </div>
     </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form">

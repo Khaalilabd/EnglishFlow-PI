@@ -10,4 +10,14 @@ public class ActivationViewController {
     public String activationPending() {
         return "activation-pending";
     }
+
+    @GetMapping("/activation-success")
+    public String activationSuccess() {
+        return "activation-success";
+    }
+
+    @GetMapping("/activation-error")
+    public String activationError() {
+        return "activation-error";
+    }
 }

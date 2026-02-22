@@ -31,9 +31,10 @@ export class CompleteProfileComponent implements OnInit {
   ];
   loading = false;
   error = '';
+  validationErrors: {field: string, message: string}[] = [];
   success = false;
 
-  private apiUrl = 'http://localhost:8081/auth'; // Direct auth service
+  private apiUrl = 'http://localhost:8080/api/auth'; // Via API Gateway
 
   constructor(
     private route: ActivatedRoute,
@@ -102,6 +103,7 @@ export class CompleteProfileComponent implements OnInit {
 
     this.loading = true;
     this.error = '';
+    this.validationErrors = [];
 
     // Préparer les données en s'assurant que les valeurs vides sont null
     const formData: any = {};
@@ -144,7 +146,19 @@ export class CompleteProfileComponent implements OnInit {
       error: (error) => {
         console.error('Error completing profile:', error);
         console.error('Error details:', error.error);
-        this.error = error.error?.message || 'Failed to complete profile. Please try again.';
+        
+        // Extraire les erreurs de validation du backend
+        if (error.error?.validationErrors && Array.isArray(error.error.validationErrors)) {
+          this.validationErrors = error.error.validationErrors.map((err: any) => ({
+            field: err.field,
+            message: err.message
+          }));
+          this.error = 'Please fix the validation errors below';
+        } else {
+          this.error = error.error?.message || 'Failed to complete profile. Please try again.';
+          this.validationErrors = [];
+        }
+        
         this.loading = false;
       }
     });

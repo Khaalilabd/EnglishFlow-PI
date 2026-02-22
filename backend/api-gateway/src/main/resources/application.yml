@@ -93,6 +93,20 @@ spring:
           predicates:
             - Path=/public/**
           order: 20
+        
+        # Route pour la page HTML activation-pending
+        - id: activation-pending
+          uri: lb://auth-service
+          predicates:
+            - Path=/activation-pending
+          order: 21
+        
+        # Routes pour les pages d'activation success/error
+        - id: activation-pages
+          uri: lb://auth-service
+          predicates:
+            - Path=/activation-success,/activation-error
+          order: 22
             
         - id: messaging-service
           uri: lb://messaging-service

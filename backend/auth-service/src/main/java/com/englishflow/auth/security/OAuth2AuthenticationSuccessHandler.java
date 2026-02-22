@@ -65,9 +65,9 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         
         // Check if user is active
         if (!user.isActive()) {
-            // Pour les STUDENTS OAuth2: rediriger vers la page HTML backend avec animation
+            // Pour les STUDENTS OAuth2: rediriger vers la page HTML backend avec animation (via API Gateway)
             // Cette page détecte automatiquement l'activation et redirige ensuite
-            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8081/activation-pending")
+            String targetUrl = UriComponentsBuilder.fromUriString("http://localhost:8080/activation-pending")
                     .queryParam("email", userInfo.email)
                     .queryParam("firstName", user.getFirstName())
                     .build().toUriString();

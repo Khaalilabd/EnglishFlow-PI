@@ -1,11 +1,44 @@
 .complete-profile-container {
   min-height: 100vh;
   background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
-  padding: 40px 20px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
+  
+  // Animated Background Elements (comme register)
+  &::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(246, 189, 96, 0.2);
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: blob 7s infinite;
+  }
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 40%;
+    right: 10%;
+    width: 300px;
+    height: 300px;
+    background: rgba(242, 100, 100, 0.2);
+    border-radius: 50%;
+    filter: blur(80px);
+    animation: blob 7s infinite 2s;
+  }
+}
+
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
 }
 
 .success-overlay {
@@ -28,6 +61,19 @@
   border-radius: 20px;
   text-align: center;
   animation: scaleIn 0.5s ease-out;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  
+  h2 {
+    color: #28a745;
+    font-size: 32px;
+    margin-bottom: 15px;
+    font-weight: 700;
+  }
+  
+  p {
+    color: #666;
+    font-size: 18px;
+  }
 }
 
 .success-icon {
@@ -42,6 +88,7 @@
   font-size: 60px;
   color: white;
   animation: bounce 0.6s ease-out;
+  box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
 }
 
 .profile-card {
@@ -50,8 +97,10 @@
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   max-width: 900px;
   width: 100%;
-  padding: 50px 40px;
+  padding: 40px;
   animation: slideIn 0.5s ease-out;
+  position: relative;
+  z-index: 1;
 
   &.hidden {
     display: none;
@@ -60,7 +109,7 @@
 
 .header {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 35px;
 
   .logo {
     font-size: 48px;
@@ -92,21 +141,49 @@
   border: 1px solid #f5c6cb;
   color: #721c24;
   padding: 15px 20px;
-  border-radius: 8px;
-  margin-bottom: 30px;
+  border-radius: 12px;
+  margin-bottom: 25px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 10px;
+  animation: shake 0.5s;
 
   .error-icon {
     font-size: 20px;
+    flex-shrink: 0;
   }
+
+  .validation-errors {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f5c6cb;
+  }
+
+  .validation-error-item {
+    background: #fff;
+    padding: 8px 12px;
+    margin-top: 6px;
+    border-radius: 6px;
+    font-size: 14px;
+    border-left: 3px solid #dc3545;
+
+    strong {
+      color: #721c24;
+      text-transform: capitalize;
+    }
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
 }
 
 .profile-form {
   .form-section {
-    margin-bottom: 35px;
-    padding-bottom: 35px;
+    margin-bottom: 30px;
+    padding-bottom: 30px;
     border-bottom: 2px solid #e0e0e0;
 
     &:last-of-type {
@@ -115,9 +192,20 @@
 
     h3 {
       color: #2D5757;
-      font-size: 22px;
-      margin-bottom: 25px;
+      font-size: 20px;
+      margin-bottom: 20px;
       font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      
+      &::before {
+        content: '';
+        width: 4px;
+        height: 24px;
+        background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+        border-radius: 2px;
+      }
     }
   }
 
@@ -129,7 +217,7 @@
       color: #333;
       font-weight: 600;
       margin-bottom: 8px;
-      font-size: 15px;
+      font-size: 14px;
 
       .required {
         color: #dc3545;
@@ -143,25 +231,34 @@
       width: 100%;
       padding: 12px 16px;
       border: 2px solid #e0e0e0;
-      border-radius: 8px;
-      font-size: 16px;
+      border-radius: 10px;
+      font-size: 15px;
       transition: all 0.3s;
       font-family: inherit;
+      background: #f8f9fa;
 
       &:focus {
         outline: none;
         border-color: #2D5757;
+        background: white;
         box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
       }
 
       &:disabled {
-        background: #f5f5f5;
+        background: #e9ecef;
         cursor: not-allowed;
         opacity: 0.7;
       }
 
       &::placeholder {
         color: #999;
+      }
+      
+      &.readonly-input {
+        background: #e9ecef;
+        cursor: not-allowed;
+        color: #666;
+        border-color: #dee2e6;
       }
     }
 
@@ -170,18 +267,43 @@
       min-height: 80px;
     }
 
-    .readonly-input {
-      background: #f5f5f5;
-      cursor: not-allowed;
-      color: #666;
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23333' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 40px;
+    }
+
+    .help-text {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: #6b7280;
     }
 
     .char-count {
       display: block;
       text-align: right;
       color: #666;
-      font-size: 13px;
+      font-size: 12px;
       margin-top: 5px;
+    }
+
+    .error-text {
+      margin-top: 6px;
+      font-size: 12px;
+      color: #ef4444;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      
+      &::before {
+        content: '⚠';
+        font-size: 14px;
+      }
     }
   }
 
@@ -211,10 +333,16 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
+  margin-top: 30px;
+  box-shadow: 0 4px 15px rgba(45, 87, 87, 0.3);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(45, 87, 87, 0.3);
+    box-shadow: 0 8px 25px rgba(45, 87, 87, 0.4);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(0);
   }
 
   &:disabled {
@@ -233,6 +361,7 @@
   }
 }
 
+// Animations
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -276,6 +405,7 @@
   to { transform: rotate(360deg); }
 }
 
+// Responsive
 @media (max-width: 768px) {
   .profile-card {
     padding: 30px 20px;
@@ -284,20 +414,10 @@
   .header h1 {
     font-size: 26px;
   }
-}
-
-.error-text {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #ef4444;
-  font-weight: 500;
-}
-
-.help-text {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: #6b7280;
+  
+  .header .welcome {
+    font-size: 18px;
+  }
 }
 
 .required {

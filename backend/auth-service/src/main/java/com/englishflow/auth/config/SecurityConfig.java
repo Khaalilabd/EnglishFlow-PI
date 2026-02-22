@@ -47,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/activate/**", "/api/auth/activate-api", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/complete-profile/**", "/api/auth/activation-status/**").permitAll()
                         .requestMatchers("/actuator/**", "/oauth2/**", "/login/oauth2/**", "/public/**", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
                         // Endpoint public pour récupérer les infos utilisateur (pour inter-service communication)
-                        .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public").permitAll()
+                        .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public", "/users/*/public").permitAll()
                         // Endpoints password reset
                         .requestMatchers("/auth/password-reset/**", "/api/auth/password-reset/**").permitAll()
                         // Endpoints d'invitation
@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/admin/**", "/api/auth/admin/**").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
                         // Endpoints sessions
                         .requestMatchers("/sessions/**", "/api/sessions/**").authenticated()
+                        // Endpoints users
+                        .requestMatchers("/users/**").authenticated()
                         // Autres endpoints auth nécessitent authentification
                         .requestMatchers("/auth/users/**", "/auth/**", "/api/auth/users/**", "/api/auth/**").authenticated()
                         .anyRequest().authenticated()

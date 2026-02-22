@@ -482,7 +482,12 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   getTitle(conv: Conversation): string {
     if (conv.title) return conv.title;
     const other = conv.participants.find(p => p.userId !== this.currentUserId);
-    return other?.userName || 'Conversation';
+    // Utiliser userName s'il existe et n'est pas vide, sinon utiliser l'email
+    if (other?.userName && other.userName !== 'User' && other.userName.trim() !== '') {
+      return other.userName;
+    }
+    // Fallback sur l'email si userName n'est pas disponible
+    return other?.userEmail?.split('@')[0] || 'Conversation';
   }
 
   getAvatar(conv: Conversation): string {
