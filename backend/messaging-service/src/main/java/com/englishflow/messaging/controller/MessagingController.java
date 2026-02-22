@@ -3,15 +3,23 @@ package com.englishflow.messaging.controller;
 import com.englishflow.messaging.client.AuthServiceClient;
 import com.englishflow.messaging.config.JwtUtil;
 import com.englishflow.messaging.dto.*;
+import com.englishflow.messaging.service.FileStorageService;
 import com.englishflow.messaging.service.MessagingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.net.MalformedURLException;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +33,7 @@ public class MessagingController {
     private final MessagingService messagingService;
     private final JwtUtil jwtUtil;
     private final AuthServiceClient authServiceClient;
+    private final FileStorageService fileStorageService;
     
     @GetMapping("/conversations")
     public ResponseEntity<List<ConversationDTO>> getConversations(Authentication authentication) {
@@ -122,5 +131,57 @@ public class MessagingController {
         Map<String, Long> response = new HashMap<>();
         response.put("count", count);
         return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("File upload request from user: {}, filename: {}, size: {} bytes", 
+                userId, file.getOriginalFilename(), file.getSize());
+        
+        try {
+            String fileName = fileStorageService.storeFile(file);
+            String fileUrl = "/api/messaging/files/" + fileName;
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("fileName", file.getOriginalFilename());
+            response.put("fileUrl", fileUrl);
+            response.put("fileSize", String.valueOf(file.getSize()));
+            response.put("contentType", file.getContentType());
+            
+            log.info("File uploaded successfully: {}", fileName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error uploading file: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @GetMapping("/files/{fileName:.+}")
+    public ResponseEntity<Resource> downloadFile(
+            @PathVariable String fileName,
+            Authentication authentication) {
+        try {
+            Path filePath = fileStorageService.getFilePath(fileName);
+            Resource resource = new UrlResource(filePath.toUri());
+            
+            if (resource.exists() && resource.isReadable()) {
+                String contentType = "application/octet-stream";
+                
+                return ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(contentType))
+                        .header(HttpHeaders.CONTENT_DISPOSITION, 
+                               "attachment; filename=\"" + resource.getFilename() + "\"")
+                        .body(resource);
+            } else {
+                log.error("File not found or not readable: {}", fileName);
+                return ResponseEntity.notFound().build();
+            }
+        } catch (MalformedURLException e) {
+            log.error("Error downloading file: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
     }
 }

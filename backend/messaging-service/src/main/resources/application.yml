@@ -31,6 +31,9 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
 
+file:
+  upload-dir: uploads/messages
+
 eureka:
   client:
     service-url:

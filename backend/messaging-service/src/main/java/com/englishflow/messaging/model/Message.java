@@ -58,6 +58,9 @@ public class Message {
     @Column(name = "emoji_code", length = 50)
     private String emojiCode;
     
+    @Column(name = "voice_duration")
+    private Integer voiceDuration; // Durée en secondes pour les messages vocaux
+    
     @Column(name = "is_edited", nullable = false)
     private Boolean isEdited = false;
     
@@ -76,6 +79,6 @@ public class Message {
     private List<MessageReaction> reactions = new ArrayList<>();
     
     public enum MessageType {
-        TEXT, FILE, IMAGE, EMOJI
+        TEXT, FILE, IMAGE, EMOJI, VOICE
     }
 }

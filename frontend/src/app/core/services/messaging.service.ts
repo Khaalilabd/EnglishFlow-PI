@@ -67,4 +67,14 @@ export class MessagingService {
   getReactions(messageId: number): Observable<ReactionSummary[]> {
     return this.http.get<ReactionSummary[]>(`${this.apiUrl}/messages/${messageId}/reactions`);
   }
+  
+  // File upload
+  uploadFile(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/upload`, formData);
+  }
+  
+  // File download
+  downloadFile(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }

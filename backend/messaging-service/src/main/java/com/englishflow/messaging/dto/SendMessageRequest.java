@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SendMessageRequest {
     
-    @NotBlank(message = "Message content is required")
     @Size(max = 5000, message = "Message content must not exceed 5000 characters")
     private String content;
     
@@ -30,4 +29,6 @@ public class SendMessageRequest {
     
     @Size(max = 50, message = "Emoji code must not exceed 50 characters")
     private String emojiCode;
+    
+    private Integer voiceDuration; // Durée en secondes pour les messages vocaux
 }

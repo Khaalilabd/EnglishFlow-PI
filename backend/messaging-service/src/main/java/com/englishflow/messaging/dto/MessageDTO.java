@@ -23,9 +23,17 @@ public class MessageDTO {
     private String fileName;
     private Long fileSize;
     private String emojiCode;
+    private Integer voiceDuration;
     private Boolean isEdited;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<ReadStatusDTO> readBy;
     private List<ReactionSummaryDTO> reactions;
+    private MessageStatus status; // SENT, DELIVERED, READ
+    
+    public enum MessageStatus {
+        SENT,      // Message envoyé mais pas encore reçu
+        DELIVERED, // Message reçu par au moins un destinataire
+        READ       // Message lu par au moins un destinataire
+    }
 }

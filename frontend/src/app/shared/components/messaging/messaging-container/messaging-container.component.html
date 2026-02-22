@@ -102,9 +102,67 @@
             <div class="message-content-wrapper">
               <div class="message-bubble" [class.emoji-bubble]="msg.messageType === 'EMOJI'">
                 <div class="message-content">
-                  <p *ngIf="msg.messageType !== 'EMOJI'">{{ msg.content }}</p>
+                  <!-- Text message -->
+                  <p *ngIf="msg.messageType !== 'EMOJI' && msg.messageType !== 'FILE' && msg.messageType !== 'VOICE'">{{ msg.content }}</p>
+                  
+                  <!-- Emoji message -->
                   <span *ngIf="msg.messageType === 'EMOJI'" class="emoji-large">{{ msg.content }}</span>
-                  <span class="message-time" *ngIf="msg.messageType !== 'EMOJI'">{{ formatMessageTime(msg.createdAt) }}</span>
+                  
+                  <!-- File message -->
+                  <div *ngIf="msg.messageType === 'FILE'" class="file-message">
+                    <img *ngIf="isImageMessage(msg)" 
+                         [src]="getImageUrl(msg)" 
+                         [alt]="msg.fileName" 
+                         class="message-image"
+                         (click)="openImageModal(msg)">
+                    <div *ngIf="!isImageMessage(msg)" class="file-attachment">
+                      <div class="file-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                      </div>
+                      <div class="file-details">
+                        <span class="file-name">{{ msg.fileName }}</span>
+                        <span class="file-size">{{ formatFileSize(msg.fileSize) }}</span>
+                      </div>
+                      <button class="download-btn" (click)="downloadFile(msg.fileUrl, msg.fileName)" title="Télécharger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                      </button>
+                    </div>
+                    <p *ngIf="msg.content" class="file-caption">{{ msg.content }}</p>
+                  </div>
+                  
+                  <!-- Voice message -->
+                  <div *ngIf="msg.messageType === 'VOICE'" class="voice-message">
+                    <button class="voice-play-btn" (click)="playVoiceMessage($event, msg.id, msg.fileUrl)">
+                      <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </button>
+                    <div class="voice-waveform">
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                      <span class="voice-bar"></span>
+                    </div>
+                    <span class="voice-duration">{{ formatVoiceDuration(msg.voiceDuration) }}</span>
+                    <audio [src]="getAudioUrl(msg)" *ngIf="getAudioUrl(msg)"></audio>
+                  </div>
+                  
+                  <div class="message-footer" *ngIf="msg.messageType !== 'EMOJI'">
+                    <span class="message-time">{{ formatMessageTime(msg.createdAt) }}</span>
+                    <span class="message-status" [class]="getMessageStatusClass(msg)" *ngIf="msg.senderId === currentUserId">
+                      {{ getMessageStatusIcon(msg) }}
+                    </span>
+                  </div>
                 </div>
               </div>
               
@@ -167,30 +225,118 @@
         </div>
       </div>
 
+      <!-- File Preview -->
+      <div class="file-preview" *ngIf="selectedFile">
+        <div class="file-preview-content">
+          <div class="file-icon" *ngIf="!isImageFile(selectedFile)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+          </div>
+          <img *ngIf="isImageFile(selectedFile)" [src]="filePreviewUrl" alt="Preview">
+          <div class="file-info">
+            <span class="file-name">{{ selectedFile.name }}</span>
+            <span class="file-size">{{ formatFileSize(selectedFile.size) }}</span>
+          </div>
+          <button class="remove-file-btn" (click)="removeSelectedFile()" title="Supprimer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
       <!-- Input Area -->
       <footer class="chat-footer">
-        <button class="icon-btn emoji-btn" (click)="toggleEmojiPicker()" title="Ajouter un emoji">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2"/>
-            <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-width="2" stroke-linecap="round"/>
-            <circle cx="9" cy="9" r="1" fill="currentColor"/>
-            <circle cx="15" cy="9" r="1" fill="currentColor"/>
-          </svg>
-        </button>
-        <div class="input-wrapper">
-          <input #messageInput
-                 type="text" 
-                 placeholder="Tapez votre message..." 
-                 [(ngModel)]="newMessage"
-                 (keyup.enter)="sendMessage()"
-                 (input)="onTyping()">
+        <!-- Mode normal -->
+        <div class="footer-normal" *ngIf="!isRecording && !audioBlob">
+          <button class="icon-btn emoji-btn" (click)="toggleEmojiPicker()" title="Ajouter un emoji">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="9" cy="9" r="1" fill="currentColor"/>
+              <circle cx="15" cy="9" r="1" fill="currentColor"/>
+            </svg>
+          </button>
+          <button class="icon-btn file-btn" (click)="fileInput.click()" title="Joindre un fichier">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+            </svg>
+          </button>
+          <input #fileInput type="file" style="display: none" 
+                 (change)="onFileSelected($event)"
+                 accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt">
+          <div class="input-wrapper" (click)="focusInput()">
+            <input #messageInput
+                   type="text" 
+                   placeholder="Tapez votre message..." 
+                   [(ngModel)]="newMessage"
+                   (keyup.enter)="sendMessage()"
+                   (input)="onTyping()">
+          </div>
+          <button class="icon-btn mic-btn" (click)="startRecording()" title="Message vocal" *ngIf="!newMessage.trim() && !selectedFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            </svg>
+          </button>
+          <button class="send-btn" [class.active]="newMessage.trim() || selectedFile" (click)="sendMessage()" title="Envoyer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
         </div>
-        <button class="send-btn" [class.active]="newMessage.trim()" (click)="sendMessage()" title="Envoyer">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                  d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
-          </svg>
-        </button>
+        
+        <!-- Mode enregistrement -->
+        <div class="footer-recording" *ngIf="isRecording">
+          <div class="recording-indicator">
+            <span class="recording-dot"></span>
+            <span class="recording-time">{{ formatRecordingTime(recordingTime) }}</span>
+          </div>
+          <div class="recording-waveform">
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+            <span class="wave-bar"></span>
+          </div>
+          <button class="icon-btn cancel-btn" (click)="cancelRecording()" title="Annuler">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+          <button class="icon-btn stop-btn" (click)="stopRecording()" title="Arrêter">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="6" width="12" height="12" rx="2"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Mode preview audio -->
+        <div class="footer-audio-preview" *ngIf="audioBlob && !isRecording">
+          <button class="icon-btn cancel-btn" (click)="cancelRecording()" title="Annuler">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+          <div class="audio-preview-info">
+            <svg class="audio-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+            </svg>
+            <span class="audio-duration">{{ formatRecordingTime(recordingTime) }}</span>
+            <audio [src]="audioUrl" controls class="audio-player"></audio>
+          </div>
+          <button class="send-btn active" (click)="sendVoiceMessage()" title="Envoyer" [disabled]="uploadingFile">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+            </svg>
+          </button>
+        </div>
       </footer>
       
       <!-- Simple Emoji Picker -->
@@ -239,3 +385,15 @@
   (close)="showNewConversationModal = false"
   (conversationCreated)="onConversationCreated($event)"
 ></app-new-conversation-modal>
+
+<!-- Image Modal -->
+<div class="image-modal-overlay" *ngIf="selectedImageUrl" (click)="closeImageModal()">
+  <button class="image-modal-close" (click)="closeImageModal()" title="Fermer">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+  <div class="image-modal-content" (click)="$event.stopPropagation()">
+    <img [src]="selectedImageUrl" [alt]="selectedImageName">
+  </div>
+</div>

@@ -3,6 +3,7 @@ package com.englishflow.messaging.controller;
 import com.englishflow.messaging.client.AuthServiceClient;
 import com.englishflow.messaging.constants.MessagingConstants;
 import com.englishflow.messaging.dto.MessageDTO;
+import com.englishflow.messaging.dto.NotificationDTO;
 import com.englishflow.messaging.dto.SendMessageRequest;
 import com.englishflow.messaging.exception.MessageValidationException;
 import com.englishflow.messaging.exception.UnauthorizedAccessException;
@@ -58,6 +59,9 @@ public class WebSocketController {
             // Envoyer le message à tous les participants de la conversation
             String destination = MessagingConstants.WS_CONVERSATION_TOPIC + conversationId;
             messagingTemplate.convertAndSend(destination, message);
+            
+            // Envoyer une notification aux autres participants
+            sendMessageNotification(conversationId, message, userId);
             
             log.info("Message {} sent successfully to conversation {} via WebSocket", 
                      message.getId(), conversationId);
@@ -115,5 +119,37 @@ public class WebSocketController {
         
         String destination = MessagingConstants.WS_CONVERSATION_TOPIC + conversationId + "/error";
         messagingTemplate.convertAndSend(destination, error);
+    }
+    
+    private void sendMessageNotification(Long conversationId, MessageDTO message, Long senderId) {
+        try {
+            // Récupérer les participants de la conversation
+            var conversation = messagingService.getConversation(conversationId, senderId);
+            
+            // Envoyer une notification à chaque participant (sauf l'expéditeur)
+            conversation.getParticipants().forEach(participant -> {
+                if (!participant.getUserId().equals(senderId)) {
+                    NotificationDTO notification = new NotificationDTO();
+                    notification.setUserId(participant.getUserId());
+                    notification.setType("MESSAGE");
+                    notification.setTitle("Nouveau message");
+                    notification.setMessage(message.getSenderName() + " vous a envoyé un message");
+                    notification.setSenderName(message.getSenderName());
+                    notification.setSenderAvatar(message.getSenderAvatar());
+                    notification.setConversationId(conversationId);
+                    notification.setMessageId(message.getId());
+                    notification.setCreatedAt(message.getCreatedAt());
+                    notification.setIsRead(false);
+                    
+                    // Envoyer la notification via WebSocket
+                    String destination = "/topic/user/" + participant.getUserId() + "/notifications";
+                    messagingTemplate.convertAndSend(destination, notification);
+                    
+                    log.debug("Notification sent to user {} for message {}", participant.getUserId(), message.getId());
+                }
+            });
+        } catch (Exception e) {
+            log.error("Error sending message notification for conversation {}", conversationId, e);
+        }
     }
 }

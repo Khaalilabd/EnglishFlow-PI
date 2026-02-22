@@ -10,18 +10,27 @@ export interface Message {
   fileName?: string;
   fileSize?: number;
   emojiCode?: string;
+  voiceDuration?: number;
   isEdited: boolean;
   createdAt: Date;
   updatedAt: Date;
   readBy?: MessageReadStatus[];
   reactions?: ReactionSummary[];
+  status?: MessageStatus;
 }
 
 export enum MessageType {
   TEXT = 'TEXT',
   FILE = 'FILE',
   IMAGE = 'IMAGE',
-  EMOJI = 'EMOJI'
+  EMOJI = 'EMOJI',
+  VOICE = 'VOICE'
+}
+
+export enum MessageStatus {
+  SENT = 'SENT',
+  DELIVERED = 'DELIVERED',
+  READ = 'READ'
 }
 
 export interface MessageReadStatus {
@@ -37,6 +46,7 @@ export interface SendMessageRequest {
   fileName?: string;
   fileSize?: number;
   emojiCode?: string;
+  voiceDuration?: number;
 }
 
 export interface TypingIndicator {

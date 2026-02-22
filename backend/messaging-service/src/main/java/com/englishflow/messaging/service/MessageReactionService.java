@@ -36,9 +36,16 @@ public class MessageReactionService {
         Message message = messageRepository.findById(messageId)
             .orElseThrow(() -> new ResourceNotFoundException("Message not found with id: " + messageId));
         
-        // Récupérer les infos utilisateur
-        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
-        String userName = userInfo.getFullName();
+        // Récupérer les infos utilisateur avec gestion d'erreur
+        String userName;
+        try {
+            AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+            userName = userInfo.getFullName();
+            log.debug("Retrieved user name: {} for userId: {}", userName, userId);
+        } catch (Exception e) {
+            log.error("Failed to get user info for userId: {}, using default name. Error: {}", userId, e.getMessage());
+            userName = "User " + userId;
+        }
         
         // Vérifier si la réaction existe déjà
         var existingReaction = reactionRepository.findByMessageIdAndUserIdAndEmoji(messageId, userId, emoji);
@@ -77,14 +84,19 @@ public class MessageReactionService {
             String emoji = entry.getKey();
             List<MessageReaction> emojiReactions = entry.getValue();
             
+            boolean reactedByCurrentUser = false;
+            if (currentUserId != null) {
+                reactedByCurrentUser = emojiReactions.stream()
+                    .anyMatch(r -> r.getUserId().equals(currentUserId));
+            }
+            
             ReactionSummaryDTO summary = ReactionSummaryDTO.builder()
                 .emoji(emoji)
                 .count((long) emojiReactions.size())
                 .userNames(emojiReactions.stream()
                     .map(MessageReaction::getUserName)
                     .collect(Collectors.toList()))
-                .reactedByCurrentUser(emojiReactions.stream()
-                    .anyMatch(r -> r.getUserId().equals(currentUserId)))
+                .reactedByCurrentUser(reactedByCurrentUser)
                 .build();
             
             summaries.add(summary);

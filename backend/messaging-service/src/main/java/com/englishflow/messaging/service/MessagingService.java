@@ -32,6 +32,7 @@ public class MessagingService {
     private final MessageRepository messageRepository;
     private final MessageReadStatusRepository readStatusRepository;
     private final AuthServiceClient authServiceClient;
+    private final MessageReactionService reactionService;
     
     @Transactional(readOnly = true)
     public List<ConversationDTO> getUserConversations(Long userId) {
@@ -149,8 +150,32 @@ public class MessagingService {
             if (request.getEmojiCode().length() > 50) {
                 throw new MessageValidationException("Emoji code is too long");
             }
+        } else if (request.getMessageType() == Message.MessageType.FILE) {
+            // Pour les fichiers, le contenu est optionnel (légende) mais fileUrl est obligatoire
+            if (request.getFileUrl() == null || request.getFileUrl().trim().isEmpty()) {
+                throw new MessageValidationException("File URL is required for FILE message type");
+            }
+            if (request.getFileName() == null || request.getFileName().trim().isEmpty()) {
+                throw new MessageValidationException("File name is required for FILE message type");
+            }
+            // Le contenu (légende) est optionnel pour les fichiers
+            if (request.getContent() != null && request.getContent().length() > MessagingConstants.MAX_MESSAGE_LENGTH) {
+                throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_TOO_LONG);
+            }
+        } else if (request.getMessageType() == Message.MessageType.VOICE) {
+            // Pour les messages vocaux, le contenu est optionnel mais fileUrl et voiceDuration sont obligatoires
+            if (request.getFileUrl() == null || request.getFileUrl().trim().isEmpty()) {
+                throw new MessageValidationException("File URL is required for VOICE message type");
+            }
+            if (request.getVoiceDuration() == null || request.getVoiceDuration() <= 0) {
+                throw new MessageValidationException("Voice duration is required for VOICE message type");
+            }
+            // Le contenu est optionnel pour les messages vocaux
+            if (request.getContent() != null && request.getContent().length() > MessagingConstants.MAX_MESSAGE_LENGTH) {
+                throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_TOO_LONG);
+            }
         } else {
-            // Pour les autres types, le contenu est obligatoire
+            // Pour les messages texte, le contenu est obligatoire
             if (request.getContent() == null || request.getContent().trim().isEmpty()) {
                 throw new MessageValidationException(MessagingConstants.ERROR_MESSAGE_EMPTY);
             }
@@ -178,6 +203,7 @@ public class MessagingService {
         message.setFileName(request.getFileName());
         message.setFileSize(request.getFileSize());
         message.setEmojiCode(request.getEmojiCode());
+        message.setVoiceDuration(request.getVoiceDuration());
         message.setIsEdited(false);
         message.setCreatedAt(LocalDateTime.now());
         
@@ -292,6 +318,7 @@ public class MessagingService {
         dto.setFileName(message.getFileName());
         dto.setFileSize(message.getFileSize());
         dto.setEmojiCode(message.getEmojiCode());
+        dto.setVoiceDuration(message.getVoiceDuration());
         dto.setIsEdited(message.getIsEdited());
         dto.setCreatedAt(message.getCreatedAt());
         dto.setUpdatedAt(message.getUpdatedAt());
@@ -302,7 +329,53 @@ public class MessagingService {
             .collect(Collectors.toList());
         dto.setReadBy(readStatuses);
         
+        // Calculer le statut du message (SENT, DELIVERED, READ)
+        dto.setStatus(calculateMessageStatus(message));
+        
+        // Reactions - récupérer les réactions pour ce message
+        // Note: On ne peut pas obtenir le currentUserId ici, donc on passe null
+        // Le frontend devra déterminer si l'utilisateur a réagi
+        try {
+            List<ReactionSummaryDTO> reactions = reactionService.getReactionSummary(message.getId(), null);
+            dto.setReactions(reactions);
+        } catch (Exception e) {
+            log.warn("Failed to load reactions for message {}: {}", message.getId(), e.getMessage());
+            dto.setReactions(new ArrayList<>());
+        }
+        
         return dto;
+    }
+    
+    private MessageDTO.MessageStatus calculateMessageStatus(Message message) {
+        // Si le message a été lu par au moins un destinataire (autre que l'expéditeur)
+        boolean hasBeenRead = message.getReadStatuses().stream()
+            .anyMatch(rs -> !rs.getUserId().equals(message.getSenderId()));
+        
+        if (hasBeenRead) {
+            log.debug("Message {} status: READ (has been read by recipient)", message.getId());
+            return MessageDTO.MessageStatus.READ;
+        }
+        
+        // Vérifier si le message vient d'être créé (moins de 2 secondes)
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdAt = message.getCreatedAt();
+        long secondsSinceCreation = java.time.Duration.between(createdAt, now).getSeconds();
+        
+        // Si le message a moins de 2 secondes, il est considéré comme SENT
+        if (secondsSinceCreation < 2) {
+            log.debug("Message {} status: SENT (created {} seconds ago)", message.getId(), secondsSinceCreation);
+            return MessageDTO.MessageStatus.SENT;
+        }
+        
+        // Sinon, si la conversation a d'autres participants, il est DELIVERED
+        long participantCount = message.getConversation().getParticipants().size();
+        if (participantCount > 1) {
+            log.debug("Message {} status: DELIVERED ({} participants)", message.getId(), participantCount);
+            return MessageDTO.MessageStatus.DELIVERED;
+        }
+        
+        log.debug("Message {} status: SENT (default)", message.getId());
+        return MessageDTO.MessageStatus.SENT;
     }
     
     public boolean hasAccessToConversation(Long conversationId, Long userId) {
