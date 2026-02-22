@@ -13,8 +13,19 @@ export class AuthService {
 
   constructor(private http: HttpClient) {
     const storedUser = localStorage.getItem('currentUser');
+    console.log('🔍 [AuthService] Stored user from localStorage:', storedUser);
     if (storedUser) {
-      this.currentUserSubject.next(JSON.parse(storedUser));
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        console.log('🔍 [AuthService] Parsed user:', parsedUser);
+        console.log('🔍 [AuthService] User ID:', parsedUser.id, 'Type:', typeof parsedUser.id);
+        this.currentUserSubject.next(parsedUser);
+      } catch (error) {
+        console.error('❌ [AuthService] Error parsing stored user:', error);
+        localStorage.removeItem('currentUser');
+      }
+    } else {
+      console.warn('⚠️ [AuthService] No stored user found in localStorage');
     }
   }
 

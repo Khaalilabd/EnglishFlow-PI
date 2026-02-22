@@ -126,7 +126,11 @@ export class FrontofficeUserDropdownComponent implements OnInit {
     private router: Router
   ) {
     this.currentUser = this.authService.currentUserValue;
+    console.log('Constructor - currentUser from authService:', this.currentUser);
+    console.log('Constructor - localStorage currentUser:', localStorage.getItem('currentUser'));
+    
     this.authService.currentUser$.subscribe(user => {
+      console.log('Subscription - user updated:', user);
       this.currentUser = user;
     });
   }
@@ -176,6 +180,9 @@ export class FrontofficeUserDropdownComponent implements OnInit {
   }
 
   get userPanelRoute(): string {
+    console.log('Current user role:', this.currentUser?.role);
+    console.log('Calculated route:', this.currentUser?.role === 'STUDENT' ? '/user-panel' : 'other');
+    
     if (this.currentUser?.role === 'ADMIN') {
       return '/dashboard';
     } else if (this.currentUser?.role === 'TUTOR') {

@@ -10,6 +10,14 @@ spring:
     config:
       enabled: false
     gateway:
+      httpclient:
+        response-timeout: 300s
+        connect-timeout: 10000
+        pool:
+          max-idle-time: 300000
+        # Configuration spécifique pour SSE
+        wiretap: false
+        compression: false
       discovery:
         locator:
           enabled: true
@@ -29,6 +37,20 @@ spring:
           filters:
             - StripPrefix=1
             
+        - id: complaints-service-sse
+          uri: lb://complaints-service
+          predicates:
+            - Path=/api/complaints/notifications/stream/**
+          filters:
+            - StripPrefix=1
+            
+        - id: complaints-service
+          uri: lb://complaints-service
+          predicates:
+             - Path=/api/complaints/**
+          filters:
+            - StripPrefix=1
+         
         - id: learning-service
           uri: lb://learning-service
           predicates:
@@ -97,15 +119,19 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "${FRONTEND_URL:http://localhost:4200}"
+            allowed-origins: 
+              - "${FRONTEND_URL:http://localhost:4200}"
+              - "http://localhost:4200"
             allowed-methods:
               - GET
               - POST
               - PUT
               - DELETE
               - OPTIONS
+              - PATCH
             allowed-headers: "*"
             allow-credentials: true
+            max-age: 3600
 
 eureka:
   client:

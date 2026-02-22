@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { SidebarService } from '../../services/sidebar.service';
+import { NotificationDropdownComponent } from '../../components/header/notification-dropdown/notification-dropdown.component';
 
 @Component({
   selector: 'app-tutor-header',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NotificationDropdownComponent],
   template: `
     <header 
       class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm transition-all duration-300"
@@ -25,10 +26,7 @@ import { SidebarService } from '../../services/sidebar.service';
       <!-- Right: Actions -->
       <div class="flex items-center space-x-4 ml-6">
         <!-- Notifications -->
-        <button class="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
-          <i class="fas fa-bell text-gray-600 text-xl"></i>
-          <span class="absolute top-1 right-1 w-2 h-2 bg-amber-500 rounded-full"></span>
-        </button>
+        <app-notification-dropdown />
 
         <!-- Messages -->
         <button class="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">

@@ -147,6 +147,11 @@ export const routes: Routes = [
         title: 'Complaints | Jungle in English'
       },
       {
+        path: 'complaints/edit/:id',
+        loadComponent: () => import('./pages/student-panel/complaints/edit-complaint/edit-complaint.component').then(m => m.EditComplaintComponent),
+        title: 'Edit Complaint | Jungle in English'
+      },
+      {
         path: 'settings',
         loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.SettingsComponent),
         title: 'Settings | Jungle in English'
@@ -214,6 +219,16 @@ export const routes: Routes = [
         path: 'messages',
         loadComponent: () => import('./pages/student-panel/messages/messages.component').then(m => m.MessagesComponent),
         title: 'Messages | Jungle in English'
+      },
+      {
+        path: 'complaints',
+        loadComponent: () => import('./pages/tutor-panel/complaints/complaints.component').then(m => m.ComplaintsComponent),
+        title: 'Manage Complaints | Jungle in English'
+      },
+      {
+        path: 'complaints/:id',
+        loadComponent: () => import('./pages/tutor-panel/complaints/complaint-detail-tutor/complaint-detail-tutor.component').then(m => m.ComplaintDetailTutorComponent),
+        title: 'Complaint Details | Jungle in English'
       },
       {
         path: 'forum',
@@ -396,6 +411,11 @@ export const routes: Routes = [
         path: 'complaints',
         loadComponent: () => import('./pages/dashboard/complaints/complaints.component').then(m => m.ComplaintsComponent),
         title: 'Manage Complaints | Jungle in English Dashboard'
+      },
+      {
+        path: 'complaints/:id',
+        loadComponent: () => import('./pages/dashboard/complaints/complaint-detail/complaint-detail.component').then(m => m.ComplaintDetailComponent),
+        title: 'Complaint Details | Jungle in English Dashboard'
       },
       {
         path: 'feedbacks',

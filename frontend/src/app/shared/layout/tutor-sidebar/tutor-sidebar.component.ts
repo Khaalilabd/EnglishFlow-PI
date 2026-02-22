@@ -36,6 +36,7 @@ export class TutorSidebarComponent implements OnInit {
     { icon: 'fas fa-tasks', label: 'Assignments', route: '/tutor-panel/assignments', section: 'menu' },
     { icon: 'fas fa-chart-line', label: 'Analytics', route: '/tutor-panel/analytics', section: 'menu' },
     { icon: 'fas fa-comments', label: 'Messages', route: '/tutor-panel/messages', badge: 3, section: 'menu' },
+    { icon: 'fas fa-exclamation-circle', label: 'Manage Complaints', route: '/tutor-panel/complaints', section: 'menu' },
     { icon: 'fas fa-comment-dots', label: 'Forum', route: '/tutor-panel/forum', section: 'menu' },
   ];
 
