@@ -467,6 +467,11 @@ export const routes: Routes = [
         title: 'Forum Management | Jungle in English Dashboard'
       },
       {
+        path: 'forum-moderation',
+        loadComponent: () => import('./pages/dashboard/forum-moderation/forum-moderation.component').then(m => m.ForumModerationComponent),
+        title: 'Forum Moderation | Jungle in English Dashboard'
+      },
+      {
         path: 'forum/topics/:subCategoryId/:subCategoryName',
         loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
         title: 'Topics | Jungle in English Dashboard'

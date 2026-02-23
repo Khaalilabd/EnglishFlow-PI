@@ -1,0 +1,19 @@
+<div class="reaction-bar" [class.size-small]="size === 'small'" [class.size-medium]="size === 'medium'" [class.size-large]="size === 'large'">
+  <button 
+    *ngFor="let reaction of reactionTypes"
+    (click)="toggleReaction(reaction.type)"
+    [class.active]="hasReacted(reaction.type)"
+    [class.loading]="loading"
+    [disabled]="loading"
+    [title]="reaction.label"
+    class="reaction-button">
+    <span class="reaction-icon">{{ reaction.icon }}</span>
+    <span class="reaction-count" *ngIf="getReactionCount(reaction.type) > 0">
+      {{ getReactionCount(reaction.type) }}
+    </span>
+  </button>
+  
+  <div class="total-reactions" *ngIf="getTotalReactions() > 0">
+    <span class="total-count">{{ getTotalReactions() }} reaction{{ getTotalReactions() > 1 ? 's' : '' }}</span>
+  </div>
+</div>

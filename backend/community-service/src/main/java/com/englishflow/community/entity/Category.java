@@ -31,6 +31,18 @@ public class Category {
     @Column(nullable = false)
     private String color;
     
+    @Column(name = "is_locked")
+    private Boolean isLocked = false;
+    
+    @Column(name = "locked_by")
+    private Long lockedBy;
+    
+    @Column(name = "locked_at")
+    private LocalDateTime lockedAt;
+    
+    @Column(name = "lock_reason")
+    private String lockReason;
+    
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubCategory> subCategories = new ArrayList<>();
     

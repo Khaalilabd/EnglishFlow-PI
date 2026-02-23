@@ -16,6 +16,7 @@ public class TopicDTO {
     private String userName;
     private Long subCategoryId;
     private Integer viewsCount;
+    private Integer reactionsCount;
     private Boolean isPinned;
     private Boolean isLocked;
     private Integer postsCount;

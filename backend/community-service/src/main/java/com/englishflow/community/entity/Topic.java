@@ -53,6 +53,12 @@ public class Topic {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     
+    @OneToMany(mappedBy = "topic", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Reaction> reactions = new ArrayList<>();
+    
+    @Column(name = "reactions_count")
+    private Integer reactionsCount = 0;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

@@ -252,6 +252,12 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       name: "Forum Management",
       path: "/dashboard/forum",
       roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM11.25 8C11.25 7.58579 11.5858 7.25 12 7.25C12.4142 7.25 12.75 7.58579 12.75 8V11.25H16C16.4142 11.25 16.75 11.5858 16.75 12C16.75 12.4142 16.4142 12.75 16 12.75H12.75V16C12.75 16.4142 12.4142 16.75 12 16.75C11.5858 16.75 11.25 16.4142 11.25 16V12.75H8C7.58579 12.75 7.25 12.4142 7.25 12C7.25 11.5858 7.58579 11.25 8 11.25H11.25V8Z" fill="currentColor"/><path d="M15.5 5.5C15.5 5.08579 15.8358 4.75 16.25 4.75H20.25C20.6642 4.75 21 5.08579 21 5.5C21 5.91421 20.6642 6.25 20.25 6.25H16.25C15.8358 6.25 15.5 5.91421 15.5 5.5Z" fill="currentColor"/></svg>`,
+      name: "Forum Moderation",
+      path: "/dashboard/forum-moderation",
+      roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
     }
   ];
 

@@ -1,20 +1,17 @@
 package com.englishflow.community.dto;
 
+import com.englishflow.community.entity.Reaction;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostDTO {
+public class ReactionDTO {
     private Long id;
-    private String content;
     private Long userId;
-    private String userName;
+    private Reaction.ReactionType type;
+    private Long postId;
     private Long topicId;
-    private Integer reactionsCount;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 }

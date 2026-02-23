@@ -107,7 +107,7 @@
           </p>
 
           <!-- Stats -->
-          <div class="flex items-center gap-6 text-sm">
+          <div class="flex items-center gap-6 text-sm mb-3">
             <div class="flex items-center gap-2 text-gray-500">
               <i class="fas fa-eye"></i>
               <span>{{ topic.viewsCount }} views</span>
@@ -117,6 +117,14 @@
               <span>{{ topic.postsCount }} replies</span>
             </div>
           </div>
+
+          <!-- Reactions -->
+          <app-reaction-bar 
+            [targetId]="topic.id" 
+            targetType="topic" 
+            size="small"
+            (click)="$event.stopPropagation()">
+          </app-reaction-bar>
         </div>
 
         <!-- Actions -->

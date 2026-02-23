@@ -77,6 +77,15 @@
         <div class="prose max-w-none text-gray-700 whitespace-pre-wrap">{{ topic.content }}</div>
       </div>
 
+      <!-- Reactions for Topic -->
+      <div class="px-6 pb-4">
+        <app-reaction-bar 
+          [targetId]="topic.id" 
+          targetType="topic" 
+          size="medium">
+        </app-reaction-bar>
+      </div>
+
       <!-- Topic Footer -->
       <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
         <div class="flex items-center gap-4 text-sm text-gray-600">
@@ -202,7 +211,14 @@
               </div>
 
               <!-- Post Text -->
-              <div class="prose max-w-none text-gray-700 whitespace-pre-wrap">{{ post.content }}</div>
+              <div class="prose max-w-none text-gray-700 whitespace-pre-wrap mb-3">{{ post.content }}</div>
+
+              <!-- Reactions for Post -->
+              <app-reaction-bar 
+                [targetId]="post.id" 
+                targetType="post" 
+                size="small">
+              </app-reaction-bar>
             </div>
           </div>
         </div>

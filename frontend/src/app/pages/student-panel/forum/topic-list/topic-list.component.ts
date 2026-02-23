@@ -1,17 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ForumService, Topic, CreateTopicRequest } from '../../../../services/forum.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ReactionBarComponent } from '../../../../components/reaction-bar/reaction-bar.component';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-topic-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent],
   providers: [ForumService],
   templateUrl: './topic-list.component.html',
-  styleUrl: './topic-list.component.scss'
+  styleUrl: './topic-list.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TopicListComponent implements OnInit {
   topics: Topic[] = [];
@@ -38,18 +42,26 @@ export class TopicListComponent implements OnInit {
   editingTopic: Topic | null = null;
   deletingTopicId: number | null = null;
 
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private forumService: ForumService
-  ) {}
+  ) {
+    // Fix memory leak: use takeUntilDestroyed
+    this.route.params
+      .pipe(takeUntilDestroyed())
+      .subscribe(params => {
+        this.subCategoryId = +params['subCategoryId'];
+        this.subCategoryName = params['subCategoryName'] || 'Subcategory';
+        this.loadTopics();
+      });
+  }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      this.subCategoryId = +params['subCategoryId'];
-      this.subCategoryName = params['subCategoryName'] || 'Subcategory';
-      this.loadTopics();
-    });
+    // Initialization moved to constructor with takeUntilDestroyed
   }
 
   loadTopics(): void {
@@ -62,11 +74,13 @@ export class TopicListComponent implements OnInit {
         this.totalPages = response.totalPages;
         this.totalElements = response.totalElements;
         this.loading = false;
+        this.cdr.markForCheck(); // Trigger change detection
       },
       error: (err) => {
         console.error('Error loading topics:', err);
         this.error = 'Error loading topics';
         this.loading = false;
+        this.cdr.markForCheck(); // Trigger change detection
       }
     });
   }
@@ -124,23 +138,48 @@ export class TopicListComponent implements OnInit {
 
   submitNewTopic(): void {
     if (this.isFormValid()) {
+      const currentUser = this.authService.currentUserValue;
+      
+      if (!currentUser) {
+        Swal.fire({
+          title: 'Authentication Required',
+          text: 'You must be logged in to create a topic',
+          icon: 'warning',
+          confirmButtonColor: '#dc2626'
+        });
+        return;
+      }
+
       const request: CreateTopicRequest = {
         subCategoryId: this.subCategoryId,
         title: this.newTopic.title,
         content: this.newTopic.content,
-        userId: 1, // TODO: Get from auth service
-        userName: 'User' // TODO: Get from auth service
+        userId: currentUser.id,
+        userName: currentUser.firstName + ' ' + currentUser.lastName
       };
 
       this.forumService.createTopic(request).subscribe({
         next: (topic) => {
           console.log('Topic created:', topic);
+          Swal.fire({
+            title: 'Success!',
+            text: 'Your topic has been created successfully.',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+          });
           this.closeNewTopicModal();
           this.loadTopics(); // Recharger la liste
+          this.cdr.markForCheck(); // Trigger change detection
         },
         error: (err) => {
           console.error('Error creating topic:', err);
-          alert('❌ Error creating topic');
+          Swal.fire({
+            title: 'Error',
+            text: 'Error creating topic. Please try again.',
+            icon: 'error',
+            confirmButtonColor: '#dc2626'
+          });
         }
       });
     }
@@ -211,9 +250,14 @@ export class TopicListComponent implements OnInit {
   }
 
   canEditOrDelete(topic: Topic): boolean {
-    // TODO: Vérifier si l'utilisateur connecté est l'auteur du topic
-    // Pour l'instant, on permet à tout le monde (à des fins de test)
-    return true;
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser) return false;
+    
+    // L'utilisateur peut éditer/supprimer uniquement ses propres topics
+    // ou si c'est un admin/modérateur
+    return topic.userId === currentUser.id || 
+           currentUser.role === 'ADMIN' || 
+           currentUser.role === 'MODERATOR';
   }
 
   isFormValid(): boolean {
@@ -266,6 +310,7 @@ export class TopicListComponent implements OnInit {
     if (this.currentPage < this.totalPages - 1) {
       this.currentPage++;
       this.loadTopics();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
@@ -273,6 +318,7 @@ export class TopicListComponent implements OnInit {
     if (this.currentPage > 0) {
       this.currentPage--;
       this.loadTopics();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 }

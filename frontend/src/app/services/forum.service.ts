@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthService } from '../core/services/auth.service';
 
 export interface Category {
   id: number;
@@ -10,6 +11,10 @@ export interface Category {
   icon: string;
   color: string;
   subCategories: SubCategory[];
+  isLocked?: boolean;
+  lockedBy?: number;
+  lockedAt?: string;
+  lockReason?: string;
 }
 
 export interface SubCategory {
@@ -85,6 +90,7 @@ export interface PageResponse<T> {
 })
 export class ForumService {
   private apiUrl = `${environment.apiUrl}/community`;
+  private authService = inject(AuthService);
 
   constructor(private http: HttpClient) {}
 
@@ -142,11 +148,15 @@ export class ForumService {
   }
 
   updateTopic(id: number, request: CreateTopicRequest): Observable<Topic> {
-    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}`, request);
+    const userId = this.authService.currentUserValue?.id;
+    const headers = userId ? new HttpHeaders({ 'X-User-Id': userId.toString() }) : undefined;
+    return this.http.put<Topic>(`${this.apiUrl}/topics/${id}`, request, { headers });
   }
 
   deleteTopic(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/topics/${id}`);
+    const userId = this.authService.currentUserValue?.id;
+    const headers = userId ? new HttpHeaders({ 'X-User-Id': userId.toString() }) : undefined;
+    return this.http.delete<void>(`${this.apiUrl}/topics/${id}`, { headers });
   }
 
   // Posts
@@ -162,11 +172,15 @@ export class ForumService {
   }
 
   updatePost(id: number, request: CreatePostRequest): Observable<Post> {
-    return this.http.put<Post>(`${this.apiUrl}/posts/${id}`, request);
+    const userId = this.authService.currentUserValue?.id;
+    const headers = userId ? new HttpHeaders({ 'X-User-Id': userId.toString() }) : undefined;
+    return this.http.put<Post>(`${this.apiUrl}/posts/${id}`, request, { headers });
   }
 
   deletePost(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/posts/${id}`);
+    const userId = this.authService.currentUserValue?.id;
+    const headers = userId ? new HttpHeaders({ 'X-User-Id': userId.toString() }) : undefined;
+    return this.http.delete<void>(`${this.apiUrl}/posts/${id}`, { headers });
   }
 
   // Topic Moderation

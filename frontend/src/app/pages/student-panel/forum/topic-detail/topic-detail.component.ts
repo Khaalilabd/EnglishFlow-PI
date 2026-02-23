@@ -1,17 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ForumService, Topic, Post, CreatePostRequest } from '../../../../services/forum.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ReactionBarComponent } from '../../../../components/reaction-bar/reaction-bar.component';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-topic-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent],
   providers: [ForumService],
   templateUrl: './topic-detail.component.html',
-  styleUrl: './topic-detail.component.scss'
+  styleUrl: './topic-detail.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TopicDetailComponent implements OnInit {
   topic: Topic | null = null;
@@ -37,18 +41,26 @@ export class TopicDetailComponent implements OnInit {
 
   editingPost: Post | null = null;
 
+  private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef);
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private forumService: ForumService
-  ) {}
+  ) {
+    // Fix memory leak: use takeUntilDestroyed
+    this.route.params
+      .pipe(takeUntilDestroyed())
+      .subscribe(params => {
+        this.topicId = +params['topicId'];
+        this.loadTopic();
+        this.loadPosts();
+      });
+  }
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      this.topicId = +params['topicId'];
-      this.loadTopic();
-      this.loadPosts();
-    });
+    // Initialization moved to constructor with takeUntilDestroyed
   }
 
   loadTopic(): void {
@@ -59,11 +71,13 @@ export class TopicDetailComponent implements OnInit {
       next: (data) => {
         this.topic = data;
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading topic:', err);
         this.error = 'Error loading topic';
         this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -77,10 +91,12 @@ export class TopicDetailComponent implements OnInit {
         this.totalPages = response.totalPages;
         this.totalElements = response.totalElements;
         this.loadingPosts = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading posts:', err);
         this.loadingPosts = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -121,11 +137,23 @@ export class TopicDetailComponent implements OnInit {
 
   submitReply(): void {
     if (this.isFormValid()) {
+      const currentUser = this.authService.currentUserValue;
+      
+      if (!currentUser) {
+        Swal.fire({
+          title: 'Authentication Required',
+          text: 'You must be logged in to post a reply',
+          icon: 'warning',
+          confirmButtonColor: '#dc2626'
+        });
+        return;
+      }
+
       const request: CreatePostRequest = {
         topicId: this.topicId,
         content: this.newPost.content,
-        userId: 1, // TODO: Get from auth service
-        userName: 'User' // TODO: Get from auth service
+        userId: currentUser.id,
+        userName: currentUser.firstName + ' ' + currentUser.lastName
       };
 
       this.forumService.createPost(request).subscribe({
@@ -139,14 +167,15 @@ export class TopicDetailComponent implements OnInit {
             showConfirmButton: false
           });
           this.closeReplyModal();
-          this.loadPosts(); // Recharger les posts
-          this.loadTopic(); // Recharger le topic pour mettre à jour le compteur
+          this.loadPosts();
+          this.loadTopic();
+          this.cdr.markForCheck();
         },
         error: (err) => {
           console.error('Error creating post:', err);
           Swal.fire({
             title: 'Error',
-            text: 'Error posting your reply',
+            text: 'Error posting your reply. Please try again.',
             icon: 'error',
             confirmButtonColor: '#dc2626'
           });
@@ -175,7 +204,7 @@ export class TopicDetailComponent implements OnInit {
             showConfirmButton: false
           });
           this.closeEditPostModal();
-          this.loadPosts(); // Recharger les posts
+          this.loadPosts();
         },
         error: (err) => {
           console.error('Error updating post:', err);
@@ -214,8 +243,8 @@ export class TopicDetailComponent implements OnInit {
               timer: 2000,
               showConfirmButton: false
             });
-            this.loadPosts(); // Recharger les posts
-            this.loadTopic(); // Recharger le topic pour mettre à jour le compteur
+            this.loadPosts();
+            this.loadTopic();
           },
           error: (err) => {
             console.error('Error deleting post:', err);
@@ -232,9 +261,12 @@ export class TopicDetailComponent implements OnInit {
   }
 
   canEditOrDelete(post: Post): boolean {
-    // TODO: Vérifier si l'utilisateur connecté est l'auteur du post
-    // Pour l'instant, on permet à tout le monde (à des fins de test)
-    return true;
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser) return false;
+    
+    return post.userId === currentUser.id || 
+           currentUser.role === 'ADMIN' || 
+           currentUser.role === 'MODERATOR';
   }
 
   isFormValid(): boolean {
@@ -248,7 +280,6 @@ export class TopicDetailComponent implements OnInit {
   }
 
   goBack(): void {
-    // Détecter si on vient du dashboard ou du student panel
     const currentUrl = this.router.url;
     if (currentUrl.includes('/dashboard/')) {
       if (this.topic) {

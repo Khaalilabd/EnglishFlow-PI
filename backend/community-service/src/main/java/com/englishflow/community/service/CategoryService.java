@@ -6,9 +6,13 @@ import com.englishflow.community.dto.CreateSubCategoryRequest;
 import com.englishflow.community.dto.SubCategoryDTO;
 import com.englishflow.community.entity.Category;
 import com.englishflow.community.entity.SubCategory;
+import com.englishflow.community.exception.ResourceNotFoundException;
 import com.englishflow.community.repository.CategoryRepository;
 import com.englishflow.community.repository.SubCategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,22 +21,27 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CategoryService {
     
     private final CategoryRepository categoryRepository;
     private final SubCategoryRepository subCategoryRepository;
     
     @Transactional(readOnly = true)
+    // @Cacheable(value = "categories", key = "'all'") // Décommenter si Redis est activé
     public List<CategoryDTO> getAllCategories() {
+        log.info("Fetching all categories from database");
         return categoryRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
+    // @Cacheable(value = "categories", key = "#id") // Décommenter si Redis est activé
     public CategoryDTO getCategoryById(Long id) {
+        log.info("Fetching category {} from database", id);
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         return convertToDTO(category);
     }
     
@@ -60,6 +69,7 @@ public class CategoryService {
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public CategoryDTO createCategory(CreateCategoryRequest request) {
         Category category = new Category();
         category.setName(request.getName());
@@ -68,13 +78,15 @@ public class CategoryService {
         category.setColor(request.getColor());
         
         Category savedCategory = categoryRepository.save(category);
+        log.info("Created category {}", savedCategory.getId());
         return convertToDTO(savedCategory);
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public CategoryDTO updateCategory(Long id, CreateCategoryRequest request) {
         Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
         
         category.setName(request.getName());
         category.setDescription(request.getDescription());
@@ -82,21 +94,24 @@ public class CategoryService {
         category.setColor(request.getColor());
         
         Category updatedCategory = categoryRepository.save(category);
+        log.info("Updated category {}", id);
         return convertToDTO(updatedCategory);
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public void deleteCategory(Long id) {
-        if (!categoryRepository.existsById(id)) {
-            throw new RuntimeException("Category not found with id: " + id);
-        }
-        categoryRepository.deleteById(id);
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+        categoryRepository.delete(category);
+        log.info("Deleted category {}", id);
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public SubCategoryDTO createSubCategory(CreateSubCategoryRequest request) {
         Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + request.getCategoryId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()));
         
         SubCategory subCategory = new SubCategory();
         subCategory.setName(request.getName());
@@ -104,17 +119,19 @@ public class CategoryService {
         subCategory.setCategory(category);
         
         SubCategory savedSubCategory = subCategoryRepository.save(subCategory);
+        log.info("Created subcategory {} in category {}", savedSubCategory.getId(), request.getCategoryId());
         return convertSubCategoryToDTO(savedSubCategory);
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public SubCategoryDTO updateSubCategory(Long id, CreateSubCategoryRequest request) {
         SubCategory subCategory = subCategoryRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SubCategory not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("SubCategory", id));
         
         if (!subCategory.getCategory().getId().equals(request.getCategoryId())) {
             Category newCategory = categoryRepository.findById(request.getCategoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found with id: " + request.getCategoryId()));
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()));
             subCategory.setCategory(newCategory);
         }
         
@@ -122,15 +139,17 @@ public class CategoryService {
         subCategory.setDescription(request.getDescription());
         
         SubCategory updatedSubCategory = subCategoryRepository.save(subCategory);
+        log.info("Updated subcategory {}", id);
         return convertSubCategoryToDTO(updatedSubCategory);
     }
     
     @Transactional
+    // @CacheEvict(value = "categories", allEntries = true) // Décommenter si Redis est activé
     public void deleteSubCategory(Long id) {
-        if (!subCategoryRepository.existsById(id)) {
-            throw new RuntimeException("SubCategory not found with id: " + id);
-        }
-        subCategoryRepository.deleteById(id);
+        SubCategory subCategory = subCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("SubCategory", id));
+        subCategoryRepository.delete(subCategory);
+        log.info("Deleted subcategory {}", id);
     }
     
     private SubCategoryDTO convertSubCategoryToDTO(SubCategory subCategory) {
@@ -143,5 +162,36 @@ public class CategoryService {
         dto.setCreatedAt(subCategory.getCreatedAt());
         dto.setUpdatedAt(subCategory.getUpdatedAt());
         return dto;
+    }
+    
+    // Category locking methods
+    @Transactional
+    // @CacheEvict(value = "categories", allEntries = true)
+    public void lockCategory(Long id, Long userId, String reason) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+        
+        category.setIsLocked(true);
+        category.setLockedBy(userId);
+        category.setLockedAt(java.time.LocalDateTime.now());
+        category.setLockReason(reason);
+        
+        categoryRepository.save(category);
+        log.info("Locked category {} by user {} with reason: {}", id, userId, reason);
+    }
+    
+    @Transactional
+    // @CacheEvict(value = "categories", allEntries = true)
+    public void unlockCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+        
+        category.setIsLocked(false);
+        category.setLockedBy(null);
+        category.setLockedAt(null);
+        category.setLockReason(null);
+        
+        categoryRepository.save(category);
+        log.info("Unlocked category {}", id);
     }
 }
