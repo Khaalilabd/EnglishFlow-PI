@@ -1463,8 +1463,10 @@
   [isOpen]="showReviewModal"
   [ebook]="selectedEbookForReview"
   [reviews]="getReviews(selectedEbookForReview?.id!)"
+  [currentUserId]="getCurrentUserId()"
   (closeModal)="closeReviewModal()"
-  (submitReview)="submitReview()">
+  (submitReview)="submitReview($event)"
+  (deleteReview)="deleteReview($event)">
 </app-review-modal>
 
 <!-- CSS Animations -->

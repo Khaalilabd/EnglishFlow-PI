@@ -338,13 +338,13 @@ export class EbooksComponent implements OnInit {
   }
 
   // NEW: Submit review
-  submitReview() {
+  submitReview(reviewData: { rating: number; comment: string }) {
     if (!this.selectedEbookForReview?.id) return;
 
     this.reviewService.createReview({
       ebookId: this.selectedEbookForReview.id,
-      rating: this.newReview.rating,
-      comment: this.newReview.comment
+      rating: reviewData.rating,
+      comment: reviewData.comment
     }).subscribe({
       next: () => {
         // Clear cached reviews for this ebook
@@ -388,6 +388,34 @@ export class EbooksComponent implements OnInit {
   // NEW: Set rating (for star click)
   setRating(rating: number) {
     this.newReview.rating = rating;
+  }
+
+  // NEW: Delete review
+  deleteReview(reviewId: number) {
+    if (!this.selectedEbookForReview?.id) return;
+    
+    if (!confirm('Are you sure you want to delete your review?')) return;
+
+    this.reviewService.deleteReview(this.selectedEbookForReview.id, reviewId).subscribe({
+      next: () => {
+        // Clear cached reviews for this ebook
+        this.ebookReviews.delete(this.selectedEbookForReview!.id!);
+        
+        // Reload reviews and ebook data
+        this.loadEbookReviews(this.selectedEbookForReview!.id!);
+        this.loadEbooks();
+        alert('✅ Review deleted successfully!');
+      },
+      error: (error) => {
+        console.error('Error deleting review:', error);
+        alert('Failed to delete review. Please try again.');
+      }
+    });
+  }
+
+  // NEW: Get current user ID
+  getCurrentUserId(): number {
+    return parseInt(localStorage.getItem('userId') || '1');
   }
 
   // Related ebooks
