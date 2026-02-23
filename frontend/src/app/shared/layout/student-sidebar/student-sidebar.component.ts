@@ -8,13 +8,28 @@ import { MemberService } from '../../../core/services/member.service';
 import { Club } from '../../../core/models/club.model';
 import { AuthService } from '../../../core/services/auth.service';
 
+type SubItem = {
+  name: string;
+  path: string;
+  badge?: string;
+  badgeColor?: string;
+  isPresident?: boolean;
+};
+
 type NavItem = {
   name: string;
   icon: string;
   path?: string;
   badge?: string;
   badgeColor?: string;
-  subItems?: { name: string; path: string; badge?: string; isPresident?: boolean }[];
+  subItems?: SubItem[];
+};
+
+type NavSection = {
+  id: string;
+  title: string;
+  icon: string;
+  items: NavItem[];
 };
 
 @Component({
@@ -24,102 +39,128 @@ type NavItem = {
   templateUrl: './student-sidebar.component.html',
 })
 export class StudentSidebarComponent {
-  // Main nav items for students
-  navItems: NavItem[] = [
+  // Navigation sections with logical grouping
+  navSections: NavSection[] = [
     {
-      icon: 'fas fa-home',
-      name: "Home",
-      path: "/",
-    },
-    {
-      icon: 'fas fa-th-large',
-      name: "Dashboard",
-      path: "/user-panel/dashboard",
-    },
-    {
-      icon: 'fas fa-book',
-      name: "My Courses",
-      path: "/user-panel/courses",
-      badge: "3",
-      badgeColor: "bg-[#F6BD60]"
-    },
-    {
-      icon: 'fas fa-calendar-alt',
-      name: "My Schedule",
-      path: "/user-panel/schedule",
-    },
-    {
-      icon: 'fas fa-clipboard-list',
-      name: "Assignments",
-      path: "/user-panel/assignments",
-      badge: "2",
-      badgeColor: "bg-orange-500"
-    },
-    {
-      icon: 'fas fa-question-circle',
-      name: "Quizzes",
-      path: "/user-panel/quizzes",
-    },
-    {
-      icon: 'fas fa-book-open',
-      name: "Ebooks",
-      path: "/user-panel/ebooks",
-    },
-    {
-      icon: 'fas fa-users',
-      name: "Clubs",
-      path: "/user-panel/clubs",
-      subItems: [
-        // User's clubs will be added by loadUserClubs()
-        { name: "Loading...", path: "/user-panel/clubs" }
+      id: 'home',
+      title: 'ACCUEIL',
+      icon: '🏠',
+      items: [
+        {
+          icon: 'fas fa-th-large',
+          name: "Dashboard",
+          path: "/user-panel/dashboard",
+        }
       ]
     },
     {
-      icon: 'fas fa-chart-line',
-      name: "My Progress",
-      path: "/user-panel/progress",
+      id: 'learning',
+      title: 'APPRENTISSAGE',
+      icon: '📚',
+      items: [
+        {
+          icon: 'fas fa-book',
+          name: "My Courses",
+          path: "/user-panel/courses",
+          badge: "3",
+          badgeColor: "bg-[#F6BD60]"
+        },
+        {
+          icon: 'fas fa-calendar-alt',
+          name: "My Schedule",
+          path: "/user-panel/schedule",
+        },
+        {
+          icon: 'fas fa-clipboard-list',
+          name: "Assignments",
+          path: "/user-panel/assignments",
+          badge: "2",
+          badgeColor: "bg-orange-500"
+        },
+        {
+          icon: 'fas fa-question-circle',
+          name: "Quizzes",
+          path: "/user-panel/quizzes",
+        },
+        {
+          icon: 'fas fa-book-open',
+          name: "Ebooks",
+          path: "/user-panel/ebooks",
+        }
+      ]
     },
     {
-      icon: 'fas fa-comments',
-      name: "Forum",
-      path: "/user-panel/forum",
+      id: 'community',
+      title: 'COMMUNAUTÉ',
+      icon: '👥',
+      items: [
+        {
+          icon: 'fas fa-users',
+          name: "Clubs",
+          path: "/user-panel/clubs",
+          subItems: [
+            // User's clubs will be added by loadUserClubs()
+            { name: "Loading...", path: "/user-panel/clubs" } as SubItem
+          ]
+        },
+        {
+          icon: 'fas fa-comments',
+          name: "Forum",
+          path: "/user-panel/forum",
+        },
+        {
+          icon: 'fas fa-envelope',
+          name: "Messages",
+          path: "/user-panel/messages",
+          badge: "5",
+          badgeColor: "bg-red-500"
+        }
+      ]
     },
     {
-      icon: 'fas fa-envelope',
-      name: "Messages",
-      path: "/user-panel/messages",
-      badge: "5",
-      badgeColor: "bg-red-500"
-    },
-  ];
-
-  // Support & Settings
-  othersItems: NavItem[] = [
-    {
-      icon: 'fas fa-credit-card',
-      name: "My Subscription",
-      path: "/user-panel/subscription",
-    },
-    {
-      icon: 'fas fa-desktop',
-      name: "My Sessions",
-      path: "/user-panel/sessions",
+      id: 'tracking',
+      title: 'SUIVI',
+      icon: '📊',
+      items: [
+        {
+          icon: 'fas fa-chart-line',
+          name: "My Progress",
+          path: "/user-panel/progress",
+        },
+        {
+          icon: 'fas fa-desktop',
+          name: "My Sessions",
+          path: "/user-panel/sessions",
+        }
+      ]
     },
     {
-      icon: 'fas fa-life-ring',
-      name: "Help & Support",
-      path: "/user-panel/support",
-    },
-    {
-      icon: 'fas fa-exclamation-circle',
-      name: "Report Issue",
-      path: "/user-panel/complaints",
-    },
-    {
-      icon: 'fas fa-cog',
-      name: "Settings",
-      path: "/user-panel/settings",
-    },
+      id: 'account',
+      title: 'COMPTE',
+      icon: '⚙️',
+      items: [
+        {
+          icon: 'fas fa-credit-card',
+          name: "My Subscription",
+          path: "/user-panel/subscription",
+        },
+        {
+          icon: 'fas fa-cog',
+          name: "Settings",
+          path: "/user-panel/settings",
+        },
+        {
+          icon: 'fas fa-life-ring',
+          name: "Help & Support",
+          path: "/user-panel/support",
+        },
+        {
+          icon: 'fas fa-exclamation-circle',
+          name: "Report Issue",
+          path: "/user-panel/complaints",
+        }
+      ]
+    }
   ];
 
   openSubmenu: string | null | number = null;
@@ -181,11 +222,14 @@ export class StudentSidebarComponent {
     const currentUser = this.authService.currentUserValue;
     if (!currentUser || !currentUser.id) {
       console.error('No user logged in');
-      const clubsMenuItem = this.navItems.find(item => item.name === 'Clubs');
-      if (clubsMenuItem && clubsMenuItem.subItems) {
-        clubsMenuItem.subItems = [
-          { name: "Please login", path: "/user-panel/clubs" }
-        ];
+      const communitySection = this.navSections.find(s => s.id === 'community');
+      if (communitySection) {
+        const clubsItem = communitySection.items.find(item => item.name === 'Clubs');
+        if (clubsItem && clubsItem.subItems) {
+          clubsItem.subItems = [
+            { name: "Please login", path: "/user-panel/clubs" }
+          ];
+        }
       }
       this.cdr.detectChanges();
       return;
@@ -200,11 +244,14 @@ export class StudentSidebarComponent {
         console.log('📋 Members data loaded:', members);
         
         if (members.length === 0) {
-          const clubsMenuItem = this.navItems.find(item => item.name === 'Clubs');
-          if (clubsMenuItem && clubsMenuItem.subItems) {
-            clubsMenuItem.subItems = [
-              { name: "No clubs joined yet", path: "/user-panel/clubs" }
-            ];
+          const communitySection = this.navSections.find(s => s.id === 'community');
+          if (communitySection) {
+            const clubsItem = communitySection.items.find(item => item.name === 'Clubs');
+            if (clubsItem && clubsItem.subItems) {
+              clubsItem.subItems = [
+                { name: "No clubs joined yet", path: "/user-panel/clubs" }
+              ];
+            }
           }
           this.cdr.detectChanges();
           return;
@@ -231,22 +278,25 @@ export class StudentSidebarComponent {
               console.log('📚 Clubs loaded:', clubs);
               this.userClubs = clubs;
               
-              // Update clubs menu with role information
-              const clubsMenuItem = this.navItems.find(item => item.name === 'Clubs');
-              if (clubsMenuItem) {
-                // Create a completely new array to trigger change detection
-                const newSubItems = clubs.map(club => {
-                  const isPresident = this.clubRoles[club.id!] === 'PRESIDENT';
-                  console.log(`Club "${club.name}" (ID: ${club.id}): isPresident = ${isPresident}, role = ${this.clubRoles[club.id!]}`);
-                  return {
-                    name: club.name,
-                    path: `/user-panel/clubs/${club.id}`,
-                    isPresident: isPresident
-                  };
-                });
-                clubsMenuItem.subItems = newSubItems;
-                console.log('✅ Updated subItems:', newSubItems);
-                console.log('✅ Total clubs in submenu:', newSubItems.length);
+              // Update clubs menu with role information in the community section
+              const communitySection = this.navSections.find(s => s.id === 'community');
+              if (communitySection) {
+                const clubsItem = communitySection.items.find(item => item.name === 'Clubs');
+                if (clubsItem) {
+                  // Create a completely new array to trigger change detection
+                  const newSubItems = clubs.map(club => {
+                    const isPresident = this.clubRoles[club.id!] === 'PRESIDENT';
+                    console.log(`Club "${club.name}" (ID: ${club.id}): isPresident = ${isPresident}, role = ${this.clubRoles[club.id!]}`);
+                    return {
+                      name: club.name,
+                      path: `/user-panel/clubs/${club.id}`,
+                      isPresident: isPresident
+                    };
+                  });
+                  clubsItem.subItems = newSubItems;
+                  console.log('✅ Updated subItems:', newSubItems);
+                  console.log('✅ Total clubs in submenu:', newSubItems.length);
+                }
               }
               // Force change detection
               this.cdr.markForCheck();
@@ -254,11 +304,14 @@ export class StudentSidebarComponent {
             },
             error: (error) => {
               console.error('Error loading club details:', error);
-              const clubsMenuItem = this.navItems.find(item => item.name === 'Clubs');
-              if (clubsMenuItem && clubsMenuItem.subItems) {
-                clubsMenuItem.subItems = [
-                  { name: "Error loading clubs", path: "/user-panel/clubs" }
-                ];
+              const communitySection = this.navSections.find(s => s.id === 'community');
+              if (communitySection) {
+                const clubsItem = communitySection.items.find(item => item.name === 'Clubs');
+                if (clubsItem && clubsItem.subItems) {
+                  clubsItem.subItems = [
+                    { name: "Error loading clubs", path: "/user-panel/clubs" }
+                  ];
+                }
               }
               this.cdr.detectChanges();
             }
@@ -267,11 +320,14 @@ export class StudentSidebarComponent {
       },
       error: (error) => {
         console.error('Error loading user memberships:', error);
-        const clubsMenuItem = this.navItems.find(item => item.name === 'Clubs');
-        if (clubsMenuItem && clubsMenuItem.subItems) {
-          clubsMenuItem.subItems = [
-            { name: "Error loading clubs", path: "/user-panel/clubs" }
-          ];
+        const communitySection = this.navSections.find(s => s.id === 'community');
+        if (communitySection) {
+          const clubsItem = communitySection.items.find(item => item.name === 'Clubs');
+          if (clubsItem && clubsItem.subItems) {
+            clubsItem.subItems = [
+              { name: "Error loading clubs", path: "/user-panel/clubs" }
+            ];
+          }
         }
         this.cdr.detectChanges();
       }
@@ -286,8 +342,8 @@ export class StudentSidebarComponent {
     return this.router.url === path;
   }
 
-  toggleSubmenu(section: string, index: number) {
-    const key = `${section}-${index}`;
+  toggleSubmenu(sectionId: string, index: number) {
+    const key = `${sectionId}-${index}`;
 
     if (this.openSubmenu === key) {
       this.openSubmenu = null;
@@ -314,17 +370,12 @@ export class StudentSidebarComponent {
   }
 
   private setActiveMenuFromRoute(currentUrl: string) {
-    const menuGroups = [
-      { items: this.navItems, prefix: 'main' },
-      { items: this.othersItems, prefix: 'others' },
-    ];
-
-    menuGroups.forEach(group => {
-      group.items.forEach((nav, i) => {
+    this.navSections.forEach(section => {
+      section.items.forEach((nav, i) => {
         if (nav.subItems) {
           nav.subItems.forEach(subItem => {
             if (currentUrl === subItem.path) {
-              const key = `${group.prefix}-${i}`;
+              const key = `${section.id}-${i}`;
               this.openSubmenu = key;
 
               setTimeout(() => {

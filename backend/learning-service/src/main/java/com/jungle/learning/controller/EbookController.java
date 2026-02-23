@@ -1,7 +1,10 @@
 package com.jungle.learning.controller;
 
+import com.jungle.learning.dto.CreateReviewRequest;
 import com.jungle.learning.dto.EbookDTO;
+import com.jungle.learning.dto.ReviewDTO;
 import com.jungle.learning.service.EbookService;
+import com.jungle.learning.service.ReviewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
@@ -25,6 +28,7 @@ import java.util.List;
 public class EbookController {
     
     private final EbookService ebookService;
+    private final ReviewService reviewService;
     
     @Value("${app.upload.dir:uploads/ebooks}")
     private String uploadDir;
@@ -155,4 +159,50 @@ public class EbookController {
         ebookService.trackAccess(ebookId, studentId);
         return ResponseEntity.ok().build();
     }
+
+
+    // Review endpoints
+    @PostMapping("/{ebookId}/reviews")
+    public ResponseEntity<ReviewDTO> createReview(
+            @PathVariable Long ebookId,
+            @RequestBody CreateReviewRequest request,
+            @RequestHeader("X-User-Id") Long userId) {
+        request.setEbookId(ebookId);
+        ReviewDTO review = reviewService.createReview(request, userId);
+        return ResponseEntity.ok(review);
+    }
+
+    @GetMapping("/{ebookId}/reviews")
+    public ResponseEntity<List<ReviewDTO>> getEbookReviews(@PathVariable Long ebookId) {
+        List<ReviewDTO> reviews = reviewService.getEbookReviews(ebookId);
+        return ResponseEntity.ok(reviews);
+    }
+
+    @PutMapping("/{ebookId}/reviews/{reviewId}")
+    public ResponseEntity<ReviewDTO> updateReview(
+            @PathVariable Long ebookId,
+            @PathVariable Long reviewId,
+            @RequestBody CreateReviewRequest request,
+            @RequestHeader("X-User-Id") Long userId) {
+        ReviewDTO review = reviewService.updateReview(reviewId, request, userId);
+        return ResponseEntity.ok(review);
+    }
+
+    @DeleteMapping("/{ebookId}/reviews/{reviewId}")
+    public ResponseEntity<Void> deleteReview(
+            @PathVariable Long ebookId,
+            @PathVariable Long reviewId,
+            @RequestHeader("X-User-Id") Long userId) {
+        reviewService.deleteReview(reviewId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{ebookId}/reviews/{reviewId}/helpful")
+    public ResponseEntity<Void> markHelpful(
+            @PathVariable Long ebookId,
+            @PathVariable Long reviewId) {
+        reviewService.markHelpful(reviewId);
+        return ResponseEntity.ok().build();
+    }
+
 }

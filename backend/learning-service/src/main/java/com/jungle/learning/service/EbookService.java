@@ -167,11 +167,21 @@ public class EbookService {
         dto.setFileSize(ebook.getFileSize());
         dto.setMimeType(ebook.getMimeType());
         dto.setCoverImageUrl(ebook.getCoverImageUrl());
+        dto.setThumbnailUrl(ebook.getThumbnailUrl());
         dto.setLevel(ebook.getLevel() != null ? ebook.getLevel().name() : null);
         dto.setCategory(ebook.getCategory() != null ? ebook.getCategory().name() : null);
         dto.setFree(ebook.getIsFree());
+        dto.setPrice(ebook.getPrice());
+        dto.setPricingModel(ebook.getPricingModel() != null ? ebook.getPricingModel().name() : null);
         dto.setDownloadCount(ebook.getDownloadCount());
+        dto.setViewCount(ebook.getViewCount());
+        dto.setAverageRating(ebook.getAverageRating());
+        dto.setReviewCount(ebook.getReviewCount());
+        dto.setStatus(ebook.getStatus() != null ? ebook.getStatus().name() : null);
+        dto.setPublishedAt(ebook.getPublishedAt());
+        dto.setScheduledFor(ebook.getScheduledFor());
         dto.setCreatedAt(ebook.getCreatedAt());
+        dto.setUpdatedAt(ebook.getUpdatedAt());
         return dto;
     }
 }

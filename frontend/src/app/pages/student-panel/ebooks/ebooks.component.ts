@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EbookService } from '../../../core/services/ebook.service';
 import { AuthService } from '../../../core/services/auth.service';
-import { Ebook } from '../../../core/models/ebook.model';
+import { ReviewService } from '../../../core/services/review.service';
+import { ReadingProgressService } from '../../../core/services/reading-progress.service';
+import { CollectionService } from '../../../core/services/collection.service';
+import { Ebook, Review, ReadingProgress, Collection } from '../../../core/models/ebook.model';
+import { ReviewModalComponent } from './components/review-modal.component';
 
 interface Chapter {
   id: string;
@@ -29,8 +33,9 @@ interface EbookMetadata {
 @Component({
   selector: 'app-ebooks',
   standalone: true,
-  imports: [CommonModule, FormsModule],
-  templateUrl: './ebooks.component.html'
+  imports: [CommonModule, FormsModule, ReviewModalComponent],
+  templateUrl: './ebooks.component.html',
+  styleUrls: ['./ebooks.component.scss']
 })
 export class EbooksComponent implements OnInit {
   ebooks: Ebook[] = [];
@@ -92,10 +97,26 @@ export class EbooksComponent implements OnInit {
     free: true
   };
 
-  constructor(private ebookService: EbookService, private authService: AuthService) {}
+  // New features
+  ebookReviews: Map<number, Review[]> = new Map();
+  userProgress: Map<number, ReadingProgress> = new Map();
+  userCollections: Collection[] = [];
+  showReviewModal = false;
+  selectedEbookForReview: Ebook | null = null;
+  newReview = { rating: 5, comment: '' };
+
+  constructor(
+    private ebookService: EbookService, 
+    private authService: AuthService,
+    private reviewService: ReviewService,
+    private progressService: ReadingProgressService,
+    private collectionService: CollectionService
+  ) {}
 
   ngOnInit() {
     this.loadEbooks();
+    this.loadUserProgress();
+    this.loadUserCollections();
   }
 
   // Check if current user is a tutor
@@ -237,13 +258,136 @@ export class EbooksComponent implements OnInit {
 
   // Star rating
   getAverageRating(ebook: Ebook): number {
-    // TODO: Implement actual rating system
-    // For now, return random rating between 3.5 and 5
-    return 4.5; // Placeholder
+    // Use the new averageRating field from backend
+    return ebook.averageRating || 0;
   }
 
   getStarArray(rating: number): boolean[] {
     return Array(5).fill(false).map((_, i) => i < Math.round(rating));
+  }
+
+  // NEW: Load user progress
+  loadUserProgress() {
+    this.progressService.getUserProgress().subscribe({
+      next: (progressList) => {
+        progressList.forEach(progress => {
+          this.userProgress.set(progress.ebookId, progress);
+        });
+      },
+      error: (error) => console.error('Error loading progress:', error)
+    });
+  }
+
+  // NEW: Load user collections
+  loadUserCollections() {
+    this.collectionService.getUserCollections().subscribe({
+      next: (collections) => {
+        this.userCollections = collections;
+      },
+      error: (error) => console.error('Error loading collections:', error)
+    });
+  }
+
+  // NEW: Load reviews for an ebook
+  loadEbookReviews(ebookId: number) {
+    console.log(`Loading reviews for ebook ${ebookId}...`);
+    this.reviewService.getEbookReviews(ebookId).subscribe({
+      next: (reviews) => {
+        console.log(`Loaded ${reviews.length} reviews for ebook ${ebookId}:`, reviews);
+        // Verify all reviews belong to this ebook
+        const validReviews = reviews.filter(r => r.ebookId === ebookId);
+        if (validReviews.length !== reviews.length) {
+          console.warn(`Warning: Filtered out ${reviews.length - validReviews.length} reviews that don't belong to ebook ${ebookId}`);
+        }
+        this.ebookReviews.set(ebookId, validReviews);
+      },
+      error: (error) => console.error(`Error loading reviews for ebook ${ebookId}:`, error)
+    });
+  }
+
+  // NEW: Get progress for an ebook
+  getProgress(ebookId: number): ReadingProgress | undefined {
+    return this.userProgress.get(ebookId);
+  }
+
+  // NEW: Get progress percentage
+  getProgressPercentage(ebookId: number): number {
+    const progress = this.getProgress(ebookId);
+    return progress?.progressPercentage || 0;
+  }
+
+  // NEW: Open review modal
+  openReviewModal(ebook: Ebook, event: Event) {
+    event.stopPropagation();
+    this.selectedEbookForReview = ebook;
+    this.newReview = { rating: 5, comment: '' };
+    this.showReviewModal = true;
+    
+    // Clear previous reviews to avoid showing wrong data
+    this.ebookReviews.delete(ebook.id!);
+    
+    // Load fresh reviews for this specific ebook
+    this.loadEbookReviews(ebook.id!);
+  }
+
+  // NEW: Close review modal
+  closeReviewModal() {
+    this.showReviewModal = false;
+    this.selectedEbookForReview = null;
+    this.newReview = { rating: 5, comment: '' };
+  }
+
+  // NEW: Submit review
+  submitReview() {
+    if (!this.selectedEbookForReview?.id) return;
+
+    this.reviewService.createReview({
+      ebookId: this.selectedEbookForReview.id,
+      rating: this.newReview.rating,
+      comment: this.newReview.comment
+    }).subscribe({
+      next: () => {
+        // Clear cached reviews for this ebook
+        this.ebookReviews.delete(this.selectedEbookForReview!.id!);
+        
+        // Reload reviews and ebook data
+        this.loadEbookReviews(this.selectedEbookForReview!.id!);
+        this.loadEbooks();
+        this.closeReviewModal();
+        alert('✅ Review submitted successfully!');
+      },
+      error: (error) => {
+        console.error('Error submitting review:', error);
+        
+        // Extract error message
+        let errorMessage = 'Failed to submit review. Please try again.';
+        
+        if (error.error?.message) {
+          errorMessage = error.error.message;
+        } else if (error.message) {
+          errorMessage = error.message;
+        }
+        
+        // Check for duplicate review error
+        if (errorMessage.includes('already reviewed') || 
+            errorMessage.includes('unique_user_ebook') ||
+            errorMessage.includes('only submit one review')) {
+          errorMessage = '⚠️ You have already reviewed this ebook. You can only submit one review per ebook.';
+        }
+        
+        alert(errorMessage);
+      }
+    });
+  }
+
+  // NEW: Get reviews for display
+  getReviews(ebookId: number): Review[] {
+    return this.ebookReviews.get(ebookId) || [];
+  }
+
+  // NEW: Set rating (for star click)
+  setRating(rating: number) {
+    this.newReview.rating = rating;
   }
 
   // Related ebooks

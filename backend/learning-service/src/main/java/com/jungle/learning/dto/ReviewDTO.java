@@ -1,0 +1,24 @@
+package com.jungle.learning.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ReviewDTO {
+    private Long id;
+    private Long ebookId;
+    private Long userId;
+    private String userName;
+    private String userAvatar;
+    private Integer rating;
+    private String comment;
+    private Boolean isVerified;
+    private Integer helpfulCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}
