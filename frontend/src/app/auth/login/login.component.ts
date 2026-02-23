@@ -18,8 +18,9 @@ export class LoginComponent implements OnInit {
   loading = false;
   errorMessage = '';
   selectedRole: 'STUDENT' | 'TEACHER' = 'STUDENT';
-  recaptchaToken: string | null = null;
-  siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
+  // CAPTCHA COMMENTED OUT FOR DEVELOPMENT
+  // recaptchaToken: string | null = null;
+  // siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
 
   constructor(
     private fb: FormBuilder,
@@ -47,25 +48,34 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  onCaptchaResolved(token: string | null): void {
-    this.recaptchaToken = token;
-    console.log('reCAPTCHA resolved:', token);
-  }
+  // CAPTCHA COMMENTED OUT FOR DEVELOPMENT
+  // onCaptchaResolved(token: string | null): void {
+  //   this.recaptchaToken = token;
+  //   console.log('reCAPTCHA resolved:', token);
+  // }
 
   onSubmit(): void {
-    if (this.loginForm.invalid || !this.recaptchaToken) {
-      this.errorMessage = 'Please complete the reCAPTCHA verification';
+    // CAPTCHA VALIDATION COMMENTED OUT FOR DEVELOPMENT
+    // if (this.loginForm.invalid || !this.recaptchaToken) {
+    //   this.errorMessage = 'Please complete the reCAPTCHA verification';
+    //   return;
+    // }
+    
+    if (this.loginForm.invalid) {
+      this.errorMessage = 'Please fill in all required fields';
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    // Add recaptcha token to login data
-    const loginData = {
-      ...this.loginForm.value,
-      recaptchaToken: this.recaptchaToken
-    };
+    // CAPTCHA TOKEN COMMENTED OUT FOR DEVELOPMENT
+    // const loginData = {
+    //   ...this.loginForm.value,
+    //   recaptchaToken: this.recaptchaToken
+    // };
+    
+    const loginData = this.loginForm.value;
 
     this.authService.login(loginData).subscribe({
       next: (response) => {

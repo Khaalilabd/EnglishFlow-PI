@@ -8,53 +8,37 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
-@Table(name = "lessons")
+@Table(name = "lesson_media")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Lesson {
+public class LessonMedia {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
     @Column(nullable = false)
-    private String title;
-    
-    @Column(length = 2000)
-    private String description;
-    
-    @Column(columnDefinition = "TEXT")
-    private String content;
-    
-    private String contentUrl;
+    private String url;
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private LessonType lessonType;
+    private LessonType mediaType;
     
     @Column(nullable = false)
-    private Integer orderIndex;
+    private Integer position;
     
-    private Integer duration;
+    private String title;
     
-    @Column(nullable = false)
-    private Boolean isPreview = false;
-    
-    @Column(nullable = false)
-    private Boolean isPublished = false;
+    @Column(length = 1000)
+    private String description;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chapter_id", nullable = false)
+    @JoinColumn(name = "lesson_id", nullable = false)
     @JsonIgnore
-    private Chapter chapter;
-    
-    @OneToMany(mappedBy = "lesson", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<LessonMedia> mediaItems = new ArrayList<>();
+    private Lesson lesson;
     
     @Column(updatable = false)
     private LocalDateTime createdAt;

@@ -161,8 +161,8 @@
               <div><textarea formControlName="bio" rows="3" placeholder="Tell us about yourself..." class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all resize-none text-sm"></textarea></div>
               <div><select formControlName="englishLevel" class="w-full px-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all text-sm"><option value="">Select your English level</option><option *ngFor="let level of englishLevels" [value]="level">{{ level }}</option></select><div *ngIf="englishLevel?.invalid && englishLevel?.touched" class="text-red-500 text-xs mt-1 font-medium">Please select your level</div></div>
               
-              <!-- reCAPTCHA -->
-              <div class="flex justify-center my-4">
+              <!-- reCAPTCHA - COMMENTED OUT FOR DEVELOPMENT -->
+              <!-- <div class="flex justify-center my-4">
                 <div class="bg-white rounded-xl p-3 shadow-md border-2 border-gray-200">
                   <re-captcha
                     [siteKey]="siteKey"
@@ -173,7 +173,7 @@
               </div>
               <div *ngIf="!recaptchaToken && errorMessage" class="text-center">
                 <p class="text-xs text-red-600 font-medium">⚠️ Please verify you're not a robot</p>
-              </div>
+              </div> -->
             </div>
 
             <!-- Error Message -->

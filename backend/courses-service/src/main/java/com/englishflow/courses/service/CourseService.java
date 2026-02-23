@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 public class CourseService implements ICourseService {
     
     private final CourseRepository courseRepository;
+    private final UserValidationService userValidationService;
     
     @Override
     @Transactional(readOnly = true)
@@ -61,6 +62,11 @@ public class CourseService implements ICourseService {
     @Override
     @Transactional
     public CourseDTO createCourse(CourseDTO courseDTO) {
+        // Validate tutor exists and has TUTOR role
+        if (courseDTO.getTutorId() != null) {
+            userValidationService.validateTutorExists(courseDTO.getTutorId());
+        }
+        
         Course course = mapToEntity(courseDTO);
         Course savedCourse = courseRepository.save(course);
         return mapToDTO(savedCourse);
@@ -71,6 +77,11 @@ public class CourseService implements ICourseService {
     public CourseDTO updateCourse(Long id, CourseDTO courseDTO) {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
+        
+        // Validate tutor if tutorId is being changed
+        if (courseDTO.getTutorId() != null && !courseDTO.getTutorId().equals(course.getTutorId())) {
+            userValidationService.validateTutorExists(courseDTO.getTutorId());
+        }
         
         course.setTitle(courseDTO.getTitle());
         course.setDescription(courseDTO.getDescription());

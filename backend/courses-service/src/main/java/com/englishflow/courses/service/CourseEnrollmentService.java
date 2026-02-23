@@ -22,10 +22,14 @@ public class CourseEnrollmentService implements ICourseEnrollmentService {
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
     private final ILessonProgressService lessonProgressService;
+    private final UserValidationService userValidationService;
     
     @Override
     @Transactional
     public CourseEnrollmentDTO enrollStudent(Long studentId, Long courseId) {
+        // Validate student exists and has STUDENT role
+        userValidationService.validateStudentExists(studentId);
+        
         // Check if course exists
         Course course = courseRepository.findById(courseId)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + courseId));

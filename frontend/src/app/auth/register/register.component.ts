@@ -20,8 +20,9 @@ export class RegisterComponent {
   currentStep = 1;
   totalSteps = 3;
   profilePhotoPreview: string | null = null;
-  recaptchaToken: string | null = null;
-  siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
+  // CAPTCHA COMMENTED OUT FOR DEVELOPMENT
+  // recaptchaToken: string | null = null;
+  // siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
 
   englishLevels = ['Beginner', 'Elementary', 'Intermediate', 'Upper Intermediate', 'Advanced', 'Proficient'];
   experienceYears = Array.from({length: 31}, (_, i) => i); // 0-30 years
@@ -90,31 +91,41 @@ export class RegisterComponent {
       case 2:
         return !!(this.cin?.valid && this.dateOfBirth?.valid);
       case 3:
-        return !!(this.englishLevel?.valid && this.recaptchaToken); // Require reCAPTCHA
+        // CAPTCHA REQUIREMENT COMMENTED OUT FOR DEVELOPMENT
+        return !!(this.englishLevel?.valid); // Removed recaptchaToken requirement
       default:
         return false;
     }
   }
 
-  onCaptchaResolved(token: string | null): void {
-    this.recaptchaToken = token;
-    console.log('reCAPTCHA resolved:', token);
-  }
+  // CAPTCHA COMMENTED OUT FOR DEVELOPMENT
+  // onCaptchaResolved(token: string | null): void {
+  //   this.recaptchaToken = token;
+  //   console.log('reCAPTCHA resolved:', token);
+  // }
 
   onSubmit(): void {
-    if (this.registerForm.invalid || !this.recaptchaToken) {
-      this.errorMessage = 'Please complete the reCAPTCHA verification';
+    // CAPTCHA VALIDATION COMMENTED OUT FOR DEVELOPMENT
+    // if (this.registerForm.invalid || !this.recaptchaToken) {
+    //   this.errorMessage = 'Please complete the reCAPTCHA verification';
+    //   return;
+    // }
+    
+    if (this.registerForm.invalid) {
+      this.errorMessage = 'Please fill in all required fields';
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    // Add recaptcha token to form data
-    const formData = {
-      ...this.registerForm.value,
-      recaptchaToken: this.recaptchaToken
-    };
+    // CAPTCHA TOKEN COMMENTED OUT FOR DEVELOPMENT
+    // const formData = {
+    //   ...this.registerForm.value,
+    //   recaptchaToken: this.recaptchaToken
+    // };
+    
+    const formData = this.registerForm.value;
 
     this.authService.register(formData).subscribe({
       next: (response) => {

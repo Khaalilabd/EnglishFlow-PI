@@ -36,22 +36,14 @@ export class CourseCatalogComponent implements OnInit {
 
   loadCourses(): void {
     this.loading = true;
-    console.log('Loading published courses from:', `${environment.apiUrl}/courses/status/PUBLISHED`);
     this.courseService.getPublishedCourses().subscribe({
       next: (courses) => {
-        console.log('Published courses loaded:', courses);
         this.courses = courses;
         this.applyFilters();
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading courses:', error);
-        console.error('Error details:', {
-          status: error.status,
-          statusText: error.statusText,
-          message: error.message,
-          url: error.url
-        });
         this.loading = false;
         this.courses = [];
         this.applyFilters();

@@ -24,3 +24,6 @@ Thumbs.db
 .env
 .env.local
 
+# Uploaded files (high volume - not tracked in Git)
+uploads/
+

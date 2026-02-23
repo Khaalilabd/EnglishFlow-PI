@@ -307,6 +307,11 @@ export const routes: Routes = [
         title: 'Edit Chapter | Jungle in English Dashboard'
       },
       {
+        path: 'chapters/:id',
+        loadComponent: () => import('./pages/courses/chapter-details/chapter-details.component').then(m => m.ChapterDetailsComponent),
+        title: 'Chapter Details | Jungle in English Dashboard'
+      },
+      {
         path: 'lessons',
         loadComponent: () => import('./pages/courses/lessons-list/lessons-list.component').then(m => m.LessonsListComponent),
         title: 'Lessons | Jungle in English Dashboard'

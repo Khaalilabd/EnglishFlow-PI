@@ -67,3 +67,7 @@ Thumbs.db
 **/.env
 *.env
 !.env.example
+
+# Uploaded files (high volume)
+/backend/courses-service/uploads/
+/backend/**/uploads/

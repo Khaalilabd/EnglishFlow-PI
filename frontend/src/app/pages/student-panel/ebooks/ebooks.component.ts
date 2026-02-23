@@ -274,8 +274,6 @@ export class EbooksComponent implements OnInit {
       totalPages: estimatedPages,
       estimatedReadTime: estimatedReadTime
     };
-    
-    console.log('Extracted metadata:', metadata);
   }
 
   // Generate PDF preview
@@ -582,11 +580,9 @@ export class EbooksComponent implements OnInit {
 
   downloadEbook(ebook: Ebook) {
     if (ebook.id) {
-      console.log('Starting download for ebook:', ebook.id, ebook.title);
       this.ebookService.trackAccess(ebook.id, 1).subscribe();
       this.ebookService.downloadEbook(ebook.id).subscribe({
         next: (blob) => {
-          console.log('Download successful, blob size:', blob.size);
           const url = window.URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
@@ -595,10 +591,7 @@ export class EbooksComponent implements OnInit {
           window.URL.revokeObjectURL(url);
         },
         error: (error) => {
-          console.error('Download error details:', error);
-          console.error('Error status:', error.status);
-          console.error('Error message:', error.message);
-          console.error('Error body:', error.error);
+          console.error('Error downloading ebook:', error);
           alert('Error downloading ebook. Please try again.');
         }
       });

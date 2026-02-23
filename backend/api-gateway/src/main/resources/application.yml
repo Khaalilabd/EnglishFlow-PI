@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: api-gateway
+  codec:
+    max-in-memory-size: 50MB
   cloud:
     config:
       enabled: false
@@ -12,6 +14,11 @@ spring:
         locator:
           enabled: true
           lower-case-service-id: true
+      httpclient:
+        pool:
+          max-connections: 100
+        connect-timeout: 45000
+        response-timeout: 45s
       routes:
         - id: auth-service
           uri: lb://auth-service
@@ -30,7 +37,7 @@ spring:
         - id: courses-service
           uri: http://localhost:8082
           predicates:
-            - Path=/api/courses/**,/api/chapters/**,/api/lessons/**,/api/enrollments/**,/api/lesson-progress/**,/api/chapter-progress/**,/api/progress/**
+            - Path=/api/courses/**,/api/chapters/**,/api/lessons/**,/api/enrollments/**,/api/lesson-progress/**,/api/chapter-progress/**,/api/progress/**,/api/users/**,/api/files/**,/api/lesson-media/**
           filters:
             - StripPrefix=0
             
@@ -59,6 +66,9 @@ spring:
               - OPTIONS
             allowed-headers: "*"
             allow-credentials: true
+            max-age: 3600
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
 
 eureka:
   client:
