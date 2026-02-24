@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping({"/users", "/auth/users"})
+@RequestMapping({"/users", "/auth/users", "/api/users"})
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
@@ -142,6 +142,26 @@ public class UserController {
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         return ResponseEntity.ok(UserDTO.fromEntity(user));
+    }
+    
+    @GetMapping("/role/{role}")
+    public ResponseEntity<List<UserDTO>> getUsersByRole(@PathVariable String role) {
+        try {
+            log.info("Fetching users with role: {}", role);
+            User.Role userRole = User.Role.valueOf(role.toUpperCase());
+            List<User> users = userRepository.findByRole(userRole);
+            List<UserDTO> userDTOs = users.stream()
+                    .map(UserDTO::fromEntity)
+                    .collect(Collectors.toList());
+            log.info("Found {} users with role {}", userDTOs.size(), role);
+            return ResponseEntity.ok(userDTOs);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid role: {}", role);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error fetching users by role: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
     
     @GetMapping("/{id}/public")

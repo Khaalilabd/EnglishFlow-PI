@@ -40,6 +40,7 @@ export class TutorSidebarComponent implements OnInit {
       icon: '📚',
       items: [
         { icon: 'fas fa-book', label: 'My Courses', route: '/tutor-panel/courses', badge: 5 },
+        { icon: 'fas fa-clock', label: 'Availability', route: '/tutor-panel/availability' },
         { icon: 'fas fa-calendar-alt', label: 'Schedule', route: '/tutor-panel/schedule' },
         { icon: 'fas fa-tasks', label: 'Assignments', route: '/tutor-panel/assignments' },
         { icon: 'fas fa-clipboard-list', label: 'Quiz Management', route: '/tutor-panel/quiz-management' },

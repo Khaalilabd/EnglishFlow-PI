@@ -104,6 +104,38 @@ services:
     networks:
       - englishflow-network
 
+  # PostgreSQL Database for Courses Service
+  postgres-courses:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: englishflow_courses
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: root
+    ports:
+      - "5436:5432"
+    volumes:
+      - postgres-courses-data:/var/lib/postgresql/data
+    networks:
+      - englishflow-network
+
+  # Courses Service
+  courses-service:
+    build:
+      context: ./backend/courses-service
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-courses:5432/englishflow_courses
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=root
+    depends_on:
+      - postgres-courses
+      - eureka-server
+    networks:
+      - englishflow-network
+
   # Redis Cache
   redis:
     image: redis:7-alpine
@@ -121,3 +153,4 @@ volumes:
   postgres-learning-data:
   postgres-club-data:
   postgres-community-data:
+  postgres-courses-data:

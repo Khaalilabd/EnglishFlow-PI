@@ -37,6 +37,13 @@ import { AuthResponse } from '../../../core/models/user.model';
 
       <!-- Right: Actions -->
       <div class="flex items-center space-x-4 ml-6">
+        <!-- TEST Menu -->
+        <a 
+          routerLink="/user-panel/courses"
+          class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors shadow-sm">
+          TEST
+        </a>
+
         <!-- Notifications -->
         <button class="relative p-2 hover:bg-[#F7EDE2] rounded-xl transition-colors">
           <i class="fas fa-bell text-gray-600 text-xl"></i>

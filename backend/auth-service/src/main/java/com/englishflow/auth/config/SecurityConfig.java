@@ -48,6 +48,8 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**", "/oauth2/**", "/login/oauth2/**", "/public/**", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
                         // Endpoint public pour récupérer les infos utilisateur (pour inter-service communication)
                         .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public", "/users/*/public").permitAll()
+                        // Endpoints pour communication inter-service (Feign clients)
+                        .requestMatchers("/api/users/**").permitAll()
                         // Endpoints password reset
                         .requestMatchers("/auth/password-reset/**", "/api/auth/password-reset/**").permitAll()
                         // Endpoints d'invitation

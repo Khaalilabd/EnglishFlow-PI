@@ -159,86 +159,82 @@
 </section>
 <!-- ***** Services Section End ***** -->
 
-<!-- ***** Courses Section Start ***** -->
-<section class="courses-section" id="courses">
+<!-- ***** Learning Packs Section Start ***** -->
+<section class="packs-section" id="courses">
   <div class="section-container">
     <div class="section-header">
-      <span class="section-badge">Popular Courses</span>
-      <h2 class="section-title">Featured Courses</h2>
-      <p class="section-description">Choose from our wide range of English courses</p>
+      <span class="section-badge">Learning Packs</span>
+      <h2 class="section-title">Discover Our Learning Programs</h2>
+      <p class="section-description">Curated course packages designed by expert tutors</p>
     </div>
 
-    <div class="course-filters">
-      <button class="filter-btn active">All Courses</button>
-      <button class="filter-btn">Beginner</button>
-      <button class="filter-btn">Intermediate</button>
-      <button class="filter-btn">Advanced</button>
+    <!-- Category Filters - Simple Pills -->
+    <div class="category-filters-simple">
+      <button 
+        class="category-pill" 
+        [class.active]="selectedCategory === ''"
+        (click)="filterByCategory('')">
+        All Categories
+      </button>
+      <button 
+        *ngFor="let category of categories"
+        class="category-pill" 
+        [class.active]="selectedCategory === category.name"
+        (click)="filterByCategory(category.name)">
+        {{ category.icon }} {{ category.name }}
+      </button>
     </div>
 
-    <div class="courses-grid">
-      <div class="course-card">
-        <div class="course-image">
-          <img src="assets/images/course-01.jpg" alt="English Basics">
-          <span class="course-badge beginner">Beginner</span>
-          <span class="course-price">$160</span>
-        </div>
-        <div class="course-content">
-          <div class="course-meta">
-            <span class="course-author">Sarah Johnson</span>
-            <span class="course-rating">⭐ 4.8</span>
-          </div>
-          <h3 class="course-title">English Basics</h3>
-          <p class="course-description">Perfect for beginners starting their English journey</p>
-          <div class="course-footer">
-            <span class="course-duration">📚 12 Lessons</span>
-            <a href="#" class="course-enroll">Enroll Now</a>
-          </div>
-        </div>
-      </div>
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state-simple">
+      <div class="spinner-simple"></div>
+      <p>Loading packs...</p>
+    </div>
 
-      <div class="course-card">
-        <div class="course-image">
-          <img src="assets/images/course-02.jpg" alt="Business English">
-          <span class="course-badge intermediate">Intermediate</span>
-          <span class="course-price">$340</span>
-        </div>
-        <div class="course-content">
-          <div class="course-meta">
-            <span class="course-author">Michael Brown</span>
-            <span class="course-rating">⭐ 4.9</span>
-          </div>
-          <h3 class="course-title">Business English</h3>
-          <p class="course-description">Master professional English for the workplace</p>
-          <div class="course-footer">
-            <span class="course-duration">📚 20 Lessons</span>
-            <a href="#" class="course-enroll">Enroll Now</a>
-          </div>
-        </div>
-      </div>
+    <!-- Empty State -->
+    <div *ngIf="!loading && packs.length === 0" class="empty-state-simple">
+      <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path>
+      </svg>
+      <h3>No packs available</h3>
+      <p>Check back later for new learning packs</p>
+    </div>
 
-      <div class="course-card">
-        <div class="course-image">
-          <img src="assets/images/course-03.jpg" alt="Advanced Conversation">
-          <span class="course-badge advanced">Advanced</span>
-          <span class="course-price">$640</span>
-        </div>
-        <div class="course-content">
-          <div class="course-meta">
-            <span class="course-author">Emma Wilson</span>
-            <span class="course-rating">⭐ 5.0</span>
+    <!-- Packs Grid - Simple Cards like Team Section -->
+    <div *ngIf="!loading && packs.length > 0" class="packs-grid-simple">
+      <div *ngFor="let pack of packs" class="pack-card-simple">
+        <div class="pack-image">
+          <img src="assets/images/course-01.jpg" alt="{{ pack.name }}">
+          <div class="pack-overlay">
+            <span class="pack-category" [style.background-color]="getCategoryColor(pack.category)">
+              {{ getCategoryIcon(pack.category) }} {{ pack.category }}
+            </span>
+            <span class="pack-level">{{ pack.level }}</span>
           </div>
-          <h3 class="course-title">Advanced Conversation</h3>
-          <p class="course-description">Achieve fluency with advanced speaking practice</p>
-          <div class="course-footer">
-            <span class="course-duration">📚 24 Lessons</span>
-            <a href="#" class="course-enroll">Enroll Now</a>
+        </div>
+        <div class="pack-content">
+          <div class="pack-tutor-info">
+            <svg class="tutor-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span class="tutor-name">{{ pack.tutorName }}</span>
+          </div>
+          <h3 class="pack-name">{{ pack.name }}</h3>
+          <p class="pack-bio">{{ pack.description || 'Comprehensive learning pack with multiple courses' }}</p>
+          <div class="pack-stats-simple">
+            <span class="pack-stat">📚 {{ pack.coursesCount }} courses</span>
+            <span class="pack-stat">⏱️ {{ pack.estimatedDuration }}h</span>
+          </div>
+          <div class="pack-footer">
+            <span class="pack-price">${{ pack.price }}</span>
+            <a [routerLink]="['/pack-details', pack.id]" class="pack-link">View Details →</a>
           </div>
         </div>
       </div>
     </div>
   </div>
 </section>
-<!-- ***** Courses Section End ***** -->
+<!-- ***** Learning Packs Section End ***** -->
 
 <!-- ***** Team Section Start ***** -->
 <section class="team-section" id="team">

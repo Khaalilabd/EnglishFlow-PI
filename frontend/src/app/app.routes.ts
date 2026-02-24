@@ -45,6 +45,13 @@ export const routes: Routes = [
     title: 'Clubs | Jungle in English'
   },
   
+  // Pack Details - Page publique
+  {
+    path: 'pack-details/:id',
+    loadComponent: () => import('./pages/pack-details/pack-details.component').then(m => m.PackDetailsComponent),
+    title: 'Pack Details | Jungle in English'
+  },
+  
   // Student Panel avec layout et sidebar - Protégé pour STUDENT uniquement
   {
     path: 'user-panel',
@@ -64,7 +71,37 @@ export const routes: Routes = [
       {
         path: 'courses',
         loadComponent: () => import('./pages/student-panel/courses/courses.component').then(m => m.CoursesComponent),
+        title: 'My Courses (Old) | Jungle in English'
+      },
+      {
+        path: 'my-courses',
+        loadComponent: () => import('./pages/student-panel/course-catalog/course-catalog.component').then(m => m.CourseCatalogComponent),
         title: 'My Courses | Jungle in English'
+      },
+      {
+        path: 'course-catalog',
+        loadComponent: () => import('./pages/student-panel/course-catalog/course-catalog.component').then(m => m.CourseCatalogComponent),
+        title: 'Explore Courses | Jungle in English'
+      },
+      {
+        path: 'pack-catalog',
+        loadComponent: () => import('./pages/student-panel/pack-catalog/pack-catalog.component').then(m => m.PackCatalogComponent),
+        title: 'Browse Packs | Jungle in English'
+      },
+      {
+        path: 'my-packs',
+        loadComponent: () => import('./pages/student-panel/my-packs/my-packs.component').then(m => m.MyPacksComponent),
+        title: 'My Packs | Jungle in English'
+      },
+      {
+        path: 'course/:id',
+        loadComponent: () => import('./pages/student-panel/course-view/course-view.component').then(m => m.CourseViewComponent),
+        title: 'Course Details | Jungle in English'
+      },
+      {
+        path: 'lesson/:id',
+        loadComponent: () => import('./pages/student-panel/lesson-view/lesson-view.component').then(m => m.LessonViewComponent),
+        title: 'Lesson | Jungle in English'
       },
       {
         path: 'schedule',
@@ -177,8 +214,58 @@ export const routes: Routes = [
       },
       {
         path: 'courses',
-        loadComponent: () => import('./pages/student-panel/courses/courses.component').then(m => m.CoursesComponent),
+        loadComponent: () => import('./pages/tutor-panel/course-list/course-list.component').then(m => m.CourseListComponent),
         title: 'My Courses | Jungle in English'
+      },
+      {
+        path: 'availability',
+        loadComponent: () => import('./pages/tutor-panel/tutor-availability/tutor-availability.component').then(m => m.TutorAvailabilityComponent),
+        title: 'My Availability | Jungle in English'
+      },
+      {
+        path: 'courses/create',
+        loadComponent: () => import('./pages/tutor-panel/course-create/course-create.component').then(m => m.CourseCreateComponent),
+        title: 'Create Course | Jungle in English'
+      },
+      {
+        path: 'courses/:id',
+        loadComponent: () => import('./pages/tutor-panel/course-view/course-view.component').then(m => m.CourseViewComponent),
+        title: 'Course Details | Jungle in English'
+      },
+      {
+        path: 'courses/edit/:id',
+        loadComponent: () => import('./pages/tutor-panel/course-edit/course-edit.component').then(m => m.CourseEditComponent),
+        title: 'Edit Course | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters',
+        loadComponent: () => import('./pages/tutor-panel/chapter-management/chapter-management.component').then(m => m.ChapterManagementComponent),
+        title: 'Manage Chapters | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters/create',
+        loadComponent: () => import('./pages/courses/chapters-create/chapters-create.component').then(m => m.ChaptersCreateComponent),
+        title: 'Create Chapter | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters/:id/edit',
+        loadComponent: () => import('./pages/courses/chapters-update/chapters-update.component').then(m => m.ChaptersUpdateComponent),
+        title: 'Edit Chapter | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons',
+        loadComponent: () => import('./pages/tutor-panel/lesson-management/lesson-management.component').then(m => m.LessonManagementComponent),
+        title: 'Manage Lessons | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons/create',
+        loadComponent: () => import('./pages/courses/lessons-create/lessons-create.component').then(m => m.LessonsCreateComponent),
+        title: 'Create Lesson | Jungle in English'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons/:id/edit',
+        loadComponent: () => import('./pages/courses/lessons-update/lessons-update.component').then(m => m.LessonsUpdateComponent),
+        title: 'Edit Lesson | Jungle in English'
       },
       {
         path: 'quiz-management',
@@ -525,6 +612,81 @@ export const routes: Routes = [
         path: 'clubs/:id/edit',
         loadComponent: () => import('./pages/clubs/club-edit/club-edit.component').then(m => m.ClubEditComponent),
         title: 'Edit Club | Jungle in English Dashboard'
+      },
+      {
+        path: 'categories',
+        loadComponent: () => import('./pages/academic-panel/category-management/category-management.component').then(m => m.CategoryManagementComponent),
+        title: 'Category Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs',
+        loadComponent: () => import('./pages/academic-panel/pack-management/pack-management.component').then(m => m.PackManagementComponent),
+        title: 'Pack Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs/create',
+        loadComponent: () => import('./pages/academic-panel/pack-create/pack-create.component').then(m => m.PackCreateComponent),
+        title: 'Create Pack | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs/edit/:id',
+        loadComponent: () => import('./pages/academic-panel/pack-create/pack-create.component').then(m => m.PackCreateComponent),
+        title: 'Edit Pack | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses',
+        loadComponent: () => import('./pages/courses/courses-list/courses-list.component').then(m => m.CoursesListComponent),
+        title: 'Courses Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/create',
+        loadComponent: () => import('./pages/courses/courses-create/courses-create.component').then(m => m.CoursesCreateComponent),
+        title: 'Create Course | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:id',
+        loadComponent: () => import('./pages/courses/courses-details/courses-details.component').then(m => m.CoursesDetailsComponent),
+        title: 'Course Details | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:id/edit',
+        loadComponent: () => import('./pages/courses/courses-update/courses-update.component').then(m => m.CoursesUpdateComponent),
+        title: 'Edit Course | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters',
+        loadComponent: () => import('./pages/courses/chapters-list/chapters-list.component').then(m => m.ChaptersListComponent),
+        title: 'Chapters | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/create',
+        loadComponent: () => import('./pages/courses/chapters-create/chapters-create.component').then(m => m.ChaptersCreateComponent),
+        title: 'Create Chapter | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/:id',
+        loadComponent: () => import('./pages/courses/chapter-details/chapter-details.component').then(m => m.ChapterDetailsComponent),
+        title: 'Chapter Details | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/:id/edit',
+        loadComponent: () => import('./pages/courses/chapters-update/chapters-update.component').then(m => m.ChaptersUpdateComponent),
+        title: 'Edit Chapter | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons',
+        loadComponent: () => import('./pages/courses/lessons-list/lessons-list.component').then(m => m.LessonsListComponent),
+        title: 'Lessons | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons/create',
+        loadComponent: () => import('./pages/courses/lessons-create/lessons-create.component').then(m => m.LessonsCreateComponent),
+        title: 'Create Lesson | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses/:courseId/chapters/:chapterId/lessons/:id/edit',
+        loadComponent: () => import('./pages/courses/lessons-update/lessons-update.component').then(m => m.LessonsUpdateComponent),
+        title: 'Edit Lesson | Jungle in English Dashboard'
       },
       {
         path: 'form-elements',

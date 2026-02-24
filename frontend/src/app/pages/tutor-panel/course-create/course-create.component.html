@@ -1,0 +1,261 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="mb-6">
+      <button 
+        (click)="goBack()"
+        class="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-gray-900 mb-4">
+        ← Back to Courses
+      </button>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Create New Course</h1>
+    </div>
+
+    <!-- Progress -->
+    <div class="mb-8 flex items-center justify-center gap-4">
+      <div *ngFor="let step of [1, 2, 3]" 
+        class="flex items-center"
+        [class.font-bold]="currentStep === step">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center"
+          [class.bg-blue-600]="currentStep >= step"
+          [class.text-white]="currentStep >= step"
+          [class.bg-gray-300]="currentStep < step">
+          {{ step }}
+        </div>
+        <span class="ml-2">{{ step === 1 ? 'Basic' : step === 2 ? 'Details' : 'Review' }}</span>
+      </div>
+    </div>
+
+    <!-- Message -->
+    <div *ngIf="message" class="mb-6 p-4 rounded"
+      [class.bg-green-100]="messageType === 'success'"
+      [class.bg-red-100]="messageType === 'error'">
+      {{ message }}
+    </div>
+
+    <!-- Form -->
+    <form (ngSubmit)="onSubmit()" class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+      
+      <!-- Step 1: Basic Info -->
+      <div *ngIf="currentStep === 1">
+        <h2 class="text-xl font-bold mb-4">Basic Information</h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-2">Title *</label>
+            <input
+              type="text"
+              [(ngModel)]="course.title"
+              name="title"
+              required
+              class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Category *</label>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+              <button
+                *ngFor="let category of categories"
+                type="button"
+                (click)="course.category = category.name"
+                class="p-3 border-2 rounded-lg text-left"
+                [class.border-blue-500]="course.category === category.name"
+                [class.bg-blue-50]="course.category === category.name">
+                <div class="text-2xl mb-1">{{ category.icon }}</div>
+                <div class="text-sm font-medium">{{ category.name }}</div>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Level *</label>
+            <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+              <button
+                *ngFor="let level of levels"
+                type="button"
+                (click)="course.level = level"
+                class="px-4 py-2 border-2 rounded-lg font-bold"
+                [class.border-purple-500]="course.level === level"
+                [class.bg-purple-50]="course.level === level">
+                {{ level }}
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Description *</label>
+            <textarea
+              [(ngModel)]="course.description"
+              name="description"
+              required
+              rows="4"
+              class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-end">
+          <button
+            type="button"
+            (click)="nextStep()"
+            [disabled]="!course.title || !course.category || !course.level || !course.description"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2: Details -->
+      <div *ngIf="currentStep === 2">
+        <h2 class="text-xl font-bold mb-4">Course Details</h2>
+        
+        <div class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-2">Duration (hours) *</label>
+              <input
+                type="number"
+                [(ngModel)]="course.duration"
+                name="duration"
+                required
+                min="1"
+                class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2">Max Students</label>
+              <input
+                type="number"
+                [(ngModel)]="course.maxStudents"
+                name="maxStudents"
+                min="1"
+                class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2">Price ($)</label>
+              <input
+                type="number"
+                [(ngModel)]="course.price"
+                name="price"
+                min="0"
+                step="0.01"
+                class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+            </div>
+
+            <div>
+              <label class="block text-sm font-medium mb-2">Status</label>
+              <select
+                [(ngModel)]="course.status"
+                name="status"
+                class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600">
+                <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Learning Objectives</label>
+            <textarea
+              [(ngModel)]="course.objectives"
+              name="objectives"
+              rows="3"
+              class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium mb-2">Prerequisites</label>
+            <textarea
+              [(ngModel)]="course.prerequisites"
+              name="prerequisites"
+              rows="3"
+              class="w-full px-4 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"></textarea>
+          </div>
+
+          <div class="flex items-center">
+            <input
+              type="checkbox"
+              [(ngModel)]="course.isFeatured"
+              name="isFeatured"
+              id="isFeatured"
+              class="w-4 h-4 text-blue-600 rounded">
+            <label for="isFeatured" class="ml-2 text-sm">Mark as Featured Course</label>
+          </div>
+        </div>
+
+        <div class="mt-6 flex justify-between">
+          <button
+            type="button"
+            (click)="previousStep()"
+            class="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
+            ← Previous
+          </button>
+          <button
+            type="button"
+            (click)="nextStep()"
+            class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            Next →
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div *ngIf="currentStep === 3">
+        <h2 class="text-xl font-bold mb-4">Review & Submit</h2>
+        
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-6 mb-6">
+          <div class="mb-4">
+            <div class="text-3xl mb-2">{{ getCategoryIcon(course.category) }}</div>
+            <h3 class="text-2xl font-bold">{{ course.title }}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400">{{ course.category }} • {{ course.level }}</p>
+          </div>
+          
+          <p class="mb-4">{{ course.description }}</p>
+          
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+            <div class="text-center p-3 bg-white dark:bg-gray-800 rounded">
+              <div class="font-bold text-blue-600">{{ course.duration }}h</div>
+              <div class="text-xs">Duration</div>
+            </div>
+            <div class="text-center p-3 bg-white dark:bg-gray-800 rounded">
+              <div class="font-bold text-green-600">{{ course.maxStudents || 0 }}</div>
+              <div class="text-xs">Students</div>
+            </div>
+            <div class="text-center p-3 bg-white dark:bg-gray-800 rounded">
+              <div class="font-bold text-purple-600">${{ course.price || 0 }}</div>
+              <div class="text-xs">Price</div>
+            </div>
+            <div class="text-center p-3 bg-white dark:bg-gray-800 rounded">
+              <div class="font-bold">{{ course.status }}</div>
+              <div class="text-xs">Status</div>
+            </div>
+          </div>
+
+          <div *ngIf="course.objectives" class="mb-3">
+            <div class="text-sm font-semibold mb-1">Objectives:</div>
+            <p class="text-sm">{{ course.objectives }}</p>
+          </div>
+
+          <div *ngIf="course.prerequisites">
+            <div class="text-sm font-semibold mb-1">Prerequisites:</div>
+            <p class="text-sm">{{ course.prerequisites }}</p>
+          </div>
+        </div>
+
+        <div class="flex justify-between">
+          <button
+            type="button"
+            (click)="previousStep()"
+            class="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50">
+            ← Previous
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving"
+            class="px-8 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
+            <span *ngIf="!saving">✓ Create Course</span>
+            <span *ngIf="saving">Creating...</span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

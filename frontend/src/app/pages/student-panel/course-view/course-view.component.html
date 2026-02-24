@@ -1,0 +1,385 @@
+<div class="space-y-6 p-4 sm:p-6" *ngIf="course">
+  <!-- Back Button -->
+  <button 
+    (click)="goBack()"
+    class="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-primary transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+    </svg>
+    Back to Courses
+  </button>
+
+  <!-- Course Hero -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Left: Course Image & Info -->
+      <div class="lg:col-span-2">
+        <div class="relative h-80">
+          <img 
+            [src]="course.fileUrl || 'https://images.unsplash.com/photo-1546410531-bb4caa6b424d?w=800&h=400&fit=crop'" 
+            [alt]="course.title" 
+            class="w-full h-full object-cover">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+          <div class="absolute bottom-0 left-0 right-0 p-6 text-white">
+            <div class="flex items-center gap-2 mb-3">
+              <span 
+                class="px-3 py-1 text-sm font-semibold rounded-full backdrop-blur-sm"
+                [ngClass]="{
+                  'bg-success-500/90 text-white': course.level === 'BEGINNER',
+                  'bg-warning-500/90 text-white': course.level === 'INTERMEDIATE',
+                  'bg-error-500/90 text-white': course.level === 'ADVANCED'
+                }">
+                {{ course.level }}
+              </span>
+              <span 
+                class="px-3 py-1 text-sm font-semibold rounded-full backdrop-blur-sm"
+                [ngClass]="{
+                  'bg-success-500/90 text-white': course.status === 'PUBLISHED',
+                  'bg-gray-500/90 text-white': course.status === 'DRAFT',
+                  'bg-gray-400/90 text-white': course.status === 'ARCHIVED'
+                }">
+                {{ course.status }}
+              </span>
+            </div>
+            <h1 class="text-3xl font-bold mb-2">{{ course.title }}</h1>
+            <p class="text-lg text-gray-200 mb-4">{{ course.description }}</p>
+            <div class="flex items-center gap-4 text-sm">
+              <div class="flex items-center gap-1">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <span>{{ course.maxStudents }} max students</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Enrollment Card -->
+      <div class="p-6 bg-gray-50 dark:bg-gray-700/50">
+        <div class="sticky top-6">
+          <div class="text-center mb-6">
+            <div class="flex items-center justify-center gap-2 mb-2">
+              <span class="text-4xl font-bold text-primary">Free Course</span>
+            </div>
+          </div>
+
+          <button 
+            *ngIf="!isEnrolled"
+            (click)="enrollCourse()"
+            class="w-full py-3 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all font-semibold text-lg shadow-lg hover:shadow-xl mb-4">
+            Enroll Now
+          </button>
+
+          <button 
+            *ngIf="isEnrolled"
+            class="w-full py-3 bg-success-600 text-white rounded-lg hover:bg-success-700 transition-all font-semibold text-lg shadow-lg mb-4">
+            Continue Learning
+          </button>
+
+          <div class="space-y-3 text-sm">
+            <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600">
+              <span class="text-gray-600 dark:text-gray-400">Duration</span>
+              <span class="font-semibold text-gray-900 dark:text-white">{{ formatDuration(course.duration) }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600">
+              <span class="text-gray-600 dark:text-gray-400">Chapters</span>
+              <span class="font-semibold text-gray-900 dark:text-white">{{ chapters.length }} chapters</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600">
+              <span class="text-gray-600 dark:text-gray-400">Lessons</span>
+              <span class="font-semibold text-gray-900 dark:text-white">{{ getTotalLessons() }} lessons</span>
+            </div>
+            <div class="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-600">
+              <span class="text-gray-600 dark:text-gray-400">Total Hours</span>
+              <span class="font-semibold text-gray-900 dark:text-white">{{ formatDuration(getTotalDuration()) }}</span>
+            </div>
+            <div class="flex items-center justify-between py-2">
+              <span class="text-gray-600 dark:text-gray-400">Certificate</span>
+              <span class="font-semibold text-success-600">✓ Included</span>
+            </div>
+          </div>
+
+          <div class="mt-6 p-4 bg-primary/10 rounded-lg">
+            <h4 class="font-semibold text-gray-900 dark:text-white mb-2">This course includes:</h4>
+            <ul class="space-y-2 text-sm text-gray-700 dark:text-gray-300">
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Lifetime access
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Certificate of completion
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Downloadable resources
+              </li>
+              <li class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-success-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Mobile access
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+    <div class="border-b border-gray-200 dark:border-gray-700">
+      <nav class="flex -mb-px overflow-x-auto">
+        <button
+          (click)="activeTab = 'overview'"
+          [class.border-primary]="activeTab === 'overview'"
+          [class.text-primary]="activeTab === 'overview'"
+          [class.border-transparent]="activeTab !== 'overview'"
+          [class.text-gray-500]="activeTab !== 'overview'"
+          class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors hover:text-primary">
+          Overview
+        </button>
+        <button
+          (click)="activeTab = 'curriculum'"
+          [class.border-primary]="activeTab === 'curriculum'"
+          [class.text-primary]="activeTab === 'curriculum'"
+          [class.border-transparent]="activeTab !== 'curriculum'"
+          [class.text-gray-500]="activeTab !== 'curriculum'"
+          class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors hover:text-primary">
+          Curriculum
+        </button>
+        <button
+          (click)="activeTab = 'reviews'"
+          [class.border-primary]="activeTab === 'reviews'"
+          [class.text-primary]="activeTab === 'reviews'"
+          [class.border-transparent]="activeTab !== 'reviews'"
+          [class.text-gray-500]="activeTab !== 'reviews'"
+          class="whitespace-nowrap py-4 px-6 border-b-2 font-medium text-sm transition-colors hover:text-primary">
+          Reviews ({{ reviews.length }})
+        </button>
+      </nav>
+    </div>
+
+    <div class="p-6">
+      <!-- Overview Tab -->
+      <div *ngIf="activeTab === 'overview'" class="space-y-6">
+        <!-- Description -->
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">About This Course</h2>
+          <p class="text-gray-600 dark:text-gray-400 leading-relaxed">{{ course.description }}</p>
+        </div>
+
+        <!-- Course Chapters -->
+        <div *ngIf="chapters.length > 0">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Course Chapters</h3>
+          <div class="grid grid-cols-1 gap-3">
+            <div *ngFor="let chapter of chapters" class="flex items-start gap-3 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+              <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+              <div class="flex-1">
+                <h4 class="font-semibold text-gray-900 dark:text-white">{{ chapter.title }}</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ chapter.description }}</p>
+                <div *ngIf="chapter.objectives && chapter.objectives.length > 0" class="mt-2">
+                  <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Objectives:</p>
+                  <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
+                    <li *ngFor="let obj of chapter.objectives" class="flex items-start gap-1">
+                      <span class="text-success-500">•</span>
+                      <span>{{ obj }}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Curriculum Tab -->
+      <div *ngIf="activeTab === 'curriculum'" class="space-y-4">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Course Curriculum</h2>
+          <div class="text-sm text-gray-600 dark:text-gray-400">
+            {{ chapters.length }} chapters • {{ getTotalLessons() }} lessons • {{ formatDuration(getTotalDuration()) }}
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <div *ngFor="let chapter of chapters" class="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <button
+              (click)="toggleSection(chapter.id)"
+              class="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <div class="flex items-center gap-3 text-left">
+                <svg 
+                  class="w-5 h-5 text-gray-400 transition-transform"
+                  [class.rotate-90]="isSectionExpanded(chapter.id)"
+                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+                <div>
+                  <h3 class="font-semibold text-gray-900 dark:text-white">{{ chapter.title }}</h3>
+                  <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">{{ chapter.description }}</p>
+                </div>
+              </div>
+              <div class="text-sm text-gray-500 dark:text-gray-400">
+                {{ getChapterLessons(chapter.id).length }} lessons
+              </div>
+            </button>
+
+            <div *ngIf="isSectionExpanded(chapter.id)" class="bg-white dark:bg-gray-800">
+              <div *ngFor="let lesson of getChapterLessons(chapter.id); let last = last" 
+                   [class.border-b]="!last"
+                   class="border-gray-200 dark:border-gray-700">
+                <a 
+                  [routerLink]="['/user-panel/lesson', lesson.id]"
+                  class="block p-4 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors cursor-pointer">
+                  <div class="flex items-start justify-between gap-4">
+                    <div class="flex items-start gap-3 flex-1">
+                      <span class="text-2xl">{{ getLessonIcon(lesson.lessonType) }}</span>
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2">
+                          <h4 class="font-medium text-gray-900 dark:text-white hover:text-primary transition-colors">{{ lesson.title }}</h4>
+                          <span *ngIf="lesson.isPreview" class="px-2 py-0.5 text-xs font-semibold rounded bg-success-100 text-success-700 dark:bg-success-900/20 dark:text-success-400">
+                            Free Preview
+                          </span>
+                          <svg *ngIf="!lesson.isPreview && !isEnrolled" class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                          </svg>
+                        </div>
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ lesson.description }}</p>
+                        <div class="flex items-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                          <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            {{ lesson.duration }} min
+                          </span>
+                          <span 
+                            class="px-2 py-0.5 rounded text-xs font-medium"
+                            [ngClass]="{
+                              'bg-primary/10 text-primary': lesson.lessonType === 'VIDEO',
+                              'bg-warning-100 text-warning-700': lesson.lessonType === 'TEXT',
+                              'bg-error-100 text-error-700': lesson.lessonType === 'DOCUMENT',
+                              'bg-success-100 text-success-700': lesson.lessonType === 'QUIZ',
+                              'bg-pink-100 text-pink-700': lesson.lessonType === 'ASSIGNMENT',
+                              'bg-purple-100 text-purple-700': lesson.lessonType === 'INTERACTIVE'
+                            }">
+                            {{ lesson.lessonType }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </div>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reviews Tab -->
+      <div *ngIf="activeTab === 'reviews'" class="space-y-6">
+        <!-- Write Review (if enrolled) -->
+        <div *ngIf="isEnrolled" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Write a Review</h3>
+          <div class="space-y-4">
+            <!-- Star Rating -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Rating</label>
+              <div class="flex items-center gap-2">
+                <button
+                  *ngFor="let star of [1,2,3,4,5]"
+                  (click)="setRating(star)"
+                  (mouseenter)="setHoverRating(star)"
+                  (mouseleave)="setHoverRating(0)"
+                  class="focus:outline-none transition-transform hover:scale-110">
+                  <svg 
+                    class="w-8 h-8"
+                    [class.text-warning-400]="star <= (hoverRating || userRating)"
+                    [class.text-gray-300]="star > (hoverRating || userRating)"
+                    fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Comment -->
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Review</label>
+              <textarea
+                [(ngModel)]="userComment"
+                rows="4"
+                placeholder="Share your experience with this course..."
+                class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white resize-none"
+              ></textarea>
+            </div>
+
+            <button
+              (click)="submitReview()"
+              class="px-6 py-2.5 bg-primary text-white rounded-lg hover:bg-primary-600 transition-all font-medium">
+              Submit Review
+            </button>
+          </div>
+        </div>
+
+        <!-- Reviews List -->
+        <div class="space-y-4">
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Student Reviews</h3>
+          <div *ngFor="let review of reviews" class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+            <div class="flex items-start gap-4">
+              <img [src]="review.userAvatar" [alt]="review.userName" class="w-12 h-12 rounded-full">
+              <div class="flex-1">
+                <div class="flex items-center justify-between mb-2">
+                  <div>
+                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ review.userName }}</h4>
+                    <div class="flex items-center gap-2 mt-1">
+                      <div class="flex items-center gap-0.5">
+                        <svg *ngFor="let star of [1,2,3,4,5]" 
+                             class="w-4 h-4"
+                             [class.text-warning-400]="star <= review.rating"
+                             [class.text-gray-300]="star > review.rating"
+                             fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                        </svg>
+                      </div>
+                      <span class="text-xs text-gray-500 dark:text-gray-400">{{ review.createdAt | date:'MMM d, y' }}</span>
+                    </div>
+                  </div>
+                </div>
+                <p class="text-gray-700 dark:text-gray-300 leading-relaxed mb-3">{{ review.comment }}</p>
+                <button
+                  (click)="markHelpful(review)"
+                  class="text-sm text-gray-600 dark:text-gray-400 hover:text-primary transition-colors flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5"></path>
+                  </svg>
+                  Helpful ({{ review.helpful }})
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="!course" class="flex items-center justify-center py-20">
+  <div class="text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+    <p class="mt-4 text-gray-600 dark:text-gray-400">Loading course...</p>
+  </div>
+</div>

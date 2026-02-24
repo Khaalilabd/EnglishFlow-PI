@@ -157,13 +157,140 @@ spring:
             - Path=/ws/**
           order: 22
             
+        - id: courses-categories
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/categories/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-packs
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/packs/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-pack-enrollments
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/pack-enrollments/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-tutor-availability
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/tutor-availability/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Chapters and Lessons routes
+        - id: courses-chapters
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/chapters/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-lessons
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lessons/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Lesson Media routes
+        - id: courses-lesson-media
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lesson-media/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # File Upload routes
+        - id: courses-files
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/files/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Enrollment routes
+        - id: courses-enrollments
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/enrollments/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Progress routes
+        - id: courses-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-chapter-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/chapter-progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-lesson-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lesson-progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # User info routes
+        - id: courses-users
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Route for course static files (thumbnails, materials)
+        - id: courses-static-files
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/uploads/courses/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-service
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - StripPrefix=1
+          order: 23
+            
         - id: notification-service
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
           filters:
             - StripPrefix=1
-          order: 23
+          order: 24
       globalcors:
         cors-configurations:
           '[/**]':

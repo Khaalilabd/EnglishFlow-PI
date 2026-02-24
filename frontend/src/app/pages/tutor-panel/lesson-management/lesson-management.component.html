@@ -1,0 +1,556 @@
+<!-- Lesson Management Page -->
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
+  
+  <!-- Loading State -->
+  <div *ngIf="loading && lessons.length === 0" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Loading lessons...</p>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading || lessons.length > 0" class="max-w-7xl mx-auto px-6 py-8">
+    
+    <!-- Header -->
+    <div class="mb-8">
+      <button (click)="goBack()" 
+        class="group flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-all shadow-sm mb-4">
+        <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span class="font-medium">Back to Chapters</span>
+      </button>
+      
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{chapter?.title}}</h1>
+          <p class="text-gray-600 dark:text-gray-400">{{course?.title}} - Manage Lessons</p>
+        </div>
+        
+        <button (click)="openCreateModal()"
+          class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg hover:shadow-xl">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Lesson
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Lessons</p>
+            <p class="text-3xl font-bold text-blue-600 mt-2">{{lessons.length}}</p>
+          </div>
+          <div class="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
+            <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Published</p>
+            <p class="text-3xl font-bold text-emerald-600 mt-2">{{getPublishedCount()}}</p>
+          </div>
+          <div class="p-4 bg-emerald-100 dark:bg-emerald-900/30 rounded-xl">
+            <svg class="w-8 h-8 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Preview Lessons</p>
+            <p class="text-3xl font-bold text-amber-600 mt-2">{{getPreviewCount()}}</p>
+          </div>
+          <div class="p-4 bg-amber-100 dark:bg-amber-900/30 rounded-xl">
+            <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-100 dark:border-gray-700">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-600 dark:text-gray-400 text-sm font-medium">Total Duration</p>
+            <p class="text-3xl font-bold text-purple-600 mt-2">{{getTotalDuration()}}min</p>
+          </div>
+          <div class="p-4 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
+            <svg class="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lessons List -->
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden p-8">
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+        <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        Chapter Lessons
+      </h2>
+
+      <!-- Empty State -->
+      <div *ngIf="lessons.length === 0" class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <p class="text-xl text-gray-500 dark:text-gray-400 font-medium">No lessons yet</p>
+        <p class="text-gray-400 dark:text-gray-500 mt-2">Start adding content to this chapter</p>
+      </div>
+
+      <!-- Lessons Grid -->
+      <div *ngIf="lessons.length > 0" class="space-y-4">
+        <div *ngFor="let lesson of lessons" 
+          class="group bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-6 border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all hover:shadow-xl">
+          
+          <div class="flex items-start justify-between">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3">
+                <span class="text-2xl">{{getLessonTypeIcon(lesson.lessonType)}}</span>
+                <span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg text-sm font-bold">
+                  Lesson {{lesson.orderIndex + 1}}
+                </span>
+                <span [class]="getLessonTypeColor(lesson.lessonType) + ' px-3 py-1 rounded-lg text-sm font-semibold'">
+                  {{lesson.lessonType}}
+                </span>
+                <span *ngIf="lesson.isPublished" class="px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg text-sm font-semibold flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  Published
+                </span>
+                <span *ngIf="!lesson.isPublished" class="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded-lg text-sm font-semibold">
+                  Draft
+                </span>
+                <span *ngIf="lesson.isPreview" class="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded-lg text-sm font-semibold flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                  </svg>
+                  Preview
+                </span>
+              </div>
+              
+              <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{lesson.title}}</h3>
+              <p class="text-gray-600 dark:text-gray-400 mb-3">{{lesson.description}}</p>
+              
+              <!-- Duration & Content URL -->
+              <div class="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span>{{lesson.duration || 0}} minutes</span>
+                </div>
+                <div *ngIf="lesson.contentUrl" class="flex items-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                  </svg>
+                  <span class="truncate max-w-xs">Has content</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col gap-2">
+              <button (click)="openEditModal(lesson)"
+                class="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+                Edit
+              </button>
+              
+              <button (click)="togglePublish(lesson)"
+                [class]="lesson.isPublished ? 'px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center' : 'px-4 py-2 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center'">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                {{lesson.isPublished ? 'Unpublish' : 'Publish'}}
+              </button>
+              
+              <button (click)="openDeleteModal(lesson)"
+                class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Create Lesson Modal -->
+<div *ngIf="showCreateModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-cyan-600 text-white p-6 rounded-t-3xl">
+      <h3 class="text-2xl font-bold">Create New Lesson</h3>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lesson Title *</label>
+        <input type="text" [(ngModel)]="lessonForm.title" 
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter lesson title">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
+        <textarea [(ngModel)]="lessonForm.description" rows="3"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Describe what students will learn"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lesson Type *</label>
+        <select [(ngModel)]="lessonForm.lessonType"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+          <option *ngFor="let type of lessonTypes" [value]="type">{{type}}</option>
+        </select>
+      </div>
+      
+      <div *ngIf="lessonForm.lessonType === LessonType.TEXT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content</label>
+        <textarea [(ngModel)]="lessonForm.content" rows="6"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter lesson content..."></textarea>
+      </div>
+      
+      <!-- File Upload Section for VIDEO and DOCUMENT types -->
+      <div *ngIf="lessonForm.lessonType === LessonType.VIDEO || lessonForm.lessonType === LessonType.DOCUMENT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Upload {{lessonForm.lessonType === LessonType.VIDEO ? 'Video' : 'Document'}}
+        </label>
+        
+        <!-- Upload Button -->
+        <div class="mb-3">
+          <label class="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 transition-all cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <div class="text-center">
+              <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Click to upload or drag and drop
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{lessonForm.lessonType === LessonType.VIDEO ? 'MP4, AVI, MOV (max 500MB)' : 'PDF, DOC, PPT, XLS (max 50MB)'}}
+              </p>
+            </div>
+            <input type="file" (change)="onFileSelected($event)" [accept]="getAcceptedFileTypes()" class="hidden">
+          </label>
+        </div>
+        
+        <!-- Selected File Preview -->
+        <div *ngIf="selectedFile" class="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+          <div class="flex items-center gap-4">
+            <div class="text-4xl">{{getFileIcon()}}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{selectedFile.name}}</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400">{{formatFileSize(selectedFile.size)}}</p>
+            </div>
+            <button type="button" (click)="removeFile()" 
+              class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Upload Progress -->
+          <div *ngIf="uploadingFile" class="mt-3">
+            <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+              <span>Uploading...</span>
+              <span>{{uploadProgress}}%</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div class="bg-blue-600 h-2 rounded-full transition-all" [style.width.%]="uploadProgress"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- OR Divider -->
+        <div class="flex items-center gap-4 my-4">
+          <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+          <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">OR</span>
+          <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+        </div>
+        
+        <!-- URL Input -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Or enter {{lessonForm.lessonType === LessonType.VIDEO ? 'video' : 'document'}} URL
+          </label>
+          <input type="text" [(ngModel)]="lessonForm.contentUrl"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="https://youtube.com/watch?v=... or https://drive.google.com/...">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            💡 Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
+          </p>
+        </div>
+      </div>
+      
+      <!-- URL Input for other types -->
+      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
+        <input type="text" [(ngModel)]="lessonForm.contentUrl"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter content URL">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Order Index</label>
+          <input type="number" [(ngModel)]="lessonForm.orderIndex" min="0"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duration (minutes)</label>
+          <input type="number" [(ngModel)]="lessonForm.duration" min="0"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="lessonForm.isPreview" id="createPreview"
+            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+          <label for="createPreview" class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+            Free Preview 
+            <span class="text-xs text-gray-500">(Students can watch without enrolling)</span>
+          </label>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="lessonForm.isPublished" id="createPublished"
+            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+          <label for="createPublished" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Publish immediately</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 p-6 bg-gray-50 dark:bg-gray-900 rounded-b-3xl">
+      <button (click)="closeModals()" type="button"
+        class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-400 dark:hover:bg-gray-600 transition-all">
+        Cancel
+      </button>
+      <button (click)="createLesson()" type="button"
+        class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-cyan-700 transition-all shadow-lg">
+        Create Lesson
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Lesson Modal -->
+<div *ngIf="showEditModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div class="sticky top-0 bg-gradient-to-r from-amber-500 to-orange-500 text-white p-6 rounded-t-3xl">
+      <h3 class="text-2xl font-bold">Edit Lesson</h3>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lesson Title *</label>
+        <input type="text" [(ngModel)]="lessonForm.title" 
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter lesson title">
+      </div>
+      
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
+        <textarea [(ngModel)]="lessonForm.description" rows="3"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Describe what students will learn"></textarea>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lesson Type *</label>
+        <select [(ngModel)]="lessonForm.lessonType"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+          <option *ngFor="let type of lessonTypes" [value]="type">{{type}}</option>
+        </select>
+      </div>
+      
+      <div *ngIf="lessonForm.lessonType === LessonType.TEXT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content</label>
+        <textarea [(ngModel)]="lessonForm.content" rows="6"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter lesson content..."></textarea>
+      </div>
+      
+      <!-- File Upload Section for VIDEO and DOCUMENT types -->
+      <div *ngIf="lessonForm.lessonType === LessonType.VIDEO || lessonForm.lessonType === LessonType.DOCUMENT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Upload {{lessonForm.lessonType === LessonType.VIDEO ? 'Video' : 'Document'}}
+        </label>
+        
+        <!-- Upload Button -->
+        <div class="mb-3">
+          <label class="flex items-center justify-center gap-3 px-6 py-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl hover:border-amber-500 dark:hover:border-amber-500 transition-all cursor-pointer bg-gray-50 dark:bg-gray-900 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <div class="text-center">
+              <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                Click to upload or drag and drop
+              </p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                {{lessonForm.lessonType === LessonType.VIDEO ? 'MP4, AVI, MOV (max 500MB)' : 'PDF, DOC, PPT, XLS (max 50MB)'}}
+              </p>
+            </div>
+            <input type="file" (change)="onFileSelected($event)" [accept]="getAcceptedFileTypes()" class="hidden">
+          </label>
+        </div>
+        
+        <!-- Selected File Preview -->
+        <div *ngIf="selectedFile" class="p-4 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl">
+          <div class="flex items-center gap-4">
+            <div class="text-4xl">{{getFileIcon()}}</div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{selectedFile.name}}</p>
+              <p class="text-xs text-gray-600 dark:text-gray-400">{{formatFileSize(selectedFile.size)}}</p>
+            </div>
+            <button type="button" (click)="removeFile()" 
+              class="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-red-600 rounded-lg transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Upload Progress -->
+          <div *ngIf="uploadingFile" class="mt-3">
+            <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400 mb-1">
+              <span>Uploading...</span>
+              <span>{{uploadProgress}}%</span>
+            </div>
+            <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+              <div class="bg-amber-600 h-2 rounded-full transition-all" [style.width.%]="uploadProgress"></div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- OR Divider -->
+        <div class="flex items-center gap-4 my-4">
+          <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+          <span class="text-sm text-gray-500 dark:text-gray-400 font-medium">OR</span>
+          <div class="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+        </div>
+        
+        <!-- URL Input -->
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+            Or enter {{lessonForm.lessonType === LessonType.VIDEO ? 'video' : 'document'}} URL
+          </label>
+          <input type="text" [(ngModel)]="lessonForm.contentUrl"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="https://youtube.com/watch?v=... or https://drive.google.com/...">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            💡 Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
+          </p>
+        </div>
+      </div>
+      
+      <!-- URL Input for other types -->
+      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
+        <input type="text" [(ngModel)]="lessonForm.contentUrl"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          placeholder="Enter content URL">
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Order Index</label>
+          <input type="number" [(ngModel)]="lessonForm.orderIndex" min="0"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Duration (minutes)</label>
+          <input type="number" [(ngModel)]="lessonForm.duration" min="0"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="lessonForm.isPreview" id="editPreview"
+            class="w-5 h-5 text-amber-500 border-gray-300 rounded focus:ring-amber-500">
+          <label for="editPreview" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Free Preview</label>
+        </div>
+        
+        <div class="flex items-center gap-3">
+          <input type="checkbox" [(ngModel)]="lessonForm.isPublished" id="editPublished"
+            class="w-5 h-5 text-amber-500 border-gray-300 rounded focus:ring-amber-500">
+          <label for="editPublished" class="text-sm font-semibold text-gray-700 dark:text-gray-300">Published</label>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 p-6 bg-gray-50 dark:bg-gray-900 rounded-b-3xl">
+      <button (click)="closeModals()" type="button"
+        class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-400 dark:hover:bg-gray-600 transition-all">
+        Cancel
+      </button>
+      <button (click)="updateLesson()" type="button"
+        class="flex-1 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl font-semibold hover:from-amber-600 hover:to-orange-600 transition-all shadow-lg">
+        Update Lesson
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-md w-full">
+    <div class="p-6">
+      <div class="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 dark:bg-red-900/30 rounded-full">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h3 class="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">Delete Lesson?</h3>
+      <p class="text-gray-600 dark:text-gray-400 text-center mb-6">
+        Are you sure you want to delete "<span class="font-semibold">{{selectedLesson?.title}}</span>"? This action cannot be undone.
+      </p>
+    </div>
+    
+    <div class="flex gap-3 p-6 bg-gray-50 dark:bg-gray-900 rounded-b-3xl">
+      <button (click)="closeModals()" type="button"
+        class="flex-1 px-6 py-3 bg-gray-300 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-400 dark:hover:bg-gray-600 transition-all">
+        Cancel
+      </button>
+      <button (click)="deleteLesson()" type="button"
+        class="flex-1 px-6 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-all shadow-lg">
+        Delete
+      </button>
+    </div>
+  </div>
+</div>

@@ -2,6 +2,10 @@ import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { PackService } from '../../core/services/pack.service';
+import { CourseCategoryService } from '../../core/services/course-category.service';
+import { Pack, PackStatus } from '../../core/models/pack.model';
+import { CourseCategory } from '../../core/models/course-category.model';
 import { FrontofficeUserDropdownComponent } from '../../shared/components/frontoffice-user-dropdown.component';
 import { FrontofficeNotificationDropdownComponent } from '../../shared/components/frontoffice-notification-dropdown.component';
 import { map } from 'rxjs/operators';
@@ -20,7 +24,16 @@ export class HomeComponent implements OnInit, AfterViewInit {
   isAuthenticated$;
   currentUser$;
   
-  constructor(public authService: AuthService) {
+  packs: Pack[] = [];
+  categories: CourseCategory[] = [];
+  selectedCategory: string = '';
+  loading = false;
+  
+  constructor(
+    public authService: AuthService,
+    private packService: PackService,
+    private categoryService: CourseCategoryService
+  ) {
     this.isAuthenticated$ = this.authService.currentUser$.pipe(
       map(user => !!user)
     );
@@ -55,6 +68,10 @@ export class HomeComponent implements OnInit, AfterViewInit {
         preloader.classList.add('loaded');
       }
     }, 500);
+    
+    // Charger les catégories et les packs
+    this.loadCategories();
+    this.loadPacks();
   }
 
   ngAfterViewInit() {
@@ -86,5 +103,75 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }
       }, 100);
     }
+  }
+
+  loadCategories(): void {
+    this.categoryService.getActiveCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories;
+      },
+      error: (error) => {
+        console.error('Error loading categories:', error);
+      }
+    });
+  }
+
+  loadPacks(): void {
+    this.loading = true;
+    this.packService.getAvailablePacks().subscribe({
+      next: (packs) => {
+        this.packs = packs.filter(p => p.status === PackStatus.ACTIVE);
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error loading packs:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  filterByCategory(categoryName: string): void {
+    this.selectedCategory = categoryName;
+    
+    if (!categoryName) {
+      this.loadPacks();
+      return;
+    }
+    
+    this.loading = true;
+    this.packService.getAvailablePacks().subscribe({
+      next: (packs) => {
+        this.packs = packs.filter(p => 
+          p.status === PackStatus.ACTIVE && 
+          p.category === categoryName
+        );
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('Error filtering packs:', error);
+        this.loading = false;
+      }
+    });
+  }
+
+  getCategoryIcon(categoryName: string): string {
+    const category = this.categories.find(c => c.name === categoryName);
+    return category?.icon || '📚';
+  }
+
+  getCategoryColor(categoryName: string): string {
+    const category = this.categories.find(c => c.name === categoryName);
+    return category?.color || '#3B82F6';
+  }
+
+  getPackCountByCategory(categoryName: string): number {
+    // Count packs for a specific category from all loaded packs
+    return this.packs.filter(p => p.category === categoryName).length;
+  }
+
+  getEnrollmentPercentage(pack: Pack): number {
+    if (!pack.maxStudents || pack.maxStudents === 0) return 0;
+    const enrolled = pack.maxStudents - (pack.availableSlots || 0);
+    return Math.round((enrolled / pack.maxStudents) * 100);
   }
 }
