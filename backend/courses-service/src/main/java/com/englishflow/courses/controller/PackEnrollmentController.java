@@ -17,14 +17,15 @@ public class PackEnrollmentController {
     private final IPackEnrollmentService enrollmentService;
     
     @PostMapping
-    public ResponseEntity<PackEnrollmentDTO> enrollStudent(
+    public ResponseEntity<?> enrollStudent(
             @RequestParam Long studentId,
             @RequestParam Long packId) {
         try {
             PackEnrollmentDTO enrollment = enrollmentService.enrollStudent(studentId, packId);
             return ResponseEntity.status(HttpStatus.CREATED).body(enrollment);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            // Return error message in response body
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
     

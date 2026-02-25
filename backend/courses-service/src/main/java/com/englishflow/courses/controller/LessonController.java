@@ -23,8 +23,25 @@ public class LessonController {
 
     @PostMapping
     public ResponseEntity<LessonDTO> createLesson(@RequestBody LessonDTO lessonDTO) {
-        LessonDTO created = lessonService.createLesson(lessonDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        try {
+            // Validate required fields
+            if (lessonDTO.getTitle() == null || lessonDTO.getTitle().trim().isEmpty()) {
+                throw new IllegalArgumentException("Lesson title is required");
+            }
+            if (lessonDTO.getChapterId() == null) {
+                throw new IllegalArgumentException("Chapter ID is required");
+            }
+            if (lessonDTO.getLessonType() == null) {
+                throw new IllegalArgumentException("Lesson type is required");
+            }
+            
+            LessonDTO created = lessonService.createLesson(lessonDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("Validation error: " + e.getMessage());
+        } catch (Exception e) {
+            throw new RuntimeException("Error creating lesson: " + e.getMessage());
+        }
     }
 
     @GetMapping("/{id}")

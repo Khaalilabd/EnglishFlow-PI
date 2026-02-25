@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -19,43 +21,39 @@ public class LessonProgress {
     private Long id;
     
     @Column(nullable = false)
-    private Long studentId; // Reference to User ID from auth-service
+    private Long studentId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "lesson_id", nullable = false)
-    private Lesson lesson;
+    @Column(nullable = false)
+    private Long lessonId;
+    
+    @Column(nullable = false)
+    private Long courseId;
     
     @Column(nullable = false)
     private Boolean isCompleted = false;
     
-    @Column
-    private LocalDateTime startedAt;
-    
-    @Column
     private LocalDateTime completedAt;
     
-    @Column
+    private Integer timeSpent;
+    
     private LocalDateTime lastAccessedAt;
     
-    @Column
-    private Integer timeSpentMinutes = 0; // Time spent on this lesson
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
     
-    @Column
-    private Double progressPercentage = 0.0; // For lessons that can be partially completed
-    
-    @Column
-    private String notes; // Student notes for this lesson
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
     
     @PrePersist
-    protected void onCreate() {
-        if (startedAt == null) {
-            startedAt = LocalDateTime.now();
+    public void prePersist() {
+        if (lastAccessedAt == null) {
+            lastAccessedAt = LocalDateTime.now();
         }
-        lastAccessedAt = LocalDateTime.now();
     }
     
     @PreUpdate
-    protected void onUpdate() {
+    public void preUpdate() {
         lastAccessedAt = LocalDateTime.now();
         if (isCompleted && completedAt == null) {
             completedAt = LocalDateTime.now();

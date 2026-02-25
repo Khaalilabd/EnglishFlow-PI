@@ -1,0 +1,115 @@
+<div class="learning-container">
+  <!-- Header -->
+  <div class="learning-header">
+    <button class="back-btn" (click)="goBack()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Back to Courses
+    </button>
+
+    @if (course) {
+      <div class="course-info">
+        <h1 class="course-title">{{ course.title }}</h1>
+        <div class="course-meta">
+          <span class="meta-item">{{ course.category }}</span>
+          <span class="meta-divider">•</span>
+          <span class="meta-item">{{ course.level }}</span>
+          @if (course.tutorName) {
+            <span class="meta-divider">•</span>
+            <span class="meta-item">{{ course.tutorName }}</span>
+          }
+        </div>
+        @if (course.description) {
+          <p class="course-description">{{ course.description }}</p>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading course content...</p>
+    </div>
+  }
+
+  <!-- Chapters List -->
+  @if (!loading && course) {
+    <div class="chapters-container">
+      @if (getChapters(courseId).length > 0) {
+        <div class="chapters-list">
+          @for (chapter of getChapters(courseId); track chapter.id) {
+            <div class="chapter-card">
+              <!-- Chapter Header -->
+              <div class="chapter-header" (click)="toggleChapter(chapter.id!)">
+                <div class="chapter-header-left">
+                  <div class="chapter-number">{{ chapter.orderIndex }}</div>
+                  <div class="chapter-info">
+                    <h3 class="chapter-title">{{ chapter.title }}</h3>
+                    @if (chapter.description) {
+                      <p class="chapter-description">{{ chapter.description }}</p>
+                    }
+                    <p class="chapter-meta">
+                      {{ getLessons(chapter.id!).length }} lessons
+                      @if (chapter.estimatedDuration) {
+                        <span> • {{ formatDuration(chapter.estimatedDuration) }}</span>
+                      }
+                    </p>
+                  </div>
+                </div>
+                <div class="chapter-header-right">
+                  <svg class="expand-icon" [class.expanded]="isChapterExpanded(chapter.id!)" 
+                       fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- Lessons List -->
+              @if (isChapterExpanded(chapter.id!)) {
+                <div class="lessons-list">
+                  @if (getLessons(chapter.id!).length > 0) {
+                    @for (lesson of getLessons(chapter.id!); track lesson.id) {
+                      <div class="lesson-item" (click)="viewLesson(lesson)">
+                        <div class="lesson-icon" [style.background]="getLessonTypeColor(lesson.lessonType)">
+                          {{ getLessonIcon(lesson.lessonType) }}
+                        </div>
+                        <div class="lesson-info">
+                          <h5 class="lesson-title">{{ lesson.title }}</h5>
+                          <div class="lesson-meta">
+                            <span class="lesson-type">{{ lesson.lessonType }}</span>
+                            @if (lesson.duration) {
+                              <span class="lesson-duration">{{ formatDuration(lesson.duration) }}</span>
+                            }
+                          </div>
+                        </div>
+                        <div class="lesson-action">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                          </svg>
+                        </div>
+                      </div>
+                    }
+                  } @else {
+                    <div class="no-lessons">
+                      <p>No lessons available in this chapter yet.</p>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="empty-state">
+          <div class="empty-icon">📚</div>
+          <h3>No Chapters Available</h3>
+          <p>This course doesn't have any chapters yet.</p>
+          <button class="btn-primary" (click)="goBack()">Back to Courses</button>
+        </div>
+      }
+    </div>
+  }
+</div>

@@ -172,8 +172,8 @@ public class LessonService implements ILessonService {
         lesson.setContent(dto.getContent());
         lesson.setContentUrl(dto.getContentUrl());
         lesson.setLessonType(dto.getLessonType());
-        lesson.setOrderIndex(dto.getOrderIndex());
-        lesson.setDuration(dto.getDuration());
+        lesson.setOrderIndex(dto.getOrderIndex() != null ? dto.getOrderIndex() : 0);
+        lesson.setDuration(dto.getDuration() != null ? dto.getDuration() : 0);
         lesson.setIsPreview(dto.getIsPreview() != null ? dto.getIsPreview() : false);
         lesson.setIsPublished(dto.getIsPublished() != null ? dto.getIsPublished() : false);
         return lesson;

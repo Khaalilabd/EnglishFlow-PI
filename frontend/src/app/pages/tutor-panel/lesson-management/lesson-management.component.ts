@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
@@ -28,6 +29,7 @@ export class LessonManagementComponent implements OnInit {
   showCreateModal = false;
   showEditModal = false;
   showDeleteModal = false;
+  showPreviewModal = false;
   
   // Lesson types
   lessonTypes = Object.values(LessonType);
@@ -51,13 +53,16 @@ export class LessonManagementComponent implements OnInit {
   selectedFile: File | null = null;
   uploadProgress = 0;
   uploadingFile = false;
+  previewVideoUrl: any = null;
+  filePreviewUrl: any = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private lessonService: LessonService,
     private chapterService: ChapterService,
-    private courseService: CourseService
+    private courseService: CourseService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -145,24 +150,81 @@ export class LessonManagementComponent implements OnInit {
     this.showDeleteModal = true;
   }
 
+  openPreviewModal(lesson: Lesson): void {
+    this.selectedLesson = lesson;
+    this.previewVideoUrl = null;
+    
+    // Process video URL if it's a video lesson
+    if (lesson.lessonType === LessonType.VIDEO && lesson.contentUrl) {
+      if (lesson.contentUrl.includes('youtube') || lesson.contentUrl.includes('youtu.be') || lesson.contentUrl.includes('vimeo')) {
+        this.previewVideoUrl = this.getEmbedUrl(lesson.contentUrl);
+      }
+    }
+    
+    this.showPreviewModal = true;
+  }
+
+  getEmbedUrl(url: string): SafeResourceUrl {
+    let embedUrl = url;
+    
+    // Convert YouTube URLs to embed format
+    if (url.includes('youtube.com/watch')) {
+      const videoId = url.split('v=')[1]?.split('&')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    } else if (url.includes('youtu.be/')) {
+      const videoId = url.split('youtu.be/')[1]?.split('?')[0];
+      embedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    // Convert Vimeo URLs to embed format
+    else if (url.includes('vimeo.com/')) {
+      const videoId = url.split('vimeo.com/')[1]?.split('?')[0];
+      embedUrl = `https://player.vimeo.com/video/${videoId}`;
+    }
+    
+    return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
+  }
+
+  getDocumentPreviewUrl(contentUrl: string): SafeResourceUrl {
+    const cleanUrl = contentUrl.startsWith('/') ? contentUrl.substring(1) : contentUrl;
+    const url = `http://localhost:8086/${cleanUrl}`;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getDocumentDownloadUrl(contentUrl: string): string {
+    const cleanUrl = contentUrl.startsWith('/') ? contentUrl.substring(1) : contentUrl;
+    return `http://localhost:8086/${cleanUrl}`;
+  }
+
   closeModals(): void {
     this.showCreateModal = false;
     this.showEditModal = false;
     this.showDeleteModal = false;
+    this.showPreviewModal = false;
     this.selectedLesson = null;
     this.selectedFile = null;
+    this.previewVideoUrl = null;
   }
 
   onFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
       this.selectedFile = file;
+      
+      // Create preview URL for the file
+      if (file.type.startsWith('video/')) {
+        this.filePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+      } else if (file.type === 'application/pdf') {
+        this.filePreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(URL.createObjectURL(file));
+      } else {
+        this.filePreviewUrl = null;
+      }
     }
   }
 
   removeFile(): void {
     this.selectedFile = null;
     this.uploadProgress = 0;
+    this.filePreviewUrl = null;
   }
 
   getAcceptedFileTypes(): string {
@@ -203,6 +265,7 @@ export class LessonManagementComponent implements OnInit {
       return;
     }
 
+    console.log('Creating lesson with data:', this.lessonForm);
     this.loading = true;
     
     // First create the lesson

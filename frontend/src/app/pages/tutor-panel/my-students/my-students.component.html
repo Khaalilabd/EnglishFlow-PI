@@ -1,0 +1,174 @@
+<div class="my-students-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">My Students</h1>
+      <p class="page-subtitle">Track your students' progress across all your packs</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading students...</p>
+    </div>
+  }
+
+  @if (!loading) {
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Total Students</p>
+          <p class="stat-value">{{ totalStudents }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Active Students</p>
+          <p class="stat-value">{{ activeStudents }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Completed</p>
+          <p class="stat-value">{{ completedStudents }}</p>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+          </svg>
+        </div>
+        <div class="stat-info">
+          <p class="stat-label">Avg Progress</p>
+          <p class="stat-value">{{ averageProgress }}%</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter by Pack -->
+    <div class="filter-section">
+      <label class="filter-label">Filter by Pack:</label>
+      <div class="filter-buttons">
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedPackId === null"
+          (click)="filterByPack(null)">
+          All Packs ({{ enrollments.length }})
+        </button>
+        @for (pack of packs; track pack.id) {
+          <button 
+            class="filter-btn" 
+            [class.active]="selectedPackId === pack.id"
+            (click)="filterByPack(pack.id!)">
+            {{ pack.name }} ({{ getPackEnrollmentCount(pack.id!) }})
+          </button>
+        }
+      </div>
+    </div>
+
+    <!-- Students Table -->
+    @if (filteredEnrollments.length > 0) {
+      <div class="students-table-container">
+        <table class="students-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Pack</th>
+              <th>Enrolled Date</th>
+              <th>Progress</th>
+              <th>Courses</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (enrollment of filteredEnrollments; track enrollment.id) {
+              <tr>
+                <td>
+                  <div class="student-info">
+                    <div class="student-avatar">
+                      {{ enrollment.studentName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="student-name">{{ enrollment.studentName }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="pack-name">{{ enrollment.packName }}</span>
+                  <div class="pack-meta">
+                    <span class="pack-category">{{ enrollment.packCategory }}</span>
+                    <span class="pack-level">{{ enrollment.packLevel }}</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="date-text">{{ formatDate(enrollment.enrolledAt) }}</span>
+                </td>
+                <td>
+                  <div class="progress-cell">
+                    <div class="progress-bar-small">
+                      <div 
+                        class="progress-fill-small" 
+                        [style.width.%]="enrollment.progressPercentage"
+                        [style.background]="getProgressColor(enrollment.progressPercentage)">
+                      </div>
+                    </div>
+                    <span class="progress-text">{{ enrollment.progressPercentage }}%</span>
+                  </div>
+                </td>
+                <td>
+                  <span class="courses-text">
+                    {{ enrollment.completedCourses }} / {{ enrollment.totalCourses }}
+                  </span>
+                </td>
+                <td>
+                  <span class="status-badge" [ngClass]="getStatusBadgeClass(enrollment.status)">
+                    {{ enrollment.status }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn-view" (click)="viewStudentProgress(enrollment)">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                    </svg>
+                    View Details
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (filteredEnrollments.length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <h3>No Students Found</h3>
+        <p>No students have enrolled in your packs yet.</p>
+      </div>
+    }
+  }
+</div>

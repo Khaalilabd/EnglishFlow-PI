@@ -21,7 +21,7 @@ public class CourseEnrollmentService implements ICourseEnrollmentService {
     private final CourseEnrollmentRepository enrollmentRepository;
     private final CourseRepository courseRepository;
     private final LessonRepository lessonRepository;
-    private final ILessonProgressService lessonProgressService;
+    private final LessonProgressService lessonProgressService;
     private final UserValidationService userValidationService;
     
     @Override
@@ -53,8 +53,8 @@ public class CourseEnrollmentService implements ICourseEnrollmentService {
         enrollment.setProgress(0.0);
         enrollment.setCompletedLessons(0);
         
-        // Calculate total lessons for this course
-        Long totalLessons = lessonRepository.countByCourseId(courseId);
+        // Calculate total PUBLISHED lessons for this course
+        Long totalLessons = lessonRepository.countPublishedByCourseId(courseId);
         enrollment.setTotalLessons(totalLessons.intValue());
         
         CourseEnrollment savedEnrollment = enrollmentRepository.save(enrollment);

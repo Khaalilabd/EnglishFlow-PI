@@ -149,12 +149,21 @@
       <button 
         class="enroll-btn" 
         (click)="enrollInPack()"
-        [disabled]="!pack.availableSlots || pack.availableSlots === 0">
-        @if (pack.availableSlots && pack.availableSlots > 0) {
-          <span>Enroll Now</span>
-        }
-        @if (!pack.availableSlots || pack.availableSlots === 0) {
+        [disabled]="enrolling || isEnrolled || (pack.availableSlots ?? 0) === 0">
+        @if (enrolling) {
+          <span>
+            <svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Enrolling...
+          </span>
+        } @else if (isEnrolled) {
+          <span>✓ Already Enrolled</span>
+        } @else if ((pack.availableSlots ?? 0) === 0) {
           <span>Pack Full</span>
+        } @else {
+          <span>Enroll Now</span>
         }
       </button>
     </div>
@@ -180,7 +189,11 @@
         <div class="course-header">
           <div class="course-level">{{ course.level }}</div>
           <div class="course-status" [class.published]="course.status === 'PUBLISHED'">
-            {{ course.status === 'PUBLISHED' ? '✓ Published' : '⏳ Draft' }}
+            @if (course.status === 'PUBLISHED') {
+              <span>✓ Published</span>
+            } @else {
+              <span>⏳ Draft</span>
+            }
           </div>
         </div>
         
@@ -245,6 +258,78 @@
       <h2>Pack Not Found</h2>
       <p>The pack you're looking for doesn't exist or has been removed.</p>
       <button (click)="goBack()" class="back-home-btn">Back to Home</button>
+    </div>
+  </div>
+}
+
+
+<!-- Enrollment Confirmation Modal -->
+@if (showEnrollModal) {
+  <div class="modal-overlay" (click)="cancelEnrollment()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title">Confirm Enrollment</h3>
+        <button class="modal-close" (click)="cancelEnrollment()">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="enrollment-info-card">
+          <div class="info-icon">🎓</div>
+          <h4 class="pack-name-modal">{{ pack?.name }}</h4>
+          <div class="pack-details-modal">
+            <div class="detail-item">
+              <span class="detail-label">Category:</span>
+              <span class="detail-value">{{ pack?.category }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Level:</span>
+              <span class="detail-value">{{ pack?.level }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Courses:</span>
+              <span class="detail-value">{{ pack?.coursesCount }} courses</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Duration:</span>
+              <span class="detail-value">{{ pack?.estimatedDuration }} hours</span>
+            </div>
+            <div class="detail-item">
+              <span class="detail-label">Tutor:</span>
+              <span class="detail-value">{{ pack?.tutorName }}</span>
+            </div>
+            <div class="detail-item price-item">
+              <span class="detail-label">Price:</span>
+              <span class="detail-value price-value">${{ pack?.price }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="confirmation-message">
+          <p>Are you sure you want to enroll in this pack?</p>
+          <p class="confirmation-note">You will have access to all courses in this pack.</p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cancelEnrollment()" [disabled]="enrolling">
+          Cancel
+        </button>
+        <button class="btn-confirm" (click)="confirmEnrollment()" [disabled]="enrolling">
+          @if (enrolling) {
+            <svg class="animate-spin inline-block w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Enrolling...
+          } @else {
+            Confirm Enrollment
+          }
+        </button>
+      </div>
     </div>
   </div>
 }

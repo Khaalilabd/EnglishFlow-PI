@@ -1,0 +1,237 @@
+<div class="lesson-viewer">
+  <!-- Progress Bar -->
+  <div class="progress-bar-top">
+    <div class="progress-fill" [style.width.%]="getLessonProgress()"></div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-overlay">
+      <div class="spinner-large"></div>
+      <p>Loading lesson...</p>
+    </div>
+  }
+
+  @if (!loading && lesson) {
+    <div class="viewer-container">
+      <!-- Sidebar with ALL Chapters -->
+      <aside class="lesson-sidebar" [class.collapsed]="sidebarCollapsed">
+        <div class="sidebar-header">
+          <button class="collapse-btn" (click)="toggleSidebar()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                    [attr.d]="sidebarCollapsed ? 'M9 5l7 7-7 7' : 'M15 19l-7-7 7-7'"></path>
+            </svg>
+          </button>
+          @if (!sidebarCollapsed && course) {
+            <div class="sidebar-title">
+              <h3>{{ course.title }}</h3>
+              <p>{{ getCurrentLessonPosition() }} lessons</p>
+            </div>
+          }
+        </div>
+
+        @if (!sidebarCollapsed) {
+          <div class="chapters-list">
+            @for (cwl of chaptersWithLessons; track cwl.chapter.id; let chapterIndex = $index) {
+              <div class="chapter-section">
+                <!-- Chapter Header -->
+                <div class="chapter-header" (click)="toggleChapter(cwl)">
+                  <div class="chapter-info">
+                    <span class="chapter-number">{{ chapterIndex + 1 }}</span>
+                    <h4>{{ cwl.chapter.title }}</h4>
+                  </div>
+                  <div class="chapter-actions">
+                    <span class="lesson-count">{{ cwl.lessons.length }} lessons</span>
+                    <svg class="expand-icon" [class.expanded]="cwl.isExpanded" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Lessons List (Accordion) -->
+                @if (cwl.isExpanded) {
+                  <div class="lessons-list">
+                    @for (lessonItem of cwl.lessons; track lessonItem.id; let lessonIndex = $index) {
+                      <div class="lesson-item" 
+                           [class.active]="isLessonActive(lessonItem.id!)"
+                           [class.completed]="isLessonCompleted(lessonItem.id!)"
+                           [class.locked]="!isLessonUnlocked(lessonItem)"
+                           (click)="navigateToLesson(lessonItem)">
+                        
+                        <div class="lesson-number">{{ lessonIndex + 1 }}</div>
+                        
+                        <div class="lesson-icon-type" [style.background]="getLessonTypeColor(lessonItem.lessonType)">
+                          {{ getLessonIcon(lessonItem.lessonType) }}
+                        </div>
+                        
+                        <div class="lesson-info">
+                          <h5>{{ lessonItem.title }}</h5>
+                          @if (lessonItem.duration) {
+                            <span class="lesson-duration">{{ formatDuration(lessonItem.duration) }}</span>
+                          }
+                        </div>
+                        
+                        @if (isLessonCompleted(lessonItem.id!)) {
+                          <div class="check-icon">✓</div>
+                        } @else if (!isLessonUnlocked(lessonItem)) {
+                          <div class="lock-icon">🔒</div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </aside>
+
+      <!-- Main Content -->
+      <main class="lesson-content">
+        <!-- Header -->
+        <header class="lesson-header">
+          <button class="back-btn" (click)="goBack()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            <span>Back to Course</span>
+          </button>
+
+          <div class="lesson-meta">
+            <span class="lesson-type-badge" [style.background]="getLessonTypeColor(lesson.lessonType)">
+              {{ getLessonIcon(lesson.lessonType) }} {{ lesson.lessonType }}
+            </span>
+            @if (lesson.duration) {
+              <span class="duration-badge">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ formatDuration(lesson.duration) }}
+              </span>
+            }
+          </div>
+        </header>
+
+        <!-- Lesson Title -->
+        <div class="lesson-title-section">
+          <h1>{{ lesson.title }}</h1>
+          @if (lesson.description) {
+            <p class="lesson-description">{{ lesson.description }}</p>
+          }
+        </div>
+
+        <!-- Lesson Content -->
+        <div class="content-wrapper">
+          <!-- VIDEO Lesson -->
+          @if (lesson.lessonType === 'VIDEO') {
+            <div class="video-container">
+              @if (videoUrl) {
+                @if (lesson.contentUrl && (lesson.contentUrl.includes('youtube') || lesson.contentUrl.includes('youtu.be') || lesson.contentUrl.includes('vimeo'))) {
+                  <!-- YouTube/Vimeo iframe -->
+                  <iframe 
+                    [src]="videoUrl" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen>
+                  </iframe>
+                } @else {
+                  <!-- Local video file -->
+                  <video controls class="local-video" [src]="videoUrl">
+                    Your browser does not support the video tag.
+                  </video>
+                }
+              } @else {
+                <div class="no-content">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                  </svg>
+                  <p>No video available</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- TEXT Lesson -->
+          @if (lesson.lessonType === 'TEXT') {
+            <div class="text-content" [innerHTML]="lesson.content"></div>
+          }
+
+          <!-- DOCUMENT Lesson -->
+          @if (lesson.lessonType === 'DOCUMENT') {
+            <div class="document-container">
+              @if (documentUrl) {
+                <div class="document-preview">
+                  <iframe [src]="documentUrl" frameborder="0"></iframe>
+                </div>
+                <button class="download-btn" (click)="downloadDocument()">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  Download Document
+                </button>
+              } @else {
+                <div class="no-content">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  <p>No document available</p>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- QUIZ, ASSIGNMENT, INTERACTIVE (Coming Soon) -->
+          @if (lesson.lessonType === 'QUIZ' || lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
+            <div class="coming-soon">
+              <div class="coming-soon-icon">🚧</div>
+              <h3>Coming Soon</h3>
+              <p>{{ lesson.lessonType }} lessons are under development</p>
+            </div>
+          }
+        </div>
+
+        <!-- Actions -->
+        <div class="lesson-actions">
+          <button class="action-btn complete-btn" 
+                  [class.completed]="isCompleted"
+                  (click)="markAsComplete()"
+                  [disabled]="isCompleted">
+            @if (isCompleted) {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Completed</span>
+            } @else {
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span>Mark as Complete</span>
+            }
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <!-- Floating Navigation -->
+    <div class="floating-nav">
+      <button class="nav-btn prev-btn" 
+              [disabled]="!hasPreviousLesson()"
+              (click)="goToPreviousLesson()">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        <span>Previous</span>
+      </button>
+
+      <button class="nav-btn next-btn" 
+              [disabled]="!hasNextLesson()"
+              (click)="goToNextLesson()">
+        <span>Next</span>
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  }
+</div>

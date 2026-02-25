@@ -1,0 +1,153 @@
+<div class="my-courses-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">My Courses</h1>
+      <p class="page-subtitle">Continue your learning journey</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Search courses..." 
+        [(ngModel)]="searchQuery"
+        class="search-input">
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn" 
+        [class.active]="!selectedCategory"
+        (click)="filterByCategory(null)">
+        All Categories
+      </button>
+      @for (category of categories; track category.id) {
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedCategory === category.name"
+          (click)="filterByCategory(category.name)">
+          <span>{{ category.icon }}</span>
+          {{ category.name }}
+        </button>
+      }
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn" 
+        [class.active]="!selectedLevel"
+        (click)="filterByLevel(null)">
+        All Levels
+      </button>
+      @for (level of ['A1', 'A2', 'B1', 'B2', 'C1', 'C2']; track level) {
+        <button 
+          class="filter-btn" 
+          [class.active]="selectedLevel === level"
+          (click)="filterByLevel(level)">
+          {{ level }}
+        </button>
+      }
+    </div>
+
+    @if (selectedCategory || selectedLevel || searchQuery) {
+      <button class="clear-filters-btn" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your courses...</p>
+    </div>
+  }
+
+  <!-- Courses Grid -->
+  @if (!loading && filteredCourses.length > 0) {
+    <div class="courses-grid">
+      @for (course of filteredCourses; track course.id) {
+        <div class="course-card">
+          <!-- Course Thumbnail -->
+          <div class="course-thumbnail" [style.background]="getCategoryColor(course.category)">
+            <span class="category-icon">{{ getCategoryIcon(course.category) }}</span>
+          </div>
+
+          <!-- Course Info -->
+          <div class="course-content">
+            <div class="course-header">
+              <span class="course-level">{{ course.level }}</span>
+              <span class="course-category">{{ course.category }}</span>
+            </div>
+
+            <h3 class="course-title">{{ course.title }}</h3>
+            
+            @if (course.description) {
+              <p class="course-description">{{ course.description }}</p>
+            }
+
+            <div class="course-meta">
+              <div class="meta-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span>{{ course.chapterCount || 0 }} chapters</span>
+              </div>
+              <div class="meta-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>{{ course.duration || 0 }}h</span>
+              </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-section">
+              <div class="progress-info">
+                <span class="progress-label">Progress</span>
+                <span class="progress-percentage">{{ getCourseProgress(course.id!) }}%</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="getCourseProgress(course.id!)"></div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button class="start-btn" (click)="startCourse(course)">
+              @if (getCourseProgress(course.id!) > 0) {
+                <span>Continue Learning</span>
+              } @else {
+                <span>Start Course</span>
+              }
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && filteredCourses.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No Courses Found</h3>
+      @if (selectedCategory || selectedLevel || searchQuery) {
+        <p>Try adjusting your filters</p>
+        <button class="btn-primary" (click)="clearFilters()">Clear Filters</button>
+      } @else {
+        <p>You haven't enrolled in any packs yet</p>
+        <button class="btn-primary" routerLink="/user-panel/pack-catalog">Browse Packs</button>
+      }
+    </div>
+  }
+</div>

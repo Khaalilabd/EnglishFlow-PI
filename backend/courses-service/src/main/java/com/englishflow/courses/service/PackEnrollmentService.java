@@ -1,6 +1,8 @@
 package com.englishflow.courses.service;
 
+import com.englishflow.courses.client.AuthServiceClient;
 import com.englishflow.courses.dto.PackEnrollmentDTO;
+import com.englishflow.courses.dto.UserDTO;
 import com.englishflow.courses.entity.Pack;
 import com.englishflow.courses.entity.PackEnrollment;
 import com.englishflow.courses.repository.PackEnrollmentRepository;
@@ -20,7 +22,7 @@ public class PackEnrollmentService implements IPackEnrollmentService {
     private final PackEnrollmentRepository enrollmentRepository;
     private final PackRepository packRepository;
     private final IPackService packService;
-    private final ITutorAvailabilityService tutorAvailabilityService;
+    private final AuthServiceClient authServiceClient;
     
     @Override
     @Transactional
@@ -50,8 +52,8 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         enrollment.setStudentName("Student " + studentId); // Should be fetched from user service
         enrollment.setPackId(packId);
         enrollment.setPackName(pack.getName());
-        enrollment.setPackCategory(pack.getCategory().toString());
-        enrollment.setPackLevel(pack.getLevel().toString());
+        enrollment.setPackCategory(pack.getCategory());
+        enrollment.setPackLevel(pack.getLevel());
         enrollment.setTutorId(pack.getTutorId());
         enrollment.setTutorName(pack.getTutorName());
         enrollment.setTotalCourses(pack.getCourseIds() != null ? pack.getCourseIds().size() : 0);
@@ -64,9 +66,6 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         
         // Update pack enrollment count
         packService.incrementEnrollment(packId);
-        
-        // Update tutor student count
-        tutorAvailabilityService.incrementStudentCount(pack.getTutorId());
         
         return toDTO(saved);
     }
@@ -148,9 +147,6 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         
         // Update pack enrollment count
         packService.decrementEnrollment(enrollment.getPackId());
-        
-        // Update tutor student count
-        tutorAvailabilityService.decrementStudentCount(enrollment.getTutorId());
     }
     
     @Override

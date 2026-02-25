@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { PackEnrollmentService } from '../../../core/services/pack-enrollment.service';
+import { PackService } from '../../../core/services/pack.service';
 import { CourseCategoryService } from '../../../core/services/course-category.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { PackEnrollment } from '../../../core/models/pack-enrollment.model';
 import { CourseCategory } from '../../../core/models/course-category.model';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-my-packs',
@@ -25,9 +28,11 @@ export class MyPacksComponent implements OnInit {
 
   constructor(
     private packEnrollmentService: PackEnrollmentService,
+    private packService: PackService,
     private categoryService: CourseCategoryService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit(): void {
@@ -53,8 +58,33 @@ export class MyPacksComponent implements OnInit {
     this.loading = true;
     this.packEnrollmentService.getByStudentId(currentUser.id).subscribe({
       next: (enrollments) => {
-        this.enrollments = enrollments;
-        this.loading = false;
+        // Verify that packs still exist
+        if (enrollments.length === 0) {
+          this.enrollments = [];
+          this.loading = false;
+          return;
+        }
+
+        // Check each pack to see if it still exists
+        const packChecks = enrollments.map(enrollment => 
+          this.packService.getById(enrollment.packId).pipe(
+            catchError(() => of(null)) // Return null if pack doesn't exist
+          )
+        );
+
+        forkJoin(packChecks).subscribe({
+          next: (packs) => {
+            // Filter out enrollments where pack no longer exists
+            this.enrollments = enrollments.filter((enrollment, index) => packs[index] !== null);
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('Error verifying packs:', error);
+            // Show all enrollments even if verification fails
+            this.enrollments = enrollments;
+            this.loading = false;
+          }
+        });
       },
       error: (error) => {
         console.error('Error loading enrollments:', error);
@@ -65,12 +95,13 @@ export class MyPacksComponent implements OnInit {
   }
 
   viewPackDetails(enrollment: PackEnrollment): void {
-    this.router.navigate(['/user-panel/packs', enrollment.packId]);
+    // Navigate to pack details page
+    this.router.navigate(['/pack-details', enrollment.packId]);
   }
 
   continueLearning(enrollment: PackEnrollment): void {
-    // Navigate to the pack's courses
-    this.router.navigate(['/user-panel/packs', enrollment.packId, 'courses']);
+    // Navigate to course learning page (relative to current route)
+    this.router.navigate(['../pack', enrollment.packId, 'learning'], { relativeTo: this.route });
   }
 
   getCategoryIcon(categoryName: string): string {

@@ -23,4 +23,6 @@ public interface PackEnrollmentRepository extends JpaRepository<PackEnrollment, 
     Long countByPackId(Long packId);
     
     Long countByTutorId(Long tutorId);
+    
+    void deleteByPackId(Long packId);
 }

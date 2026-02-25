@@ -4,6 +4,7 @@ import com.englishflow.courses.dto.PackDTO;
 import com.englishflow.courses.entity.Pack;
 import com.englishflow.courses.enums.PackStatus;
 import com.englishflow.courses.repository.PackRepository;
+import com.englishflow.courses.repository.PackEnrollmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 public class PackService implements IPackService {
     
     private final PackRepository packRepository;
+    private final PackEnrollmentRepository enrollmentRepository;
     
     @Override
     @Transactional
@@ -122,6 +124,10 @@ public class PackService implements IPackService {
     @Override
     @Transactional
     public void deletePack(Long id) {
+        // First, delete all enrollments for this pack
+        enrollmentRepository.deleteByPackId(id);
+        
+        // Then delete the pack
         packRepository.deleteById(id);
     }
     

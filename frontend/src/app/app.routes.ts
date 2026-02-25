@@ -75,7 +75,7 @@ export const routes: Routes = [
       },
       {
         path: 'my-courses',
-        loadComponent: () => import('./pages/student-panel/course-catalog/course-catalog.component').then(m => m.CourseCatalogComponent),
+        loadComponent: () => import('./pages/student-panel/my-courses/my-courses.component').then(m => m.MyCoursesComponent),
         title: 'My Courses | Jungle in English'
       },
       {
@@ -94,13 +94,23 @@ export const routes: Routes = [
         title: 'My Packs | Jungle in English'
       },
       {
+        path: 'pack/:packId/learning',
+        loadComponent: () => import('./pages/student-panel/pack-courses/pack-courses.component').then(m => m.PackCoursesComponent),
+        title: 'My Courses | Jungle in English'
+      },
+      {
+        path: 'course/:courseId/learning',
+        loadComponent: () => import('./pages/student-panel/course-learning/course-learning.component').then(m => m.CourseLearningComponent),
+        title: 'Course Learning | Jungle in English'
+      },
+      {
         path: 'course/:id',
         loadComponent: () => import('./pages/student-panel/course-view/course-view.component').then(m => m.CourseViewComponent),
         title: 'Course Details | Jungle in English'
       },
       {
         path: 'lesson/:id',
-        loadComponent: () => import('./pages/student-panel/lesson-view/lesson-view.component').then(m => m.LessonViewComponent),
+        loadComponent: () => import('./pages/student-panel/lesson-viewer/lesson-viewer.component').then(m => m.LessonViewerComponent),
         title: 'Lesson | Jungle in English'
       },
       {
@@ -218,6 +228,11 @@ export const routes: Routes = [
         title: 'My Courses | Jungle in English'
       },
       {
+        path: 'my-students',
+        loadComponent: () => import('./pages/tutor-panel/my-students/my-students.component').then(m => m.MyStudentsComponent),
+        title: 'My Students | Jungle in English'
+      },
+      {
         path: 'availability',
         loadComponent: () => import('./pages/tutor-panel/tutor-availability/tutor-availability.component').then(m => m.TutorAvailabilityComponent),
         title: 'My Availability | Jungle in English'
@@ -294,7 +309,7 @@ export const routes: Routes = [
       },
       {
         path: 'students',
-        loadComponent: () => import('./pages/users/students/students.component').then(m => m.StudentsComponent),
+        loadComponent: () => import('./pages/tutor-panel/my-students/my-students.component').then(m => m.MyStudentsComponent),
         title: 'My Students | Jungle in English'
       },
       {
