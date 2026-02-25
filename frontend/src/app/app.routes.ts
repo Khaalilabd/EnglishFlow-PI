@@ -154,6 +154,11 @@ export const routes: Routes = [
         title: 'Club Details | Jungle in English'
       },
       {
+        path: 'events',
+        loadComponent: () => import('./pages/student-panel/events/events.component').then(m => m.EventsComponent),
+        title: 'Events | Jungle in English'
+      },
+      {
         path: 'club-requests',
         loadComponent: () => import('./pages/student-panel/club-requests/club-requests.component').then(m => m.ClubRequestsComponent),
         title: 'Club Requests | Jungle in English'

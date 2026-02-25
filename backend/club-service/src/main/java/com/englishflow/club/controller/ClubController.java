@@ -48,8 +48,9 @@ public class ClubController {
     @PutMapping("/{id}")
     public ResponseEntity<ClubDTO> updateClub(
             @PathVariable Integer id,
-            @Valid @RequestBody ClubDTO clubDTO) {
-        ClubDTO updatedClub = clubService.updateClub(id, clubDTO);
+            @Valid @RequestBody ClubDTO clubDTO,
+            @RequestParam Long requesterId) {
+        ClubDTO updatedClub = clubService.updateClub(id, clubDTO, requesterId);
         return ResponseEntity.ok(updatedClub);
     }
     

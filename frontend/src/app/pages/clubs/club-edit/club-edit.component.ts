@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubService } from '../../../core/services/club.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { ClubCategory } from '../../../core/models/club.model';
 
 @Component({
@@ -19,12 +20,14 @@ export class ClubEditComponent implements OnInit {
   saving = false;
   error: string | null = null;
   categories = Object.values(ClubCategory);
+  currentUserId: number | null = null;
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
-    private clubService: ClubService
+    private clubService: ClubService,
+    private authService: AuthService
   ) {
     this.clubForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -35,10 +38,21 @@ export class ClubEditComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.getCurrentUser();
     this.route.params.subscribe(params => {
       this.clubId = +params['id'];
       this.loadClub();
     });
+  }
+
+  getCurrentUser() {
+    const user = this.authService.currentUserValue;
+    if (user && user.id !== undefined && user.id !== null) {
+      this.currentUserId = user.id;
+    } else {
+      console.error('No user found or user has no ID');
+      this.error = 'User not authenticated. Please log in again.';
+    }
   }
 
   loadClub() {
@@ -69,16 +83,28 @@ export class ClubEditComponent implements OnInit {
       return;
     }
 
+    if (!this.currentUserId) {
+      this.error = 'User not authenticated. Please log in again.';
+      return;
+    }
+
     this.saving = true;
     this.error = null;
 
-    this.clubService.updateClub(this.clubId, this.clubForm.value).subscribe({
+    this.clubService.updateClub(this.clubId, this.clubForm.value, this.currentUserId).subscribe({
       next: () => {
+        alert('Demande de modification créée avec succès ! Elle doit être approuvée par le vice-président et le secrétaire.');
         this.router.navigate(['/dashboard/clubs', this.clubId]);
       },
       error: (err) => {
-        console.error('Error updating club:', err);
-        this.error = 'Failed to update club. Please try again.';
+        console.error('Error creating update request:', err);
+        if (err.error && err.error.message) {
+          this.error = err.error.message;
+        } else if (err.error && typeof err.error === 'string') {
+          this.error = err.error;
+        } else {
+          this.error = 'Failed to create update request. Please try again.';
+        }
         this.saving = false;
       }
     });

@@ -26,6 +26,12 @@ public class MemberController {
     public ResponseEntity<List<MemberDTO>> getMembersByUser(@PathVariable Long userId) {
         return ResponseEntity.ok(memberService.getMembersByUser(userId));
     }
+
+    @GetMapping("/user/{userId}/clubs-with-status")
+    public ResponseEntity<List<com.englishflow.club.dto.ClubWithRoleDTO>> getUserClubsWithStatus(@PathVariable Long userId) {
+        return ResponseEntity.ok(memberService.getUserClubsWithStatus(userId));
+    }
+
     
     @PostMapping("/club/{clubId}/user/{userId}")
     public ResponseEntity<MemberDTO> addMemberToClub(

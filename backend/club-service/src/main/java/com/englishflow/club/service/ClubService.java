@@ -21,6 +21,7 @@ public class ClubService {
     private final ClubRepository clubRepository;
     private final MemberService memberService;
     private final MemberRepository memberRepository;
+    private final ClubUpdateRequestService updateRequestService;
     
     @Transactional(readOnly = true)
     public List<ClubDTO> getAllClubs() {
@@ -64,23 +65,22 @@ public class ClubService {
     }
     
     @Transactional
-    public ClubDTO updateClub(Integer id, ClubDTO clubDTO) {
+    public ClubDTO updateClub(Integer id, ClubDTO clubDTO, Long requesterId) {
         Club club = clubRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Club not found with id: " + id));
         
-        club.setName(clubDTO.getName());
-        club.setDescription(clubDTO.getDescription());
-        club.setObjective(clubDTO.getObjective());
-        club.setCategory(clubDTO.getCategory());
-        club.setMaxMembers(clubDTO.getMaxMembers());
-        
-        // Update image if provided
-        if (clubDTO.getImage() != null && !clubDTO.getImage().isEmpty()) {
-            club.setImage(clubDTO.getImage());
+        // Verify that the requester is the president of the club
+        boolean isPresident = memberService.isPresident(id, requesterId);
+        if (!isPresident) {
+            throw new RuntimeException("Only the president can update club information");
         }
         
-        Club updatedClub = clubRepository.save(club);
-        return convertToDTO(updatedClub);
+        // Créer une demande de modification au lieu de modifier directement
+        updateRequestService.createUpdateRequest(id, clubDTO, requesterId);
+        
+        // Retourner le club actuel (non modifié)
+        // Les modifications seront appliquées après approbation
+        return convertToDTO(club);
     }
     
     @Transactional

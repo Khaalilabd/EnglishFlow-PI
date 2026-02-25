@@ -5,6 +5,7 @@ import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { combineLatest, forkJoin, Subscription } from 'rxjs';
 import { ClubService } from '../../../core/services/club.service';
 import { MemberService } from '../../../core/services/member.service';
+import { EventService } from '../../../core/services/event.service';
 import { Club } from '../../../core/models/club.model';
 import { AuthService } from '../../../core/services/auth.service';
 
@@ -111,6 +112,15 @@ export class StudentSidebarComponent {
           ]
         },
         {
+          icon: 'fas fa-calendar-check',
+          name: "Events",
+          path: "/user-panel/events",
+          subItems: [
+            // User's events will be added by loadUserEvents()
+            { name: "Loading...", path: "/user-panel/events" } as SubItem
+          ]
+        },
+        {
           icon: 'fas fa-comments',
           name: "Forum",
           path: "/user-panel/forum",
@@ -187,7 +197,8 @@ export class StudentSidebarComponent {
     private cdr: ChangeDetectorRef,
     private clubService: ClubService,
     private memberService: MemberService,
-    private authService: AuthService
+    private authService: AuthService,
+    private eventService: EventService
   ) {
     this.isExpanded$ = this.sidebarService.isExpanded$;
     this.isMobileOpen$ = this.sidebarService.isMobileOpen$;
@@ -221,8 +232,17 @@ export class StudentSidebarComponent {
       })
     );
 
+    // Listen for event participation changes
+    this.subscription.add(
+      this.eventService.eventParticipationChanged$.subscribe(() => {
+        console.log('🔄 Event participation changed, reloading events in sidebar...');
+        this.loadUserEvents();
+      })
+    );
+
     this.setActiveMenuFromRoute(this.router.url);
     this.loadUserClubs();
+    this.loadUserEvents();
   }
 
   loadUserClubs() {
@@ -405,5 +425,138 @@ export class StudentSidebarComponent {
         this.sidebarService.setMobileOpen(false);
       }
     }).unsubscribe();
+  }
+
+  loadUserEvents() {
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser || !currentUser.id) {
+      console.error('No user logged in');
+      const communitySection = this.navSections.find(s => s.id === 'community');
+      if (communitySection) {
+        const eventsItem = communitySection.items.find(item => item.name === 'Events');
+        if (eventsItem && eventsItem.subItems) {
+          eventsItem.subItems = [
+            { name: "Please login", path: "/user-panel/events" }
+          ];
+        }
+      }
+      this.cdr.detectChanges();
+      return;
+    }
+
+    const userId = currentUser.id;
+    console.log('Loading events for user ID:', userId);
+    
+    // Load events created by the user AND events they joined
+    this.eventService.getEventsByCreator(userId).subscribe({
+      next: (createdEvents) => {
+        console.log('📚 Events created by user loaded:', createdEvents);
+        
+        // Also load events the user joined
+        this.eventService.getUserEvents(userId).subscribe({
+          next: (participants) => {
+            console.log('📚 User participations loaded:', participants);
+            const joinedEventIds = participants.map(p => p.eventId);
+            
+            // Get all events to find the joined ones
+            this.eventService.getAllEvents().subscribe({
+              next: (allEvents) => {
+                const joinedEvents = allEvents.filter(e => e.id && joinedEventIds.includes(e.id));
+                console.log('📚 Joined events:', joinedEvents);
+                
+                // Combine created and joined events (remove duplicates)
+                const myEventsMap = new Map<number, any>();
+                
+                // Add created events
+                createdEvents.forEach(event => {
+                  if (event.id) {
+                    myEventsMap.set(event.id, {
+                      event: event,
+                      isCreator: true
+                    });
+                  }
+                });
+                
+                // Add joined events
+                joinedEvents.forEach(event => {
+                  if (event.id && !myEventsMap.has(event.id)) {
+                    myEventsMap.set(event.id, {
+                      event: event,
+                      isCreator: false
+                    });
+                  }
+                });
+                
+                const myEvents = Array.from(myEventsMap.values());
+                
+                if (myEvents.length === 0) {
+                  const communitySection = this.navSections.find(s => s.id === 'community');
+                  if (communitySection) {
+                    const eventsItem = communitySection.items.find(item => item.name === 'Events');
+                    if (eventsItem && eventsItem.subItems) {
+                      eventsItem.subItems = [
+                        { name: "No events yet", path: "/user-panel/events" }
+                      ];
+                    }
+                  }
+                  this.cdr.detectChanges();
+                  return;
+                }
+                
+                // Update events menu
+                const communitySection = this.navSections.find(s => s.id === 'community');
+                if (communitySection) {
+                  const eventsItem = communitySection.items.find(item => item.name === 'Events');
+                  if (eventsItem) {
+                    const newSubItems = myEvents.map(({ event, isCreator }) => {
+                      // Check if event is coming soon (more than 3 days away)
+                      const now = new Date();
+                      const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+                      const eventDate = new Date(event.eventDate);
+                      const isComingSoon = eventDate > threeDaysFromNow;
+                      
+                      let displayName = event.title;
+                      if (isCreator) {
+                        displayName = `👑 ${displayName}`;
+                      }
+                      
+                      return {
+                        name: displayName,
+                        path: `/user-panel/events/${event.id}`,
+                        badge: isComingSoon ? 'Soon' : undefined,
+                        badgeColor: 'bg-[#F6BD60]'
+                      };
+                    });
+                    eventsItem.subItems = newSubItems;
+                    console.log('✅ Updated events subItems:', newSubItems);
+                  }
+                }
+                this.cdr.markForCheck();
+                this.cdr.detectChanges();
+              },
+              error: (error) => {
+                console.error('Error loading all events:', error);
+              }
+            });
+          },
+          error: (error) => {
+            console.error('Error loading user participations:', error);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading user events:', error);
+        const communitySection = this.navSections.find(s => s.id === 'community');
+        if (communitySection) {
+          const eventsItem = communitySection.items.find(item => item.name === 'Events');
+          if (eventsItem && eventsItem.subItems) {
+            eventsItem.subItems = [
+              { name: "Error loading events", path: "/user-panel/events" }
+            ];
+          }
+        }
+        this.cdr.detectChanges();
+      }
+    });
   }
 }

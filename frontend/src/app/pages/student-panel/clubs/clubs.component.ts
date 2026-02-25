@@ -7,15 +7,17 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/task.service';
 import { MemberService } from '../../../core/services/member.service';
 import { UserService } from '../../../core/services/user.service';
+import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { Club, ClubCategory, ClubStatus } from '../../../core/models/club.model';
 import { Task, TaskStatus } from '../../../core/models/task.model';
 import { filter, forkJoin, of } from 'rxjs';
 import { Subscription } from 'rxjs';
+import { CdkDragDrop, moveItemInArray, transferArrayItem, DragDropModule } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'app-student-clubs',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule],
   templateUrl: './clubs.component.html',
   styleUrls: ['./clubs.component.scss']
 })
@@ -66,13 +68,29 @@ export class ClubsComponent implements OnInit, OnDestroy {
   ClubCategory = ClubCategory; // Expose enum to template
   loadingTasks = false;
   
+  // Task editing
+  editingTaskId: number | null = null;
+  editingTaskText: string = '';
+  
   // Category dropdown
   showCategoryDropdown = false;
   
   // Members management modal
   showMembersModal = false;
   clubMembers: any[] = [];
+  
+  // Pending update requests
+  pendingRequests: ClubUpdateRequest[] = [];
+  loadingRequests = false;
   loadingMembers = false;
+  
+  // Update requests modal
+  showUpdateRequestsModal = false;
+
+  // Helper method to filter pending requests by club ID
+  getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
+    return this.pendingRequests.filter(r => r.clubId === clubId);
+  }
 
   constructor(
     private clubService: ClubService,
@@ -80,6 +98,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private memberService: MemberService,
     private userService: UserService,
+    private updateRequestService: ClubUpdateRequestService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router
@@ -120,6 +139,34 @@ export class ClubsComponent implements OnInit, OnDestroy {
       this.checkRouteAndLoadClub();
     });
     this.subscriptions.add(navSub);
+
+    // Listen to user changes (login/logout)
+    const authSub = this.authService.currentUser$.subscribe((user: any) => {
+      const previousUserId = this.currentUserId;
+      
+      if (user && user.id) {
+        this.currentUserId = user.id;
+        
+        // Si l'utilisateur a changé, réinitialiser les données
+        if (previousUserId !== null && previousUserId !== this.currentUserId) {
+          console.log('🔄 User changed from', previousUserId, 'to', this.currentUserId);
+          // Réinitialiser les rôles des clubs
+          this.clubRoles = {};
+          // Recharger les clubs et les rôles
+          this.loadClubs();
+          this.loadPendingRequests();
+        }
+      } else {
+        // Utilisateur déconnecté
+        this.currentUserId = null;
+        this.clubRoles = {};
+        this.allClubs = [];
+        this.myClubs = [];
+        this.filteredClubs = [];
+        this.pendingRequests = [];
+      }
+    });
+    this.subscriptions.add(authSub);
   }
 
   ngOnDestroy() {
@@ -163,11 +210,15 @@ export class ClubsComponent implements OnInit, OnDestroy {
           console.log('📊 Final clubRoles map:', this.clubRoles);
         }
         
+        // Set myClubs to include this club for loadPendingRequests to work
+        this.myClubs = [club];
+        
         this.loading = false;
         
-        // Load tasks and member count after displaying
+        // Load tasks, member count, and pending requests after displaying
         this.loadTasksForClub(club.id!);
         this.loadActualMemberCount(club.id!);
+        this.loadPendingRequests();
       },
       error: (err) => {
         console.error('Error loading club:', err);
@@ -226,6 +277,9 @@ export class ClubsComponent implements OnInit, OnDestroy {
         
         this.categorizeClubs();
         this.loading = false;
+        
+        // Load pending requests after clubs are loaded
+        this.loadPendingRequests();
       },
       error: (err) => {
         console.error('Error loading clubs:', err);
@@ -899,6 +953,11 @@ export class ClubsComponent implements OnInit, OnDestroy {
       return;
     }
 
+    if (!this.currentUserId) {
+      this.updateError = 'User not authenticated. Please log in again.';
+      return;
+    }
+
     this.updating = true;
     this.updateError = null;
 
@@ -909,16 +968,27 @@ export class ClubsComponent implements OnInit, OnDestroy {
         clubData.image = await this.convertFileToBase64(this.editImageFile);
       }
 
-      this.clubService.updateClub(this.editingClub.id, clubData).subscribe({
-        next: () => {
+      this.clubService.updateClub(this.editingClub.id, clubData, this.currentUserId).subscribe({
+        next: (response) => {
+          console.log('✅ Update request created:', response);
+          
           this.updating = false;
           this.closeEditModal();
-          this.loadClubs();
-          alert('Club updated successfully!');
+          
+          // Recharger les demandes en attente
+          this.loadPendingRequests();
+          
+          alert('Demande de modification créée avec succès ! Elle doit être approuvée par le vice-président et le secrétaire.');
         },
         error: (err) => {
-          console.error('Error updating club:', err);
-          this.updateError = 'Failed to update club. Please try again.';
+          console.error('Error creating update request:', err);
+          if (err.error && err.error.message) {
+            this.updateError = err.error.message;
+          } else if (err.error && typeof err.error === 'string') {
+            this.updateError = err.error;
+          } else {
+            this.updateError = 'Failed to create update request. Please try again.';
+          }
           this.updating = false;
         }
       });
@@ -948,6 +1018,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  // Check if current user is the president of the club
+  isClubPresident(club: Club): boolean {
+    if (!club.id) return false;
+    const role = this.clubRoles[club.id];
+    console.log(`🎭 isClubPresident(${club.id}) = ${role === 'PRESIDENT'}, role = ${role}`);
+    return role === 'PRESIDENT';
   }
 
   // Check if current user is the creator of the club
@@ -996,12 +1074,17 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // Task management methods
   loadTasksForClub(clubId: number) {
     this.loadingTasks = true;
-    this.taskService.getTasksByClubId(clubId).subscribe({
+    console.log('🔍 Loading tasks for club:', clubId, 'with userId:', this.currentUserId);
+    this.taskService.getTasksByClubId(clubId, this.currentUserId || undefined).subscribe({
       next: (tasks) => {
+        console.log('✅ Tasks loaded successfully:', tasks);
         this.clubTasks[clubId] = tasks;
         this.loadingTasks = false;
       },
       error: (err) => {
+        console.error('❌ Error loading tasks:', err);
+        console.error('❌ Error status:', err.status);
+        console.error('❌ Error message:', err.error);
         // Silently handle error - just show empty task list
         this.clubTasks[clubId] = [];
         this.loadingTasks = false;
@@ -1060,6 +1143,29 @@ export class ClubsComponent implements OnInit, OnDestroy {
     });
   }
 
+  // Drag and Drop handler
+  onTaskDrop(event: CdkDragDrop<Task[]>, clubId: number, newStatus: TaskStatus) {
+    const task = event.item.data;
+    
+    if (event.previousContainer === event.container) {
+      // Same column - just reorder
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      // Different column - transfer and update status
+      transferArrayItem(
+        event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex
+      );
+      
+      // Update task status in backend
+      if (task.id) {
+        this.updateTaskStatus(clubId, task.id, newStatus);
+      }
+    }
+  }
+
   deleteTask(clubId: number, taskId: number) {
     if (!confirm('Are you sure you want to delete this task?')) return;
 
@@ -1072,6 +1178,46 @@ export class ClubsComponent implements OnInit, OnDestroy {
         alert('Failed to delete task. Please try again.');
       }
     });
+  }
+
+  // Start editing a task
+  startEditingTask(task: Task) {
+    this.editingTaskId = task.id!;
+    this.editingTaskText = task.text;
+  }
+
+  // Cancel editing
+  cancelEditingTask() {
+    this.editingTaskId = null;
+    this.editingTaskText = '';
+  }
+
+  // Save edited task
+  saveEditedTask(clubId: number, taskId: number) {
+    if (!this.editingTaskText.trim()) {
+      alert('Task text cannot be empty');
+      return;
+    }
+
+    this.taskService.updateTask(taskId, { text: this.editingTaskText.trim() }, this.currentUserId || undefined).subscribe({
+      next: (updatedTask) => {
+        const tasks = this.clubTasks[clubId];
+        const index = tasks.findIndex(t => t.id === taskId);
+        if (index !== -1) {
+          tasks[index] = updatedTask;
+        }
+        this.cancelEditingTask();
+      },
+      error: (err) => {
+        console.error('Error updating task:', err);
+        alert('Failed to update task. Please try again.');
+      }
+    });
+  }
+
+  // Check if a task is being edited
+  isEditingTask(taskId: number): boolean {
+    return this.editingTaskId === taskId;
   }
 
   getTasksByStatus(clubId: number, status: TaskStatus): Task[] {
@@ -1102,5 +1248,125 @@ export class ClubsComponent implements OnInit, OnDestroy {
       [TaskStatus.DONE]: 'bg-green-100 text-green-700'
     };
     return colors[status];
+  }
+
+  // Pending update requests methods
+  loadPendingRequests() {
+    if (!this.currentUserId) {
+      console.log('❌ Cannot load pending requests: no current user');
+      return;
+    }
+    
+    console.log('🔍 Loading pending requests...');
+    console.log('My clubs:', this.myClubs);
+    console.log('Club roles:', this.clubRoles);
+    
+    this.loadingRequests = true;
+    const requestsObservables = this.myClubs
+      .filter(club => {
+        const role = this.clubRoles[club.id!];
+        console.log(`Club ${club.name} (${club.id}): role = ${role}`);
+        return role === 'VICE_PRESIDENT' || role === 'SECRETARY';
+      })
+      .map(club => this.updateRequestService.getPendingRequestsForClub(club.id!));
+    
+    console.log('Clubs with VP/Secretary role:', requestsObservables.length);
+    
+    if (requestsObservables.length === 0) {
+      this.loadingRequests = false;
+      this.pendingRequests = [];
+      console.log('⚠️ No clubs where user is VP or Secretary');
+      return;
+    }
+    
+    forkJoin(requestsObservables).subscribe({
+      next: (results) => {
+        this.pendingRequests = results.flat();
+        console.log('📋 Pending requests loaded:', this.pendingRequests.length);
+        console.log('Pending requests:', this.pendingRequests);
+        this.loadingRequests = false;
+      },
+      error: (err) => {
+        console.error('❌ Error loading pending requests:', err);
+        this.loadingRequests = false;
+      }
+    });
+  }
+
+  approveRequest(requestId: number) {
+    if (!this.currentUserId) {
+      alert('Vous devez être connecté pour approuver');
+      return;
+    }
+
+    this.updateRequestService.approveRequest(requestId, this.currentUserId).subscribe({
+      next: (updatedRequest) => {
+        if (updatedRequest.status === 'APPROVED') {
+          alert('Demande approuvée et modifications appliquées !');
+          this.loadClubs(); // Reload clubs to show updated info
+          if (this.selectedClub) {
+            this.loadAndDisplayClub(this.selectedClub.id!); // Reload the selected club
+          }
+        } else {
+          alert('Votre approbation a été enregistrée. En attente de l\'autre approbation.');
+        }
+        this.loadPendingRequests();
+        
+        // Close modal if no more pending requests for this club
+        if (this.selectedClub && this.getPendingRequestsForClub(this.selectedClub.id!).length === 0) {
+          this.closeUpdateRequestsModal();
+        }
+      },
+      error: (err) => {
+        console.error('Error approving request:', err);
+        alert(err.error?.message || 'Erreur lors de l\'approbation');
+      }
+    });
+  }
+
+  rejectRequest(requestId: number) {
+    if (!this.currentUserId) {
+      alert('Vous devez être connecté pour rejeter');
+      return;
+    }
+
+    if (!confirm('Êtes-vous sûr de vouloir rejeter cette demande ?')) {
+      return;
+    }
+
+    this.updateRequestService.rejectRequest(requestId, this.currentUserId).subscribe({
+      next: () => {
+        alert('Demande rejetée');
+        this.loadPendingRequests();
+        
+        // Close modal if no more pending requests for this club
+        if (this.selectedClub && this.getPendingRequestsForClub(this.selectedClub.id!).length === 0) {
+          this.closeUpdateRequestsModal();
+        }
+      },
+      error: (err) => {
+        console.error('Error rejecting request:', err);
+        alert(err.error?.message || 'Erreur lors du rejet');
+      }
+    });
+  }
+
+  getClubById(clubId: number): Club | undefined {
+    return this.allClubs.find(c => c.id === clubId);
+  }
+
+  canApproveRequests(): boolean {
+    return Object.values(this.clubRoles).some(role => 
+      role === 'VICE_PRESIDENT' || role === 'SECRETARY'
+    );
+  }
+
+  // Update requests modal methods
+  openUpdateRequestsModal() {
+    this.showUpdateRequestsModal = true;
+  }
+
+  closeUpdateRequestsModal() {
+    this.showUpdateRequestsModal = false;
   }
 }

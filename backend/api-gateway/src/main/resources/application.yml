@@ -123,6 +123,30 @@ spring:
             - StripPrefix=1
           order: 14
             
+        - id: club-update-requests
+          uri: lb://club-service
+          predicates:
+            - Path=/api/club-update-requests/**
+          filters:
+            - StripPrefix=1
+          order: 15
+            
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - StripPrefix=1
+          order: 16
+            
+        - id: event-participants
+          uri: lb://event-service
+          predicates:
+            - Path=/api/participants/**
+          filters:
+            - StripPrefix=1
+          order: 17
+            
         - id: public-users
           uri: http://localhost:8081
           predicates:

@@ -41,8 +41,8 @@ export class ClubService {
     return this.http.post<Club>(this.apiUrl, club);
   }
 
-  updateClub(id: number, club: UpdateClubRequest): Observable<Club> {
-    return this.http.put<Club>(`${this.apiUrl}/${id}`, club);
+  updateClub(id: number, club: UpdateClubRequest, userId: number): Observable<Club> {
+    return this.http.put<Club>(`${this.apiUrl}/${id}?requesterId=${userId}`, club);
   }
 
   deleteClub(id: number): Observable<void> {

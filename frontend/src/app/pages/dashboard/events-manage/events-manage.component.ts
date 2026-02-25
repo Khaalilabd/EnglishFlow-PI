@@ -1,17 +1,106 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { EventService, Event } from '../../../core/services/event.service';
 
 @Component({
   selector: 'app-events-manage',
   standalone: true,
   imports: [CommonModule],
-  template: `
-    <div class="p-6">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-6">Manage Events</h1>
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <p class="text-gray-600 dark:text-gray-400">Events management coming soon...</p>
-      </div>
-    </div>
-  `
+  templateUrl: './events-manage.component.html'
 })
-export class EventsManageComponent {}
+export class EventsManageComponent implements OnInit {
+  allEvents: Event[] = [];
+  pendingEvents: Event[] = [];
+  approvedEvents: Event[] = [];
+  rejectedEvents: Event[] = [];
+  
+  selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
+  loading = false;
+  error: string | null = null;
+
+  eventTypeIcons: { [key: string]: string } = {
+    'WORKSHOP': '🛠️',
+    'SEMINAR': '📚',
+    'SOCIAL': '🎉'
+  };
+
+  constructor(private eventService: EventService) {}
+
+  ngOnInit() {
+    this.loadEvents();
+  }
+
+  loadEvents() {
+    this.loading = true;
+    this.error = null;
+
+    this.eventService.getAllEvents().subscribe({
+      next: (events) => {
+        this.allEvents = events;
+        this.categorizeEvents();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading events:', err);
+        this.error = 'Failed to load events. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
+
+  categorizeEvents() {
+    this.pendingEvents = this.allEvents.filter(e => e.status === 'PENDING');
+    this.approvedEvents = this.allEvents.filter(e => e.status === 'APPROVED');
+    this.rejectedEvents = this.allEvents.filter(e => e.status === 'REJECTED');
+  }
+
+  approveEvent(eventId: number) {
+    if (confirm('Are you sure you want to approve this event?')) {
+      this.eventService.approveEvent(eventId).subscribe({
+        next: () => {
+          alert('Event approved successfully!');
+          // Notify that event status has changed
+          this.eventService.notifyEventParticipationChanged();
+          this.loadEvents();
+        },
+        error: (err) => {
+          console.error('Error approving event:', err);
+          alert('Failed to approve event. Please try again.');
+        }
+      });
+    }
+  }
+
+  rejectEvent(eventId: number) {
+    if (confirm('Are you sure you want to reject this event?')) {
+      this.eventService.rejectEvent(eventId).subscribe({
+        next: () => {
+          alert('Event rejected successfully!');
+          // Notify that event status has changed
+          this.eventService.notifyEventParticipationChanged();
+          this.loadEvents();
+        },
+        error: (err) => {
+          console.error('Error rejecting event:', err);
+          alert('Failed to reject event. Please try again.');
+        }
+      });
+    }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getEventIcon(type: string): string {
+    return this.eventTypeIcons[type] || '📅';
+  }
+}
+

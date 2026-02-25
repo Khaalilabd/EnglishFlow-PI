@@ -2,6 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { ClubService } from '../../../core/services/club.service';
+import { MemberService } from '../../../core/services/member.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { Club, Member } from '../../../core/models/club.model';
 
 @Component({
@@ -18,18 +21,58 @@ export class ClubDetailComponent implements OnInit {
   loadingMembers = false;
   error: string | null = null;
   clubId!: number;
+  
+  // Approval system
+  pendingRequests: ClubUpdateRequest[] = [];
+  loadingRequests = false;
+  currentUserId: number | null = null;
+  currentUserRank: string | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private clubService: ClubService
+    private clubService: ClubService,
+    private memberService: MemberService,
+    private authService: AuthService,
+    private updateRequestService: ClubUpdateRequestService
   ) {}
 
   ngOnInit() {
     this.route.params.subscribe(params => {
       this.clubId = +params['id'];
+      this.loadCurrentUser();
       this.loadClub();
       this.loadMembers();
+      // Don't load pending requests here - wait for user rank to be loaded
+    });
+  }
+
+  loadCurrentUser() {
+    this.authService.currentUser$.subscribe(user => {
+      if (user && user.id) {
+        this.currentUserId = user.id;
+        this.loadUserRank();
+      }
+    });
+  }
+
+  loadUserRank() {
+    if (!this.currentUserId) return;
+    
+    console.log('Loading rank for user', this.currentUserId, 'in club', this.clubId);
+    this.memberService.getUserMembershipInClub(this.clubId, this.currentUserId).subscribe({
+      next: (member: any) => {
+        this.currentUserRank = member?.rank || null;
+        console.log('User rank loaded:', this.currentUserRank);
+        console.log('Can approve requests:', this.canApproveRequests());
+        
+        // Reload pending requests after rank is loaded
+        this.loadPendingRequests();
+      },
+      error: (err: any) => {
+        console.log('User is not a member of this club', err);
+        this.currentUserRank = null;
+      }
     });
   }
 
@@ -118,5 +161,83 @@ export class ClubDetailComponent implements OnInit {
       'WRITING': 'text-purple-800 bg-purple-100'
     };
     return classes[category] || 'text-gray-800 bg-gray-100';
+  }
+
+  // Approval system methods
+  loadPendingRequests() {
+    this.loadingRequests = true;
+    console.log('Loading pending requests for club', this.clubId);
+    this.updateRequestService.getPendingRequestsForClub(this.clubId).subscribe({
+      next: (requests) => {
+        this.pendingRequests = requests;
+        console.log('Pending requests loaded:', requests.length, 'requests');
+        console.log('Current user rank:', this.currentUserRank);
+        console.log('Can approve:', this.canApproveRequests());
+        this.loadingRequests = false;
+      },
+      error: (err) => {
+        console.error('Error loading pending requests:', err);
+        this.loadingRequests = false;
+      }
+    });
+  }
+
+  canApproveRequests(): boolean {
+    return this.currentUserRank === 'VICE_PRESIDENT' || this.currentUserRank === 'SECRETARY';
+  }
+
+  approveRequest(requestId: number) {
+    if (!this.currentUserId) {
+      alert('Vous devez être connecté pour approuver');
+      return;
+    }
+
+    this.updateRequestService.approveRequest(requestId, this.currentUserId).subscribe({
+      next: (updatedRequest) => {
+        if (updatedRequest.status === 'APPROVED') {
+          alert('Demande approuvée et modifications appliquées !');
+          this.loadClub(); // Reload club to show updated info
+        } else {
+          alert('Votre approbation a été enregistrée. En attente de l\'autre approbation.');
+        }
+        this.loadPendingRequests();
+      },
+      error: (err) => {
+        console.error('Error approving request:', err);
+        alert(err.error?.message || 'Erreur lors de l\'approbation');
+      }
+    });
+  }
+
+  rejectRequest(requestId: number) {
+    if (!this.currentUserId) {
+      alert('Vous devez être connecté pour rejeter');
+      return;
+    }
+
+    if (!confirm('Êtes-vous sûr de vouloir rejeter cette demande ?')) {
+      return;
+    }
+
+    this.updateRequestService.rejectRequest(requestId, this.currentUserId).subscribe({
+      next: () => {
+        alert('Demande rejetée');
+        this.loadPendingRequests();
+      },
+      error: (err) => {
+        console.error('Error rejecting request:', err);
+        alert(err.error?.message || 'Erreur lors du rejet');
+      }
+    });
+  }
+
+  getApprovalStatus(request: ClubUpdateRequest): string {
+    const approvals = [];
+    if (request.vicePresidentApproved) approvals.push('Vice-Président');
+    if (request.secretaryApproved) approvals.push('Secrétaire');
+    
+    if (approvals.length === 0) return 'En attente des deux approbations';
+    if (approvals.length === 1) return `Approuvé par: ${approvals[0]}`;
+    return 'Approuvé par les deux';
   }
 }

@@ -11,6 +11,24 @@ export interface Member {
   joinedAt: string;
 }
 
+export interface ClubWithRole {
+  id: number;
+  name: string;
+  description: string;
+  objective: string;
+  category: string;
+  maxMembers: number;
+  image: string;
+  status: string;
+  createdBy: number;
+  reviewedBy: number;
+  reviewComment: string;
+  createdAt: string;
+  updatedAt: string;
+  userRole: string;
+  joinedAt: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -25,6 +43,10 @@ export class MemberService {
 
   getMembersByUser(userId: number): Observable<Member[]> {
     return this.http.get<Member[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  getUserClubsWithStatus(userId: number): Observable<ClubWithRole[]> {
+    return this.http.get<ClubWithRole[]>(`${this.apiUrl}/user/${userId}/clubs-with-status`);
   }
 
   addMemberToClub(clubId: number, userId: number): Observable<Member> {
@@ -53,5 +75,9 @@ export class MemberService {
 
   isMember(clubId: number, userId: number): Observable<boolean> {
     return this.http.get<boolean>(`${this.apiUrl}/club/${clubId}/user/${userId}/is-member`);
+  }
+
+  getUserMembershipInClub(clubId: number, userId: number): Observable<Member | null> {
+    return this.http.get<Member | null>(`${this.apiUrl}/club/${clubId}/user/${userId}`);
   }
 }

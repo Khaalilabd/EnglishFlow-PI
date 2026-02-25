@@ -179,6 +179,34 @@ public class MemberService {
     public long getClubMemberCount(Integer clubId) {
         return memberRepository.countByClubId(clubId);
     }
+
+    @Transactional(readOnly = true)
+    public List<com.englishflow.club.dto.ClubWithRoleDTO> getUserClubsWithStatus(Long userId) {
+        List<Member> members = memberRepository.findByUserId(userId);
+        return members.stream()
+                .map(member -> {
+                    Club club = member.getClub();
+                    return com.englishflow.club.dto.ClubWithRoleDTO.builder()
+                            .id(club.getId())
+                            .name(club.getName())
+                            .description(club.getDescription())
+                            .objective(club.getObjective())
+                            .category(club.getCategory())
+                            .maxMembers(club.getMaxMembers())
+                            .image(club.getImage())
+                            .status(club.getStatus())
+                            .createdBy(club.getCreatedBy())
+                            .reviewedBy(club.getReviewedBy())
+                            .reviewComment(club.getReviewComment())
+                            .createdAt(club.getCreatedAt())
+                            .updatedAt(club.getUpdatedAt())
+                            .userRole(member.getRank())
+                            .joinedAt(member.getJoinedAt())
+                            .build();
+                })
+                .collect(Collectors.toList());
+    }
+
     
     private MemberDTO convertToDTO(Member member) {
         try {

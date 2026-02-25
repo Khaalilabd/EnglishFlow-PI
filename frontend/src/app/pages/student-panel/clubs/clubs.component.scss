@@ -216,3 +216,100 @@ input[type="checkbox"] {
 .rotate-180 {
   transform: rotate(180deg);
 }
+
+// Drag and Drop Styles
+.cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+  cursor: move;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.cdk-drag-preview {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  opacity: 0.9;
+  border-radius: 12px;
+  transform: rotate(3deg);
+  z-index: 1000;
+}
+
+.cdk-drag-placeholder {
+  opacity: 0.4;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 12px;
+}
+
+.cdk-drag-animating {
+  transition: transform 300ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Drop list hover effect
+.cdk-drop-list {
+  min-height: 150px;
+  transition: background-color 200ms ease;
+  
+  &.cdk-drop-list-receiving {
+    background-color: rgba(45, 87, 87, 0.05);
+    border: 2px dashed #2D5757;
+    border-radius: 12px;
+  }
+}
+
+// Drag handle
+[cdkDragHandle] {
+  cursor: grab;
+  
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+// Animation for slide up
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.3s ease-out;
+}
+
+// Animation for shake (error)
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+// Dropdown slide down animation
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}

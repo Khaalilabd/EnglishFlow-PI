@@ -12,8 +12,9 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  getTasksByClubId(clubId: number): Observable<Task[]> {
-    return this.http.get<Task[]>(`${this.apiUrl}/club/${clubId}`);
+  getTasksByClubId(clubId: number, userId?: number): Observable<Task[]> {
+    const userIdParam = userId || 0;
+    return this.http.get<Task[]>(`${this.apiUrl}/club/${clubId}?userId=${userIdParam}`);
   }
 
   getTasksByClubIdAndStatus(clubId: number, status: TaskStatus): Observable<Task[]> {
