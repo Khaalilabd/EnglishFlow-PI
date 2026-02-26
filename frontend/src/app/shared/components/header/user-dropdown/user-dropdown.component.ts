@@ -23,7 +23,16 @@ export class UserDropdownComponent {
     });
   }
 
-  getDefaultAvatar(): string {
+  getProfilePhotoUrl(): string {
+    if (this.currentUser?.profilePhoto) {
+      // If URL starts with http, return as is (external URL like Google profile)
+      if (this.currentUser.profilePhoto.startsWith('http')) {
+        return this.currentUser.profilePhoto;
+      }
+      // Otherwise, add backend prefix for local uploads
+      return `http://localhost:8081${this.currentUser.profilePhoto}`;
+    }
+    // Default avatar if no photo
     const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
     return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=128`;
   }

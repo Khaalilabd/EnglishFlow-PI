@@ -11,8 +11,20 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   
   // Add auth header if user is logged in
   const token = authService.getToken();
-  if (token) {
+  
+  // Debug logging
+  if (req.url.includes('/users/')) {
+    console.log('🔍 Interceptor - Request URL:', req.url);
+    console.log('🔍 Interceptor - Token exists:', !!token);
+    console.log('🔍 Interceptor - Token length:', token?.length);
+    console.log('🔍 Interceptor - Token format valid:', token?.split('.').length === 3);
+  }
+  
+  // Only add token if it's a valid JWT format
+  if (token && token.split('.').length === 3) {
     req = addTokenHeader(req, token);
+  } else if (token) {
+    console.error('❌ Invalid token format, not adding to request:', token);
   }
 
   return next(req).pipe(

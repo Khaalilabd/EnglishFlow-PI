@@ -2,18 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { AuthService } from '../../../core/services/auth.service';
-import { AuthResponse } from '../../../core/models/user.model';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../../../core/services/auth.service';
+import { AuthResponse } from '../../../../core/models/user.model';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-tutor-settings',
+  selector: 'app-student-settings',
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class TutorSettingsComponent implements OnInit {
+export class StudentSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
   activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
   
@@ -30,11 +31,18 @@ export class TutorSettingsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
+    
+    // Load fresh user data from backend
+    if (this.currentUser) {
+      this.loadUserProfile();
+    }
+    
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
@@ -43,6 +51,31 @@ export class TutorSettingsComponent implements OnInit {
     });
     
     this.initializeForms();
+  }
+
+  loadUserProfile() {
+    if (!this.currentUser) return;
+    
+    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUser.id}`).subscribe({
+      next: (userData) => {
+        // Update current user with fresh data
+        if (this.currentUser) {
+          const updatedUser: AuthResponse = {
+            ...this.currentUser,
+            ...userData
+          };
+          this.currentUser = updatedUser;
+          
+          // Update in authService to persist in localStorage
+          this.authService.updateCurrentUser(updatedUser);
+          
+          this.initializeForms();
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load user profile:', error);
+      }
+    });
   }
 
   initializeForms() {
@@ -97,15 +130,28 @@ export class TutorSettingsComponent implements OnInit {
     if (!this.selectedFile || !this.currentUser) return;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    this.authService.uploadProfilePhoto(this.currentUser.id, formData).subscribe({
+    
+    // Use correct endpoint
+    this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
       next: (response) => {
         Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#14b8a6', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
+        
+        // Update current user with new photo and refresh from backend
+        if (this.currentUser) {
+          this.currentUser.profilePhoto = response.profilePhoto;
+          this.authService.updateCurrentUser(this.currentUser);
+          
+          // Reload user profile to get fresh data
+          this.loadUserProfile();
+        }
+        
         window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { profilePhoto: response.profilePhoto } }));
       },
-      error: () => {
-        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to upload photo', confirmButtonColor: '#14b8a6' });
+      error: (error) => {
+        console.error('Upload error:', error);
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#14b8a6' });
       }
     });
   }

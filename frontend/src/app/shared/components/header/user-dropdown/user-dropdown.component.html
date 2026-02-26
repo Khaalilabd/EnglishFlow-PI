@@ -1,7 +1,7 @@
 <div class="relative">
   <button (click)="toggleDropdown()" class="flex items-center text-gray-700 dropdown-toggle dark:text-gray-400">
     <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-      <img [src]="currentUser?.profilePhoto || getDefaultAvatar()" [alt]="currentUser?.firstName" class="w-full h-full object-cover" />
+      <img [src]="getProfilePhotoUrl()" [alt]="currentUser?.firstName" class="w-full h-full object-cover" />
     </span>
     <span class="block mr-1 font-medium text-theme-sm">{{currentUser?.firstName}} {{currentUser?.lastName}}</span>
     <svg [ngClass]="{

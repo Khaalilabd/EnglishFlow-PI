@@ -71,6 +71,7 @@ export class OAuth2CallbackComponent implements OnInit {
           phone: actualParams['phone'] || null
         };
         
+        console.log('OAuth2 Callback - Storing user data:', userData);
         localStorage.setItem('currentUser', JSON.stringify(userData));
         localStorage.setItem('token', token);
         

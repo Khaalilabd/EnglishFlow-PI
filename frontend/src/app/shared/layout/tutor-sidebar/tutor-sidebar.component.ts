@@ -28,15 +28,15 @@ export class TutorSidebarComponent implements OnInit {
   navSections = [
     {
       id: 'home',
-      title: 'ACCUEIL',
+      title: 'HOME',
       icon: '🏠',
       items: [
-        { icon: 'fas fa-home', label: 'Dashboard', route: '/tutor-panel' }
+        { icon: 'fas fa-th-large', label: 'Dashboard', route: '/tutor-panel' }
       ]
     },
     {
       id: 'teaching',
-      title: 'ENSEIGNEMENT',
+      title: 'TEACHING',
       icon: '📚',
       items: [
         { icon: 'fas fa-book', label: 'My Courses', route: '/tutor-panel/courses', badge: 5 },
@@ -49,7 +49,7 @@ export class TutorSidebarComponent implements OnInit {
     },
     {
       id: 'students',
-      title: 'ÉTUDIANTS',
+      title: 'STUDENTS',
       icon: '👥',
       items: [
         { icon: 'fas fa-users', label: 'My Students', route: '/tutor-panel/students', badge: 24 },
@@ -68,7 +68,7 @@ export class TutorSidebarComponent implements OnInit {
     },
     {
       id: 'account',
-      title: 'COMPTE',
+      title: 'ACCOUNT',
       icon: '⚙️',
       items: [
         { icon: 'fas fa-cog', label: 'Settings', route: '/tutor-panel/settings' },

@@ -44,7 +44,7 @@ export class StudentSidebarComponent {
   navSections: NavSection[] = [
     {
       id: 'home',
-      title: 'ACCUEIL',
+      title: 'HOME',
       icon: '🏠',
       items: [
         {
@@ -56,7 +56,7 @@ export class StudentSidebarComponent {
     },
     {
       id: 'learning',
-      title: 'APPRENTISSAGE',
+      title: 'LEARNING',
       icon: '📚',
       items: [
         {
@@ -99,7 +99,7 @@ export class StudentSidebarComponent {
     },
     {
       id: 'community',
-      title: 'COMMUNAUTÉ',
+      title: 'COMMUNITY',
       icon: '👥',
       items: [
         {
@@ -136,7 +136,7 @@ export class StudentSidebarComponent {
     },
     {
       id: 'tracking',
-      title: 'SUIVI',
+      title: 'TRACKING',
       icon: '📊',
       items: [
         {
@@ -153,7 +153,7 @@ export class StudentSidebarComponent {
     },
     {
       id: 'account',
-      title: 'COMPTE',
+      title: 'ACCOUNT',
       icon: '⚙️',
       items: [
         {

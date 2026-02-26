@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
 import Swal from 'sweetalert2';
@@ -30,11 +31,18 @@ export class StudentSettingsComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
+    
+    // Load fresh user data from backend
+    if (this.currentUser) {
+      this.loadUserProfile();
+    }
+    
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
       if (user) {
@@ -43,6 +51,35 @@ export class StudentSettingsComponent implements OnInit {
     });
     
     this.initializeForms();
+  }
+
+  loadUserProfile() {
+    if (!this.currentUser) return;
+    
+    console.log('Loading user profile for ID:', this.currentUser.id);
+    
+    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUser.id}`).subscribe({
+      next: (userData) => {
+        console.log('User data loaded from backend:', userData);
+        // Update current user with fresh data
+        if (this.currentUser) {
+          const updatedUser: AuthResponse = {
+            ...this.currentUser,
+            ...userData
+          };
+          this.currentUser = updatedUser;
+          console.log('Updated currentUser:', this.currentUser);
+          
+          // Update in authService to persist in localStorage
+          this.authService.updateCurrentUser(updatedUser);
+          
+          this.initializeForms();
+        }
+      },
+      error: (error) => {
+        console.error('Failed to load user profile:', error);
+      }
+    });
   }
 
   initializeForms() {
@@ -97,15 +134,35 @@ export class StudentSettingsComponent implements OnInit {
     if (!this.selectedFile || !this.currentUser) return;
     const formData = new FormData();
     formData.append('file', this.selectedFile);
-    this.authService.uploadProfilePhoto(this.currentUser.id, formData).subscribe({
+    
+    console.log('Uploading profile photo for user ID:', this.currentUser.id);
+    
+    // Use correct endpoint
+    this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
       next: (response) => {
+        console.log('Upload response:', response);
         Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#F6BD60', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
+        
+        // Update current user with new photo and refresh from backend
+        if (this.currentUser) {
+          const updatedUser: AuthResponse = {
+            ...this.currentUser,
+            profilePhoto: response.profilePhoto
+          };
+          console.log('Updated photo URL:', response.profilePhoto);
+          this.authService.updateCurrentUser(updatedUser);
+          
+          // Reload user profile to get fresh data
+          this.loadUserProfile();
+        }
+        
         window.dispatchEvent(new CustomEvent('profilePhotoUpdated', { detail: { profilePhoto: response.profilePhoto } }));
       },
-      error: () => {
-        Swal.fire({ icon: 'error', title: 'Error!', text: 'Failed to upload photo', confirmButtonColor: '#F6BD60' });
+      error: (error) => {
+        console.error('Upload error:', error);
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#F6BD60' });
       }
     });
   }

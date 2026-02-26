@@ -152,18 +152,23 @@ export class TutorHeaderComponent implements OnInit {
     private authService: AuthService
   ) {
     this.currentUser$ = this.authService.currentUser$;
-    this.currentUser = this.authService.currentUserValue;
+    
+    // Subscribe to currentUser changes
     this.authService.currentUser$.subscribe(user => {
+      console.log('Tutor Header - User updated:', user);
       this.currentUser = user;
     });
 
     // Listen for profile photo updates
     window.addEventListener('profilePhotoUpdated', (event: any) => {
+      console.log('Tutor Header - Profile photo updated event:', event.detail);
       if (this.currentUser) {
         this.currentUser = {
           ...this.currentUser,
           profilePhoto: event.detail.profilePhoto
         };
+        // Force update in authService
+        this.authService.updateCurrentUser(this.currentUser);
       }
     });
   }
