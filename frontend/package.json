@@ -29,6 +29,7 @@
     "@popperjs/core": "^2.11.8",
     "@stomp/stompjs": "^7.3.0",
     "@tinymce/tinymce-angular": "^9.1.1",
+    "tinymce": "^7.0.0",
     "apexcharts": "^3.45.0",
     "bootstrap": "^5.3.8",
     "flatpickr": "^4.6.13",

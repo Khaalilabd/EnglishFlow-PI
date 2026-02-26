@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CustomValidators } from '../../shared/validators/custom-validators';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-complete-profile',
@@ -34,7 +35,7 @@ export class CompleteProfileComponent implements OnInit {
   validationErrors: {field: string, message: string}[] = [];
   success = false;
 
-  private apiUrl = 'http://localhost:8080/api/auth'; // Via API Gateway
+  private apiUrl = `${environment.apiUrl}/auth`; // Via API Gateway
 
   constructor(
     private route: ActivatedRoute,

@@ -29,8 +29,6 @@ export class LessonViewComponent implements OnInit {
   safeVideoUrl: SafeResourceUrl | null = null;
   safeFileUrl: SafeResourceUrl | null = null;
   visiblePdfIds: Set<number> = new Set();
-  editingMediaId: number | null = null;
-  editingMediaTitle: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -41,7 +39,13 @@ export class LessonViewComponent implements OnInit {
   ) {}
 
   getSafeHtml(html: string) {
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+    if (!html) return this.sanitizer.bypassSecurityTrustHtml('');
+    
+    // Remove or escape code blocks that might trigger syntax highlighting errors
+    // Replace <code> tags without language specification
+    let processedHtml = html.replace(/<code>/g, '<code class="language-none">');
+    
+    return this.sanitizer.bypassSecurityTrustHtml(processedHtml);
   }
 
   ngOnInit(): void {
@@ -56,6 +60,8 @@ export class LessonViewComponent implements OnInit {
     this.lessonService.getLessonById(lessonId).subscribe({
       next: (lesson) => {
         this.lesson = lesson;
+        console.log('Loaded lesson:', lesson);
+        console.log('Lesson type:', lesson.lessonType);
         
         // Load media items for this lesson
         this.loadMediaItems(lessonId);
@@ -76,16 +82,24 @@ export class LessonViewComponent implements OnInit {
     this.lessonMediaService.getMediaByLesson(lessonId).subscribe({
       next: (items) => {
         this.mediaItems = items.sort((a, b) => a.position - b.position);
+        console.log('Loaded media items:', this.mediaItems);
+        console.log('Media items count:', this.mediaItems.length);
+        this.mediaItems.forEach(item => {
+          console.log(`Media ${item.id}: type=${item.mediaType}, url=${item.url}`);
+        });
       },
       error: (err) => console.error('Error loading media items:', err)
     });
   }
 
   getSafeUrl(url: string): SafeResourceUrl {
-    const fullUrl = this.getFullUrl(url);
     if (this.isYouTubeOrVimeo(url)) {
-      return this.sanitizer.bypassSecurityTrustResourceUrl(this.getEmbedUrl(fullUrl));
+      const embedUrl = this.getEmbedUrl(url);
+      console.log('YouTube/Vimeo embed URL:', embedUrl);
+      return this.sanitizer.bypassSecurityTrustResourceUrl(embedUrl);
     }
+    const fullUrl = this.getFullUrl(url);
+    console.log('Full video URL:', fullUrl);
     return this.sanitizer.bypassSecurityTrustResourceUrl(fullUrl);
   }
 
@@ -99,40 +113,6 @@ export class LessonViewComponent implements OnInit {
 
   isPdfVisible(id: number): boolean {
     return this.visiblePdfIds.has(id);
-  }
-
-  startEditingMedia(media: LessonMedia): void {
-    this.editingMediaId = media.id!;
-    this.editingMediaTitle = media.title || '';
-  }
-
-  cancelEditingMedia(): void {
-    this.editingMediaId = null;
-    this.editingMediaTitle = '';
-  }
-
-  saveMediaTitle(media: LessonMedia): void {
-    if (!this.editingMediaTitle.trim()) {
-      return;
-    }
-
-    const updatedMedia: LessonMedia = {
-      ...media,
-      title: this.editingMediaTitle.trim()
-    };
-
-    this.lessonMediaService.updateMedia(media.id!, updatedMedia).subscribe({
-      next: () => {
-        media.title = this.editingMediaTitle.trim();
-        this.editingMediaId = null;
-        this.editingMediaTitle = '';
-      },
-      error: (err) => console.error('Error updating media title:', err)
-    });
-  }
-
-  isEditingMedia(id: number): boolean {
-    return this.editingMediaId === id;
   }
 
   getFullUrl(url: string): string {

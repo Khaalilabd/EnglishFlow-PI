@@ -619,19 +619,9 @@ export const routes: Routes = [
         title: 'Category Management | Jungle in English Dashboard'
       },
       {
-        path: 'packs',
-        loadComponent: () => import('./pages/academic-panel/pack-management/pack-management.component').then(m => m.PackManagementComponent),
-        title: 'Pack Management | Jungle in English Dashboard'
-      },
-      {
-        path: 'packs/create',
-        loadComponent: () => import('./pages/academic-panel/pack-create/pack-create.component').then(m => m.PackCreateComponent),
-        title: 'Create Pack | Jungle in English Dashboard'
-      },
-      {
-        path: 'packs/edit/:id',
-        loadComponent: () => import('./pages/academic-panel/pack-create/pack-create.component').then(m => m.PackCreateComponent),
-        title: 'Edit Pack | Jungle in English Dashboard'
+        path: 'course-status',
+        loadComponent: () => import('./pages/dashboard/course-status-management/course-status-management.component').then(m => m.CourseStatusManagementComponent),
+        title: 'Course Status Management | Jungle in English Dashboard'
       },
       {
         path: 'courses',
@@ -652,6 +642,26 @@ export const routes: Routes = [
         path: 'courses/:id/edit',
         loadComponent: () => import('./pages/courses/courses-update/courses-update.component').then(m => m.CoursesUpdateComponent),
         title: 'Edit Course | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs',
+        loadComponent: () => import('./pages/dashboard/pack-management/pack-management.component').then(m => m.PackManagementComponent),
+        title: 'Pack Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs/create',
+        loadComponent: () => import('./pages/dashboard/pack-create/pack-create.component').then(m => m.PackCreateComponent),
+        title: 'Create Pack | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs/edit/:id',
+        loadComponent: () => import('./pages/dashboard/pack-create/pack-create.component').then(m => m.PackCreateComponent),
+        title: 'Edit Pack | Jungle in English Dashboard'
+      },
+      {
+        path: 'packs/:id',
+        loadComponent: () => import('./pages/dashboard/pack-details/pack-details.component').then(m => m.PackDetailsComponent),
+        title: 'Pack Details | Jungle in English Dashboard'
       },
       {
         path: 'courses/:courseId/chapters',

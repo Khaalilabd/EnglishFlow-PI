@@ -131,7 +131,7 @@ export class RegisterComponent {
       case 2:
         return !!(this.cin?.valid && this.dateOfBirth?.valid);
       case 3:
-        return !!(this.englishLevel?.valid && this.recaptchaToken); // Require reCAPTCHA
+        return !!(this.englishLevel?.valid); // reCAPTCHA disabled
       default:
         return false;
     }
@@ -143,8 +143,8 @@ export class RegisterComponent {
   }
 
   onSubmit(): void {
-    if (this.registerForm.invalid || !this.recaptchaToken) {
-      this.errorMessage = 'Please complete the reCAPTCHA verification';
+    if (this.registerForm.invalid) {
+      this.errorMessage = 'Please fill in all required fields';
       return;
     }
 
@@ -152,10 +152,10 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.validationErrors = [];
 
-    // Add recaptcha token to form data
+    // reCAPTCHA disabled for development - send empty token
     const formData = {
       ...this.registerForm.value,
-      recaptchaToken: this.recaptchaToken
+      recaptchaToken: ''
     };
 
     this.authService.register(formData).subscribe({
@@ -164,7 +164,7 @@ export class RegisterComponent {
         
         // Rediriger vers la page HTML backend avec animation (via API Gateway)
         if (this.registerForm.get('role')?.value === 'STUDENT') {
-          window.location.href = `http://localhost:8080/activation-pending?email=${encodeURIComponent(this.registerForm.get('email')?.value)}&firstName=${encodeURIComponent(this.registerForm.get('firstName')?.value)}`;
+          window.location.href = `http://localhost:8088/activation-pending?email=${encodeURIComponent(this.registerForm.get('email')?.value)}&firstName=${encodeURIComponent(this.registerForm.get('firstName')?.value)}`;
         } else {
           // Pour TUTOR/ACADEMIC: rediriger vers la page Angular statique (activation par admin)
           this.router.navigate(['/activation-pending'], {
@@ -269,9 +269,7 @@ export class RegisterComponent {
       if (this.englishLevel?.invalid && this.englishLevel?.touched) {
         errors.push('Please select your English level');
       }
-      if (!this.recaptchaToken) {
-        errors.push('Please complete the reCAPTCHA verification');
-      }
+      // reCAPTCHA disabled for development
     }
     
     return errors;

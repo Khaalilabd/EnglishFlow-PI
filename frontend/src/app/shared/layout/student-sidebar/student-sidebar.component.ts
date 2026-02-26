@@ -59,11 +59,23 @@ export class StudentSidebarComponent {
       icon: '📚',
       items: [
         {
+          icon: 'fas fa-shopping-bag',
+          name: "Browse Packs",
+          path: "/user-panel/pack-catalog",
+          badge: "New",
+          badgeColor: "bg-purple-500"
+        },
+        {
           icon: 'fas fa-box',
           name: "My Packs",
           path: "/user-panel/my-packs",
           badge: "New",
           badgeColor: "bg-green-500"
+        },
+        {
+          icon: 'fas fa-search',
+          name: "Course Catalog",
+          path: "/user-panel/course-catalog",
         },
         {
           icon: 'fas fa-book',

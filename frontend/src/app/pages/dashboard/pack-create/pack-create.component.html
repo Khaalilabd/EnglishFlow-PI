@@ -22,7 +22,7 @@
         <svg *ngIf="!saving" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>
-        <span *ngIf="saving" class="animate-spin mr-2">⏳</span>
+        <span *ngIf="saving" class="animate-spin mr-2">GŦ</span>
         {{ saving ? 'Saving...' : (isEditMode ? 'Update Pack' : 'Create Pack') }}
       </button>
     </div>
@@ -342,8 +342,8 @@
               [ngClass]="{
                 'bg-gray-100 text-gray-800': pack.status === 'DRAFT',
                 'bg-green-100 text-green-800': pack.status === 'ACTIVE',
-                'bg-orange-100 text-orange-800': pack.status === 'FULL',
-                'bg-red-100 text-red-800': pack.status === 'CLOSED'
+                'bg-orange-100 text-orange-800': pack.status === 'INACTIVE',
+                'bg-red-100 text-red-800': pack.status === 'ARCHIVED'
               }">
               {{ pack.status }}
             </span>
@@ -358,7 +358,7 @@
             <svg *ngIf="!saving" class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
             </svg>
-            <span *ngIf="saving" class="animate-spin mr-2">⏳</span>
+            <span *ngIf="saving" class="animate-spin mr-2">GŦ</span>
             {{ saving ? 'Saving...' : (isEditMode ? 'Update Pack' : 'Create Pack') }}
           </button>
         </div>
@@ -366,3 +366,4 @@
     </div>
   </div>
 </div>
+

@@ -62,10 +62,10 @@ export class LoginComponent implements OnInit {
     this.loading = true;
     this.errorMessage = '';
 
-    // Add recaptcha token to login data (use test token if not provided)
+    // reCAPTCHA disabled for development - send empty token
     const loginData = {
       ...this.loginForm.value,
-      recaptchaToken: this.recaptchaToken || 'test-token'
+      recaptchaToken: ''
     };
 
     this.authService.login(loginData).subscribe({

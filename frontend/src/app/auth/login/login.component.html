@@ -148,8 +148,8 @@
                 </div>
               </div>
 
-              <!-- reCAPTCHA -->
-              <div class="flex justify-center my-2">
+              <!-- reCAPTCHA - Disabled for development -->
+              <!-- <div class="flex justify-center my-2">
                 <div class="bg-white rounded-lg p-2 shadow-sm border border-gray-200 transform scale-75 origin-center">
                   <re-captcha
                     [siteKey]="siteKey"
@@ -157,12 +157,12 @@
                     size="normal"
                   ></re-captcha>
                 </div>
-              </div>
+              </div> -->
 
               <!-- Submit Button -->
               <button 
                 type="submit" 
-                [disabled]="loading || loginForm.invalid || !recaptchaToken"
+                [disabled]="loading || loginForm.invalid"
                 [class.from-blue-500]="selectedRole === 'STUDENT'"
                 [class.to-blue-600]="selectedRole === 'STUDENT'"
                 [class.from-amber-500]="selectedRole === 'TEACHER'"

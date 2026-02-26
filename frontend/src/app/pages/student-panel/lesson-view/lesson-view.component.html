@@ -72,7 +72,7 @@
         <!-- Media Content -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <!-- Videos -->
-          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === 'VIDEO'">
+          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === LessonType.VIDEO">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -85,45 +85,9 @@
               <div *ngFor="let media of mediaItems; let i = index" class="space-y-3">
                 <div *ngIf="media.mediaType === 'VIDEO'" class="space-y-2">
                   <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-2 flex-1">
-                      <h3 *ngIf="!isEditingMedia(media.id!)" class="font-semibold text-gray-900 dark:text-white">
-                        {{ media.title || 'Video ' + (i + 1) }}
-                      </h3>
-                      <input 
-                        *ngIf="isEditingMedia(media.id!)"
-                        [(ngModel)]="editingMediaTitle"
-                        (keyup.enter)="saveMediaTitle(media)"
-                        (keyup.escape)="cancelEditingMedia()"
-                        class="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                        placeholder="Enter video title">
-                      <button 
-                        *ngIf="!isEditingMedia(media.id!)"
-                        (click)="startEditingMedia(media)"
-                        class="p-1.5 text-gray-500 hover:text-primary transition-colors"
-                        title="Rename video">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                        </svg>
-                      </button>
-                      <div *ngIf="isEditingMedia(media.id!)" class="flex items-center gap-1">
-                        <button 
-                          (click)="saveMediaTitle(media)"
-                          class="p-1.5 text-green-600 hover:text-green-700 transition-colors"
-                          title="Save">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                          </svg>
-                        </button>
-                        <button 
-                          (click)="cancelEditingMedia()"
-                          class="p-1.5 text-red-600 hover:text-red-700 transition-colors"
-                          title="Cancel">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
+                    <h3 class="font-semibold text-gray-900 dark:text-white">
+                      {{ media.title || 'Video ' + (i + 1) }}
+                    </h3>
                     <span class="text-sm text-gray-500 dark:text-gray-400">{{ i + 1 }} of {{ mediaItems.length }}</span>
                   </div>
                   <p *ngIf="media.description" class="text-sm text-gray-600 dark:text-gray-400">{{ media.description }}</p>
@@ -151,7 +115,7 @@
           </div>
 
           <!-- Documents -->
-          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === 'DOCUMENT'">
+          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === LessonType.DOCUMENT">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-pink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,45 +127,9 @@
             <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
               <div *ngFor="let media of mediaItems; let i = index">
                 <div *ngIf="media.mediaType === 'DOCUMENT'" class="space-y-2">
-                  <div class="flex items-center gap-2">
-                    <h3 *ngIf="!isEditingMedia(media.id!) && media.title" class="font-semibold text-gray-900 dark:text-white">
-                      {{ media.title }}
-                    </h3>
-                    <input 
-                      *ngIf="isEditingMedia(media.id!)"
-                      [(ngModel)]="editingMediaTitle"
-                      (keyup.enter)="saveMediaTitle(media)"
-                      (keyup.escape)="cancelEditingMedia()"
-                      class="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                      placeholder="Enter image title">
-                    <button 
-                      *ngIf="!isEditingMedia(media.id!)"
-                      (click)="startEditingMedia(media)"
-                      class="p-1.5 text-gray-500 hover:text-primary transition-colors"
-                      title="Rename image">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                      </svg>
-                    </button>
-                    <div *ngIf="isEditingMedia(media.id!)" class="flex items-center gap-1">
-                      <button 
-                        (click)="saveMediaTitle(media)"
-                        class="p-1.5 text-green-600 hover:text-green-700 transition-colors"
-                        title="Save">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                        </svg>
-                      </button>
-                      <button 
-                        (click)="cancelEditingMedia()"
-                        class="p-1.5 text-red-600 hover:text-red-700 transition-colors"
-                        title="Cancel">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
+                  <h3 *ngIf="media.title" class="font-semibold text-gray-900 dark:text-white">
+                    {{ media.title }}
+                  </h3>
                   <p *ngIf="media.description" class="text-sm text-gray-600 dark:text-gray-400">{{ media.description }}</p>
                   <img 
                     [src]="getFullUrl(media.url)" 
@@ -214,7 +142,7 @@
           </div>
 
           <!-- Files (PDF) -->
-          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === 'DOCUMENT'">
+          <div *ngIf="mediaItems.length > 0 && lesson.lessonType === LessonType.DOCUMENT">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -234,45 +162,9 @@
                         </svg>
                       </div>
                       <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                          <h3 *ngIf="!isEditingMedia(media.id!)" class="font-semibold text-gray-900 dark:text-white">
-                            {{ media.title || 'Document ' + (i + 1) }}
-                          </h3>
-                          <input 
-                            *ngIf="isEditingMedia(media.id!)"
-                            [(ngModel)]="editingMediaTitle"
-                            (keyup.enter)="saveMediaTitle(media)"
-                            (keyup.escape)="cancelEditingMedia()"
-                            class="flex-1 px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-primary focus:border-transparent"
-                            placeholder="Enter file title">
-                          <button 
-                            *ngIf="!isEditingMedia(media.id!)"
-                            (click)="startEditingMedia(media)"
-                            class="p-1.5 text-gray-500 hover:text-primary transition-colors"
-                            title="Rename file">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                            </svg>
-                          </button>
-                          <div *ngIf="isEditingMedia(media.id!)" class="flex items-center gap-1">
-                            <button 
-                              (click)="saveMediaTitle(media)"
-                              class="p-1.5 text-green-600 hover:text-green-700 transition-colors"
-                              title="Save">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                              </svg>
-                            </button>
-                            <button 
-                              (click)="cancelEditingMedia()"
-                              class="p-1.5 text-red-600 hover:text-red-700 transition-colors"
-                              title="Cancel">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                              </svg>
-                            </button>
-                          </div>
-                        </div>
+                        <h3 class="font-semibold text-gray-900 dark:text-white mb-1">
+                          {{ media.title || 'Document ' + (i + 1) }}
+                        </h3>
                         <p *ngIf="media.description" class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{ media.description }}</p>
                         <div class="flex items-center gap-3 mt-3">
                           <button 
@@ -315,7 +207,7 @@
           </div>
 
           <!-- Text Content -->
-          <div *ngIf="lesson.content && lesson.lessonType === 'TEXT'">
+          <div *ngIf="lesson.content && lesson.lessonType === LessonType.TEXT">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                 <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,0 +1,160 @@
+<div class="p-6">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Course Pack Management</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Create and manage course packs for students</p>
+  </div>
+
+  <!-- Filters and Actions -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4 mb-6">
+    <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+      <!-- Search -->
+      <div class="flex-1 w-full md:w-auto">
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search packs or tutors..."
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+        />
+      </div>
+
+      <!-- Status Filter -->
+      <select
+        [(ngModel)]="filterStatus"
+        (ngModelChange)="onFilterChange()"
+        class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+      >
+        <option value="ALL">All Status</option>
+        <option [value]="PackStatus.DRAFT">Draft</option>
+        <option [value]="PackStatus.ACTIVE">Active</option>
+        <option [value]="PackStatus.INACTIVE">Inactive</option>
+        <option [value]="PackStatus.ARCHIVED">Archived</option>
+      </select>
+
+      <!-- Create Button -->
+      <button
+        (click)="createNewPack()"
+        class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors flex items-center gap-2"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Create Pack
+      </button>
+    </div>
+  </div>
+
+  <!-- Packs Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div
+      *ngFor="let pack of filteredPacks"
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+    >
+      <!-- Pack Header -->
+      <div class="p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">{{ pack.name }}</h3>
+            <span [class]="'px-2 py-1 text-xs font-medium rounded-full ' + getStatusBadgeClass(pack.status)">
+              {{ pack.status }}
+            </span>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="viewPackDetails(pack.id!)"
+              class="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="View Details"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+            </button>
+            <button
+              (click)="editPack(pack.id!)"
+              class="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Edit"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </button>
+            <button
+              (click)="deletePack(pack.id!)"
+              class="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              title="Delete"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Pack Info -->
+        <div class="space-y-3">
+          <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+            </svg>
+            <span class="font-medium">{{ pack.tutorName }}</span>
+            <span *ngIf="pack.tutorRating" class="ml-2 text-yellow-500">★ {{ pack.tutorRating }}</span>
+          </div>
+
+          <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <span>{{ pack.coursesCount || pack.courseIds.length }} courses</span>
+            <span class="mx-2">•</span>
+            <span>{{ pack.category }}</span>
+            <span class="mx-2">•</span>
+            <span class="font-semibold">{{ pack.level }}</span>
+          </div>
+
+          <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>{{ pack.estimatedDuration }} hours</span>
+          </div>
+
+          <div class="flex items-center justify-between text-sm">
+            <span class="text-gray-600 dark:text-gray-400">
+              {{ pack.currentEnrolledStudents || 0 }} / {{ pack.maxStudents }} students
+            </span>
+            <span class="text-2xl font-bold text-blue-600">${{ pack.price }}</span>
+          </div>
+
+          <!-- Progress Bar -->
+          <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div
+              class="bg-blue-600 h-2 rounded-full transition-all"
+              [style.width.%]="pack.enrollmentPercentage || 0"
+            ></div>
+          </div>
+
+          <p *ngIf="pack.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+            {{ pack.description }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="filteredPacks.length === 0" class="text-center py-12">
+    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+    </svg>
+    <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No packs found</h3>
+    <p class="text-gray-600 dark:text-gray-400 mb-4">Create your first course pack to get started</p>
+    <button
+      (click)="createNewPack()"
+      class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+    >
+      Create Pack
+    </button>
+  </div>
+</div>

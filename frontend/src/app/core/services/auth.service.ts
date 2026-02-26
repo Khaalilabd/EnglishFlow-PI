@@ -123,7 +123,7 @@ export class AuthService {
     }
     
     // Utiliser l'endpoint /api/users/{id} via API Gateway
-    return this.http.put<AuthResponse>(`http://localhost:8080/api/users/${currentUser.id}`, data).pipe(
+    return this.http.put<AuthResponse>(`${environment.apiUrl}/users/${currentUser.id}`, data).pipe(
       tap(response => {
         // Mettre à jour le currentUser avec les nouvelles données
         const updated = {
@@ -137,11 +137,11 @@ export class AuthService {
 
   getAllUsers(): Observable<any[]> {
     // Appel via API Gateway (architecture microservices correcte)
-    return this.http.get<any[]>('http://localhost:8080/public/users');
+    return this.http.get<any[]>(`${environment.apiUrl.replace('/api', '')}/public/users`);
   }
 
   uploadProfilePhoto(userId: number, formData: FormData): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`http://localhost:8080/api/users/${userId}/profile-photo`, formData).pipe(
+    return this.http.post<AuthResponse>(`${environment.apiUrl}/users/${userId}/profile-photo`, formData).pipe(
       tap(response => {
         const currentUser = this.currentUserValue;
         if (currentUser) {
@@ -161,7 +161,7 @@ export class AuthService {
       throw new Error('No user logged in');
     }
     
-    return this.http.post(`http://localhost:8080/api/users/${currentUser.id}/change-password`, {
+    return this.http.post(`${environment.apiUrl}/users/${currentUser.id}/change-password`, {
       currentPassword,
       newPassword
     });

@@ -51,6 +51,9 @@ export class ChaptersUpdateComponent implements OnInit {
     this.chapterService.getChapterById(this.chapterId).subscribe({
       next: (chapter) => {
         this.chapterForm.patchValue(chapter);
+        // Mark form as pristine after loading to detect changes
+        this.chapterForm.markAsPristine();
+        this.chapterForm.markAsUntouched();
       },
       error: (err) => {
         this.error = 'Failed to load chapter';
