@@ -199,6 +199,11 @@ export const routes: Routes = [
         title: 'Complaints | Jungle in English'
       },
       {
+        path: 'complaints/:id',
+        loadComponent: () => import('./pages/student-panel/complaints/complaint-detail/complaint-detail.component').then(m => m.StudentComplaintDetailComponent),
+        title: 'Complaint Details | Jungle in English'
+      },
+      {
         path: 'complaints/edit/:id',
         loadComponent: () => import('./pages/student-panel/complaints/edit-complaint/edit-complaint.component').then(m => m.EditComplaintComponent),
         title: 'Edit Complaint | Jungle in English'

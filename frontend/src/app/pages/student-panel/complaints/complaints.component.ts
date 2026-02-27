@@ -431,6 +431,11 @@ export class ComplaintsComponent implements OnInit, OnDestroy {
     return complaint.responderRole;
   }
 
+  // Navigate to complaint detail page
+  viewComplaintDetails(id: number): void {
+    this.router.navigate(['/user-panel/complaints', id]);
+  }
+
   editComplaint(id: number): void {
     this.router.navigate(['/user-panel/complaints/edit', id]);
   }
