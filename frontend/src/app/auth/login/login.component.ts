@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { TwoFactorAuthService } from '../../services/two-factor-auth.service';
 import { LogoComponent } from '../../shared/components/logo.component';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -21,10 +22,17 @@ export class LoginComponent implements OnInit {
   recaptchaToken: string | null = null;
   siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
   showPassword = false;
+  
+  // 2FA related
+  show2FAModal = false;
+  twoFactorCode = '';
+  tempToken = '';
+  loading2FA = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private twoFactorService: TwoFactorAuthService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -72,6 +80,14 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login successful:', response);
         
+        // Check if 2FA is required
+        if (response.requires2FA && response.tempToken) {
+          this.tempToken = response.tempToken;
+          this.show2FAModal = true;
+          this.loading = false;
+          return;
+        }
+        
         // Vérifier si le profil est complet
         if (response.profileCompleted === false) {
           // Profil incomplet, rediriger vers complete-profile
@@ -110,5 +126,50 @@ export class LoginComponent implements OnInit {
 
   get password() {
     return this.loginForm.get('password');
+  }
+
+  verify2FA(): void {
+    if (!this.twoFactorCode || this.twoFactorCode.length !== 6) {
+      this.errorMessage = 'Please enter a valid 6-digit code';
+      return;
+    }
+
+    this.loading2FA = true;
+    this.errorMessage = '';
+
+    this.twoFactorService.verifyTwoFactorLogin(this.tempToken, this.twoFactorCode).subscribe({
+      next: (response) => {
+        console.log('2FA verification successful:', response);
+        
+        // Store the tokens and user data
+        this.authService.updateCurrentUser(response);
+        localStorage.setItem('token', response.token);
+        if (response.refreshToken) {
+          localStorage.setItem('refreshToken', response.refreshToken);
+        }
+        
+        // Redirect based on role
+        if (response.role === 'ADMIN') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (error) => {
+        console.error('2FA verification error:', error);
+        this.errorMessage = error.error?.message || 'Invalid verification code';
+        this.loading2FA = false;
+      },
+      complete: () => {
+        this.loading2FA = false;
+      }
+    });
+  }
+
+  cancel2FA(): void {
+    this.show2FAModal = false;
+    this.twoFactorCode = '';
+    this.tempToken = '';
+    this.errorMessage = '';
   }
 }

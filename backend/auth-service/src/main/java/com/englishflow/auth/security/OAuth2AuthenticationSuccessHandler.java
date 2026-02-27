@@ -31,6 +31,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
     private final com.englishflow.auth.service.UserSessionService userSessionService;
+    private final com.englishflow.auth.service.TwoFactorAuthService twoFactorAuthService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -90,6 +91,24 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                     .queryParam("lastName", user.getLastName())
                     .build().toUriString();
             
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            return;
+        }
+        
+        // Check if 2FA is enabled
+        if (twoFactorAuthService.isTwoFactorEnabled(user.getId())) {
+            log.info("2FA required for OAuth2 user: {}", user.getEmail());
+            
+            // Generate temporary token (valid for 5 minutes)
+            String tempToken = jwtUtil.generateTempToken(user.getEmail(), user.getId());
+            
+            // Redirect to frontend 2FA verification page
+            String targetUrl = UriComponentsBuilder.fromUriString(frontendUrl + "/auth/verify-2fa")
+                    .queryParam("tempToken", tempToken)
+                    .queryParam("email", user.getEmail())
+                    .build().toUriString();
+            
+            log.info("Redirecting OAuth2 user {} to 2FA verification", user.getEmail());
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
             return;
         }

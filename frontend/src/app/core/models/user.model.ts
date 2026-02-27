@@ -62,4 +62,6 @@ export interface AuthResponse {
   profileCompleted?: boolean;
   expiresIn?: number;
   refreshTokenExpiryDate?: string;
+  requires2FA?: boolean;
+  tempToken?: string;
 }
