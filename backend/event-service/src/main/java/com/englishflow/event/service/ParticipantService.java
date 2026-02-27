@@ -6,10 +6,13 @@ import com.englishflow.event.entity.Participant;
 import com.englishflow.event.exception.AlreadyParticipantException;
 import com.englishflow.event.exception.EventFullException;
 import com.englishflow.event.exception.ResourceNotFoundException;
+import com.englishflow.event.mapper.ParticipantMapper;
 import com.englishflow.event.repository.EventRepository;
 import com.englishflow.event.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,61 +26,68 @@ public class ParticipantService {
     
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
+    private final ParticipantMapper participantMapper;
     
+    @CacheEvict(value = {"participants", "eventById"}, allEntries = true)
     @Transactional
     public ParticipantDTO joinEvent(Integer eventId, Long userId) {
+        log.info("User {} joining event {}", userId, eventId);
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
         
-        // Check if user is already a participant
         if (participantRepository.existsByEventIdAndUserId(eventId, userId)) {
+            log.warn("User {} already registered for event {}", userId, eventId);
             throw new AlreadyParticipantException("User is already registered for this event");
         }
         
-        // Check if event is full
         long currentCount = participantRepository.countByEventId(eventId);
         if (currentCount >= event.getMaxParticipants()) {
+            log.warn("Event {} is full", eventId);
             throw new EventFullException("Event is full. Maximum participants reached.");
         }
         
-        // Create participant
         Participant participant = new Participant();
         participant.setEvent(event);
         participant.setUserId(userId);
         
         Participant savedParticipant = participantRepository.save(participant);
         
-        // Update current participants count
         event.setCurrentParticipants((int) (currentCount + 1));
         eventRepository.save(event);
         
-        return convertToDTO(savedParticipant);
+        log.info("User {} successfully joined event {}", userId, eventId);
+        return participantMapper.toDTO(savedParticipant);
     }
     
+    @CacheEvict(value = {"participants", "eventById"}, allEntries = true)
     @Transactional
     public void leaveEvent(Integer eventId, Long userId) {
+        log.info("User {} leaving event {}", userId, eventId);
         Participant participant = participantRepository.findByEventIdAndUserId(eventId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Participant not found"));
         
         participantRepository.delete(participant);
         
-        // Update current participants count
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
         
         long currentCount = participantRepository.countByEventId(eventId);
         event.setCurrentParticipants((int) currentCount);
         eventRepository.save(event);
+        
+        log.info("User {} successfully left event {}", userId, eventId);
     }
     
+    @Cacheable(value = "participants", key = "'event-' + #eventId")
     @Transactional(readOnly = true)
     public List<ParticipantDTO> getEventParticipants(Integer eventId) {
+        log.debug("Fetching participants for event: {}", eventId);
         if (!eventRepository.existsById(eventId)) {
             throw new ResourceNotFoundException("Event not found with id: " + eventId);
         }
         
         return participantRepository.findByEventId(eventId).stream()
-                .map(this::convertToDTO)
+                .map(participantMapper::toDTO)
                 .collect(Collectors.toList());
     }
     
@@ -88,7 +98,7 @@ public class ParticipantService {
             List<Participant> participants = participantRepository.findByUserId(userId);
             log.info("Found {} participants for user {}", participants.size(), userId);
             return participants.stream()
-                    .map(this::convertToDTO)
+                    .map(participantMapper::toDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching events for user: {}", userId, e);
@@ -99,14 +109,5 @@ public class ParticipantService {
     @Transactional(readOnly = true)
     public boolean isUserParticipant(Integer eventId, Long userId) {
         return participantRepository.existsByEventIdAndUserId(eventId, userId);
-    }
-    
-    private ParticipantDTO convertToDTO(Participant participant) {
-        ParticipantDTO dto = new ParticipantDTO();
-        dto.setId(participant.getId());
-        dto.setEventId(participant.getEvent().getId());
-        dto.setUserId(participant.getUserId());
-        dto.setJoinDate(participant.getJoinDate());
-        return dto;
     }
 }

@@ -13,7 +13,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "events")
+@Table(name = "events", indexes = {
+    @Index(name = "idx_event_type", columnList = "type"),
+    @Index(name = "idx_event_date", columnList = "eventDate"),
+    @Index(name = "idx_event_status", columnList = "status"),
+    @Index(name = "idx_event_creator", columnList = "creatorId")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

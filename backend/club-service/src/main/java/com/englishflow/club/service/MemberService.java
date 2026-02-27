@@ -4,58 +4,70 @@ import com.englishflow.club.dto.MemberDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Member;
 import com.englishflow.club.enums.RankType;
+import com.englishflow.club.exception.*;
+import com.englishflow.club.mapper.MemberMapper;
 import com.englishflow.club.repository.ClubRepository;
 import com.englishflow.club.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
     
     private final MemberRepository memberRepository;
     private final ClubRepository clubRepository;
+    private final MemberMapper memberMapper;
     
+    @Cacheable(value = "members", key = "'club-' + #clubId")
     @Transactional(readOnly = true)
     public List<MemberDTO> getMembersByClub(Integer clubId) {
+        log.debug("Fetching members for club: {}", clubId);
         return memberRepository.findByClubId(clubId).stream()
-                .map(this::convertToDTO)
+                .map(memberMapper::toDTO)
                 .collect(Collectors.toList());
     }
     
     @Transactional(readOnly = true)
     public List<MemberDTO> getMembersByUser(Long userId) {
+        log.debug("Fetching memberships for user: {}", userId);
         try {
             List<Member> members = memberRepository.findByUserId(userId);
             return members.stream()
-                    .map(this::convertToDTO)
+                    .map(memberMapper::toDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
+            log.error("Error fetching members for user {}: {}", userId, e.getMessage(), e);
             throw new RuntimeException("Error fetching members for user " + userId + ": " + e.getMessage(), e);
         }
     }
     
+    @CacheEvict(value = "members", key = "'club-' + #clubId")
     @Transactional
     public MemberDTO addMemberToClub(Integer clubId, Long userId) {
-        // Check if club exists
+        log.info("Adding user {} to club {}", userId, clubId);
+        
         Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("Club not found with id: " + clubId));
+                .orElseThrow(() -> new ClubNotFoundException(clubId));
         
-        // Check if club is full
         if (club.isFull()) {
-            throw new RuntimeException("Club is full. Maximum members: " + club.getMaxMembers());
+            log.warn("Club {} is full. Cannot add user {}", clubId, userId);
+            throw new ClubFullException(club.getMaxMembers());
         }
         
-        // Check if user is already a member
         if (memberRepository.existsByClubIdAndUserId(clubId, userId)) {
-            throw new RuntimeException("User is already a member of this club");
+            log.warn("User {} is already a member of club {}", userId, clubId);
+            throw new DuplicateMemberException("User is already a member of this club");
         }
         
-        // Create new member with default rank MEMBER
         Member member = Member.builder()
                 .club(club)
                 .userId(userId)
@@ -63,21 +75,23 @@ public class MemberService {
                 .build();
         
         Member savedMember = memberRepository.save(member);
-        return convertToDTO(savedMember);
+        log.info("User {} successfully added to club {}", userId, clubId);
+        return memberMapper.toDTO(savedMember);
     }
     
+    @CacheEvict(value = "members", key = "'club-' + #clubId")
     @Transactional
     public MemberDTO addPresidentToClub(Integer clubId, Long userId) {
-        // Check if club exists
-        Club club = clubRepository.findById(clubId)
-                .orElseThrow(() -> new RuntimeException("Club not found with id: " + clubId));
+        log.info("Adding user {} as president to club {}", userId, clubId);
         
-        // Check if user is already a member
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubNotFoundException(clubId));
+        
         if (memberRepository.existsByClubIdAndUserId(clubId, userId)) {
-            throw new RuntimeException("User is already a member of this club");
+            log.warn("User {} is already a member of club {}", userId, clubId);
+            throw new DuplicateMemberException("User is already a member of this club");
         }
         
-        // Create new member with PRESIDENT rank
         Member member = Member.builder()
                 .club(club)
                 .userId(userId)
@@ -85,57 +99,37 @@ public class MemberService {
                 .build();
         
         Member savedMember = memberRepository.save(member);
-        return convertToDTO(savedMember);
+        log.info("User {} successfully added as president to club {}", userId, clubId);
+        return memberMapper.toDTO(savedMember);
     }
     
+    @CacheEvict(value = "members", allEntries = true)
     @Transactional
     public MemberDTO updateMemberRank(Integer memberId, RankType newRank, Long requesterId) {
-        System.out.println("📝 MemberService.updateMemberRank - START");
-        System.out.println("   memberId: " + memberId);
-        System.out.println("   newRank: " + newRank);
-        System.out.println("   requesterId: " + requesterId);
+        log.info("Updating rank for member {} to {} by user {}", memberId, newRank, requesterId);
         
         Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found with id: " + memberId));
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
         
-        System.out.println("👤 Found member:");
-        System.out.println("   member.id: " + member.getId());
-        System.out.println("   member.userId: " + member.getUserId());
-        System.out.println("   member.currentRank: " + member.getRank());
-        System.out.println("   member.clubId: " + member.getClub().getId());
-        
-        // Check if requester is the president of the club
-        boolean isPresidentCheck = isPresident(member.getClub().getId(), requesterId);
-        System.out.println("🔐 Authorization check:");
-        System.out.println("   requesterId: " + requesterId);
-        System.out.println("   clubId: " + member.getClub().getId());
-        System.out.println("   isPresident: " + isPresidentCheck);
-        
-        if (!isPresidentCheck) {
-            System.err.println("❌ Authorization failed: Requester is not president");
-            throw new RuntimeException("Only the president can change member ranks");
+        if (!isPresident(member.getClub().getId(), requesterId)) {
+            log.warn("Unauthorized rank update attempt by user {} on member {}", requesterId, memberId);
+            throw new UnauthorizedException("Only the president can change member ranks");
         }
         
         // Prevent changing the rank if this is the only president
         if (member.getRank() == RankType.PRESIDENT && newRank != RankType.PRESIDENT) {
             long presidentCount = memberRepository.findByClubIdAndRank(member.getClub().getId(), RankType.PRESIDENT).size();
-            System.out.println("👑 President count check: " + presidentCount);
             if (presidentCount <= 1) {
-                System.err.println("❌ Cannot remove last president");
-                throw new RuntimeException("Cannot change the rank of the last president. Assign another president first.");
+                log.warn("Cannot remove last president from club {}", member.getClub().getId());
+                throw new UnauthorizedException("Cannot change the rank of the last president. Assign another president first.");
             }
         }
         
-        System.out.println("🔄 Updating rank from " + member.getRank() + " to " + newRank);
         member.setRank(newRank);
         Member updatedMember = memberRepository.save(member);
         
-        System.out.println("✅ Member rank updated successfully:");
-        System.out.println("   member.id: " + updatedMember.getId());
-        System.out.println("   member.newRank: " + updatedMember.getRank());
-        System.out.println("   member.updatedAt: " + updatedMember.getUpdatedAt());
-        
-        return convertToDTO(updatedMember);
+        log.info("Member {} rank updated successfully to {}", memberId, newRank);
+        return memberMapper.toDTO(updatedMember);
     }
     
     @Transactional(readOnly = true)
@@ -150,29 +144,36 @@ public class MemberService {
         return memberRepository.existsByClubIdAndUserId(clubId, userId);
     }
     
+    @CacheEvict(value = "members", key = "'club-' + #member.club.id")
     @Transactional
     public void removeMemberFromClub(Integer memberId, Long requesterId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new RuntimeException("Member not found with id: " + memberId));
+        log.info("Removing member {} by user {}", memberId, requesterId);
         
-        // Check if requester is the president of the club
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberNotFoundException(memberId));
+        
         if (!isPresident(member.getClub().getId(), requesterId)) {
-            throw new RuntimeException("Only the president can remove members");
+            log.warn("Unauthorized member removal attempt by user {}", requesterId);
+            throw new UnauthorizedException("Only the president can remove members");
         }
         
-        // Prevent removing the president
         if (member.getRank() == RankType.PRESIDENT) {
-            throw new RuntimeException("Cannot remove the president from the club");
+            log.warn("Attempt to remove president from club {}", member.getClub().getId());
+            throw new UnauthorizedException("Cannot remove the president from the club");
         }
         
         memberRepository.deleteById(memberId);
+        log.info("Member {} removed successfully", memberId);
     }
     
+    @CacheEvict(value = "members", key = "'club-' + #clubId")
     @Transactional
     public void removeMemberByUserAndClub(Integer clubId, Long userId) {
+        log.info("Removing user {} from club {}", userId, clubId);
         Member member = memberRepository.findByClubIdAndUserId(clubId, userId)
-                .orElseThrow(() -> new RuntimeException("Member not found"));
+                .orElseThrow(() -> new MemberNotFoundException("Member not found"));
         memberRepository.delete(member);
+        log.info("User {} removed from club {}", userId, clubId);
     }
     
     @Transactional(readOnly = true)
@@ -182,6 +183,7 @@ public class MemberService {
 
     @Transactional(readOnly = true)
     public List<com.englishflow.club.dto.ClubWithRoleDTO> getUserClubsWithStatus(Long userId) {
+        log.debug("Fetching clubs with status for user: {}", userId);
         List<Member> members = memberRepository.findByUserId(userId);
         return members.stream()
                 .map(member -> {
@@ -205,20 +207,5 @@ public class MemberService {
                             .build();
                 })
                 .collect(Collectors.toList());
-    }
-
-    
-    private MemberDTO convertToDTO(Member member) {
-        try {
-            return MemberDTO.builder()
-                    .id(member.getId())
-                    .rank(member.getRank())
-                    .clubId(member.getClub() != null ? member.getClub().getId() : null)
-                    .userId(member.getUserId())
-                    .joinedAt(member.getJoinedAt())
-                    .build();
-        } catch (Exception e) {
-            throw new RuntimeException("Error converting member to DTO: " + e.getMessage(), e);
-        }
     }
 }

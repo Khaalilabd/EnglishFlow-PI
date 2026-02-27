@@ -1,5 +1,6 @@
 package com.englishflow.event.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -11,11 +12,13 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        log.error("Resource not found: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
@@ -38,11 +41,13 @@ public class GlobalExceptionHandler {
         response.put("errors", errors);
         response.put("timestamp", LocalDateTime.now());
         
+        log.error("Validation failed: {}", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
     
     @ExceptionHandler(EventFullException.class)
     public ResponseEntity<ErrorResponse> handleEventFullException(EventFullException ex) {
+        log.error("Event full: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.BAD_REQUEST.value(),
                 ex.getMessage(),
@@ -53,6 +58,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(AlreadyParticipantException.class)
     public ResponseEntity<ErrorResponse> handleAlreadyParticipantException(AlreadyParticipantException ex) {
+        log.error("Already participant: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
@@ -63,6 +69,7 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<ErrorResponse> handleUnauthorizedException(UnauthorizedException ex) {
+        log.error("Unauthorized: {}", ex.getMessage());
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.FORBIDDEN.value(),
                 ex.getMessage(),
@@ -73,12 +80,11 @@ public class GlobalExceptionHandler {
     
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex) {
-        // Log the full stack trace for debugging
-        ex.printStackTrace();
+        log.error("Unexpected error: {}", ex.getMessage(), ex);
         
         ErrorResponse error = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "An unexpected error occurred: " + ex.getMessage(),
+                "An unexpected error occurred",
                 LocalDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
