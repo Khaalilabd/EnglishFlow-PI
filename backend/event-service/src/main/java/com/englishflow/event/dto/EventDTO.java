@@ -42,6 +42,8 @@ public class EventDTO {
     
     private String image;
     
+    private java.util.List<String> gallery; // Gallery of base64 encoded images
+    
     private EventStatus status;
     
     private LocalDateTime createdAt;

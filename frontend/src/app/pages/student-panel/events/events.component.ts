@@ -363,7 +363,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       eventDate: '',
       location: '',
       maxParticipants: 10,
-      description: ''
+      description: '',
+      gallery: [] // Initialize empty gallery
     };
     this.showModal = true;
   }
@@ -390,10 +391,15 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.eventForm.creatorId = this.currentUserId;
     }
 
+    // Log gallery before saving
+    console.log('💾 Saving event with gallery:', this.eventForm.gallery);
+    console.log('📊 Gallery length:', this.eventForm.gallery?.length || 0);
+
     if (this.isEditMode && this.eventForm.id) {
       const eventId = this.eventForm.id;
       this.eventService.updateEvent(eventId, this.eventForm).subscribe({
         next: (updatedEvent) => {
+          console.log('✅ Event updated, gallery in response:', updatedEvent.gallery);
           alert('Event updated successfully!');
           this.closeModal();
           
@@ -413,7 +419,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       });
     } else {
       this.eventService.createEvent(this.eventForm).subscribe({
-        next: () => {
+        next: (createdEvent) => {
+          console.log('✅ Event created, gallery in response:', createdEvent.gallery);
           alert('Event created successfully!');
           this.closeModal();
           this.loadEvents();
@@ -574,6 +581,76 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   removeImage() {
     this.eventForm.image = undefined;
+  }
+
+  // Gallery management
+  onGalleryImageSelected(evt: any) {
+    const input = evt.target as HTMLInputElement;
+    console.log('📸 Gallery image selection triggered');
+    console.log('📁 Files selected:', input.files?.length || 0);
+    
+    if (input.files && input.files.length > 0) {
+      const files = Array.from(input.files);
+      console.log('📋 Processing files:', files.length);
+      
+      // Initialize gallery array if it doesn't exist
+      if (!this.eventForm.gallery) {
+        this.eventForm.gallery = [];
+        console.log('🆕 Gallery array initialized');
+      }
+
+      // Process each file
+      files.forEach((file, index) => {
+        console.log(`🖼️ Processing file ${index + 1}:`, file.name, file.type, file.size);
+        
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          console.error('❌ Invalid file type:', file.type);
+          alert('Veuillez sélectionner uniquement des images');
+          return;
+        }
+
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          console.error('❌ File too large:', file.size);
+          alert('La taille de l\'image ne doit pas dépasser 2MB');
+          return;
+        }
+
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const base64 = e.target.result;
+          console.log(`✅ File ${index + 1} converted to base64, length:`, base64.length);
+          
+          if (this.eventForm.gallery) {
+            this.eventForm.gallery.push(base64);
+            console.log('📊 Gallery now has', this.eventForm.gallery.length, 'images');
+          }
+        };
+        reader.onerror = (error) => {
+          console.error('❌ Error reading file:', error);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  removeGalleryImage(index: number) {
+    if (this.eventForm.gallery) {
+      this.eventForm.gallery.splice(index, 1);
+    }
+  }
+
+  // Image modal for gallery
+  selectedGalleryImage: string | null = null;
+
+  openImageModal(image: string) {
+    this.selectedGalleryImage = image;
+  }
+
+  closeImageModal() {
+    this.selectedGalleryImage = null;
   }
 
   // Participants management

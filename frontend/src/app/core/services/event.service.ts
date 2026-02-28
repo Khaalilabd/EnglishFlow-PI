@@ -14,6 +14,7 @@ export interface Event {
   description?: string;
   creatorId?: number;
   image?: string;
+  gallery?: string[]; // Array of image URLs for gallery
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt?: string;
   updatedAt?: string;

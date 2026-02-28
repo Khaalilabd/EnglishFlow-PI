@@ -57,6 +57,11 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String image; // Base64 encoded image
     
+    @ElementCollection
+    @CollectionTable(name = "event_gallery", joinColumns = @JoinColumn(name = "event_id"))
+    @Column(name = "image_data", columnDefinition = "TEXT")
+    private List<String> gallery = new ArrayList<>(); // Gallery of base64 encoded images
+    
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventStatus status = EventStatus.PENDING;

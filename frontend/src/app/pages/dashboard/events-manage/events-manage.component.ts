@@ -10,13 +10,12 @@ import { EventService, Event } from '../../../core/services/event.service';
 })
 export class EventsManageComponent implements OnInit {
   allEvents: Event[] = [];
-  pendingEvents: Event[] = [];
-  approvedEvents: Event[] = [];
-  rejectedEvents: Event[] = [];
-  
-  selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
+  
+  // Modal state
+  showDetailsModal = false;
+  selectedEvent: Event | null = null;
 
   eventTypeIcons: { [key: string]: string } = {
     'WORKSHOP': '🛠️',
@@ -36,8 +35,8 @@ export class EventsManageComponent implements OnInit {
 
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
-        this.allEvents = events;
-        this.categorizeEvents();
+        // Filtrer uniquement les événements créés (APPROVED et REJECTED)
+        this.allEvents = events.filter(e => e.status === 'APPROVED' || e.status === 'REJECTED');
         this.loading = false;
       },
       error: (err) => {
@@ -48,41 +47,27 @@ export class EventsManageComponent implements OnInit {
     });
   }
 
-  categorizeEvents() {
-    this.pendingEvents = this.allEvents.filter(e => e.status === 'PENDING');
-    this.approvedEvents = this.allEvents.filter(e => e.status === 'APPROVED');
-    this.rejectedEvents = this.allEvents.filter(e => e.status === 'REJECTED');
+  viewEventDetails(event: Event) {
+    this.selectedEvent = event;
+    this.showDetailsModal = true;
   }
 
-  approveEvent(eventId: number) {
-    if (confirm('Are you sure you want to approve this event?')) {
-      this.eventService.approveEvent(eventId).subscribe({
+  closeDetailsModal() {
+    this.showDetailsModal = false;
+    this.selectedEvent = null;
+  }
+
+  deleteEvent(eventId: number) {
+    if (confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
+      this.eventService.deleteEvent(eventId).subscribe({
         next: () => {
-          alert('Event approved successfully!');
-          // Notify that event status has changed
+          alert('Event deleted successfully!');
           this.eventService.notifyEventParticipationChanged();
           this.loadEvents();
         },
         error: (err) => {
-          console.error('Error approving event:', err);
-          alert('Failed to approve event. Please try again.');
-        }
-      });
-    }
-  }
-
-  rejectEvent(eventId: number) {
-    if (confirm('Are you sure you want to reject this event?')) {
-      this.eventService.rejectEvent(eventId).subscribe({
-        next: () => {
-          alert('Event rejected successfully!');
-          // Notify that event status has changed
-          this.eventService.notifyEventParticipationChanged();
-          this.loadEvents();
-        },
-        error: (err) => {
-          console.error('Error rejecting event:', err);
-          alert('Failed to reject event. Please try again.');
+          console.error('Error deleting event:', err);
+          alert('Failed to delete event. Please try again.');
         }
       });
     }

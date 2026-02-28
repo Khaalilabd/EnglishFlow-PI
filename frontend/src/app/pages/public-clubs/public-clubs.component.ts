@@ -42,6 +42,7 @@ export class PublicClubsComponent implements OnInit {
 
     this.clubService.getAllClubs().subscribe({
       next: (clubs) => {
+        // Ne pas filtrer les clubs suspendus, les afficher tous
         this.allClubs = clubs;
         this.filteredClubs = clubs;
         this.loading = false;

@@ -1,0 +1,91 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { EventService, Event } from '../../../core/services/event.service';
+
+@Component({
+  selector: 'app-events-requests',
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './events-requests.component.html'
+})
+export class EventsRequestsComponent implements OnInit {
+  pendingEvents: Event[] = [];
+  loading = false;
+  error: string | null = null;
+
+  eventTypeIcons: { [key: string]: string } = {
+    'WORKSHOP': '🛠️',
+    'SEMINAR': '📚',
+    'SOCIAL': '🎉'
+  };
+
+  constructor(private eventService: EventService) {}
+
+  ngOnInit() {
+    this.loadPendingEvents();
+  }
+
+  loadPendingEvents() {
+    this.loading = true;
+    this.error = null;
+
+    this.eventService.getAllEvents().subscribe({
+      next: (events) => {
+        this.pendingEvents = events.filter(e => e.status === 'PENDING');
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error loading pending events:', err);
+        this.error = 'Failed to load pending events. Please try again.';
+        this.loading = false;
+      }
+    });
+  }
+
+  approveEvent(eventId: number) {
+    if (confirm('Are you sure you want to approve this event?')) {
+      this.eventService.approveEvent(eventId).subscribe({
+        next: () => {
+          alert('Event approved successfully!');
+          this.eventService.notifyEventParticipationChanged();
+          this.loadPendingEvents();
+        },
+        error: (err) => {
+          console.error('Error approving event:', err);
+          alert('Failed to approve event. Please try again.');
+        }
+      });
+    }
+  }
+
+  rejectEvent(eventId: number) {
+    if (confirm('Are you sure you want to reject this event?')) {
+      this.eventService.rejectEvent(eventId).subscribe({
+        next: () => {
+          alert('Event rejected successfully!');
+          this.eventService.notifyEventParticipationChanged();
+          this.loadPendingEvents();
+        },
+        error: (err) => {
+          console.error('Error rejecting event:', err);
+          alert('Failed to reject event. Please try again.');
+        }
+      });
+    }
+  }
+
+  formatDate(dateString: string): string {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  getEventIcon(type: string): string {
+    return this.eventTypeIcons[type] || '📅';
+  }
+}

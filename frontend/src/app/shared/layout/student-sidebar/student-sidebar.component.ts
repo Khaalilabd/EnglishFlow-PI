@@ -447,105 +447,90 @@ export class StudentSidebarComponent {
     const userId = currentUser.id;
     console.log('Loading events for user ID:', userId);
     
-    // Load events created by the user AND events they joined
-    this.eventService.getEventsByCreator(userId).subscribe({
-      next: (createdEvents) => {
-        console.log('📚 Events created by user loaded:', createdEvents);
+    // Get user's participations (events the user has joined)
+    this.eventService.getUserEvents(userId).subscribe({
+      next: (participants) => {
+        console.log('📋 User participations loaded:', participants);
         
-        // Also load events the user joined
-        this.eventService.getUserEvents(userId).subscribe({
-          next: (participants) => {
-            console.log('📚 User participations loaded:', participants);
-            const joinedEventIds = participants.map(p => p.eventId);
+        // Get event IDs from participations
+        const participatedEventIds = participants.map(p => p.eventId);
+        
+        // Also get events created by the user
+        this.eventService.getAllEvents().subscribe({
+          next: (allEvents) => {
+            console.log('📚 All events loaded:', allEvents);
             
-            // Get all events to find the joined ones
-            this.eventService.getAllEvents().subscribe({
-              next: (allEvents) => {
-                const joinedEvents = allEvents.filter(e => e.id && joinedEventIds.includes(e.id));
-                console.log('📚 Joined events:', joinedEvents);
-                
-                // Combine created and joined events (remove duplicates)
-                const myEventsMap = new Map<number, any>();
-                
-                // Add created events
-                createdEvents.forEach(event => {
-                  if (event.id) {
-                    myEventsMap.set(event.id, {
-                      event: event,
-                      isCreator: true
-                    });
-                  }
-                });
-                
-                // Add joined events
-                joinedEvents.forEach(event => {
-                  if (event.id && !myEventsMap.has(event.id)) {
-                    myEventsMap.set(event.id, {
-                      event: event,
-                      isCreator: false
-                    });
-                  }
-                });
-                
-                const myEvents = Array.from(myEventsMap.values());
-                
-                if (myEvents.length === 0) {
-                  const communitySection = this.navSections.find(s => s.id === 'community');
-                  if (communitySection) {
-                    const eventsItem = communitySection.items.find(item => item.name === 'Events');
-                    if (eventsItem && eventsItem.subItems) {
-                      eventsItem.subItems = [
-                        { name: "No events yet", path: "/user-panel/events" }
-                      ];
-                    }
-                  }
-                  this.cdr.detectChanges();
-                  return;
+            // Filter events: created by user OR participated by user
+            const userEvents = allEvents.filter(event => 
+              event.creatorId === userId || participatedEventIds.includes(event.id!)
+            );
+            
+            console.log('🎯 User events (created or joined):', userEvents);
+            
+            if (userEvents.length === 0) {
+              const communitySection = this.navSections.find(s => s.id === 'community');
+              if (communitySection) {
+                const eventsItem = communitySection.items.find(item => item.name === 'Events');
+                if (eventsItem && eventsItem.subItems) {
+                  eventsItem.subItems = [
+                    { name: "No events yet", path: "/user-panel/events" }
+                  ];
                 }
-                
-                // Update events menu
-                const communitySection = this.navSections.find(s => s.id === 'community');
-                if (communitySection) {
-                  const eventsItem = communitySection.items.find(item => item.name === 'Events');
-                  if (eventsItem) {
-                    const newSubItems = myEvents.map(({ event, isCreator }) => {
-                      // Check if event is coming soon (more than 3 days away)
-                      const now = new Date();
-                      const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-                      const eventDate = new Date(event.eventDate);
-                      const isComingSoon = eventDate > threeDaysFromNow;
-                      
-                      let displayName = event.title;
-                      if (isCreator) {
-                        displayName = `👑 ${displayName}`;
-                      }
-                      
-                      return {
-                        name: displayName,
-                        path: `/user-panel/events/${event.id}`,
-                        badge: isComingSoon ? 'Soon' : undefined,
-                        badgeColor: 'bg-[#F6BD60]'
-                      };
-                    });
-                    eventsItem.subItems = newSubItems;
-                    console.log('✅ Updated events subItems:', newSubItems);
-                  }
-                }
-                this.cdr.markForCheck();
-                this.cdr.detectChanges();
-              },
-              error: (error) => {
-                console.error('Error loading all events:', error);
               }
-            });
+              this.cdr.detectChanges();
+              return;
+            }
+            
+            // Update events menu in the community section
+            const communitySection = this.navSections.find(s => s.id === 'community');
+            if (communitySection) {
+              const eventsItem = communitySection.items.find(item => item.name === 'Events');
+              if (eventsItem) {
+                // Create a completely new array to trigger change detection
+                const now = new Date();
+                const newSubItems = userEvents.map(event => {
+                  // Check if event is coming soon (within 3 days)
+                  const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+                  const eventDate = new Date(event.eventDate);
+                  const isComingSoon = eventDate <= threeDaysFromNow && eventDate > now;
+                  
+                  // Check if user is the creator
+                  const isCreator = event.creatorId === userId;
+                  
+                  console.log(`Event "${event.title}" (ID: ${event.id}): isComingSoon = ${isComingSoon}, isCreator = ${isCreator}`);
+                  return {
+                    name: event.title,
+                    path: `/user-panel/events/${event.id}`,
+                    badge: isComingSoon ? 'Soon' : (isCreator ? '👑' : undefined),
+                    badgeColor: isComingSoon ? 'bg-[#F6BD60]' : 'bg-amber-500'
+                  };
+                });
+                eventsItem.subItems = newSubItems;
+                console.log('✅ Updated events subItems:', newSubItems);
+                console.log('✅ Total events in submenu:', newSubItems.length);
+              }
+            }
+            // Force change detection
+            this.cdr.markForCheck();
+            this.cdr.detectChanges();
           },
           error: (error) => {
-            console.error('Error loading user participations:', error);
+            console.error('Error loading all events:', error);
+            const communitySection = this.navSections.find(s => s.id === 'community');
+            if (communitySection) {
+              const eventsItem = communitySection.items.find(item => item.name === 'Events');
+              if (eventsItem && eventsItem.subItems) {
+                eventsItem.subItems = [
+                  { name: "Error loading events", path: "/user-panel/events" }
+                ];
+              }
+            }
+            this.cdr.detectChanges();
           }
         });
       },
       error: (error) => {
-        console.error('Error loading user events:', error);
+        console.error('Error loading user participations:', error);
         const communitySection = this.navSections.find(s => s.id === 'community');
         if (communitySection) {
           const eventsItem = communitySection.items.find(item => item.name === 'Events');

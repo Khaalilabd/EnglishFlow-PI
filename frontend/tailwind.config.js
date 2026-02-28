@@ -47,6 +47,18 @@ module.exports = {
           800: '#ceb190',
           900: '#c19f78',
         },
+        // Couleurs de l'image de référence
+        burgundy: {
+          DEFAULT: '#7d3945',
+          light: '#8d4955',
+          dark: '#6d2e3a',
+          darker: '#5a1f28',
+        },
+        gold: {
+          DEFAULT: '#F4C790',
+          light: '#f7d5a8',
+          dark: '#e5b87f',
+        },
         accent: {
           navy: {
             DEFAULT: '#3D3D60',

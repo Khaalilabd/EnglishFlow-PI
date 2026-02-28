@@ -138,7 +138,7 @@ public class EventService {
         log.info("Event deleted successfully: {}", id);
     }
     
-    @CacheEvict(value = "eventById", key = "#id")
+    @CacheEvict(value = {"eventById", "events"}, allEntries = true)
     @Transactional
     public EventDTO approveEvent(Integer id) {
         log.info("Approving event id: {}", id);
@@ -151,7 +151,7 @@ public class EventService {
         return eventMapper.toDTO(updatedEvent);
     }
     
-    @CacheEvict(value = "eventById", key = "#id")
+    @CacheEvict(value = {"eventById", "events"}, allEntries = true)
     @Transactional
     public EventDTO rejectEvent(Integer id) {
         log.info("Rejecting event id: {}", id);

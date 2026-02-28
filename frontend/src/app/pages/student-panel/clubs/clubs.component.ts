@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/task.service';
 import { MemberService } from '../../../core/services/member.service';
 import { UserService } from '../../../core/services/user.service';
+import { EventService, Event as ClubEvent } from '../../../core/services/event.service';
 import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { Club, ClubCategory, ClubStatus } from '../../../core/models/club.model';
 import { Task, TaskStatus } from '../../../core/models/task.model';
@@ -86,6 +87,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
   
   // Update requests modal
   showUpdateRequestsModal = false;
+  
+  // Club events
+  clubEvents: ClubEvent[] = [];
+  loadingEvents = false;
 
   // Helper method to filter pending requests by club ID
   getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
@@ -98,6 +103,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private memberService: MemberService,
     private userService: UserService,
+    private eventService: EventService,
     private updateRequestService: ClubUpdateRequestService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -215,9 +221,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
         
         this.loading = false;
         
-        // Load tasks, member count, and pending requests after displaying
+        // Load tasks, member count, events, and pending requests after displaying
         this.loadTasksForClub(club.id!);
         this.loadActualMemberCount(club.id!);
+        this.loadClubEventsForClub(club.id!);
         this.loadPendingRequests();
       },
       error: (err) => {
@@ -263,6 +270,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
       members: this.currentUserId ? this.memberService.getMembersByUser(this.currentUserId) : of([])
     }).subscribe({
       next: ({ clubs, members }) => {
+        // Ne pas filtrer les clubs suspendus, les afficher tous
         this.allClubs = clubs;
         
         // Process member roles
@@ -542,6 +550,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
           delete this.clubRoles[clubId];
           // Notify that club membership has changed (this will update the sidebar)
           this.clubService.notifyClubMembershipChanged();
+          // Update member count if in details view
+          if (this.showDetailsView && this.selectedClub?.id === clubId) {
+            this.loadActualMemberCount(clubId);
+          }
           // Reload clubs to update the UI
           this.loadClubs();
         },
@@ -581,7 +593,8 @@ export class ClubsComponent implements OnInit, OnDestroy {
     const classes: { [key: string]: string } = {
       'PENDING': 'text-amber-800 bg-amber-100 dark:text-amber-200 dark:bg-amber-900',
       'APPROVED': 'text-green-800 bg-green-100 dark:text-green-200 dark:bg-green-900',
-      'REJECTED': 'text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900'
+      'REJECTED': 'text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900',
+      'SUSPENDED': 'text-red-800 bg-red-100 dark:text-red-200 dark:bg-red-900'
     };
     return classes[status || 'PENDING'] || 'text-gray-800 bg-gray-100';
   }
@@ -903,12 +916,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.showDescription = true;  // Réinitialiser à ouvert
     this.showObjective = true;    // Réinitialiser à ouvert
     this.loadTasksForClub(club.id!);
+    this.loadClubEventsForClub(club.id!);
   }
 
   closeDetailsView() {
     this.showDetailsView = false;
     this.selectedClub = null;
     this.newTaskText = '';
+    this.actualMemberCount = 0; // Reset member count
     // Reload clubs list
     this.loadClubs();
   }
@@ -1054,6 +1069,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
           this.clubRoles[clubId] = member.rank;
           // Notify that club membership has changed (this will update the sidebar)
           this.clubService.notifyClubMembershipChanged();
+          // Update member count if in details view
+          if (this.showDetailsView && this.selectedClub?.id === clubId) {
+            this.loadActualMemberCount(clubId);
+          }
           // Reload clubs to update the UI (this will also reload roles)
           this.loadClubs();
         },
@@ -1368,5 +1387,88 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   closeUpdateRequestsModal() {
     this.showUpdateRequestsModal = false;
+  }
+  
+  // Club events methods
+  loadClubEventsForClub(clubId: number) {
+    this.loadingEvents = true;
+    // First, get the club president
+    this.memberService.getMembersByClub(clubId).subscribe({
+      next: (members) => {
+        const president = members.find(m => m.rank === 'PRESIDENT');
+        if (president) {
+          // Load events created by the president
+          this.eventService.getEventsByCreator(president.userId).subscribe({
+            next: (events) => {
+              this.clubEvents = events.filter(e => e.status === 'APPROVED').sort((a, b) => {
+                return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+              });
+              this.loadingEvents = false;
+              console.log('✅ Loaded', this.clubEvents.length, 'events for club president');
+            },
+            error: (error) => {
+              console.error('Error loading club events:', error);
+              this.clubEvents = [];
+              this.loadingEvents = false;
+            }
+          });
+        } else {
+          console.log('⚠️ No president found for club');
+          this.clubEvents = [];
+          this.loadingEvents = false;
+        }
+      },
+      error: (error) => {
+        console.error('Error loading club members:', error);
+        this.clubEvents = [];
+        this.loadingEvents = false;
+      }
+    });
+  }
+  
+  loadClubEvents(creatorId: number) {
+    this.loadingEvents = true;
+    this.eventService.getEventsByCreator(creatorId).subscribe({
+      next: (events) => {
+        this.clubEvents = events.filter(e => e.status === 'APPROVED').sort((a, b) => {
+          return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+        });
+        this.loadingEvents = false;
+      },
+      error: (error) => {
+        console.error('Error loading club events:', error);
+        this.clubEvents = [];
+        this.loadingEvents = false;
+      }
+    });
+  }
+  
+  formatEventDate(dateString: string): string {
+    const date = new Date(dateString);
+    const options: Intl.DateTimeFormatOptions = { 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return date.toLocaleDateString('en-US', options);
+  }
+  
+  getEventStatusClass(status: string | undefined): string {
+    switch (status) {
+      case 'APPROVED':
+        return 'bg-green-500 text-white';
+      case 'PENDING':
+        return 'bg-yellow-500 text-white';
+      case 'REJECTED':
+        return 'bg-red-500 text-white';
+      default:
+        return 'bg-gray-500 text-white';
+    }
+  }
+  
+  // Navigate to event details
+  navigateToEventDetails(eventId: number) {
+    this.router.navigate(['/user-panel/events', eventId]);
   }
 }

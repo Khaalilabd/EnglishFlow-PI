@@ -108,9 +108,18 @@
       @if (filteredClubs.length > 0) {
         <div class="clubs-grid">
           @for (club of filteredClubs; track club.id) {
-            <div class="club-card">
+            <div class="club-card" [class.opacity-60]="club.status === 'SUSPENDED'" [class.pointer-events-none]="club.status === 'SUSPENDED'">
+              <!-- Suspended Badge -->
+              @if (club.status === 'SUSPENDED') {
+                <div class="absolute top-4 right-4 z-10">
+                  <span class="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full shadow-lg">
+                    🚫 SUSPENDED
+                  </span>
+                </div>
+              }
+              
               <!-- Club Image Header -->
-              <div class="club-image-header">
+              <div class="club-image-header" [class.grayscale]="club.status === 'SUSPENDED'">
                 @if (club.image) {
                   <div class="club-image-container">
                     <img 
@@ -142,7 +151,9 @@
                     </svg>
                     <span class="stat-text">{{ club.currentMembersCount || 0 }}/{{ club.maxMembers }} Members</span>
                   </div>
-                  @if (club.isFull) {
+                  @if (club.status === 'SUSPENDED') {
+                    <span class="club-status-badge" style="background-color: #dc2626; color: white;">Suspended</span>
+                  } @else if (club.isFull) {
                     <span class="club-status-badge full">Full</span>
                   } @else {
                     <span class="club-status-badge open">Open</span>
@@ -151,15 +162,27 @@
 
                 <!-- Social Links / Actions -->
                 <div class="club-actions">
-                  <a routerLink="/register" class="action-btn-primary">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                    </svg>
-                    Join Club
-                  </a>
-                  <a routerLink="/register" class="action-btn-secondary">
-                    Learn More
-                  </a>
+                  @if (club.status === 'SUSPENDED') {
+                    <button disabled class="action-btn-primary opacity-50 cursor-not-allowed">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                      </svg>
+                      Unavailable
+                    </button>
+                    <button disabled class="action-btn-secondary opacity-50 cursor-not-allowed">
+                      Suspended
+                    </button>
+                  } @else {
+                    <a routerLink="/register" class="action-btn-primary">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                      </svg>
+                      Join Club
+                    </a>
+                    <a routerLink="/register" class="action-btn-secondary">
+                      Learn More
+                    </a>
+                  }
                 </div>
               </div>
             </div>
