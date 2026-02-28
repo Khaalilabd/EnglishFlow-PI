@@ -63,6 +63,12 @@ public class Event {
     @Column(nullable = false)
     private Long creatorId; // ID of the user who created the event
     
+    @Column
+    private Integer clubId; // ID of the club organizing the event
+    
+    @Column
+    private String clubName; // Name of the club organizing the event
+    
     @Lob
     @Column(columnDefinition = "TEXT")
     private String image; // Base64 encoded image

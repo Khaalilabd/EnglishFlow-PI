@@ -26,6 +26,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final PermissionService permissionService;
     private final EventMapper eventMapper;
+    private final com.englishflow.event.client.ClubServiceClient clubServiceClient;
     
     @Cacheable(value = "events", key = "'all'")
     @Transactional(readOnly = true)
@@ -97,6 +98,36 @@ public class EventService {
         log.info("Creating new event: {}", eventDTO.getTitle());
         permissionService.checkEventCreationPermission(eventDTO.getCreatorId());
         
+        // Récupérer le club de l'utilisateur
+        try {
+            var memberships = clubServiceClient.getMembersByUserId(eventDTO.getCreatorId());
+            if (!memberships.isEmpty()) {
+                // Prendre le premier club où l'utilisateur a un rôle autorisé
+                var membership = memberships.stream()
+                    .filter(m -> m.getRank() != null && 
+                        (m.getRank().name().equals("PRESIDENT") || 
+                         m.getRank().name().equals("VICE_PRESIDENT") || 
+                         m.getRank().name().equals("EVENT_MANAGER")))
+                    .findFirst();
+                
+                if (membership.isPresent()) {
+                    Integer clubId = membership.get().getClubId();
+                    eventDTO.setClubId(clubId);
+                    
+                    // Récupérer le nom du club
+                    try {
+                        var club = clubServiceClient.getClubById(clubId);
+                        eventDTO.setClubName(club.getName());
+                        log.info("Event will be created for club: {} (ID: {})", club.getName(), clubId);
+                    } catch (Exception e) {
+                        log.warn("Could not fetch club name for clubId: {}", clubId, e);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not fetch club information for user: {}", eventDTO.getCreatorId(), e);
+        }
+        
         Event event = eventMapper.toEntity(eventDTO);
         event.setCurrentParticipants(0);
         Event savedEvent = eventRepository.save(event);
@@ -162,5 +193,48 @@ public class EventService {
         Event updatedEvent = eventRepository.save(event);
         log.info("Event {} rejected successfully", id);
         return eventMapper.toDTO(updatedEvent);
+    }
+    
+    @CacheEvict(value = {"events", "eventById", "eventsByType", "upcomingEvents"}, allEntries = true)
+    @Transactional
+    public int syncClubNamesForAllEvents() {
+        log.info("Syncing club names for all events");
+        List<Event> events = eventRepository.findAll();
+        int updated = 0;
+        
+        for (Event event : events) {
+            if (event.getCreatorId() != null) {
+                try {
+                    var memberships = clubServiceClient.getMembersByUserId(event.getCreatorId());
+                    if (!memberships.isEmpty()) {
+                        var membership = memberships.stream()
+                            .filter(m -> m.getRank() != null && 
+                                (m.getRank().name().equals("PRESIDENT") || 
+                                 m.getRank().name().equals("VICE_PRESIDENT") || 
+                                 m.getRank().name().equals("EVENT_MANAGER")))
+                            .findFirst();
+                        
+                        if (membership.isPresent()) {
+                            Integer clubId = membership.get().getClubId();
+                            try {
+                                var club = clubServiceClient.getClubById(clubId);
+                                event.setClubId(clubId);
+                                event.setClubName(club.getName());
+                                eventRepository.save(event);
+                                updated++;
+                                log.info("Updated event {} with club: {} (ID: {})", event.getId(), club.getName(), clubId);
+                            } catch (Exception e) {
+                                log.warn("Could not fetch club for event {}", event.getId(), e);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Could not sync club for event {}", event.getId(), e);
+                }
+            }
+        }
+        
+        log.info("Synced {} events with club names", updated);
+        return updated;
     }
 }

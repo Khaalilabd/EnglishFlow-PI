@@ -49,6 +49,10 @@ public class EventDTO {
     
     private Long creatorId;
     
+    private Integer clubId;
+    
+    private String clubName;
+    
     private String image;
     
     private java.util.List<String> gallery; // Gallery of base64 encoded images

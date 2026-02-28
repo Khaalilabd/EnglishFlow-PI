@@ -45,6 +45,13 @@ export const routes: Routes = [
     title: 'Clubs | Jungle in English'
   },
   
+  // Page publique des événements
+  {
+    path: 'events',
+    loadComponent: () => import('./pages/public-events/public-events.component').then(m => m.PublicEventsComponent),
+    title: 'Événements | Jungle in English'
+  },
+  
   // Pack Details - Page publique
   {
     path: 'pack-details/:id',

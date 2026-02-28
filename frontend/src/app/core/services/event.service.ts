@@ -16,6 +16,8 @@ export interface Event {
   currentParticipants?: number;
   description?: string;
   creatorId?: number;
+  clubId?: number;
+  clubName?: string;
   image?: string;
   gallery?: string[]; // Array of image URLs for gallery
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
