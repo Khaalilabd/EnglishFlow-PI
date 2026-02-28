@@ -27,6 +27,7 @@ public class ClubUpdateRequestService {
     private final ClubRepository clubRepository;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
+    private final ClubHistoryService clubHistoryService;
     
     /**
      * Créer une demande de modification de club (par le président)
@@ -151,9 +152,91 @@ public class ClubUpdateRequestService {
      * Appliquer les modifications au club
      */
     private void applyUpdateRequest(ClubUpdateRequest request) {
-        log.info("Applying update request {} to club {}", request.getId(), request.getClub().getId());
+        log.info("🔄 Applying update request {} to club {}", request.getId(), request.getClub().getId());
         
         Club club = request.getClub();
+        Long clubIdLong = club.getId().longValue();
+        Long requesterIdLong = request.getRequestedBy();
+        
+        log.info("📋 Current club state: name='{}', description='{}', category={}", 
+            club.getName(), club.getDescription().substring(0, Math.min(30, club.getDescription().length())), club.getCategory());
+        log.info("📋 Requested changes: name='{}', description='{}', category={}", 
+            request.getName(), request.getDescription().substring(0, Math.min(30, request.getDescription().length())), request.getCategory());
+        
+        // Créer des entrées d'historique pour chaque modification
+        if (!club.getName().equals(request.getName())) {
+            log.info("✏️ Creating history entry for name change: '{}' -> '{}'", club.getName(), request.getName());
+            clubHistoryService.logHistory(
+                clubIdLong,
+                requesterIdLong,
+                com.englishflow.club.enums.ClubHistoryType.CLUB_UPDATED,
+                "Club name updated",
+                "Club name was changed from '" + club.getName() + "' to '" + request.getName() + "'",
+                club.getName(),
+                request.getName(),
+                requesterIdLong
+            );
+        }
+        
+        if (!club.getDescription().equals(request.getDescription())) {
+            log.info("✏️ Creating history entry for description change");
+            clubHistoryService.logHistory(
+                clubIdLong,
+                requesterIdLong,
+                com.englishflow.club.enums.ClubHistoryType.CLUB_UPDATED,
+                "Club description updated",
+                "Club description was changed",
+                club.getDescription().substring(0, Math.min(50, club.getDescription().length())) + "...",
+                request.getDescription().substring(0, Math.min(50, request.getDescription().length())) + "...",
+                requesterIdLong
+            );
+        }
+        
+        if (club.getObjective() != null && request.getObjective() != null && 
+            !club.getObjective().equals(request.getObjective())) {
+            log.info("✏️ Creating history entry for objective change");
+            clubHistoryService.logHistory(
+                clubIdLong,
+                requesterIdLong,
+                com.englishflow.club.enums.ClubHistoryType.CLUB_UPDATED,
+                "Club objective updated",
+                "Club objective was changed",
+                club.getObjective().substring(0, Math.min(50, club.getObjective().length())) + "...",
+                request.getObjective().substring(0, Math.min(50, request.getObjective().length())) + "...",
+                requesterIdLong
+            );
+        }
+        
+        if (club.getCategory() != request.getCategory()) {
+            log.info("✏️ Creating history entry for category change: {} -> {}", club.getCategory(), request.getCategory());
+            clubHistoryService.logHistory(
+                clubIdLong,
+                requesterIdLong,
+                com.englishflow.club.enums.ClubHistoryType.CLUB_UPDATED,
+                "Club category updated",
+                "Club category was changed from " + club.getCategory() + " to " + request.getCategory(),
+                club.getCategory().toString(),
+                request.getCategory().toString(),
+                requesterIdLong
+            );
+        }
+        
+        if (!club.getMaxMembers().equals(request.getMaxMembers())) {
+            log.info("✏️ Creating history entry for max members change: {} -> {}", club.getMaxMembers(), request.getMaxMembers());
+            clubHistoryService.logHistory(
+                clubIdLong,
+                requesterIdLong,
+                com.englishflow.club.enums.ClubHistoryType.CLUB_UPDATED,
+                "Club max members updated",
+                "Maximum number of members was changed from " + club.getMaxMembers() + " to " + request.getMaxMembers(),
+                club.getMaxMembers().toString(),
+                request.getMaxMembers().toString(),
+                requesterIdLong
+            );
+        }
+        
+        // Appliquer les modifications
+        log.info("💾 Applying changes to club entity...");
         club.setName(request.getName());
         club.setDescription(request.getDescription());
         club.setObjective(request.getObjective());
@@ -164,12 +247,13 @@ public class ClubUpdateRequestService {
             club.setImage(request.getImage());
         }
         
-        clubRepository.save(club);
+        Club savedClub = clubRepository.save(club);
+        log.info("✅ Club saved with new name: '{}'", savedClub.getName());
         
         request.setStatus(UpdateRequestStatus.APPROVED);
         request.setAppliedAt(LocalDateTime.now());
         
-        log.info("Update request {} applied successfully", request.getId());
+        log.info("✅ Update request {} applied successfully", request.getId());
     }
     
     /**

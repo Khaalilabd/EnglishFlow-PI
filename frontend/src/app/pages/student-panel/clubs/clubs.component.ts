@@ -10,6 +10,7 @@ import { UserService } from '../../../core/services/user.service';
 import { EventService, Event as ClubEvent } from '../../../core/services/event.service';
 import { EventFeedbackService } from '../../../core/services/event-feedback.service';
 import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
+import { ClubHistoryService, ClubHistory } from '../../../core/services/club-history.service';
 import { Club, ClubCategory, ClubStatus } from '../../../core/models/club.model';
 import { Task, TaskStatus } from '../../../core/models/task.model';
 import { filter, forkJoin, of } from 'rxjs';
@@ -96,6 +97,12 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // Event feedback stats
   eventFeedbackStats: { [eventId: number]: { averageRating: number; totalFeedbacks: number } } = {};
 
+  // Club History
+  showHistoryModal = false;
+  selectedClubForHistory: Club | null = null;
+  clubHistory: any[] = [];
+  loadingHistory = false;
+
   // Helper method to filter pending requests by club ID
   getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
     return this.pendingRequests.filter(r => r.clubId === clubId);
@@ -110,6 +117,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     private eventService: EventService,
     private eventFeedbackService: EventFeedbackService,
     private updateRequestService: ClubUpdateRequestService,
+    private clubHistoryService: ClubHistoryService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router
@@ -1058,6 +1066,12 @@ export class ClubsComponent implements OnInit, OnDestroy {
     return this.clubRoles.hasOwnProperty(clubId);
   }
 
+  // Check if current user can view history (President, VP, or Secretary)
+  canViewHistory(clubId: number): boolean {
+    const role = this.clubRoles[clubId];
+    return role === 'PRESIDENT' || role === 'VICE_PRESIDENT' || role === 'SECRETARY';
+  }
+
   // Join a club
   joinClub(clubId: number) {
     if (!this.currentUserId) {
@@ -1319,31 +1333,91 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   approveRequest(requestId: number) {
     if (!this.currentUserId) {
-      alert('Vous devez être connecté pour approuver');
+      alert('You must be logged in to approve');
       return;
     }
 
+    console.log('🔄 Approving request:', requestId);
+    
     this.updateRequestService.approveRequest(requestId, this.currentUserId).subscribe({
       next: (updatedRequest) => {
-        if (updatedRequest.status === 'APPROVED') {
-          alert('Demande approuvée et modifications appliquées !');
-          this.loadClubs(); // Reload clubs to show updated info
-          if (this.selectedClub) {
-            this.loadAndDisplayClub(this.selectedClub.id!); // Reload the selected club
-          }
-        } else {
-          alert('Votre approbation a été enregistrée. En attente de l\'autre approbation.');
-        }
-        this.loadPendingRequests();
+        console.log('✅ Request approval response:', updatedRequest);
         
-        // Close modal if no more pending requests for this club
-        if (this.selectedClub && this.getPendingRequestsForClub(this.selectedClub.id!).length === 0) {
+        if (updatedRequest.status === 'APPROVED') {
+          alert('Request approved and changes applied!');
+          
+          // Close modal first
           this.closeUpdateRequestsModal();
+          
+          // Force reload everything with a longer delay to ensure DB is updated
+          setTimeout(() => {
+            console.log('🔄 Reloading club data after approval...');
+            
+            if (this.selectedClub) {
+              const clubId = this.selectedClub.id!;
+              console.log('🔍 Reloading club ID:', clubId);
+              
+              // Reload the specific club from server
+              this.clubService.getClubById(clubId).subscribe({
+                next: (updatedClub) => {
+                  console.log('✅ Club reloaded after approval:', updatedClub);
+                  console.log('📝 Old name:', this.selectedClub?.name);
+                  console.log('📝 New name:', updatedClub.name);
+                  
+                  // Update selectedClub reference (this will trigger change detection)
+                  this.selectedClub = { ...updatedClub };
+                  
+                  // Also update selectedClubForHistory if it's the same club
+                  if (this.selectedClubForHistory?.id === clubId) {
+                    console.log('🔄 Updating selectedClubForHistory with new club data');
+                    this.selectedClubForHistory = { ...updatedClub };
+                  }
+                  
+                  // Also update in the clubs list
+                  const index = this.allClubs.findIndex(c => c.id === clubId);
+                  if (index !== -1) {
+                    console.log('📝 Updating allClubs[' + index + ']');
+                    this.allClubs[index] = { ...updatedClub };
+                  }
+                  const myIndex = this.myClubs.findIndex(c => c.id === clubId);
+                  if (myIndex !== -1) {
+                    console.log('📝 Updating myClubs[' + myIndex + ']');
+                    this.myClubs[myIndex] = { ...updatedClub };
+                  }
+                  
+                  // Force re-apply filter to update filteredClubs
+                  this.applyFilter();
+                  console.log('✅ Club data updated successfully');
+                  
+                  // Reload history to show the new changes
+                  if (this.showHistoryModal && this.selectedClubForHistory?.id === clubId) {
+                    console.log('🔄 Reloading history after approval...');
+                    this.loadClubHistory(clubId);
+                  }
+                },
+                error: (err) => {
+                  console.error('❌ Error reloading club:', err);
+                  // Fallback: reload all clubs
+                  this.loadClubs();
+                }
+              });
+            } else {
+              // If no selected club, reload all
+              console.log('🔄 No selected club, reloading all clubs');
+              this.loadClubs();
+            }
+            
+            // Reload pending requests
+            this.loadPendingRequests();
+          }, 1500); // Increased delay to 1.5 seconds to ensure DB transaction completes
+        } else {
+          alert('Your approval has been recorded. Waiting for the other approval.');
+          this.loadPendingRequests();
         }
       },
       error: (err) => {
-        console.error('Error approving request:', err);
-        alert(err.error?.message || 'Erreur lors de l\'approbation');
+        console.error('❌ Error approving request:', err);
+        alert(err.error?.message || 'Error during approval');
       }
     });
   }
@@ -1518,4 +1592,182 @@ export class ClubsComponent implements OnInit, OnDestroy {
   navigateToEventDetails(eventId: number) {
     this.router.navigate(['/user-panel/events', eventId]);
   }
+
+  // ==================== CLUB HISTORY METHODS ====================
+  
+  openHistoryModal(club: Club) {
+    console.log('🔍 Opening history modal for club:', club);
+    console.log('📝 Club name:', club.name);
+    console.log('📝 Club ID:', club.id);
+    
+    this.selectedClubForHistory = club;
+    this.showHistoryModal = true;
+    this.loadClubHistory(club.id!);
+  }
+
+  closeHistoryModal() {
+    this.showHistoryModal = false;
+    this.selectedClubForHistory = null;
+    this.clubHistory = [];
+  }
+
+  loadClubHistory(clubId: number) {
+    if (!this.currentUserId) {
+      console.error('❌ No current user ID');
+      return;
+    }
+    
+    this.loadingHistory = true;
+    console.log('🔍 Loading club history for club:', clubId);
+    
+    // Load complete club history (for President, VP, and Secretary)
+    this.clubHistoryService.getClubHistory(clubId).subscribe({
+      next: (history: ClubHistory[]) => {
+        this.clubHistory = history;
+        this.loadingHistory = false;
+        console.log('✅ Club history loaded:', history.length, 'entries');
+        console.log('📋 History data:', history);
+      },
+      error: (error) => {
+        console.error('❌ Error loading club history:', error);
+        console.error('❌ Error status:', error.status);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Full error:', error);
+        this.loadingHistory = false;
+        // Show empty history on error
+        this.clubHistory = [];
+      }
+    });
+  }
+
+  // Mock history generator (for testing purposes only - not used in production)
+  generateMockHistory(clubId: number): any[] {
+    const now = new Date();
+    return [
+      {
+        id: 1,
+        clubId: clubId,
+        userId: this.currentUserId,
+        type: 'MEMBER_JOINED',
+        action: 'Joined the Club',
+        description: 'You became a member of this club',
+        oldValue: null,
+        newValue: 'Member',
+        performedBy: this.currentUserId,
+        createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 2,
+        clubId: clubId,
+        userId: this.currentUserId,
+        type: 'RANK_CHANGED',
+        action: 'Role Updated',
+        description: 'Your role in the club was updated',
+        oldValue: 'Member',
+        newValue: 'Event Manager',
+        performedBy: 1,
+        createdAt: new Date(now.getTime() - 20 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 3,
+        clubId: clubId,
+        userId: this.currentUserId,
+        type: 'EVENT_PARTICIPATED',
+        action: 'Participated in Event',
+        description: 'You participated in "English Speaking Workshop"',
+        oldValue: null,
+        newValue: null,
+        performedBy: this.currentUserId,
+        createdAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 4,
+        clubId: clubId,
+        userId: this.currentUserId,
+        type: 'CONTRIBUTION',
+        action: 'Made a Contribution',
+        description: 'You contributed to club activities',
+        oldValue: null,
+        newValue: 'Organized study session',
+        performedBy: this.currentUserId,
+        createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        id: 5,
+        clubId: clubId,
+        userId: this.currentUserId,
+        type: 'ACHIEVEMENT_EARNED',
+        action: 'Achievement Unlocked',
+        description: 'You earned the "Active Member" badge',
+        oldValue: null,
+        newValue: 'Active Member Badge',
+        performedBy: this.currentUserId,
+        createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+  }
+
+  getHistoryIcon(type: string): string {
+    const icons: { [key: string]: string } = {
+      'MEMBER_JOINED': '👋',
+      'MEMBER_LEFT': '👋',
+      'MEMBER_REMOVED': '🚫',
+      'RANK_CHANGED': '⭐',
+      'CLUB_CREATED': '🎉',
+      'CLUB_UPDATED': '✏️',
+      'CLUB_STATUS_CHANGED': '🔄',
+      'EVENT_CREATED': '📅',
+      'EVENT_PARTICIPATED': '🎯',
+      'ACHIEVEMENT_EARNED': '🏆',
+      'CONTRIBUTION': '💡',
+      'OTHER': '📝'
+    };
+    return icons[type] || '📝';
+  }
+
+  getHistoryTypeBadgeClass(type: string): string {
+    const classes: { [key: string]: string } = {
+      'MEMBER_JOINED': 'bg-green-100 text-green-700',
+      'MEMBER_LEFT': 'bg-gray-100 text-gray-700',
+      'MEMBER_REMOVED': 'bg-red-100 text-red-700',
+      'RANK_CHANGED': 'bg-blue-100 text-blue-700',
+      'CLUB_CREATED': 'bg-purple-100 text-purple-700',
+      'CLUB_UPDATED': 'bg-yellow-100 text-yellow-700',
+      'CLUB_STATUS_CHANGED': 'bg-orange-100 text-orange-700',
+      'EVENT_CREATED': 'bg-indigo-100 text-indigo-700',
+      'EVENT_PARTICIPATED': 'bg-teal-100 text-teal-700',
+      'ACHIEVEMENT_EARNED': 'bg-amber-100 text-amber-700',
+      'CONTRIBUTION': 'bg-cyan-100 text-cyan-700',
+      'OTHER': 'bg-gray-100 text-gray-700'
+    };
+    return classes[type] || 'bg-gray-100 text-gray-700';
+  }
+
+  formatHistoryDate(dateString: string): string {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
+      return 'Yesterday';
+    } else if (diffDays < 7) {
+      return `${diffDays} days ago`;
+    } else if (diffDays < 30) {
+      const weeks = Math.floor(diffDays / 7);
+      return `${weeks} week${weeks > 1 ? 's' : ''} ago`;
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30);
+      return `${months} month${months > 1 ? 's' : ''} ago`;
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+  }
+
 }
