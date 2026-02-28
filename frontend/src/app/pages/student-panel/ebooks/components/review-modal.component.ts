@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Ebook, Review } from '../../../../core/models/ebook.model';
@@ -42,8 +42,8 @@ import { Ebook, Review } from '../../../../core/models/ebook.model';
             </div>
           </div>
 
-          <!-- Comment -->
-          <div class="mb-6">
+          <!-- Comment - Only show after clicking a star -->
+          <div *ngIf="showCommentBox" class="mb-6 animate-slide-down">
             <label class="block text-sm font-semibold text-gray-700 mb-2">Your Review</label>
             <textarea 
               [(ngModel)]="comment"
@@ -53,10 +53,11 @@ import { Ebook, Review } from '../../../../core/models/ebook.model';
             </textarea>
           </div>
 
-          <!-- Submit Button -->
+          <!-- Submit Button - Only show after clicking a star -->
           <button 
+            *ngIf="showCommentBox"
             (click)="submit()"
-            class="w-full bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] hover:from-[#234948] hover:to-[#152e2d] text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl">
+            class="w-full bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] hover:from-[#234948] hover:to-[#152e2d] text-white px-6 py-3 rounded-lg font-semibold transition-all shadow-lg hover:shadow-xl animate-slide-down">
             Submit Review
           </button>
 
@@ -86,14 +87,6 @@ import { Ebook, Review } from '../../../../core/models/ebook.model';
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                       </svg>
                     </div>
-                    <button *ngIf="canDeleteReview(review)"
-                            (click)="onDeleteReview(review.id!, $event)"
-                            class="ml-2 text-red-500 hover:text-red-700 transition-colors p-1 rounded hover:bg-red-50"
-                            title="Delete review">
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
                   </div>
                 </div>
                 <p class="text-gray-700">{{ review.comment }}</p>
@@ -157,31 +150,49 @@ import { Ebook, Review } from '../../../../core/models/ebook.model';
     .star svg.empty {
       color: #d1d5db;
     }
+
+    .animate-slide-down {
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   `]
 })
-export class ReviewModalComponent {
+export class ReviewModalComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() ebook: Ebook | null = null;
   @Input() reviews: Review[] = [];
   @Input() currentUserId: number = 0;
+  @Input() initialRating: number = 5;
+  @Input() initialComment: string = '';
   @Output() closeModal = new EventEmitter<void>();
   @Output() submitReview = new EventEmitter<{ rating: number; comment: string }>();
-  @Output() deleteReview = new EventEmitter<number>();
 
   rating = 5;
   comment = '';
+  showCommentBox = false;
 
-  canDeleteReview(review: Review): boolean {
-    return review.userId === this.currentUserId;
-  }
-
-  onDeleteReview(reviewId: number, event: Event) {
-    event.stopPropagation();
-    this.deleteReview.emit(reviewId);
+  ngOnChanges() {
+    // Update rating and comment when inputs change
+    if (this.isOpen) {
+      this.rating = this.initialRating;
+      this.comment = this.initialComment;
+      this.showCommentBox = this.initialComment.length > 0; // Show if there's existing comment
+    }
   }
 
   setRating(star: number) {
     this.rating = star;
+    this.showCommentBox = true; // Show comment box when star is clicked
   }
 
   submit() {
@@ -189,6 +200,7 @@ export class ReviewModalComponent {
   }
 
   close() {
+    this.showCommentBox = false;
     this.closeModal.emit();
   }
 }

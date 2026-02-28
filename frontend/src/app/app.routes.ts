@@ -221,6 +221,14 @@ export const routes: Routes = [
     ]
   },
   
+  // Standalone Ebook Reader (no layout) - Protected for authenticated users
+  {
+    path: 'user-panel/ebooks/read/:id',
+    loadComponent: () => import('./pages/student-panel/ebook-reader/ebook-reader.component').then(m => m.EbookReaderComponent),
+    canActivate: [authGuard],
+    title: 'Reading | Jungle in English'
+  },
+  
   // Tutor Panel avec layout et sidebar - Protégé pour TUTOR et TEACHER
   {
     path: 'tutor-panel',

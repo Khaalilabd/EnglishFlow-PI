@@ -6,6 +6,7 @@ import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
+import { QuizService } from '../../../core/services/quiz.service';
 import { Lesson, LessonType, CreateLessonRequest, UpdateLessonRequest } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
@@ -23,6 +24,7 @@ export class LessonManagementComponent implements OnInit {
   course: Course | null = null;
   chapter: Chapter | null = null;
   lessons: Lesson[] = [];
+  quizzes: any[] = [];
   loading = false;
   
   // Modal states
@@ -46,6 +48,7 @@ export class LessonManagementComponent implements OnInit {
     duration: 0,
     isPreview: false,
     isPublished: false,
+    quizId: undefined,
     chapterId: 0
   };
   
@@ -62,6 +65,7 @@ export class LessonManagementComponent implements OnInit {
     private lessonService: LessonService,
     private chapterService: ChapterService,
     private courseService: CourseService,
+    private quizService: QuizService,
     private sanitizer: DomSanitizer
   ) {}
 
@@ -72,6 +76,18 @@ export class LessonManagementComponent implements OnInit {
     this.loadCourse();
     this.loadChapter();
     this.loadLessons();
+    this.loadQuizzes();
+  }
+
+  loadQuizzes(): void {
+    this.quizService.getQuizzesByCourse(this.courseId).subscribe({
+      next: (quizzes) => {
+        this.quizzes = quizzes;
+      },
+      error: (error) => {
+        console.error('Error loading quizzes:', error);
+      }
+    });
   }
 
   loadCourse(): void {
@@ -121,6 +137,7 @@ export class LessonManagementComponent implements OnInit {
       duration: 0,
       isPreview: false,
       isPublished: false,
+      quizId: undefined,
       chapterId: this.chapterId
     };
     this.selectedFile = null;
@@ -139,6 +156,7 @@ export class LessonManagementComponent implements OnInit {
       duration: lesson.duration || 0,
       isPreview: lesson.isPreview,
       isPublished: lesson.isPublished,
+      quizId: lesson.quizId,
       chapterId: lesson.chapterId
     };
     this.selectedFile = null;
@@ -319,6 +337,9 @@ export class LessonManagementComponent implements OnInit {
       return;
     }
     
+    console.log('🔧 Updating lesson with form data:', this.lessonForm);
+    console.log('🎯 Quiz ID being sent:', this.lessonForm.quizId);
+    
     this.loading = true;
     const updateRequest: UpdateLessonRequest = {
       title: this.lessonForm.title,
@@ -330,12 +351,17 @@ export class LessonManagementComponent implements OnInit {
       duration: this.lessonForm.duration,
       isPreview: this.lessonForm.isPreview,
       isPublished: this.lessonForm.isPublished,
+      quizId: this.lessonForm.quizId,
       chapterId: this.chapterId
     };
+    
+    console.log('📤 Update request:', updateRequest);
     
     // First update the lesson
     this.lessonService.updateLesson(this.selectedLesson.id, updateRequest).subscribe({
       next: (updatedLesson) => {
+        console.log('✅ Lesson updated successfully:', updatedLesson);
+        console.log('🎯 Returned quiz ID:', updatedLesson.quizId);
         // If there's a new file to upload, upload it
         if (this.selectedFile && updatedLesson.id) {
           this.uploadingFile = true;
@@ -406,6 +432,7 @@ export class LessonManagementComponent implements OnInit {
       duration: lesson.duration,
       isPreview: lesson.isPreview,
       isPublished: !lesson.isPublished,
+      quizId: lesson.quizId,
       chapterId: lesson.chapterId
     };
     
@@ -457,5 +484,11 @@ export class LessonManagementComponent implements OnInit {
       [LessonType.INTERACTIVE]: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
     };
     return colors[type] || 'bg-gray-100 text-gray-700';
+  }
+
+  getQuizTitle(quizId?: number): string {
+    if (!quizId) return 'No quiz assigned';
+    const quiz = this.quizzes.find(q => q.id === quizId);
+    return quiz ? quiz.title : 'Quiz not found';
   }
 }

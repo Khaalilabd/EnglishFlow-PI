@@ -19,6 +19,7 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final EbookRepository ebookRepository;
+    private final UserServiceClient userServiceClient;
 
     @Transactional
     public ReviewDTO createReview(CreateReviewRequest request, Long userId) {
@@ -130,7 +131,11 @@ public class ReviewService {
         dto.setId(review.getId());
         dto.setEbookId(review.getEbook().getId());
         dto.setUserId(review.getUserId());
-        dto.setUserName("User " + review.getUserId()); // TODO: Fetch from auth-service
+        
+        // Fetch actual user name from auth service
+        String userName = userServiceClient.getUserName(review.getUserId());
+        dto.setUserName(userName);
+        
         dto.setRating(review.getRating());
         dto.setComment(review.getComment());
         dto.setIsVerified(review.getIsVerified());

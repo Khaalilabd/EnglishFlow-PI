@@ -1,7 +1,7 @@
 export type EbookLevel = 'A1' | 'A2' | 'B1' | 'B2' | 'C1';
 export type EbookCategory = 'GRAMMAR' | 'VOCABULARY' | 'BUSINESS' | 'EXAM_PREP' | 'GENERAL';
 export type PricingModel = 'FREE' | 'FREEMIUM' | 'PREMIUM';
-export type PublishStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED';
+export type PublishStatus = 'DRAFT' | 'SCHEDULED' | 'PUBLISHED' | 'ARCHIVED' | 'PENDING' | 'REJECTED';
 
 export interface Ebook {
   id?: number;
@@ -41,6 +41,10 @@ export interface Ebook {
   // Timestamps
   createdAt?: string;
   updatedAt?: string;
+  
+  // Creator
+  createdBy?: number;
+  creatorName?: string;
 }
 
 export interface EbookMetadata {

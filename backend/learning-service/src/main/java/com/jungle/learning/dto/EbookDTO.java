@@ -41,4 +41,8 @@ public class EbookDTO {
     // Timestamps
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Creator
+    private Long createdBy;
+    private String creatorName;
 }

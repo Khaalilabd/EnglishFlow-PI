@@ -13,6 +13,7 @@ import java.util.Map;
 public class AttemptResultDTO {
     private Long attemptId;
     private Long quizId;
+    private String quizTitle; // Added to display quiz name
     private Long studentId;
     private Integer score;
     private Integer maxScore;

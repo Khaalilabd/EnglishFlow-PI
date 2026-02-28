@@ -152,6 +152,25 @@ public class EbookController {
         return ResponseEntity.noContent().build();
     }
     
+    // Approval endpoints for ACADEMIC_OFFICE_AFFAIR
+    @PutMapping("/{id}/approve")
+    public ResponseEntity<EbookDTO> approveEbook(@PathVariable Long id) {
+        EbookDTO approved = ebookService.approveEbook(id);
+        return ResponseEntity.ok(approved);
+    }
+    
+    @PutMapping("/{id}/reject")
+    public ResponseEntity<EbookDTO> rejectEbook(@PathVariable Long id, @RequestParam(required = false) String reason) {
+        EbookDTO rejected = ebookService.rejectEbook(id, reason);
+        return ResponseEntity.ok(rejected);
+    }
+    
+    @GetMapping("/pending")
+    public ResponseEntity<List<EbookDTO>> getPendingEbooks() {
+        List<EbookDTO> pending = ebookService.getPendingEbooks();
+        return ResponseEntity.ok(pending);
+    }
+    
     @PostMapping("/{ebookId}/access")
     public ResponseEntity<Void> trackAccess(
             @PathVariable Long ebookId,

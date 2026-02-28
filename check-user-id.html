@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Check User ID</title>
+</head>
+<body>
+    <h1>Current User ID Check</h1>
+    <p>Your current user ID is: <strong id="userId"></strong></p>
+    <p>Your current user email is: <strong id="userEmail"></strong></p>
+    
+    <script>
+        const userId = localStorage.getItem('userId');
+        const userEmail = localStorage.getItem('userEmail');
+        
+        document.getElementById('userId').textContent = userId || 'Not found';
+        document.getElementById('userEmail').textContent = userEmail || 'Not found';
+        
+        console.log('User ID:', userId);
+        console.log('User Email:', userEmail);
+        console.log('All localStorage:', localStorage);
+    </script>
+</body>
+</html>

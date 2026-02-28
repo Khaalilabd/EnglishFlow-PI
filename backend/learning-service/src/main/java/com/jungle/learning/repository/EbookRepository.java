@@ -11,4 +11,5 @@ public interface EbookRepository extends JpaRepository<Ebook, Long> {
     List<Ebook> findByLevel(Ebook.Level level);
     List<Ebook> findByCategory(Ebook.Category category);
     List<Ebook> findByIsFree(Boolean isFree);
+    List<Ebook> findByStatus(Ebook.PublishStatus status);
 }

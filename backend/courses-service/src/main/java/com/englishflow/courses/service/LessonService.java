@@ -103,6 +103,7 @@ public class LessonService implements ILessonService {
         lesson.setDuration(lessonDTO.getDuration());
         lesson.setIsPreview(lessonDTO.getIsPreview());
         lesson.setIsPublished(lessonDTO.getIsPublished());
+        lesson.setQuizId(lessonDTO.getQuizId());
         
         Lesson updatedLesson = lessonRepository.save(lesson);
         return mapToDTO(updatedLesson);
@@ -159,6 +160,7 @@ public class LessonService implements ILessonService {
         dto.setDuration(lesson.getDuration());
         dto.setIsPreview(lesson.getIsPreview());
         dto.setIsPublished(lesson.getIsPublished());
+        dto.setQuizId(lesson.getQuizId());
         dto.setChapterId(lesson.getChapter().getId());
         dto.setCreatedAt(lesson.getCreatedAt());
         dto.setUpdatedAt(lesson.getUpdatedAt());
@@ -176,6 +178,7 @@ public class LessonService implements ILessonService {
         lesson.setDuration(dto.getDuration() != null ? dto.getDuration() : 0);
         lesson.setIsPreview(dto.getIsPreview() != null ? dto.getIsPreview() : false);
         lesson.setIsPublished(dto.getIsPublished() != null ? dto.getIsPublished() : false);
+        lesson.setQuizId(dto.getQuizId());
         return lesson;
     }
 }

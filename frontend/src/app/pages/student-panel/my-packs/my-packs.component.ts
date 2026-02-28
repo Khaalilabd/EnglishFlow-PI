@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { PackEnrollmentService } from '../../../core/services/pack-enrollment.service';
 import { PackService } from '../../../core/services/pack.service';
 import { CourseCategoryService } from '../../../core/services/course-category.service';
@@ -13,7 +13,7 @@ import { catchError } from 'rxjs/operators';
 @Component({
   selector: 'app-my-packs',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './my-packs.component.html',
   styleUrls: ['./my-packs.component.scss']
 })

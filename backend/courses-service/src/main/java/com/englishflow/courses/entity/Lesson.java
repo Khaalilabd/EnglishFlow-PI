@@ -48,6 +48,9 @@ public class Lesson {
     @Column(nullable = false)
     private Boolean isPublished = false;
     
+    @Column(name = "quiz_id")
+    private Long quizId;
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "chapter_id", nullable = false)
     @JsonIgnore

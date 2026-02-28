@@ -65,4 +65,22 @@ export class EbookService {
       responseType: 'blob'
     });
   }
+
+  // Approve ebook (Academic Affairs only)
+  approveEbook(id: number): Observable<Ebook> {
+    return this.http.put<Ebook>(`${this.apiUrl}/${id}/approve`, {});
+  }
+
+  // Reject ebook (Academic Affairs only)
+  rejectEbook(id: number, reason?: string): Observable<Ebook> {
+    if (reason) {
+      return this.http.put<Ebook>(`${this.apiUrl}/${id}/reject?reason=${encodeURIComponent(reason)}`, {});
+    }
+    return this.http.put<Ebook>(`${this.apiUrl}/${id}/reject`, {});
+  }
+
+  // Get pending ebooks (Academic Affairs only)
+  getPendingEbooks(): Observable<Ebook[]> {
+    return this.http.get<Ebook[]>(`${this.apiUrl}/pending`);
+  }
 }

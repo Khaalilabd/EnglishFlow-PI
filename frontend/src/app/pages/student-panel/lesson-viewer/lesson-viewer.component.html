@@ -181,8 +181,25 @@
             </div>
           }
 
-          <!-- QUIZ, ASSIGNMENT, INTERACTIVE (Coming Soon) -->
-          @if (lesson.lessonType === 'QUIZ' || lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
+          <!-- QUIZ Lesson -->
+          @if (lesson.lessonType === 'QUIZ') {
+            @if (lesson.quizId) {
+              <app-quiz-take 
+                [quizId]="lesson.quizId" 
+                (quizCompleted)="onQuizCompleted()">
+              </app-quiz-take>
+            } @else {
+              <div class="coming-soon">
+                <div class="coming-soon-icon">⚠️</div>
+                <h3>Quiz Not Assigned</h3>
+                <p>This lesson is marked as a quiz, but no quiz has been assigned yet.</p>
+                <p class="text-sm text-gray-500 mt-2">Please contact your tutor to assign a quiz to this lesson.</p>
+              </div>
+            }
+          }
+
+          <!-- ASSIGNMENT, INTERACTIVE (Coming Soon) -->
+          @if (lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
             <div class="coming-soon">
               <div class="coming-soon-icon">🚧</div>
               <h3>Coming Soon</h3>
@@ -193,22 +210,24 @@
 
         <!-- Actions -->
         <div class="lesson-actions">
-          <button class="action-btn complete-btn" 
-                  [class.completed]="isCompleted"
-                  (click)="markAsComplete()"
-                  [disabled]="isCompleted">
-            @if (isCompleted) {
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span>Completed</span>
-            } @else {
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-              <span>Mark as Complete</span>
-            }
-          </button>
+          @if (lesson.lessonType !== 'QUIZ') {
+            <button class="action-btn complete-btn" 
+                    [class.completed]="isCompleted"
+                    (click)="markAsComplete()"
+                    [disabled]="isCompleted">
+              @if (isCompleted) {
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>Completed</span>
+              } @else {
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>Mark as Complete</span>
+              }
+            </button>
+          }
         </div>
       </main>
     </div>

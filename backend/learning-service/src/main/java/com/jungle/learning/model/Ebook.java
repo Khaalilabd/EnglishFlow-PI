@@ -107,6 +107,12 @@ public class Ebook {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "created_by")
+    private Long createdBy; // User ID of the creator
+
+    @Transient
+    private String creatorName; // Fetched from auth service
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -131,6 +137,6 @@ public class Ebook {
     }
 
     public enum PublishStatus {
-        DRAFT, SCHEDULED, PUBLISHED, ARCHIVED
+        DRAFT, PENDING, SCHEDULED, PUBLISHED, ARCHIVED, REJECTED
     }
 }

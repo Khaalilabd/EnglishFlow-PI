@@ -27,6 +27,7 @@ public class EbookService {
     
     private final EbookRepository ebookRepository;
     private final EbookAccessRepository ebookAccessRepository;
+    private final UserServiceClient userServiceClient;
     
     @Value("${app.upload.dir:uploads/ebooks}")
     private String uploadDir;
@@ -86,6 +87,11 @@ public class EbookService {
         ebook.setCategory(dto.getCategory() != null ? Ebook.Category.valueOf(dto.getCategory()) : null);
         ebook.setIsFree(dto.getFree() != null ? dto.getFree() : true);
         ebook.setDownloadCount(0);
+        ebook.setCreatedBy(dto.getCreatedBy()); // Set creator
+        
+        // Set status to PENDING for tutor uploads (requires approval)
+        // ACADEMIC_OFFICE_AFFAIR can approve/reject
+        ebook.setStatus(Ebook.PublishStatus.PENDING);
         
         Ebook saved = ebookRepository.save(ebook);
         return convertToDTO(saved);
@@ -131,6 +137,11 @@ public class EbookService {
         Ebook ebook = ebookRepository.findById(ebookId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ebook not found with id: " + ebookId));
         
+        // Always increment download count when accessed
+        ebook.setDownloadCount(ebook.getDownloadCount() + 1);
+        ebookRepository.save(ebook);
+        
+        // Track user access for progress tracking
         EbookAccess access = ebookAccessRepository.findByEbook_IdAndStudentId(ebookId, studentId)
                 .orElse(new EbookAccess());
         
@@ -139,9 +150,6 @@ public class EbookService {
             access.setStudentId(studentId);
             access.setProgressPercent(0);
             ebookAccessRepository.save(access);
-            
-            ebook.setDownloadCount(ebook.getDownloadCount() + 1);
-            ebookRepository.save(ebook);
         }
     }
     
@@ -156,6 +164,37 @@ public class EbookService {
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         
         return filename;
+    }
+    
+    @Transactional
+    public EbookDTO approveEbook(Long id) {
+        Ebook ebook = ebookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ebook not found with id: " + id));
+        
+        ebook.setStatus(Ebook.PublishStatus.PUBLISHED);
+        ebook.setPublishedAt(java.time.LocalDateTime.now());
+        
+        Ebook approved = ebookRepository.save(ebook);
+        return convertToDTO(approved);
+    }
+    
+    @Transactional
+    public EbookDTO rejectEbook(Long id, String reason) {
+        Ebook ebook = ebookRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ebook not found with id: " + id));
+        
+        ebook.setStatus(Ebook.PublishStatus.REJECTED);
+        // Store rejection reason in description metadata if needed
+        
+        Ebook rejected = ebookRepository.save(ebook);
+        return convertToDTO(rejected);
+    }
+    
+    public List<EbookDTO> getPendingEbooks() {
+        return ebookRepository.findByStatus(Ebook.PublishStatus.PENDING)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
     
     private EbookDTO convertToDTO(Ebook ebook) {
@@ -182,6 +221,18 @@ public class EbookService {
         dto.setScheduledFor(ebook.getScheduledFor());
         dto.setCreatedAt(ebook.getCreatedAt());
         dto.setUpdatedAt(ebook.getUpdatedAt());
+        dto.setCreatedBy(ebook.getCreatedBy());
+        
+        // Fetch creator name from auth service
+        if (ebook.getCreatedBy() != null) {
+            try {
+                String creatorName = userServiceClient.getUserName(ebook.getCreatedBy());
+                dto.setCreatorName(creatorName);
+            } catch (Exception e) {
+                dto.setCreatorName("Unknown");
+            }
+        }
+        
         return dto;
     }
 }

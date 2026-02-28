@@ -60,6 +60,7 @@ public class QuizAttemptService {
         QuizAttemptDTO dto = new QuizAttemptDTO();
         dto.setId(attempt.getId());
         dto.setQuizId(attempt.getQuiz().getId());
+        dto.setQuizTitle(attempt.getQuiz().getTitle()); // Include quiz title
         dto.setStudentId(attempt.getStudentId());
         dto.setScore(attempt.getScore());
         dto.setStartedAt(attempt.getStartedAt());
@@ -114,6 +115,7 @@ public class QuizAttemptService {
         AttemptResultDTO result = new AttemptResultDTO();
         result.setAttemptId(attempt.getId());
         result.setQuizId(quiz.getId());
+        result.setQuizTitle(quiz.getTitle()); // Include quiz title
         result.setStudentId(attempt.getStudentId());
         result.setScore(totalScore);
         result.setMaxScore(quiz.getMaxScore());
@@ -149,6 +151,7 @@ public class QuizAttemptService {
         AttemptResultDTO result = new AttemptResultDTO();
         result.setAttemptId(attempt.getId());
         result.setQuizId(quiz.getId());
+        result.setQuizTitle(quiz.getTitle()); // Include quiz title
         result.setStudentId(attempt.getStudentId());
         result.setScore(attempt.getScore());
         result.setMaxScore(quiz.getMaxScore());
