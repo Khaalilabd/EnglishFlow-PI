@@ -68,7 +68,7 @@ public class EventService {
         try {
             LocalDateTime now = LocalDateTime.now();
             log.debug("Current time: {}", now);
-            List<Event> events = eventRepository.findByEventDateAfter(now);
+            List<Event> events = eventRepository.findByStartDateAfter(now);
             log.info("Found {} upcoming events", events.size());
             return events.stream()
                     .map(eventMapper::toDTO)

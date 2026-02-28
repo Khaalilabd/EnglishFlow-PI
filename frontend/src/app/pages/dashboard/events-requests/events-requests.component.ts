@@ -9,7 +9,12 @@ import { EventService, Event } from '../../../core/services/event.service';
   templateUrl: './events-requests.component.html'
 })
 export class EventsRequestsComponent implements OnInit {
+  allEvents: Event[] = [];
   pendingEvents: Event[] = [];
+  approvedEvents: Event[] = [];
+  rejectedEvents: Event[] = [];
+  
+  selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
 
@@ -22,24 +27,31 @@ export class EventsRequestsComponent implements OnInit {
   constructor(private eventService: EventService) {}
 
   ngOnInit() {
-    this.loadPendingEvents();
+    this.loadEvents();
   }
 
-  loadPendingEvents() {
+  loadEvents() {
     this.loading = true;
     this.error = null;
 
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
-        this.pendingEvents = events.filter(e => e.status === 'PENDING');
+        this.allEvents = events;
+        this.categorizeEvents();
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading pending events:', err);
-        this.error = 'Failed to load pending events. Please try again.';
+        console.error('Error loading events:', err);
+        this.error = 'Failed to load events. Please try again.';
         this.loading = false;
       }
     });
+  }
+
+  categorizeEvents() {
+    this.pendingEvents = this.allEvents.filter(e => e.status === 'PENDING');
+    this.approvedEvents = this.allEvents.filter(e => e.status === 'APPROVED');
+    this.rejectedEvents = this.allEvents.filter(e => e.status === 'REJECTED');
   }
 
   approveEvent(eventId: number) {
@@ -48,7 +60,7 @@ export class EventsRequestsComponent implements OnInit {
         next: () => {
           alert('Event approved successfully!');
           this.eventService.notifyEventParticipationChanged();
-          this.loadPendingEvents();
+          this.loadEvents();
         },
         error: (err) => {
           console.error('Error approving event:', err);
@@ -64,7 +76,7 @@ export class EventsRequestsComponent implements OnInit {
         next: () => {
           alert('Event rejected successfully!');
           this.eventService.notifyEventParticipationChanged();
-          this.loadPendingEvents();
+          this.loadEvents();
         },
         error: (err) => {
           console.error('Error rejecting event:', err);

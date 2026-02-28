@@ -13,7 +13,12 @@ import { Club, ClubStatus } from '../../../core/models/club.model';
   styleUrls: ['./club-requests-admin.component.scss']
 })
 export class ClubRequestsAdminComponent implements OnInit {
+  allClubs: Club[] = [];
   pendingClubs: Club[] = [];
+  approvedClubs: Club[] = [];
+  rejectedClubs: Club[] = [];
+  
+  selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
   
@@ -32,24 +37,31 @@ export class ClubRequestsAdminComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.loadPendingClubs();
+    this.loadClubs();
   }
 
-  loadPendingClubs() {
+  loadClubs() {
     this.loading = true;
     this.error = null;
 
-    this.clubService.getPendingClubs().subscribe({
+    this.clubService.getAllClubs().subscribe({
       next: (clubs) => {
-        this.pendingClubs = clubs;
+        this.allClubs = clubs;
+        this.categorizeClubs();
         this.loading = false;
       },
       error: (err) => {
-        console.error('Error loading pending clubs:', err);
-        this.error = 'Failed to load pending club requests.';
+        console.error('Error loading clubs:', err);
+        this.error = 'Failed to load club requests.';
         this.loading = false;
       }
     });
+  }
+
+  categorizeClubs() {
+    this.pendingClubs = this.allClubs.filter(c => c.status === ClubStatus.PENDING);
+    this.approvedClubs = this.allClubs.filter(c => c.status === ClubStatus.APPROVED);
+    this.rejectedClubs = this.allClubs.filter(c => c.status === ClubStatus.REJECTED);
   }
 
   openReviewModal(club: Club, action: 'approve' | 'reject') {
@@ -85,7 +97,7 @@ export class ClubRequestsAdminComponent implements OnInit {
       next: () => {
         this.processing = false;
         this.closeReviewModal();
-        this.loadPendingClubs();
+        this.loadClubs();
         alert(`Club ${this.reviewAction}d successfully!`);
       },
       error: (err) => {

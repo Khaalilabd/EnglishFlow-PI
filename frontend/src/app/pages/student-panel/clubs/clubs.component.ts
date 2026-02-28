@@ -8,6 +8,7 @@ import { TaskService } from '../../../core/services/task.service';
 import { MemberService } from '../../../core/services/member.service';
 import { UserService } from '../../../core/services/user.service';
 import { EventService, Event as ClubEvent } from '../../../core/services/event.service';
+import { EventFeedbackService } from '../../../core/services/event-feedback.service';
 import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { Club, ClubCategory, ClubStatus } from '../../../core/models/club.model';
 import { Task, TaskStatus } from '../../../core/models/task.model';
@@ -91,6 +92,9 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // Club events
   clubEvents: ClubEvent[] = [];
   loadingEvents = false;
+  
+  // Event feedback stats
+  eventFeedbackStats: { [eventId: number]: { averageRating: number; totalFeedbacks: number } } = {};
 
   // Helper method to filter pending requests by club ID
   getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
@@ -104,6 +108,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     private memberService: MemberService,
     private userService: UserService,
     private eventService: EventService,
+    private eventFeedbackService: EventFeedbackService,
     private updateRequestService: ClubUpdateRequestService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -1401,10 +1406,19 @@ export class ClubsComponent implements OnInit, OnDestroy {
           this.eventService.getEventsByCreator(president.userId).subscribe({
             next: (events) => {
               this.clubEvents = events.filter(e => e.status === 'APPROVED').sort((a, b) => {
-                return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+                const dateA = new Date(a.startDate || a.eventDate || '').getTime();
+                const dateB = new Date(b.startDate || b.eventDate || '').getTime();
+                return dateA - dateB;
               });
               this.loadingEvents = false;
               console.log('✅ Loaded', this.clubEvents.length, 'events for club president');
+              
+              // Load feedback stats for each event
+              this.clubEvents.forEach(event => {
+                if (event.id) {
+                  this.loadEventFeedbackStats(event.id);
+                }
+              });
             },
             error: (error) => {
               console.error('Error loading club events:', error);
@@ -1426,12 +1440,45 @@ export class ClubsComponent implements OnInit, OnDestroy {
     });
   }
   
+  // Load feedback stats for an event
+  loadEventFeedbackStats(eventId: number) {
+    this.eventFeedbackService.getEventFeedbackStats(eventId).subscribe({
+      next: (stats) => {
+        this.eventFeedbackStats[eventId] = {
+          averageRating: stats.averageRating,
+          totalFeedbacks: stats.totalFeedbacks
+        };
+      },
+      error: (err) => {
+        console.error(`Error loading feedback stats for event ${eventId}:`, err);
+        this.eventFeedbackStats[eventId] = {
+          averageRating: 0,
+          totalFeedbacks: 0
+        };
+      }
+    });
+  }
+  
+  // Check if event is finished
+  isEventFinished(event: ClubEvent): boolean {
+    const endDate = event.endDate || event.eventDate;
+    if (!endDate) return false;
+    return new Date(endDate) < new Date();
+  }
+  
+  // Get feedback stats for an event
+  getEventFeedbackStats(eventId: number): { averageRating: number; totalFeedbacks: number } {
+    return this.eventFeedbackStats[eventId] || { averageRating: 0, totalFeedbacks: 0 };
+  }
+  
   loadClubEvents(creatorId: number) {
     this.loadingEvents = true;
     this.eventService.getEventsByCreator(creatorId).subscribe({
       next: (events) => {
         this.clubEvents = events.filter(e => e.status === 'APPROVED').sort((a, b) => {
-          return new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime();
+          const dateA = new Date(a.startDate || a.eventDate || '').getTime();
+          const dateB = new Date(b.startDate || b.eventDate || '').getTime();
+          return dateA - dateB;
         });
         this.loadingEvents = false;
       },

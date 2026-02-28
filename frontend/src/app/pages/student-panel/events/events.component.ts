@@ -6,11 +6,15 @@ import { EventService, Event } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { MemberService } from '../../../core/services/member.service';
+import { EventFeedbackService, EventFeedback, EventFeedbackStats } from '../../../core/services/event-feedback.service';
+import { StarRatingComponent } from '../../../shared/components/star-rating/star-rating.component';
+import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
+import { LocationMapComponent } from '../../../shared/components/location-map/location-map.component';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
   templateUrl: './events.component.html',
   styleUrls: ['./events.component.scss']
 })
@@ -35,6 +39,22 @@ export class EventsComponent implements OnInit, OnDestroy {
   eventParticipants: any[] = [];
   loadingParticipants = false;
 
+  // Feedback
+  feedbackForm: EventFeedback = {
+    eventId: 0,
+    userId: 0,
+    rating: 0,
+    comment: '',
+    anonymous: false
+  };
+  feedbackStats: EventFeedbackStats | null = null;
+  userFeedback: EventFeedback | null = null; // Store user's own feedback
+  hasGivenFeedback = false;
+  submittingFeedback = false;
+  showFeedbackCommentsModal = false;
+  feedbackComments: EventFeedback[] = [];
+  loadingFeedbackComments = false;
+
   // Countdown timer
   countdown: {
     days: number;
@@ -48,7 +68,8 @@ export class EventsComponent implements OnInit, OnDestroy {
   eventForm: Event = {
     title: '',
     type: 'WORKSHOP',
-    eventDate: '',
+    startDate: '',
+    endDate: '',
     location: '',
     maxParticipants: 10,
     description: ''
@@ -72,7 +93,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
-    private memberService: MemberService
+    private memberService: MemberService,
+    private feedbackService: EventFeedbackService
   ) {}
 
   ngOnInit() {
@@ -113,6 +135,12 @@ export class EventsComponent implements OnInit, OnDestroy {
       }
     });
     
+    // Subscribe to event participation changes (join/leave/approve/reject)
+    this.eventService.eventParticipationChanged$.subscribe(() => {
+      console.log('🔄 Event participation changed, reloading events...');
+      this.loadEvents();
+    });
+    
     // Check if there's an event ID in the route
     this.route.paramMap.subscribe(params => {
       const eventId = params.get('id');
@@ -138,6 +166,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.startCountdown();
         // Load user's events to check if registered
         this.loadUserEventsForRegistrationCheck();
+        // Load feedback data
+        this.loadFeedbackData();
       },
       error: (error) => {
         console.error('Error loading event:', error);
@@ -214,8 +244,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (!this.selectedEvent) return;
 
     const now = new Date().getTime();
-    const eventDate = new Date(this.selectedEvent.eventDate).getTime();
-    const distance = eventDate - now;
+    const eventStartDate = new Date(this.selectedEvent.startDate).getTime();
+    const distance = eventStartDate - now;
 
     if (distance < 0) {
       // Event has started or passed
@@ -238,8 +268,8 @@ export class EventsComponent implements OnInit, OnDestroy {
   isEventStarted(): boolean {
     if (!this.selectedEvent) return false;
     const now = new Date().getTime();
-    const eventDate = new Date(this.selectedEvent.eventDate).getTime();
-    return now >= eventDate;
+    const eventStartDate = new Date(this.selectedEvent.startDate).getTime();
+    return now >= eventStartDate;
   }
 
   loadEvents() {
@@ -248,11 +278,21 @@ export class EventsComponent implements OnInit, OnDestroy {
     // Load all events
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
-        // Filter to show only APPROVED events (or events created by current user)
+        console.log('📋 All events from API:', events);
+        console.log('📊 Events by status:', events.reduce((acc: any, e) => {
+          acc[e.status || 'UNKNOWN'] = (acc[e.status || 'UNKNOWN'] || 0) + 1;
+          return acc;
+        }, {}));
+        
+        // Filter to show only APPROVED events in the public lists
+        // Creator can see their own events in "My Events" section, not in public lists
         const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED' || event.creatorId === this.currentUserId
+          event.status === 'APPROVED'
         );
+        console.log('✅ Filtered APPROVED events:', filteredEvents.length, filteredEvents);
+        
         this.events = this.filterAvailableEvents(filteredEvents);
+        console.log('📅 Available events (within 3 days):', this.events.length, this.events);
         this.loading = false;
       },
       error: (error) => {
@@ -264,11 +304,16 @@ export class EventsComponent implements OnInit, OnDestroy {
     // Load upcoming events (within 3 days)
     this.eventService.getUpcomingEvents().subscribe({
       next: (events) => {
-        // Filter to show only APPROVED events (or events created by current user)
+        console.log('🔜 Upcoming events from API:', events);
+        
+        // Filter to show only APPROVED events in the public lists
         const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED' || event.creatorId === this.currentUserId
+          event.status === 'APPROVED'
         );
+        console.log('✅ Filtered APPROVED upcoming events:', filteredEvents.length, filteredEvents);
+        
         this.upcomingEvents = this.filterUpcomingEvents(filteredEvents);
+        console.log('📅 Upcoming events (more than 3 days):', this.upcomingEvents.length, this.upcomingEvents);
       },
       error: (error) => {
         console.error('Error loading upcoming events:', error);
@@ -318,8 +363,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
     
     return events.filter(event => {
-      const eventDate = new Date(event.eventDate);
-      return eventDate <= threeDaysFromNow;
+      const eventStartDate = new Date(event.startDate);
+      return eventStartDate <= threeDaysFromNow;
     });
   }
 
@@ -329,8 +374,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
     
     return events.filter(event => {
-      const eventDate = new Date(event.eventDate);
-      return eventDate > threeDaysFromNow;
+      const eventStartDate = new Date(event.startDate);
+      return eventStartDate > threeDaysFromNow;
     });
   }
 
@@ -338,8 +383,8 @@ export class EventsComponent implements OnInit, OnDestroy {
   isComingSoon(event: Event): boolean {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const eventDate = new Date(event.eventDate);
-    return eventDate > threeDaysFromNow;
+    const eventStartDate = new Date(event.startDate);
+    return eventStartDate > threeDaysFromNow;
   }
 
   // Check if user is the creator of the event
@@ -360,7 +405,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.eventForm = {
       title: '',
       type: 'WORKSHOP',
-      eventDate: '',
+      startDate: '',
+      endDate: '',
       location: '',
       maxParticipants: 10,
       description: '',
@@ -373,9 +419,13 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.eventForm = { ...event };
     // Convert date format for datetime-local input
-    if (this.eventForm.eventDate) {
-      const date = new Date(this.eventForm.eventDate);
-      this.eventForm.eventDate = date.toISOString().slice(0, 16);
+    if (this.eventForm.startDate) {
+      const startDate = new Date(this.eventForm.startDate);
+      this.eventForm.startDate = startDate.toISOString().slice(0, 16);
+    }
+    if (this.eventForm.endDate) {
+      const endDate = new Date(this.eventForm.endDate);
+      this.eventForm.endDate = endDate.toISOString().slice(0, 16);
     }
     this.showModal = true;
   }
@@ -385,15 +435,34 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
   }
 
+  onLocationSelected(locationData: LocationData) {
+    this.eventForm.location = locationData.address;
+    this.eventForm.latitude = locationData.latitude;
+    this.eventForm.longitude = locationData.longitude;
+  }
+
   saveEvent() {
     // Add creatorId when creating a new event
     if (!this.isEditMode && this.currentUserId) {
       this.eventForm.creatorId = this.currentUserId;
     }
 
+    // Validate dates
+    if (this.eventForm.startDate && this.eventForm.endDate) {
+      const startDate = new Date(this.eventForm.startDate);
+      const endDate = new Date(this.eventForm.endDate);
+      
+      if (endDate <= startDate) {
+        alert('La date de fin doit être après la date de début!');
+        return;
+      }
+    }
+
     // Log gallery before saving
     console.log('💾 Saving event with gallery:', this.eventForm.gallery);
     console.log('📊 Gallery length:', this.eventForm.gallery?.length || 0);
+    console.log('📅 Start Date:', this.eventForm.startDate);
+    console.log('📅 End Date:', this.eventForm.endDate);
 
     if (this.isEditMode && this.eventForm.id) {
       const eventId = this.eventForm.id;
@@ -769,5 +838,201 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.canCreateEvent = false;
       }
     });
+  }
+
+  // ==================== FEEDBACK METHODS ====================
+
+  /**
+   * Check if feedback section should be displayed
+   */
+  showFeedbackSection(): boolean {
+    if (!this.selectedEvent || !this.selectedEvent.endDate) return false;
+    
+    // Show if event has ended
+    const eventEnded = new Date(this.selectedEvent.endDate) < new Date();
+    return eventEnded;
+  }
+
+  /**
+   * Check if feedback form should be displayed
+   */
+  showFeedbackForm(): boolean {
+    if (!this.selectedEvent || !this.currentUserId) return false;
+    
+    const eventEnded = new Date(this.selectedEvent.endDate) < new Date();
+    const isParticipant = this.isUserRegistered(this.selectedEvent.id!);
+    const isCreator = this.isEventCreator(this.selectedEvent);
+    
+    return eventEnded && isParticipant && !isCreator && !this.hasGivenFeedback;
+  }
+
+  /**
+   * Check if feedback stats should be displayed
+   */
+  showFeedbackStats(): boolean {
+    if (!this.feedbackStats) return false;
+    
+    const isCreator = this.selectedEvent ? this.isEventCreator(this.selectedEvent) : false;
+    
+    // Creator can always see stats (even if 0 feedbacks)
+    // Others need at least 3 feedbacks
+    if (isCreator) {
+      return true;
+    }
+    
+    const hasMinimumFeedbacks = this.feedbackStats.totalFeedbacks >= 3;
+    return hasMinimumFeedbacks;
+  }
+
+  /**
+   * Load feedback data for the selected event
+   */
+  loadFeedbackData() {
+    if (!this.selectedEvent || !this.selectedEvent.id) return;
+
+    const eventId = this.selectedEvent.id;
+
+    // Load feedback stats
+    this.feedbackService.getEventFeedbackStats(eventId).subscribe({
+      next: (stats) => {
+        this.feedbackStats = stats;
+        console.log('📊 Feedback stats loaded:', stats);
+      },
+      error: (err) => {
+        console.error('❌ Error loading feedback stats:', err);
+      }
+    });
+
+    // Check if user has given feedback and load it
+    if (this.currentUserId) {
+      this.feedbackService.hasUserGivenFeedback(eventId, this.currentUserId).subscribe({
+        next: (hasFeedback) => {
+          this.hasGivenFeedback = hasFeedback;
+          console.log('✅ User has given feedback:', hasFeedback);
+          
+          // If user has given feedback, load their feedback details
+          if (hasFeedback) {
+            this.feedbackService.getUserFeedback(eventId, this.currentUserId!).subscribe({
+              next: (feedback) => {
+                this.userFeedback = feedback;
+                console.log('📝 User feedback loaded:', feedback);
+              },
+              error: (err) => {
+                console.error('❌ Error loading user feedback:', err);
+              }
+            });
+          }
+        },
+        error: (err) => {
+          console.error('❌ Error checking user feedback:', err);
+        }
+      });
+    }
+  }
+
+  /**
+   * Set rating (star click)
+   */
+  setRating(rating: number) {
+    this.feedbackForm.rating = rating;
+    
+    // Add a small vibration feedback on mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+    
+    // Log for debugging
+    console.log('⭐ Rating set to:', rating);
+  }
+
+  /**
+   * Submit feedback
+   */
+  submitFeedback() {
+    if (!this.selectedEvent || !this.currentUserId || this.feedbackForm.rating === 0) {
+      return;
+    }
+
+    this.submittingFeedback = true;
+
+    const feedback: EventFeedback = {
+      eventId: this.selectedEvent.id!,
+      userId: this.currentUserId,
+      rating: this.feedbackForm.rating,
+      comment: this.feedbackForm.comment || '',
+      anonymous: false
+    };
+
+    this.feedbackService.createFeedback(feedback).subscribe({
+      next: (result) => {
+        console.log('✅ Feedback submitted successfully:', result);
+        alert('Merci pour votre avis! 🎉');
+        
+        // Reset form
+        this.feedbackForm = {
+          eventId: 0,
+          userId: 0,
+          rating: 0,
+          comment: '',
+          anonymous: false
+        };
+        
+        // Mark as given
+        this.hasGivenFeedback = true;
+        this.submittingFeedback = false;
+        
+        // Reload feedback data
+        this.loadFeedbackData();
+      },
+      error: (err) => {
+        console.error('❌ Error submitting feedback:', err);
+        alert('Erreur lors de l\'envoi de votre avis. Veuillez réessayer.');
+        this.submittingFeedback = false;
+      }
+    });
+  }
+
+  /**
+   * Get distribution percentage for rating bar
+   */
+  getDistributionPercentage(rating: number): number {
+    if (!this.feedbackStats || this.feedbackStats.totalFeedbacks === 0) {
+      return 0;
+    }
+    
+    const count = this.feedbackStats.ratingDistribution[rating] || 0;
+    return (count / this.feedbackStats.totalFeedbacks) * 100;
+  }
+
+  /**
+   * Open feedback comments modal (for creator)
+   */
+  openFeedbackCommentsModal() {
+    if (!this.selectedEvent || !this.isEventCreator(this.selectedEvent)) {
+      return;
+    }
+
+    this.showFeedbackCommentsModal = true;
+    this.loadingFeedbackComments = true;
+
+    this.feedbackService.getEventFeedbacks(this.selectedEvent.id!).subscribe({
+      next: (feedbacks) => {
+        this.feedbackComments = feedbacks;
+        this.loadingFeedbackComments = false;
+        console.log('💬 Feedback comments loaded:', feedbacks);
+      },
+      error: (err) => {
+        console.error('❌ Error loading feedback comments:', err);
+        this.loadingFeedbackComments = false;
+      }
+    });
+  }
+
+  /**
+   * Close feedback comments modal
+   */
+  closeFeedbackCommentsModal() {
+    this.showFeedbackCommentsModal = false;
+    this.feedbackComments = [];
   }
 }

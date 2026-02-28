@@ -491,8 +491,8 @@ export class StudentSidebarComponent {
                 const newSubItems = userEvents.map(event => {
                   // Check if event is coming soon (within 3 days)
                   const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-                  const eventDate = new Date(event.eventDate);
-                  const isComingSoon = eventDate <= threeDaysFromNow && eventDate > now;
+                  const eventStartDate = new Date(event.startDate || event.eventDate || '');
+                  const isComingSoon = eventStartDate <= threeDaysFromNow && eventStartDate > now;
                   
                   // Check if user is the creator
                   const isCreator = event.creatorId === userId;

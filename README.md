@@ -135,6 +135,42 @@ Technologies: Spring Boot 3, Spring Cloud, Spring Security, PostgreSQL, JWT
 - ✅ Rôles: STUDENT, TEACHER, ADMIN
 - ✅ Templates d'emails professionnels
 
+## 🗺️ Intégration OpenStreetMap
+
+L'application intègre **OpenStreetMap + Leaflet** pour la gestion des emplacements d'événements - **100% gratuit et open source** :
+
+### Fonctionnalités
+- ✅ Recherche d'emplacement avec Nominatim lors de la création d'événement
+- ✅ Affichage de carte interactive Leaflet dans les détails d'événement
+- ✅ Enregistrement automatique des coordonnées GPS (latitude/longitude)
+- ✅ Support des événements existants sans coordonnées
+- ✅ **Aucune clé API requise**
+- ✅ **Aucune limite d'utilisation**
+- ✅ **Aucun coût**
+
+### Avantages
+- 🆓 Totalement gratuit
+- 🌍 Open source
+- 🚀 Performant et léger
+- 🔒 Respect de la vie privée (pas de tracking)
+
+### Démarrage rapide
+
+1. **Migration SQL** (si pas encore fait) :
+```sql
+ALTER TABLE events ADD COLUMN latitude DOUBLE;
+ALTER TABLE events ADD COLUMN longitude DOUBLE;
+```
+
+2. **Redémarrer l'application** et tester !
+
+### Documentation
+- 📋 [Résumé de l'intégration](./OPENSTREETMAP_SUMMARY.md) - **Commencez ici !**
+- 📖 [Guide complet](./OPENSTREETMAP_INTEGRATION.md)
+- 🔄 [Migration depuis Google Maps](./MIGRATION_TO_OPENSTREETMAP.md)
+- 🧪 [Plan de test](./TEST_OPENSTREETMAP.md)
+- 📦 [Migration des anciens événements](./MIGRATE_OLD_EVENTS.md)
+
 ## 📚 Documentation
 
 - [Configuration Auth Service](./backend/auth-service/SETUP.md)

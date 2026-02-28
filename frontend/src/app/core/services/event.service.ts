@@ -7,8 +7,11 @@ export interface Event {
   id?: number;
   title: string;
   type: 'WORKSHOP' | 'SEMINAR' | 'SOCIAL';
-  eventDate: string;
+  startDate: string;
+  endDate: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   maxParticipants: number;
   currentParticipants?: number;
   description?: string;
@@ -18,6 +21,9 @@ export interface Event {
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt?: string;
   updatedAt?: string;
+  
+  // Backward compatibility (deprecated)
+  eventDate?: string;
 }
 
 export interface Participant {
