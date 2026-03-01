@@ -4,11 +4,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { RouterModule } from '@angular/router';
 import { UserService, User, UpdateUserRequest } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { UserRoleBadgeComponent } from '../../../shared/components/user-role-badge/user-role-badge.component';
 
 @Component({
   selector: 'app-tutors',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, UserRoleBadgeComponent],
   templateUrl: './tutors.component.html',
   styleUrls: ['./tutors.component.scss']
 })

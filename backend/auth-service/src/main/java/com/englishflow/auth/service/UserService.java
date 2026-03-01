@@ -28,6 +28,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GamificationIntegrationService gamificationIntegrationService;
     private final ActivationTokenRepository activationTokenRepository;
 
     public List<UserDTO> getAllUsers() {
@@ -44,7 +45,16 @@ public class UserService {
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
-        return UserDTO.fromEntity(user);
+        UserDTO userDTO = UserDTO.fromEntity(user);
+        
+        // Fetch gamification level
+        try {
+            userDTO.setGamificationLevel(gamificationIntegrationService.getUserLevel(id));
+        } catch (Exception e) {
+            log.error("Failed to fetch gamification level for user {}: {}", id, e.getMessage());
+        }
+        
+        return userDTO;
     }
 
     public List<UserDTO> getUsersByRole(String role) {

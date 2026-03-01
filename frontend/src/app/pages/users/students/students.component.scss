@@ -1185,3 +1185,16 @@
     text-align: center;
   }
 }
+
+/* ===== ROLE BADGE WRAPPER ===== */
+.student-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.student-name {
+  margin: 0;
+}

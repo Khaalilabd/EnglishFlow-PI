@@ -33,6 +33,26 @@ export class CompleteProfileComponent implements OnInit {
   error = '';
   validationErrors: {field: string, message: string}[] = [];
   success = false;
+  
+  // Field focus states
+  phoneFocused = false;
+  cinFocused = false;
+  dateOfBirthFocused = false;
+  addressFocused = false;
+  cityFocused = false;
+  postalCodeFocused = false;
+  englishLevelFocused = false;
+  bioFocused = false;
+  
+  // Field touched states
+  phoneTouched = false;
+  cinTouched = false;
+  dateOfBirthTouched = false;
+  addressTouched = false;
+  cityTouched = false;
+  postalCodeTouched = false;
+  englishLevelTouched = false;
+  bioTouched = false;
 
   private apiUrl = 'http://localhost:8080/api/auth'; // Via API Gateway
 
@@ -170,5 +190,31 @@ export class CompleteProfileComponent implements OnInit {
 
   get bioLength(): number {
     return this.profileForm.get('bio')?.value?.length || 0;
+  }
+  
+  // Field validation helper methods
+  hasValue(fieldName: string): boolean {
+    const field = this.profileForm.get(fieldName);
+    return field?.value && field.value.length > 0;
+  }
+  
+  isFieldValid(fieldName: string): boolean {
+    const field = this.profileForm.get(fieldName);
+    return field?.valid || false;
+  }
+  
+  shouldShowFieldError(fieldName: string, touched: boolean): boolean {
+    const field = this.profileForm.get(fieldName);
+    return (field?.invalid && (field?.touched || touched)) || false;
+  }
+  
+  // Focus handlers
+  onFieldFocus(fieldName: string): void {
+    (this as any)[`${fieldName}Focused`] = true;
+  }
+  
+  onFieldBlur(fieldName: string): void {
+    (this as any)[`${fieldName}Focused`] = false;
+    (this as any)[`${fieldName}Touched`] = true;
   }
 }

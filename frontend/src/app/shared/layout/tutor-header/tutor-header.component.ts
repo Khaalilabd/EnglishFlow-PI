@@ -4,11 +4,12 @@ import { RouterModule } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
+import { UserRoleBadgeComponent } from '../../components/user-role-badge/user-role-badge.component';
 
 @Component({
   selector: 'app-tutor-header',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserRoleBadgeComponent],
   template: `
     <header 
       class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm transition-all duration-300"
@@ -59,9 +60,12 @@ import { AuthResponse } from '../../../core/models/user.model';
               [src]="getProfilePhotoUrl(currentUser?.profilePhoto)"
               [alt]="currentUser?.firstName + ' ' + currentUser?.lastName"
               class="w-10 h-10 rounded-full border-2 border-teal-600 shadow-sm object-cover">
-            <div class="hidden md:block text-left">
-              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
-              <p class="text-xs text-teal-600">{{getRoleLabel(currentUser?.role)}}</p>
+            <div class="hidden md:flex items-center gap-2 text-left">
+              <div>
+                <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+                <p class="text-xs text-teal-600">{{getRoleLabel(currentUser?.role)}}</p>
+              </div>
+              <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
             </div>
             <i class="fas fa-chevron-down text-gray-600 text-sm transition-transform" [class.rotate-180]="userMenuOpen"></i>
           </button>
@@ -73,7 +77,10 @@ import { AuthResponse } from '../../../core/models/user.model';
             
             <!-- User Info -->
             <div class="px-4 py-3 border-b border-gray-100">
-              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+              <div class="flex items-center gap-2 mb-1">
+                <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+                <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+              </div>
               <p class="text-xs text-gray-500">{{currentUser?.email}}</p>
             </div>
 

@@ -580,6 +580,11 @@ export const routes: Routes = [
         title: 'Manage Feedbacks | Jungle in English Dashboard'
       },
       {
+        path: 'gamification',
+        loadComponent: () => import('./pages/dashboard/gamification/gamification.component').then(m => m.GamificationComponent),
+        title: 'Gamification Management | Jungle in English Dashboard'
+      },
+      {
         path: 'forum',
         loadComponent: () => import('./pages/dashboard/forum-management/forum-management.component').then(m => m.ForumManagementComponent),
         title: 'Forum Management | Jungle in English Dashboard'

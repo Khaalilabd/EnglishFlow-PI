@@ -1,0 +1,79 @@
+server:
+  port: 8086
+
+spring:
+  application:
+    name: gamification-service
+  
+  cloud:
+    config:
+      enabled: false
+      import-check:
+        enabled: false
+    discovery:
+      enabled: false
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/englishflow_gamification
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidation123456789}
+  expiration: 86400000
+
+# Logging
+logging:
+  level:
+    com.englishflow.gamification: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Gamification Configuration
+gamification:
+  points:
+    login: 10
+    course-completion: 100
+    quiz-perfect: 50
+    quiz-pass: 30
+    assignment-submit: 20
+    streak-bonus: 5
+  levels:
+    - name: "Beginner"
+      minPoints: 0
+      maxPoints: 100
+    - name: "Intermediate"
+      minPoints: 101
+      maxPoints: 500
+    - name: "Advanced"
+      minPoints: 501
+      maxPoints: 1000
+    - name: "Expert"
+      minPoints: 1001
+      maxPoints: 5000
+    - name: "Master"
+      minPoints: 5001
+      maxPoints: 999999

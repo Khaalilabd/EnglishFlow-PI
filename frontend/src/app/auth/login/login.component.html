@@ -91,39 +91,121 @@
             </div>
 
             <!-- Login Form -->
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-3">
-              <!-- Email Input with Icon -->
-              <div class="relative group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg class="w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"></path>
-                  </svg>
-                </div>
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-5">
+              <!-- Email Input with Floating Label -->
+              <div class="relative">
+                <!-- Fixed Label Above -->
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Email Address
+                </label>
+                
                 <input 
                   type="email" 
-                  formControlName="email" 
-                  placeholder="Email address"
-                  class="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-gray-800 placeholder-gray-400 text-sm">
-                <div *ngIf="email?.invalid && email?.touched" class="absolute -bottom-6 left-0 text-red-500 text-xs font-medium">
-                  <span *ngIf="email?.errors?.['required']">Email is required</span>
-                  <span *ngIf="email?.errors?.['email']">Invalid email format</span>
+                  id="email"
+                  formControlName="email"
+                  (focus)="onEmailFocus()"
+                  (blur)="onEmailBlur()"
+                  [class.border-red-500]="shouldShowEmailError()"
+                  [class.border-green-500]="isEmailValid() && hasEmailValue()"
+                  [class.border-primary]="emailFocused && !shouldShowEmailError()"
+                  class="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-gray-800 text-sm"
+                  placeholder="Enter your email address">
+                
+                <!-- Left Icon - Email -->
+                <div class="absolute left-4 bottom-3 pointer-events-none">
+                  <svg 
+                    [class.text-red-500]="shouldShowEmailError()"
+                    [class.text-green-500]="isEmailValid() && hasEmailValue()"
+                    [class.text-primary]="emailFocused && !shouldShowEmailError()"
+                    class="w-5 h-5 text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                
+                <!-- Right Icon - Validation Status -->
+                <div class="absolute right-4 bottom-3 flex items-center">
+                  <svg *ngIf="isEmailValid() && hasEmailValue()" class="w-5 h-5 text-green-500 animate-fadeIn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <svg *ngIf="shouldShowEmailError()" class="w-5 h-5 text-red-500 animate-fadeIn" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                
+                <!-- Error Messages -->
+                <div *ngIf="shouldShowEmailError()" class="mt-2 flex items-start space-x-2 text-red-600 animate-fadeIn">
+                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                  <div class="text-xs font-medium">
+                    <p *ngIf="email?.errors?.['required']">📧 Email address is required</p>
+                    <p *ngIf="email?.errors?.['email'] && !email?.errors?.['required']">⚠️ Please enter a valid email address (e.g., user&#64;example.com)</p>
+                  </div>
                 </div>
               </div>
 
-              <!-- Password Input with Icon -->
-              <div class="relative group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <svg class="w-5 h-5 text-gray-400 group-focus-within:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <!-- Password Input with Floating Label -->
+              <div class="relative">
+                <!-- Fixed Label Above -->
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  Password
+                </label>
+                
+                <input 
+                  [type]="showPassword ? 'text' : 'password'"
+                  id="password"
+                  formControlName="password"
+                  (focus)="onPasswordFocus()"
+                  (blur)="onPasswordBlur()"
+                  [class.border-red-500]="shouldShowPasswordError()"
+                  [class.border-green-500]="isPasswordValid() && hasPasswordValue()"
+                  [class.border-primary]="passwordFocused && !shouldShowPasswordError()"
+                  class="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:bg-white transition-all duration-300 text-gray-800 text-sm"
+                  placeholder="Enter your password">
+                
+                <!-- Left Icon - Lock -->
+                <div class="absolute left-4 bottom-3 pointer-events-none">
+                  <svg 
+                    [class.text-red-500]="shouldShowPasswordError()"
+                    [class.text-green-500]="isPasswordValid() && hasPasswordValue()"
+                    [class.text-primary]="passwordFocused && !shouldShowPasswordError()"
+                    class="w-5 h-5 text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                   </svg>
                 </div>
-                <input 
-                  type="password" 
-                  formControlName="password" 
-                  placeholder="Password"
-                  class="w-full pl-10 pr-3 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:bg-white focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-gray-800 placeholder-gray-400 text-sm">
-                <div *ngIf="password?.invalid && password?.touched" class="absolute -bottom-6 left-0 text-red-500 text-xs font-medium">
-                  <span *ngIf="password?.errors?.['required']">Password is required</span>
+                
+                <!-- Toggle Password Visibility -->
+                <button
+                  type="button"
+                  (click)="togglePasswordVisibility()"
+                  class="absolute right-4 bottom-3 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none z-10"
+                  title="{{ showPassword ? 'Hide password' : 'Show password' }}">
+                  <svg *ngIf="!showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                  </svg>
+                  <svg *ngIf="showPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+                  </svg>
+                </button>
+                
+                <!-- Error Messages -->
+                <div *ngIf="shouldShowPasswordError()" class="mt-2 flex items-start space-x-2 text-red-600 animate-fadeIn">
+                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                  <div class="text-xs font-medium">
+                    <p *ngIf="password?.errors?.['required']">🔒 Password is required</p>
+                    <p *ngIf="password?.errors?.['minlength'] && !password?.errors?.['required']">⚠️ Password must be at least 8 characters long</p>
+                  </div>
+                </div>
+                
+                <!-- Password Hint -->
+                <div *ngIf="passwordFocused && !shouldShowPasswordError() && !hasPasswordValue()" class="mt-2 flex items-start space-x-2 text-gray-500 animate-fadeIn">
+                  <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <p class="text-xs">💡 Use at least 8 characters for better security</p>
                 </div>
               </div>
 
@@ -300,8 +382,23 @@
   75% { transform: translate(50px, 50px) scale(1.05); }
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .animate-blob {
   animation: blob 7s infinite;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
 }
 
 .animation-delay-2000 {
@@ -310,5 +407,13 @@
 
 .animation-delay-4000 {
   animation-delay: 4s;
+}
+
+/* Floating label styles */
+input:not(:placeholder-shown) + label,
+input:focus + label {
+  top: 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 </style>

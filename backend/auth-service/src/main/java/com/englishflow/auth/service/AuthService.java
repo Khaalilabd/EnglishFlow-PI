@@ -45,6 +45,7 @@ public class AuthService {
     private final UserSessionService userSessionService;
     private final MetricsService metricsService;
     private final TwoFactorAuthService twoFactorAuthService;
+    private final GamificationIntegrationService gamificationIntegrationService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -105,6 +106,9 @@ public class AuthService {
             }
 
             user = userRepository.save(user);
+
+            // Note: Gamification level will be initialized after the user completes the assessment test
+            // The assessment service will call gamification-service to initialize the level
 
             // Create activation token
             String activationToken = UUID.randomUUID().toString();

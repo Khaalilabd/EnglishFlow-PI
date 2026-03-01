@@ -28,6 +28,14 @@ export class LoginComponent implements OnInit {
   twoFactorCode = '';
   tempToken = '';
   loading2FA = false;
+  
+  // Field focus states for floating labels
+  emailFocused = false;
+  passwordFocused = false;
+  
+  // Field touched states for better validation display
+  emailTouched = false;
+  passwordTouched = false;
 
   constructor(
     private fb: FormBuilder,
@@ -62,8 +70,15 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark all fields as touched to show validation errors
+    Object.keys(this.loginForm.controls).forEach(key => {
+      this.loginForm.get(key)?.markAsTouched();
+    });
+    this.emailTouched = true;
+    this.passwordTouched = true;
+
     if (this.loginForm.invalid) {
-      this.errorMessage = 'Please fill in all required fields';
+      this.errorMessage = 'Please correct the errors below';
       return;
     }
 
@@ -111,13 +126,59 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         console.error('Login error:', error);
-        this.errorMessage = error.error?.message || 'Invalid credentials';
+        this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
         this.loading = false;
       },
       complete: () => {
         this.loading = false;
       }
     });
+  }
+
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+  
+  onEmailFocus(): void {
+    this.emailFocused = true;
+  }
+  
+  onEmailBlur(): void {
+    this.emailFocused = false;
+    this.emailTouched = true;
+  }
+  
+  onPasswordFocus(): void {
+    this.passwordFocused = true;
+  }
+  
+  onPasswordBlur(): void {
+    this.passwordFocused = false;
+    this.passwordTouched = true;
+  }
+  
+  hasEmailValue(): boolean {
+    return this.email?.value && this.email.value.length > 0;
+  }
+  
+  hasPasswordValue(): boolean {
+    return this.password?.value && this.password.value.length > 0;
+  }
+  
+  isEmailValid(): boolean {
+    return this.email?.valid || false;
+  }
+  
+  isPasswordValid(): boolean {
+    return this.password?.valid || false;
+  }
+  
+  shouldShowEmailError(): boolean {
+    return (this.email?.invalid && (this.email?.touched || this.emailTouched)) || false;
+  }
+  
+  shouldShowPasswordError(): boolean {
+    return (this.password?.invalid && (this.password?.touched || this.passwordTouched)) || false;
   }
 
   get email() {

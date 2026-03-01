@@ -1,14 +1,16 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
+import { GamificationService, UserLevel } from '../../../services/gamification.service';
+import { UserRoleBadgeComponent } from '../../components/user-role-badge/user-role-badge.component';
 
 @Component({
   standalone: true,
   selector: 'app-student-header',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserRoleBadgeComponent],
   template: `
     <header 
       class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm transition-all duration-300">
@@ -65,9 +67,12 @@ import { AuthResponse } from '../../../core/models/user.model';
               [src]="getProfilePhotoUrl(currentUser?.profilePhoto)"
               [alt]="currentUser?.firstName + ' ' + currentUser?.lastName"
               class="w-10 h-10 rounded-full border-2 border-[#F6BD60] shadow-sm object-cover">
-            <div class="hidden md:block text-left">
-              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
-              <p class="text-xs text-[#2D5757]">{{currentUser?.role === 'STUDENT' ? 'Learner' : currentUser?.role}}</p>
+            <div class="hidden md:flex items-center gap-2 text-left">
+              <div>
+                <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+                <p class="text-xs text-[#2D5757]">{{currentUser?.role === 'STUDENT' ? 'Learner' : currentUser?.role}}</p>
+              </div>
+              <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
             </div>
             <i class="fas fa-chevron-down text-gray-600 text-sm transition-transform" [class.rotate-180]="userMenuOpen"></i>
           </button>
@@ -79,8 +84,81 @@ import { AuthResponse } from '../../../core/models/user.model';
             
             <!-- User Info -->
             <div class="px-4 py-3 border-b border-gray-100">
-              <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+              <div class="flex items-center gap-2 mb-1">
+                <p class="text-sm font-semibold text-gray-800">{{currentUser?.firstName}} {{currentUser?.lastName}}</p>
+                <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+              </div>
               <p class="text-xs text-gray-500">{{currentUser?.email}}</p>
+            </div>
+
+            <!-- Gamification Section -->
+            <div *ngIf="userLevel" class="px-4 py-3 bg-gradient-to-br from-amber-50 to-orange-50 border-b border-gray-100">
+              <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                  <span class="text-xl">{{ userLevel.assessmentLevelIcon }}</span>
+                  <div>
+                    <p class="text-xs font-semibold text-gray-600">
+                      {{ userLevel.hasCompletedAssessment ? 'Level' : 'Not assessed' }}
+                    </p>
+                    <div class="flex items-center gap-1">
+                      <p class="text-sm font-bold text-amber-600">
+                        {{ userLevel.assessmentLevel || '?' }}
+                      </p>
+                      <span *ngIf="userLevel.assessmentLevel && !userLevel.certifiedLevel" 
+                            class="text-xs" 
+                            title="Not certified">⚠️</span>
+                      <span *ngIf="userLevel.certifiedLevel" 
+                            class="text-xs" 
+                            title="Certified">✅</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-right">
+                  <p class="text-xs font-semibold text-gray-600">Coins</p>
+                  <p class="text-sm font-bold text-amber-600">{{ userLevel.jungleCoins }} 🪙</p>
+                </div>
+              </div>
+              
+              <!-- Certified Level (if different) -->
+              <div *ngIf="userLevel.certifiedLevel && userLevel.certifiedLevel !== userLevel.assessmentLevel" 
+                   class="mb-2 p-2 bg-green-50 rounded-lg border border-green-200">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">{{ userLevel.certifiedLevelIcon }}</span>
+                  <div class="flex-1">
+                    <p class="text-xs font-semibold text-green-700">Certified Level ✅</p>
+                    <p class="text-sm font-bold text-green-800">{{ userLevel.certifiedLevel }}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- XP Progress Bar (only if assessed) -->
+              <div *ngIf="userLevel.hasCompletedAssessment" class="mb-2">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-xs text-gray-600">{{ userLevel.totalXP }} XP</span>
+                  <span class="text-xs text-gray-600">{{ userLevel.progressPercentage }}%</span>
+                </div>
+                <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    class="bg-gradient-to-r from-amber-500 to-orange-500 h-full rounded-full transition-all duration-500"
+                    [style.width.%]="userLevel.progressPercentage"
+                  ></div>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">{{ userLevel.xpForNextLevel }} XP to {{ userLevel.nextLevel || 'next level' }}</p>
+              </div>
+              
+              <!-- Call to action if not assessed -->
+              <div *ngIf="!userLevel.hasCompletedAssessment" class="mb-2">
+                <button 
+                  class="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-xs font-semibold py-2 px-3 rounded-lg transition-all">
+                  📝 Take Assessment Test
+                </button>
+              </div>
+              
+              <!-- Streak -->
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-600">🔥 {{ userLevel.consecutiveDays }} day streak</span>
+                <span class="text-gray-600">{{ userLevel.loyaltyTierIcon }} {{ userLevel.loyaltyTier }}</span>
+              </div>
             </div>
 
             <!-- Menu Items -->
@@ -138,15 +216,17 @@ import { AuthResponse } from '../../../core/models/user.model';
     }
   `]
 })
-export class StudentHeaderComponent {
+export class StudentHeaderComponent implements OnInit {
   userMenuOpen = false;
   unreadMessages = 5;
   currentUser$;
   currentUser: AuthResponse | null = null;
+  userLevel: UserLevel | null = null;
 
   constructor(
     private sidebarService: SidebarService,
-    private authService: AuthService
+    private authService: AuthService,
+    private gamificationService: GamificationService
   ) {
     this.currentUser$ = this.authService.currentUser$;
     
@@ -166,6 +246,23 @@ export class StudentHeaderComponent {
         };
         // Force update in authService
         this.authService.updateCurrentUser(this.currentUser);
+      }
+    });
+  }
+
+  ngOnInit() {
+    this.loadGamificationData();
+  }
+
+  loadGamificationData() {
+    if (!this.currentUser?.id) return;
+
+    this.gamificationService.getUserLevel(this.currentUser.id).subscribe({
+      next: (level) => {
+        this.userLevel = level;
+      },
+      error: (error) => {
+        console.error('Failed to load gamification data:', error);
       }
     });
   }
