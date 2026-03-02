@@ -1,0 +1,38 @@
+# Topics GitHub à Ajouter
+# Copiez-collez cette liste dans les paramètres de votre dépôt GitHub
+
+## Topics Obligatoires (Minimum Requis par Esprit)
+esprit-school-of-engineering
+academic-project
+esprit-pidev
+2025-2026
+angular
+spring-boot
+
+## Topics Recommandés pour Meilleure Visibilité
+microservices
+java
+typescript
+postgresql
+jwt-authentication
+oauth2
+e-learning
+english-learning
+spring-cloud
+eureka
+api-gateway
+docker
+rest-api
+full-stack
+education-technology
+tunisia
+
+## Comment Ajouter les Topics:
+1. Allez sur https://github.com/Khaalilabd/EnglishFlow-PI
+2. Cliquez sur l'icône ⚙️ à côté de "About" (en haut à droite)
+3. Dans le champ "Topics", collez tous les topics séparés par des espaces
+4. GitHub les séparera automatiquement
+5. Cliquez sur "Save changes"
+
+## Topics à Copier-Coller (Tous en Une Ligne):
+esprit-school-of-engineering academic-project esprit-pidev 2025-2026 angular spring-boot microservices java typescript postgresql jwt-authentication oauth2 e-learning english-learning spring-cloud eureka api-gateway docker rest-api full-stack education-technology tunisia
