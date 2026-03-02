@@ -3,7 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { QuizService } from '../../../core/services/quiz.service';
+import { CourseService } from '../../../core/services/course.service';
 import { Quiz } from '../../../core/models/quiz.model';
+import { Course } from '../../../core/models/course.model';
 
 @Component({
   selector: 'app-quiz-management',
@@ -15,6 +17,7 @@ export class QuizManagementComponent implements OnInit {
   Math = Math;
   quizzes: Quiz[] = [];
   filteredQuizzes: Quiz[] = [];
+  courses: Course[] = [];
   loading = false;
   
   filterStatus: 'all' | 'published' | 'draft' | 'scheduled' = 'all';
@@ -55,10 +58,25 @@ export class QuizManagementComponent implements OnInit {
     partialCreditEnabled: false
   };
 
-  constructor(private quizService: QuizService) {}
+  constructor(
+    private quizService: QuizService,
+    private courseService: CourseService
+  ) {}
 
   ngOnInit() {
     this.loadQuizzes();
+    this.loadCourses();
+  }
+
+  loadCourses() {
+    this.courseService.getAllCourses().subscribe({
+      next: (courses) => {
+        this.courses = courses;
+      },
+      error: (error) => {
+        console.error('Error loading courses:', error);
+      }
+    });
   }
 
   loadQuizzes() {

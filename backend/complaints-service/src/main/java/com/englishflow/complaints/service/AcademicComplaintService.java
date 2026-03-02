@@ -36,18 +36,20 @@ public class AcademicComplaintService {
     }
     
     /**
-     * Get complaints for ACADEMIC_OFFICE_AFFAIR (TECHNICAL, ADMINISTRATIVE, SCHEDULE, TUTOR_BEHAVIOR)
+     * Get complaints for ACADEMIC_OFFICE_AFFAIR (TECHNICAL, ADMINISTRATIVE, BEHAVIORAL, SCHEDULE, TUTOR_BEHAVIOR)
      */
     public List<ComplaintWithUserDTO> getComplaintsForAcademicOffice() {
         log.info("Fetching complaints for ACADEMIC_OFFICE_AFFAIR");
         
         List<Complaint> complaints = complaintRepository.findAllByOrderByCreatedAtDesc();
         
-        // Filter only TECHNICAL, ADMINISTRATIVE, BEHAVIORAL
+        // Filter only TECHNICAL, ADMINISTRATIVE, BEHAVIORAL, SCHEDULE, TUTOR_BEHAVIOR
         List<Complaint> filteredComplaints = complaints.stream()
                 .filter(c -> c.getCategory() == ComplaintCategory.TECHNICAL ||
                            c.getCategory() == ComplaintCategory.ADMINISTRATIVE ||
-                           c.getCategory() == ComplaintCategory.BEHAVIORAL)
+                           c.getCategory() == ComplaintCategory.BEHAVIORAL ||
+                           c.getCategory() == ComplaintCategory.SCHEDULE ||
+                           c.getCategory() == ComplaintCategory.TUTOR_BEHAVIOR)
                 .toList();
         
         return buildComplaintDTOs(filteredComplaints);

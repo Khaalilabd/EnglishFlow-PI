@@ -5,5 +5,7 @@ public enum ComplaintCategory {
     TECHNICAL,        // Problème technique
     ADMINISTRATIVE,   // Problème administratif/paiement
     BEHAVIORAL,       // Problème comportemental
+    TUTOR_BEHAVIOR,   // Problème de comportement du tuteur
+    SCHEDULE,         // Problème d'horaire/absence
     OTHER             // Autre
 }

@@ -181,8 +181,25 @@
             </div>
           }
 
-          <!-- QUIZ, ASSIGNMENT, INTERACTIVE (Coming Soon) -->
-          @if (lesson.lessonType === 'QUIZ' || lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
+          <!-- QUIZ Lesson -->
+          @if (lesson.lessonType === 'QUIZ') {
+            @if (lesson.quizId) {
+              <app-quiz-take 
+                [quizId]="lesson.quizId" 
+                (quizCompleted)="onQuizCompleted()">
+              </app-quiz-take>
+            } @else {
+              <div class="coming-soon">
+                <div class="coming-soon-icon">⚠️</div>
+                <h3>Quiz Not Assigned</h3>
+                <p>This lesson is marked as a quiz, but no quiz has been assigned yet.</p>
+                <p class="text-sm text-gray-500 mt-2">Please contact your tutor to assign a quiz to this lesson.</p>
+              </div>
+            }
+          }
+
+          <!-- ASSIGNMENT, INTERACTIVE (Coming Soon) -->
+          @if (lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
             <div class="coming-soon">
               <div class="coming-soon-icon">🚧</div>
               <h3>Coming Soon</h3>

@@ -49,3 +49,7 @@ management:
 app:
   upload:
     dir: ${UPLOAD_DIR:uploads/ebooks}
+
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}

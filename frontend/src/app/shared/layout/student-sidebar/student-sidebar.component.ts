@@ -63,8 +63,6 @@ export class StudentSidebarComponent {
           icon: 'fas fa-box',
           name: "My Packs",
           path: "/user-panel/my-packs",
-          badge: "New",
-          badgeColor: "bg-green-500"
         },
         {
           icon: 'fas fa-book',

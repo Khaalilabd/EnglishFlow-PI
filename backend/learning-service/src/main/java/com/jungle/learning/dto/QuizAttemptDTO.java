@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 public class QuizAttemptDTO {
     private Long id;
     private Long quizId;
+    private String quizTitle;
     private Long studentId;
     private Integer score;
     private LocalDateTime startedAt;

@@ -199,6 +199,11 @@ export const routes: Routes = [
         title: 'Complaints | Jungle in English'
       },
       {
+        path: 'complaints/:id',
+        loadComponent: () => import('./pages/student-panel/complaints/complaint-detail/complaint-detail.component').then(m => m.StudentComplaintDetailComponent),
+        title: 'Complaint Details | Jungle in English'
+      },
+      {
         path: 'complaints/edit/:id',
         loadComponent: () => import('./pages/student-panel/complaints/edit-complaint/edit-complaint.component').then(m => m.EditComplaintComponent),
         title: 'Edit Complaint | Jungle in English'
@@ -214,6 +219,14 @@ export const routes: Routes = [
         title: 'Settings | Jungle in English'
       }
     ]
+  },
+  
+  // Standalone Ebook Reader (no layout) - Protected for authenticated users
+  {
+    path: 'user-panel/ebooks/read/:id',
+    loadComponent: () => import('./pages/student-panel/ebook-reader/ebook-reader.component').then(m => m.EbookReaderComponent),
+    canActivate: [authGuard],
+    title: 'Reading | Jungle in English'
   },
   
   // Tutor Panel avec layout et sidebar - Protégé pour TUTOR et TEACHER

@@ -11,6 +11,7 @@ import { Lesson } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
 import { Subscription } from 'rxjs';
+import { QuizTakeComponent } from '../quiz-take/quiz-take.component';
 
 interface ChapterWithLessons {
   chapter: Chapter;
@@ -21,7 +22,7 @@ interface ChapterWithLessons {
 @Component({
   selector: 'app-lesson-viewer',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, QuizTakeComponent],
   templateUrl: './lesson-viewer.component.html',
   styleUrls: ['./lesson-viewer.component.scss']
 })
@@ -82,6 +83,9 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     this.lessonService.getLessonById(this.lessonId).subscribe({
       next: (lesson) => {
         this.lesson = lesson;
+        console.log('📚 Loaded lesson:', lesson);
+        console.log('📝 Lesson type:', lesson.lessonType);
+        console.log('🎯 Quiz ID:', lesson.quizId);
         
         // Load chapter to get courseId
         if (lesson.chapterId) {
@@ -429,5 +433,10 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
       case 'INTERACTIVE': return '#ec4899';
       default: return '#6b7280';
     }
+  }
+
+  onQuizCompleted(): void {
+    // Mark lesson as complete and move to next
+    this.markAsComplete();
   }
 }

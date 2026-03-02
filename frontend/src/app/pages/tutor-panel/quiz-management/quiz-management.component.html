@@ -432,6 +432,17 @@
           placeholder="Describe what this quiz covers..."
           class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]"></textarea>
       </div>
+
+      <div>
+        <label class="block text-gray-700 text-sm font-bold mb-2">Course (Optional)</label>
+        <select 
+          [(ngModel)]="newQuiz.courseId"
+          class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]">
+          <option [ngValue]="undefined">No course assigned</option>
+          <option *ngFor="let course of courses" [ngValue]="course.id">{{ course.title }}</option>
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Select a course to link this quiz to specific course content</p>
+      </div>
     </div>
 
     <!-- Step 2: Settings -->

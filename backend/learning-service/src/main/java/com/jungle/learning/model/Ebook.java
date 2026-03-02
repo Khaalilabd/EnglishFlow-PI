@@ -107,6 +107,9 @@ public class Ebook {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "created_by")
+    private Long createdBy;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -131,6 +134,6 @@ public class Ebook {
     }
 
     public enum PublishStatus {
-        DRAFT, SCHEDULED, PUBLISHED, ARCHIVED
+        DRAFT, SCHEDULED, PUBLISHED, ARCHIVED, PENDING, REJECTED
     }
 }

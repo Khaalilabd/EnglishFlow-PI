@@ -1,0 +1,132 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-6xl mx-auto">
+    <!-- Back Button -->
+    <button (click)="goBack()" 
+            class="mb-6 flex items-center gap-2 text-gray-600 hover:text-[#F59E0B] transition-colors">
+      <i class="fas fa-arrow-left"></i>
+      <span>Back to Complaints</span>
+    </button>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F59E0B]"></div>
+    </div>
+
+    <!-- Complaint Details -->
+    <div *ngIf="!isLoading && complaint" class="space-y-6">
+      <!-- Header Card -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ complaint.subject }}</h1>
+            <p class="text-gray-600">{{ complaint.description }}</p>
+          </div>
+        </div>
+
+        <!-- Status Badges -->
+        <div class="flex flex-wrap gap-3 mb-4">
+          <span class="px-4 py-2 rounded-full text-sm font-semibold" [ngClass]="getStatusClass(complaint.status)">
+            <i class="fas fa-circle text-xs mr-2"></i>{{ complaint.status }}
+          </span>
+          <span class="px-4 py-2 rounded-full text-sm font-semibold" [ngClass]="getPriorityClass(complaint.priority)">
+            <i class="fas fa-exclamation-triangle mr-2"></i>{{ complaint.priority }} Priority
+          </span>
+          <span class="px-4 py-2 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+            <i class="fas fa-user-tie mr-2"></i>Assigned to: {{ getTargetRole(complaint.targetRole) }}
+          </span>
+        </div>
+
+        <!-- Metadata -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+          <div>
+            <p class="text-sm text-gray-500">Created</p>
+            <p class="font-semibold text-gray-900">{{ formatDate(complaint.createdAt) }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Last Updated</p>
+            <p class="font-semibold text-gray-900">{{ formatDate(complaint.updatedAt) }}</p>
+          </div>
+          <div>
+            <p class="text-sm text-gray-500">Category</p>
+            <p class="font-semibold text-gray-900">{{ complaint.category }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Messages Section -->
+      <div class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <i class="fas fa-comments text-[#F59E0B]"></i>
+          Discussion
+        </h2>
+
+        <!-- Messages List -->
+        <div class="space-y-4 mb-6 max-h-96 overflow-y-auto">
+          <div *ngIf="messages.length === 0" class="text-center py-8 text-gray-500">
+            <i class="fas fa-inbox text-4xl mb-2 opacity-50"></i>
+            <p>No messages yet. Start the conversation!</p>
+          </div>
+
+          <div *ngFor="let message of messages" 
+               class="flex" 
+               [ngClass]="message.authorRole === 'STUDENT' ? 'justify-end' : 'justify-start'">
+            <div class="max-w-xl" 
+                 [ngClass]="message.authorRole === 'STUDENT' ? 'bg-[#F59E0B] text-white' : 'bg-gray-100 text-gray-900'"
+                 class="rounded-lg p-4 shadow">
+              <div class="flex items-center gap-2 mb-2">
+                <i class="fas" 
+                   [ngClass]="message.authorRole === 'STUDENT' ? 'fa-user' : 'fa-user-tie'"></i>
+                <span class="font-semibold text-sm">{{ message.author }}</span>
+                <span class="text-xs opacity-75">{{ message.authorRole }}</span>
+              </div>
+              <p class="text-sm">{{ message.content }}</p>
+              <p class="text-xs opacity-75 mt-2">{{ formatDate(message.timestamp) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Message Input -->
+        <div class="border-t border-gray-200 pt-4">
+          <div class="flex gap-3">
+            <input type="text" 
+                   [(ngModel)]="newMessage"
+                   (keyup.enter)="sendMessage()"
+                   placeholder="Type your message..."
+                   class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-[#F59E0B]">
+            <button (click)="sendMessage()" 
+                    [disabled]="!newMessage.trim()"
+                    class="px-6 py-3 bg-[#F59E0B] text-white rounded-lg hover:bg-[#e5ac4f] transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+              <i class="fas fa-paper-plane mr-2"></i>Send
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Section -->
+      <div *ngIf="complaintHistory.length > 0" class="bg-white rounded-xl shadow-lg p-6">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+          <i class="fas fa-history text-[#F59E0B]"></i>
+          Status History
+        </h2>
+
+        <div class="space-y-3">
+          <div *ngFor="let history of complaintHistory" 
+               class="flex items-start gap-4 p-4 bg-gray-50 rounded-lg">
+            <div class="w-10 h-10 rounded-full bg-[#F59E0B] flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-exchange-alt text-white"></i>
+            </div>
+            <div class="flex-1">
+              <p class="font-semibold text-gray-900">
+                {{ history.fromStatus }} → {{ history.toStatus }}
+              </p>
+              <p class="text-sm text-gray-600">{{ history.comment }}</p>
+              <p class="text-xs text-gray-500 mt-1">
+                by {{ history.actorName || history.actorRole }} • {{ formatDate(history.timestamp) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

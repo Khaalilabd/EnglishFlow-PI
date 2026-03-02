@@ -1,4 +1,4 @@
-<div class="p-6">
+﻿<div class="p-6">
   <!-- Floating Action Bar -->
   <div class="sticky top-0 z-10 -mx-6 -mt-6 mb-6 px-6 pt-6 pb-4 bg-gradient-to-b from-gray-50 to-transparent backdrop-blur-sm">
     <div class="flex justify-between items-start mb-4">
@@ -293,27 +293,13 @@
       
       <!-- Compact Card Footer -->
       <div class="px-4 pb-4 pt-2">
-        <!-- Primary Action -->
-        <button 
-          *ngIf="quiz.published && !isScheduled(quiz) && hasQuestions(quiz.id!)"
-          (click)="startQuiz(quiz)"
-          class="w-full bg-gradient-to-r from-[#2D5F5D] to-[#1e4442] hover:from-[#234948] hover:to-[#152e2d] text-white font-semibold py-2.5 px-4 rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 flex items-center justify-center gap-2 text-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        <!-- Info Message: Quizzes only accessible from courses -->
+        <div class="w-full bg-blue-50 border border-blue-200 text-blue-800 py-2.5 px-4 rounded-lg text-center text-sm">
+          <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          Start Quiz
-        </button>
-        
-        <button 
-          *ngIf="isScheduled(quiz)"
-          disabled
-          class="w-full bg-gradient-to-r from-purple-400 to-purple-500 text-white font-semibold py-2.5 px-4 rounded-lg cursor-not-allowed opacity-75 flex items-center justify-center gap-2 text-sm">
-          <svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          Coming Soon
-        </button>
+          <span class="font-medium">Access from course lessons</span>
+        </div>
       </div>
     </div>
   </div>
@@ -329,203 +315,6 @@
 </div>
 
 <!-- Take Quiz Modal -->
-<div *ngIf="showQuizModal && selectedQuiz" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-  <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col relative">
-    
-    <!-- Streak Animation Overlay -->
-    <div *ngIf="showStreakAnimation" 
-         class="absolute inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30 rounded-lg animate-fade-in-up">
-      <div class="bg-gradient-to-r from-amber-500 to-red-500 text-white px-8 py-6 rounded-2xl shadow-2xl animate-bounce-in text-center">
-        <div class="text-6xl mb-2">🔥</div>
-        <div class="text-2xl font-bold">{{ streakMessage }}</div>
-      </div>
-    </div>
-    
-    <!-- Header with Enhanced Timer -->
-    <div class="flex justify-between items-center mb-4 pb-4 border-b">
-      <div>
-        <h2 class="text-2xl font-bold text-gray-800">{{ selectedQuiz.title }}</h2>
-        <p class="text-sm text-gray-600">Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}</p>
-        
-        <!-- Streak Indicator -->
-        <div *ngIf="currentStreak > 0" class="flex items-center gap-2 mt-2">
-          <span class="text-sm font-semibold text-amber-600 flex items-center gap-1">
-            <span *ngIf="currentStreak >= 3" class="animate-pulse">🔥</span>
-            <span *ngIf="currentStreak >= 5" class="animate-pulse">🔥🔥</span>
-            {{ currentStreak }} Streak! 
-            <span class="text-xs">({{ streakMultiplier }}x points)</span>
-          </span>
-        </div>
-      </div>
-      
-      <div class="text-right">
-        <!-- Adaptive Timer with Zones -->
-        <div class="text-2xl font-bold transition-all duration-300" 
-             [class.text-green-600]="getTimerZone() === 'green'"
-             [class.text-yellow-600]="getTimerZone() === 'yellow'"
-             [class.text-red-600]="getTimerZone() === 'red'"
-             [class.animate-pulse]="getTimerZone() === 'yellow'"
-             [class.animate-bounce]="getTimerZone() === 'red'">
-          {{ getTimeDisplay() }}
-        </div>
-        <p class="text-xs text-gray-500">Time Remaining</p>
-        
-        <!-- Time Bank Display -->
-        <div *ngIf="timeBanked > 0" class="text-xs text-blue-600 font-medium mt-1">
-          ⏱️ +{{ timeBanked }}s banked
-        </div>
-      </div>
-    </div>
-
-    <!-- Progress Bar -->
-    <div class="mb-4">
-      <div class="w-full bg-gray-200 rounded-full h-2">
-        <div class="bg-[#2D5F5D] h-2 rounded-full transition-all duration-300" [style.width.%]="getProgressPercentage()"></div>
-      </div>
-      <div class="flex justify-between mt-2">
-        <span class="text-xs text-gray-500">Progress</span>
-        <span class="text-xs text-gray-500">{{ Math.round(getProgressPercentage()) }}%</span>
-      </div>
-    </div>
-
-    <!-- Smart Question Navigation Mini-Map -->
-    <div class="mb-4 p-3 bg-gray-50 rounded-lg">
-      <div class="flex items-center justify-between mb-2">
-        <span class="text-xs font-semibold text-gray-700">Question Map</span>
-        <span class="text-xs text-gray-500">
-          <span class="inline-block w-2 h-2 bg-green-500 rounded-full mr-1"></span>Answered
-          <span class="inline-block w-2 h-2 bg-yellow-500 rounded-full ml-2 mr-1"></span>Flagged
-          <span class="inline-block w-2 h-2 bg-red-500 rounded-full ml-2 mr-1"></span>Current
-        </span>
-      </div>
-      <div class="flex gap-2 overflow-x-auto pb-2">
-        <button 
-          *ngFor="let q of questions; let i = index"
-          (click)="goToQuestion(i)"
-          class="min-w-[40px] h-10 rounded-lg font-semibold transition-all duration-200 relative"
-          [class.bg-red-500]="getQuestionStatus(i) === 'current'"
-          [class.text-white]="getQuestionStatus(i) === 'current'"
-          [class.ring-2]="getQuestionStatus(i) === 'current'"
-          [class.ring-red-300]="getQuestionStatus(i) === 'current'"
-          [class.bg-green-500]="getQuestionStatus(i) === 'answered'"
-          [class.text-white]="getQuestionStatus(i) === 'answered'"
-          [class.bg-yellow-400]="getQuestionStatus(i) === 'flagged'"
-          [class.text-gray-800]="getQuestionStatus(i) === 'flagged'"
-          [class.bg-gray-200]="getQuestionStatus(i) === 'unseen'"
-          [class.text-gray-600]="getQuestionStatus(i) === 'unseen'">
-          {{ i + 1 }}
-          <span *ngIf="isFlagged(q.id!)" class="absolute -top-1 -right-1 text-xs">🚩</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Current Question -->
-    <div class="flex-1 overflow-y-auto mb-6" *ngIf="questions[currentQuestionIndex]">
-      <div class="bg-gray-50 p-6 rounded-lg">
-        <div class="flex justify-between items-start mb-4">
-          <h3 class="text-lg font-semibold text-gray-800">{{ questions[currentQuestionIndex].content }}</h3>
-          <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{{ questions[currentQuestionIndex].points }} pts</span>
-        </div>
-        
-        <div *ngIf="questions[currentQuestionIndex].type === 'MCQ'" class="space-y-3">
-          <label *ngFor="let option of getOptionsArray(questions[currentQuestionIndex].options)" 
-                 class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
-                 [class.border-[#2D5F5D]]="currentAnswers[questions[currentQuestionIndex].id!] === option"
-                 [class.bg-white]="currentAnswers[questions[currentQuestionIndex].id!] === option">
-            <input 
-              type="radio" 
-              [name]="'question-' + questions[currentQuestionIndex].id"
-              [value]="option"
-              [(ngModel)]="currentAnswers[questions[currentQuestionIndex].id!]"
-              class="mr-3 w-4 h-4">
-            <span class="flex-1">{{ option }}</span>
-          </label>
-        </div>
-        
-        <div *ngIf="questions[currentQuestionIndex].type === 'TRUE_FALSE'" class="space-y-3">
-          <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
-                 [class.border-[#2D5F5D]]="currentAnswers[questions[currentQuestionIndex].id!] === 'true'"
-                 [class.bg-white]="currentAnswers[questions[currentQuestionIndex].id!] === 'true'">
-            <input 
-              type="radio" 
-              [name]="'question-' + questions[currentQuestionIndex].id"
-              value="true"
-              [(ngModel)]="currentAnswers[questions[currentQuestionIndex].id!]"
-              class="mr-3 w-4 h-4">
-            <span>True</span>
-          </label>
-          <label class="flex items-center p-3 border-2 rounded-lg cursor-pointer hover:bg-white transition-colors"
-                 [class.border-[#2D5F5D]]="currentAnswers[questions[currentQuestionIndex].id!] === 'false'"
-                 [class.bg-white]="currentAnswers[questions[currentQuestionIndex].id!] === 'false'">
-            <input 
-              type="radio" 
-              [name]="'question-' + questions[currentQuestionIndex].id"
-              value="false"
-              [(ngModel)]="currentAnswers[questions[currentQuestionIndex].id!]"
-              class="mr-3 w-4 h-4">
-            <span>False</span>
-          </label>
-        </div>
-        
-        <div *ngIf="questions[currentQuestionIndex].type === 'OPEN'">
-          <textarea 
-            [(ngModel)]="currentAnswers[questions[currentQuestionIndex].id!]"
-            rows="5"
-            class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#2D5F5D]"
-            placeholder="Type your answer here..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <!-- Enhanced Navigation Buttons -->
-    <div class="flex gap-3">
-      <button 
-        (click)="previousQuestion()"
-        [disabled]="currentQuestionIndex === 0"
-        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-        </svg>
-        Prev
-      </button>
-      
-      <button 
-        (click)="toggleFlag(questions[currentQuestionIndex].id!)"
-        class="px-4 py-2 rounded-lg transition-all flex items-center gap-2"
-        [class.bg-yellow-400]="isFlagged(questions[currentQuestionIndex].id!)"
-        [class.text-gray-800]="isFlagged(questions[currentQuestionIndex].id!)"
-        [class.bg-gray-200]="!isFlagged(questions[currentQuestionIndex].id!)"
-        [class.text-gray-600]="!isFlagged(questions[currentQuestionIndex].id!)">
-        🚩 {{ isFlagged(questions[currentQuestionIndex].id!) ? 'Unflag' : 'Flag' }}
-      </button>
-      
-      <button 
-        (click)="closeQuizModal()"
-        class="px-6 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg">
-        Cancel
-      </button>
-      
-      <button 
-        *ngIf="currentQuestionIndex < questions.length - 1"
-        (click)="nextQuestion()"
-        class="flex-1 bg-[#2D5F5D] hover:bg-[#234948] text-white px-6 py-2 rounded-lg flex items-center justify-center gap-2">
-        Next
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-        </svg>
-      </button>
-      
-      <button 
-        *ngIf="currentQuestionIndex === questions.length - 1"
-        (click)="submitQuiz()"
-        [disabled]="isLoading"
-        class="flex-1 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg disabled:opacity-50">
-        {{ isLoading ? 'Submitting...' : 'Submit Quiz' }}
-      </button>
-    </div>
-  </div>
-</div>
-
 <!-- Results Modal -->
 <div *ngIf="showResultsModal && quizResult" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
   <div class="bg-white rounded-lg p-8 max-w-3xl w-full mx-4 max-h-[90vh] overflow-y-auto">
@@ -613,7 +402,7 @@
     <!-- Achievements Section -->
     <div *ngIf="calculateAchievements().length > 0" class="mb-6">
       <h3 class="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
-        <span>🏆</span> Your Achievements
+        <span>ðŸ†</span> Your Achievements
       </h3>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div *ngFor="let achievement of calculateAchievements()" 
@@ -654,7 +443,7 @@
            (click)="viewAttemptDetails(attempt.id)">
         <div class="flex items-start justify-between">
           <div class="flex-1">
-            <h3 class="font-semibold text-gray-800 mb-1">{{ getQuizTitle(attempt.quizId) }}</h3>
+            <h3 class="font-semibold text-gray-800 mb-1">{{ attempt.quizTitle || getQuizTitle(attempt.quizId) }}</h3>
             <p class="text-sm text-gray-500 mb-2">{{ formatDate(attempt.submittedAt) }}</p>
             <div class="flex items-center gap-4">
               <span class="text-sm font-medium" [class.text-green-600]="attempt.score >= 70" [class.text-red-600]="attempt.score < 70">

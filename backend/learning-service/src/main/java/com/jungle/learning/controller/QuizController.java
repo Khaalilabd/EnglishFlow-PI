@@ -68,6 +68,11 @@ public class QuizController {
         return ResponseEntity.ok(quizService.getQuizzesByDifficulty(difficulty));
     }
     
+    @GetMapping("/course/{courseId}")
+    public ResponseEntity<List<QuizDTO>> getQuizzesByCourse(@PathVariable Long courseId) {
+        return ResponseEntity.ok(quizService.getQuizzesByCourse(courseId));
+    }
+    
     @GetMapping("/{id}")
     public ResponseEntity<QuizDTO> getQuizById(@PathVariable Long id) {
         return ResponseEntity.ok(quizService.getQuizById(id));

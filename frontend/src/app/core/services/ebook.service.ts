@@ -65,4 +65,20 @@ export class EbookService {
       responseType: 'blob'
     });
   }
+
+  approveEbook(id: number): Observable<Ebook> {
+    return this.http.post<Ebook>(`${this.apiUrl}/${id}/approve`, {});
+  }
+
+  rejectEbook(id: number, reason?: string): Observable<Ebook> {
+    let params: any = {};
+    if (reason) {
+      params.reason = reason;
+    }
+    return this.http.post<Ebook>(`${this.apiUrl}/${id}/reject`, {}, { params });
+  }
+
+  getPendingEbooks(): Observable<Ebook[]> {
+    return this.http.get<Ebook[]>(`${this.apiUrl}/pending`);
+  }
 }

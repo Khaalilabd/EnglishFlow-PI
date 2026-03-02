@@ -1,0 +1,235 @@
+.book-3d {
+  cursor: pointer;
+  user-select: none;
+}
+
+.book-pages {
+  transition: transform 0.3s ease;
+  border-radius: 2px;
+}
+
+.page-left, .page-right {
+  background: white;
+  overflow: hidden;
+}
+
+// Page slice styling for realistic curve with no gaps
+.page-slice {
+  will-change: transform, filter;
+  transition: transform 0.05s linear, filter 0.05s linear;
+  
+  // Overlap slightly to prevent subpixel gaps
+  width: calc(4% + 0.5px) !important;
+  margin-left: -0.25px;
+  
+  &:first-child {
+    margin-left: 0;
+  }
+  
+  // Subtle shadow between slices for depth
+  box-shadow: inset 0.5px 0 0 rgba(0,0,0,0.03);
+}
+
+.flipping-page-forward,
+.flipping-page-backward {
+  z-index: 100;
+  filter: drop-shadow(0 5px 20px rgba(0,0,0,0.5));
+}
+
+.page-slices-container {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  perspective: 2000px;
+}
+
+// Shadow animations - lighter and more fluid
+.flip-shadow-forward {
+  left: calc(50% - 32vw);
+  background: linear-gradient(to right, transparent 15%, rgba(0,0,0,0.35) 50%, transparent 85%);
+  animation: shadowSlideForward 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 99;
+}
+
+.flip-shadow-backward {
+  right: calc(50% - 32vw);
+  background: linear-gradient(to left, transparent 15%, rgba(0,0,0,0.35) 50%, transparent 85%);
+  animation: shadowSlideBackward 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 99;
+}
+
+@keyframes shadowSlideForward {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes shadowSlideBackward {
+  0% {
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  70% {
+    opacity: 0.6;
+  }
+  85% {
+    opacity: 0.3;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+// Page faces
+.flipping-page-front,
+.flipping-page-back {
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+}
+
+// Prevent flickering and ensure smooth rendering
+.flipping-page-forward,
+.flipping-page-backward {
+  will-change: transform, filter;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Add subtle page bend effect (only on hover)
+.page-right {
+  position: relative;
+  
+  &:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to left, rgba(0,0,0,0.02), transparent);
+    pointer-events: none;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+}
+
+.page-left {
+  position: relative;
+  
+  &:hover::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 20px;
+    background: linear-gradient(to right, rgba(0,0,0,0.02), transparent);
+    pointer-events: none;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
+  }
+}
+
+// Hide scrollbars
+::-webkit-scrollbar {
+  display: none;
+}
+
+// Smooth transitions
+* {
+  transition: opacity 0.2s ease;
+}
+
+// Input styling
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+// Ensure 3D rendering
+.book-3d,
+.flipping-page-forward,
+.flipping-page-backward,
+.flipping-page-front,
+.flipping-page-back {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  -webkit-perspective: 2500px;
+  perspective: 2500px;
+}
+
+// Smooth book interaction
+.book-pages {
+  transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  isolation: isolate;
+  
+  &:active {
+    transform: scale(0.99);
+  }
+}
+
+// Add depth to pages (subtle, not always visible)
+.page-left,
+.page-right {
+  position: relative;
+  z-index: 1;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 70%, rgba(0,0,0,0.01) 100%);
+    pointer-events: none;
+    opacity: 0.5;
+  }
+}
+
+// Ensure flipping page is always on top
+.flipping-page-forward,
+.flipping-page-backward {
+  position: absolute;
+  z-index: 100 !important;
+  
+  .flipping-page-front,
+  .flipping-page-back {
+    position: absolute;
+    inset: 0;
+    z-index: 101;
+  }
+}
