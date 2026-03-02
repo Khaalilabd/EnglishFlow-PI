@@ -324,12 +324,75 @@
 
           <!-- Two-Factor Authentication Card -->
           <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <div class="flex items-start justify-between">
+            <div class="flex items-start justify-between mb-4">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900">Two-Factor Authentication</h3>
                 <p class="text-sm text-gray-600 mt-1">Add an extra layer of security to your account</p>
               </div>
-              <span class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">Coming Soon</span>
+              <span 
+                *ngIf="twoFactorStatus?.enabled"
+                class="px-3 py-1 bg-green-100 text-green-700 text-sm rounded-full font-medium">
+                <i class="fas fa-check-circle mr-1"></i>Enabled
+              </span>
+              <span 
+                *ngIf="!twoFactorStatus?.enabled"
+                class="px-3 py-1 bg-gray-100 text-gray-600 text-sm rounded-full">
+                Disabled
+              </span>
+            </div>
+
+            <div *ngIf="!twoFactorStatus?.enabled" class="mt-4">
+              <p class="text-sm text-gray-600 mb-4">
+                Protect your account with an additional security layer. You'll need to enter a code from your authenticator app when you sign in.
+              </p>
+              <button 
+                (click)="openSetup2FA()"
+                [disabled]="isLoading2FA"
+                class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50">
+                <i *ngIf="!isLoading2FA" class="fas fa-shield-alt mr-2"></i>
+                <i *ngIf="isLoading2FA" class="fas fa-spinner fa-spin mr-2"></i>
+                Enable 2FA
+              </button>
+            </div>
+
+            <div *ngIf="twoFactorStatus?.enabled" class="mt-4 space-y-3">
+              <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                  <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-green-600"></i>
+                  </div>
+                  <div>
+                    <p class="font-medium text-gray-900">2FA is Active</p>
+                    <p class="text-sm text-gray-600">
+                      Enabled {{ twoFactorStatus?.enabledAt | date:'short' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div>
+                  <p class="font-medium text-gray-900">Backup Codes</p>
+                  <p class="text-sm text-gray-600">
+                    {{ twoFactorStatus?.backupCodesRemaining }} codes remaining
+                  </p>
+                </div>
+                <button 
+                  (click)="regenerateBackupCodes()"
+                  [disabled]="isLoading2FA"
+                  class="px-3 py-1.5 text-sm bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+                  <i class="fas fa-sync-alt mr-1"></i>
+                  Regenerate
+                </button>
+              </div>
+
+              <button 
+                (click)="openDisable2FA()"
+                [disabled]="isLoading2FA"
+                class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50">
+                <i class="fas fa-times-circle mr-2"></i>
+                Disable 2FA
+              </button>
             </div>
           </div>
 
@@ -457,6 +520,177 @@
             </div>
           </div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA Setup Modal -->
+<div *ngIf="showSetupModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-bold text-gray-900">Setup Two-Factor Authentication</h3>
+      <button (click)="closeSetupModal()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <!-- Step 1: Scan QR Code -->
+      <div class="p-4 bg-teal-50 rounded-lg">
+        <h4 class="font-semibold text-gray-900 mb-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 bg-teal-600 text-white rounded-full text-sm mr-2">1</span>
+          Scan QR Code
+        </h4>
+        <p class="text-sm text-gray-600 mb-3">
+          Use Google Authenticator, Microsoft Authenticator, or any TOTP app to scan this QR code:
+        </p>
+        <div class="flex justify-center bg-white p-4 rounded-lg">
+          <img [src]="setupData?.qrCodeUrl" alt="QR Code" class="w-48 h-48">
+        </div>
+        <p class="text-xs text-gray-500 mt-2 text-center">
+          Or enter this secret manually: <code class="bg-gray-100 px-2 py-1 rounded">{{ setupData?.secret }}</code>
+        </p>
+      </div>
+
+      <!-- Step 2: Verify Code -->
+      <div class="p-4 bg-teal-50 rounded-lg">
+        <h4 class="font-semibold text-gray-900 mb-2">
+          <span class="inline-flex items-center justify-center w-6 h-6 bg-teal-600 text-white rounded-full text-sm mr-2">2</span>
+          Verify Code
+        </h4>
+        <p class="text-sm text-gray-600 mb-3">
+          Enter the 6-digit code from your authenticator app:
+        </p>
+        <input 
+          type="text"
+          [(ngModel)]="verificationCode"
+          maxlength="6"
+          placeholder="000000"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+      </div>
+
+      <!-- Actions -->
+      <div class="flex space-x-3">
+        <button 
+          (click)="closeSetupModal()"
+          class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+          Cancel
+        </button>
+        <button 
+          (click)="enable2FA()"
+          [disabled]="isLoading2FA || verificationCode.length !== 6"
+          class="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <i *ngIf="!isLoading2FA" class="fas fa-check mr-2"></i>
+          <i *ngIf="isLoading2FA" class="fas fa-spinner fa-spin mr-2"></i>
+          {{ isLoading2FA ? 'Verifying...' : 'Enable 2FA' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2FA Disable Modal -->
+<div *ngIf="showDisableModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-bold text-gray-900">Disable Two-Factor Authentication</h3>
+      <button (click)="closeDisableModal()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <div class="p-4 bg-red-50 rounded-lg">
+        <div class="flex items-start space-x-3">
+          <i class="fas fa-exclamation-triangle text-red-600 mt-1"></i>
+          <div>
+            <p class="font-medium text-red-900">Warning</p>
+            <p class="text-sm text-red-700 mt-1">
+              Disabling 2FA will make your account less secure. You can re-enable it at any time.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Enter verification code to confirm:
+        </label>
+        <input 
+          type="text"
+          [(ngModel)]="verificationCode"
+          maxlength="6"
+          placeholder="000000"
+          class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest focus:ring-2 focus:ring-red-500 focus:border-transparent">
+        <p class="text-xs text-gray-500 mt-2">
+          Enter a code from your authenticator app or use a backup code
+        </p>
+      </div>
+
+      <div class="flex space-x-3">
+        <button 
+          (click)="closeDisableModal()"
+          class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+          Cancel
+        </button>
+        <button 
+          (click)="disable2FA()"
+          [disabled]="isLoading2FA || verificationCode.length !== 6"
+          class="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+          <i *ngIf="!isLoading2FA" class="fas fa-times-circle mr-2"></i>
+          <i *ngIf="isLoading2FA" class="fas fa-spinner fa-spin mr-2"></i>
+          {{ isLoading2FA ? 'Disabling...' : 'Disable 2FA' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backup Codes Modal -->
+<div *ngIf="showBackupCodesModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-2xl max-w-md w-full p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-xl font-bold text-gray-900">Backup Codes</h3>
+      <button (click)="closeBackupCodesModal()" class="text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+    </div>
+
+    <div class="space-y-4">
+      <div class="p-4 bg-teal-50 rounded-lg">
+        <div class="flex items-start space-x-3">
+          <i class="fas fa-info-circle text-teal-600 mt-1"></i>
+          <div>
+            <p class="font-medium text-teal-900">Important!</p>
+            <p class="text-sm text-teal-700 mt-1">
+              Save these backup codes in a safe place. Each code can only be used once.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 rounded-lg p-4">
+        <div class="grid grid-cols-2 gap-2 font-mono text-sm">
+          <div *ngFor="let code of backupCodes" class="bg-white px-3 py-2 rounded border border-gray-200 text-center">
+            {{ code }}
+          </div>
+        </div>
+      </div>
+
+      <div class="flex space-x-3">
+        <button 
+          (click)="downloadBackupCodes()"
+          class="flex-1 px-4 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+          <i class="fas fa-download mr-2"></i>
+          Download
+        </button>
+        <button 
+          (click)="closeBackupCodesModal()"
+          class="flex-1 px-4 py-2.5 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+          <i class="fas fa-check mr-2"></i>
+          Done
+        </button>
       </div>
     </div>
   </div>

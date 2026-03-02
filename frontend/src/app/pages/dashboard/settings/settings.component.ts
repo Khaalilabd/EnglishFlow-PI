@@ -1,20 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
+import { TwoFactorAuthService, TwoFactorSetupResponse, TwoFactorStatusResponse } from '../../../services/two-factor-auth.service';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-admin-settings',
+  selector: 'app-dashboard-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class AdminSettingsComponent implements OnInit {
+export class DashboardSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
   activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
   
@@ -29,10 +30,21 @@ export class AdminSettingsComponent implements OnInit {
   profilePhotoPreview: string | null = null;
   selectedFile: File | null = null;
 
+  // 2FA properties
+  twoFactorStatus: TwoFactorStatusResponse | null = null;
+  isLoading2FA = false;
+  showSetupModal = false;
+  showDisableModal = false;
+  setupData: TwoFactorSetupResponse | null = null;
+  verificationCode = '';
+  backupCodes: string[] = [];
+  showBackupCodesModal = false;
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private twoFactorService: TwoFactorAuthService
   ) {}
 
   ngOnInit() {
@@ -41,6 +53,7 @@ export class AdminSettingsComponent implements OnInit {
     // Load fresh user data from backend
     if (this.currentUser) {
       this.loadUserProfile();
+      this.load2FAStatus();
     }
     
     this.authService.currentUser$.subscribe(user => {
@@ -56,8 +69,11 @@ export class AdminSettingsComponent implements OnInit {
   loadUserProfile() {
     if (!this.currentUser) return;
     
+    console.log('Loading user profile for ID:', this.currentUser.id);
+    
     this.http.get<any>(`http://localhost:8080/api/users/${this.currentUser.id}`).subscribe({
       next: (userData) => {
+        console.log('User data loaded from backend:', userData);
         // Update current user with fresh data
         if (this.currentUser) {
           const updatedUser: AuthResponse = {
@@ -65,6 +81,7 @@ export class AdminSettingsComponent implements OnInit {
             ...userData
           };
           this.currentUser = updatedUser;
+          console.log('Updated currentUser:', this.currentUser);
           
           // Update in authService to persist in localStorage
           this.authService.updateCurrentUser(updatedUser);
@@ -131,10 +148,13 @@ export class AdminSettingsComponent implements OnInit {
     const formData = new FormData();
     formData.append('file', this.selectedFile);
     
+    console.log('Uploading profile photo for user ID:', this.currentUser.id);
+    
     // Use correct endpoint
     this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
       next: (response) => {
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+        console.log('Upload response:', response);
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#3b82f6', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
         
@@ -144,6 +164,7 @@ export class AdminSettingsComponent implements OnInit {
             ...this.currentUser,
             profilePhoto: response.profilePhoto
           };
+          console.log('Updated photo URL:', response.profilePhoto);
           this.authService.updateCurrentUser(updatedUser);
           
           // Reload user profile to get fresh data
@@ -154,7 +175,7 @@ export class AdminSettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Upload error:', error);
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#3B82F6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -168,11 +189,11 @@ export class AdminSettingsComponent implements OnInit {
     this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
       next: () => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#3b82f6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#3B82F6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -188,11 +209,11 @@ export class AdminSettingsComponent implements OnInit {
       next: () => {
         this.isLoadingPassword = false;
         this.passwordForm.reset();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#3B82F6', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#3b82f6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingPassword = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#3B82F6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -201,7 +222,7 @@ export class AdminSettingsComponent implements OnInit {
     this.isLoadingNotifications = true;
     setTimeout(() => {
       this.isLoadingNotifications = false;
-      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#3B82F6', timer: 2000 });
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#3b82f6', timer: 2000 });
     }, 1000);
   }
 
@@ -212,7 +233,7 @@ export class AdminSettingsComponent implements OnInit {
       return `http://localhost:8081${this.currentUser.profilePhoto}`;
     }
     const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
-    return `https://ui-avatars.com/api/?name=${name}&background=3B82F6&color=fff&size=256`;
+    return `https://ui-avatars.com/api/?name=${name}&background=3b82f6&color=fff&size=256`;
   }
 
   getFieldError(formGroup: FormGroup, fieldName: string): string {
@@ -223,5 +244,191 @@ export class AdminSettingsComponent implements OnInit {
     if (field?.hasError('pattern')) return 'Invalid format';
     if (field?.hasError('email')) return 'Invalid email address';
     return '';
+  }
+
+  // ========== 2FA Methods ==========
+
+  load2FAStatus() {
+    this.twoFactorService.getTwoFactorStatus().subscribe({
+      next: (status) => {
+        this.twoFactorStatus = status;
+      },
+      error: (error) => {
+        console.error('Failed to load 2FA status:', error);
+      }
+    });
+  }
+
+  openSetup2FA() {
+    this.isLoading2FA = true;
+    this.twoFactorService.setupTwoFactor().subscribe({
+      next: (response) => {
+        this.setupData = response;
+        this.showSetupModal = true;
+        this.isLoading2FA = false;
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Failed to setup 2FA',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  enable2FA() {
+    if (!this.verificationCode || this.verificationCode.length !== 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Code',
+        text: 'Please enter a 6-digit code',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    this.isLoading2FA = true;
+    this.twoFactorService.enableTwoFactor(this.verificationCode).subscribe({
+      next: () => {
+        this.isLoading2FA = false;
+        this.backupCodes = this.setupData?.backupCodes || [];
+        this.showSetupModal = false;
+        this.showBackupCodesModal = true;
+        this.verificationCode = '';
+        this.load2FAStatus();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: '2FA has been enabled successfully',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Invalid verification code',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  openDisable2FA() {
+    this.showDisableModal = true;
+    this.verificationCode = '';
+  }
+
+  disable2FA() {
+    if (!this.verificationCode || this.verificationCode.length !== 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Code',
+        text: 'Please enter a 6-digit code',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    this.isLoading2FA = true;
+    this.twoFactorService.disableTwoFactor(this.verificationCode).subscribe({
+      next: () => {
+        this.isLoading2FA = false;
+        this.showDisableModal = false;
+        this.verificationCode = '';
+        this.load2FAStatus();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: '2FA has been disabled',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Invalid verification code',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  regenerateBackupCodes() {
+    Swal.fire({
+      title: 'Regenerate Backup Codes?',
+      text: 'This will invalidate all existing backup codes',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, regenerate'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.isLoading2FA = true;
+        this.twoFactorService.regenerateBackupCodes().subscribe({
+          next: (codes) => {
+            this.isLoading2FA = false;
+            this.backupCodes = codes;
+            this.showBackupCodesModal = true;
+            this.load2FAStatus();
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'New backup codes generated',
+              confirmButtonColor: '#3b82f6',
+              timer: 2000
+            });
+          },
+          error: (error) => {
+            this.isLoading2FA = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: error.error?.message || 'Failed to regenerate codes',
+              confirmButtonColor: '#3b82f6'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  downloadBackupCodes() {
+    const text = this.backupCodes.join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'englishflow-backup-codes.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  closeSetupModal() {
+    this.showSetupModal = false;
+    this.verificationCode = '';
+    this.setupData = null;
+  }
+
+  closeDisableModal() {
+    this.showDisableModal = false;
+    this.verificationCode = '';
+  }
+
+  closeBackupCodesModal() {
+    this.showBackupCodesModal = false;
+    this.backupCodes = [];
   }
 }

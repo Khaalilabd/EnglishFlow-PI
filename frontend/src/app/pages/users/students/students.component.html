@@ -145,7 +145,10 @@
 
       <!-- Card Body -->
       <div class="card-body">
-        <h3 class="student-name">{{ student.firstName }} {{ student.lastName }}</h3>
+        <div class="student-name-wrapper">
+          <h3 class="student-name">{{ student.firstName }} {{ student.lastName }}</h3>
+          <app-user-role-badge [role]="student.role"></app-user-role-badge>
+        </div>
         <p class="student-email">{{ student.email }}</p>
 
         <!-- Student Info Tags -->

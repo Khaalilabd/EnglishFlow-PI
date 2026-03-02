@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { InputFieldComponent } from './../../form/input/input-field.component';
 import { ModalService } from '../../../services/modal.service';
-
 import { ModalComponent } from '../../ui/modal/modal.component';
 import { ButtonComponent } from '../../ui/button/button.component';
+import { UserRoleBadgeComponent } from '../../user-role-badge/user-role-badge.component';
 
 @Component({
   standalone: true,
@@ -11,7 +11,8 @@ import { ButtonComponent } from '../../ui/button/button.component';
   imports: [
     ModalComponent,
     InputFieldComponent,
-    ButtonComponent
+    ButtonComponent,
+    UserRoleBadgeComponent
 ],
   templateUrl: './user-meta-card.component.html',
   styles: ``

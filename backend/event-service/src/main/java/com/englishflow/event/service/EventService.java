@@ -4,9 +4,13 @@ import com.englishflow.event.dto.EventDTO;
 import com.englishflow.event.entity.Event;
 import com.englishflow.event.enums.EventType;
 import com.englishflow.event.exception.ResourceNotFoundException;
+import com.englishflow.event.mapper.EventMapper;
 import com.englishflow.event.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +25,17 @@ public class EventService {
     
     private final EventRepository eventRepository;
     private final PermissionService permissionService;
+    private final EventMapper eventMapper;
     
+    @Cacheable(value = "events", key = "'all'")
     @Transactional(readOnly = true)
     public List<EventDTO> getAllEvents() {
-        log.info("Fetching all events");
+        log.info("Fetching all events from database");
         try {
             List<Event> events = eventRepository.findAll();
             log.info("Found {} events", events.size());
             return events.stream()
-                    .map(this::convertToDTO)
+                    .map(eventMapper::toDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching all events", e);
@@ -37,30 +43,35 @@ public class EventService {
         }
     }
     
+    @Cacheable(value = "eventById", key = "#id")
     @Transactional(readOnly = true)
     public EventDTO getEventById(Integer id) {
+        log.debug("Fetching event by id: {}", id);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
-        return convertToDTO(event);
+        return eventMapper.toDTO(event);
     }
     
+    @Cacheable(value = "eventsByType", key = "#type")
     @Transactional(readOnly = true)
     public List<EventDTO> getEventsByType(EventType type) {
+        log.debug("Fetching events by type: {}", type);
         return eventRepository.findByType(type).stream()
-                .map(this::convertToDTO)
+                .map(eventMapper::toDTO)
                 .collect(Collectors.toList());
     }
     
+    @Cacheable(value = "upcomingEvents")
     @Transactional(readOnly = true)
     public List<EventDTO> getUpcomingEvents() {
         log.info("Fetching upcoming events");
         try {
             LocalDateTime now = LocalDateTime.now();
-            log.info("Current time: {}", now);
+            log.debug("Current time: {}", now);
             List<Event> events = eventRepository.findByEventDateAfter(now);
             log.info("Found {} upcoming events", events.size());
             return events.stream()
-                    .map(this::convertToDTO)
+                    .map(eventMapper::toDTO)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching upcoming events", e);
@@ -72,99 +83,84 @@ public class EventService {
     public List<EventDTO> getEventsByCreator(Long creatorId) {
         log.info("Fetching events created by user: {}", creatorId);
         return eventRepository.findByCreatorId(creatorId).stream()
-                .map(this::convertToDTO)
+                .map(eventMapper::toDTO)
                 .collect(Collectors.toList());
     }
     
+    @Caching(evict = {
+        @CacheEvict(value = "events", key = "'all'"),
+        @CacheEvict(value = "eventsByType", allEntries = true),
+        @CacheEvict(value = "upcomingEvents", allEntries = true)
+    })
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
-        // Vérifier les permissions avant de créer l'événement
+        log.info("Creating new event: {}", eventDTO.getTitle());
         permissionService.checkEventCreationPermission(eventDTO.getCreatorId());
         
-        Event event = convertToEntity(eventDTO);
+        Event event = eventMapper.toEntity(eventDTO);
         event.setCurrentParticipants(0);
         Event savedEvent = eventRepository.save(event);
         log.info("Event created successfully by user: {}", eventDTO.getCreatorId());
-        return convertToDTO(savedEvent);
+        return eventMapper.toDTO(savedEvent);
     }
     
+    @Caching(evict = {
+        @CacheEvict(value = "events", key = "'all'"),
+        @CacheEvict(value = "eventById", key = "#id"),
+        @CacheEvict(value = "eventsByType", allEntries = true),
+        @CacheEvict(value = "upcomingEvents", allEntries = true)
+    })
     @Transactional
     public EventDTO updateEvent(Integer id, EventDTO eventDTO) {
+        log.info("Updating event id: {}", id);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
         
-        event.setTitle(eventDTO.getTitle());
-        event.setType(eventDTO.getType());
-        event.setEventDate(eventDTO.getEventDate());
-        event.setLocation(eventDTO.getLocation());
-        event.setMaxParticipants(eventDTO.getMaxParticipants());
-        event.setDescription(eventDTO.getDescription());
-        
+        eventMapper.updateEntityFromDTO(eventDTO, event);
         Event updatedEvent = eventRepository.save(event);
-        return convertToDTO(updatedEvent);
+        log.info("Event updated successfully: {}", id);
+        return eventMapper.toDTO(updatedEvent);
     }
     
+    @Caching(evict = {
+        @CacheEvict(value = "events", key = "'all'"),
+        @CacheEvict(value = "eventById", key = "#id"),
+        @CacheEvict(value = "eventsByType", allEntries = true),
+        @CacheEvict(value = "upcomingEvents", allEntries = true)
+    })
     @Transactional
     public void deleteEvent(Integer id) {
+        log.info("Deleting event id: {}", id);
         if (!eventRepository.existsById(id)) {
             throw new ResourceNotFoundException("Event not found with id: " + id);
         }
         eventRepository.deleteById(id);
+        log.info("Event deleted successfully: {}", id);
     }
     
+    @CacheEvict(value = "eventById", key = "#id")
     @Transactional
     public EventDTO approveEvent(Integer id) {
+        log.info("Approving event id: {}", id);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
         
         event.setStatus(com.englishflow.event.enums.EventStatus.APPROVED);
         Event updatedEvent = eventRepository.save(event);
         log.info("Event {} approved successfully", id);
-        return convertToDTO(updatedEvent);
+        return eventMapper.toDTO(updatedEvent);
     }
     
+    @CacheEvict(value = "eventById", key = "#id")
     @Transactional
     public EventDTO rejectEvent(Integer id) {
+        log.info("Rejecting event id: {}", id);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
         
         event.setStatus(com.englishflow.event.enums.EventStatus.REJECTED);
         Event updatedEvent = eventRepository.save(event);
         log.info("Event {} rejected successfully", id);
-        return convertToDTO(updatedEvent);
-    }
-    
-    private EventDTO convertToDTO(Event event) {
-        EventDTO dto = new EventDTO();
-        dto.setId(event.getId());
-        dto.setTitle(event.getTitle());
-        dto.setType(event.getType());
-        dto.setEventDate(event.getEventDate());
-        dto.setLocation(event.getLocation());
-        dto.setMaxParticipants(event.getMaxParticipants());
-        dto.setCurrentParticipants(event.getCurrentParticipants());
-        dto.setDescription(event.getDescription());
-        dto.setCreatorId(event.getCreatorId());
-        dto.setImage(event.getImage());
-        dto.setStatus(event.getStatus());
-        dto.setCreatedAt(event.getCreatedAt());
-        dto.setUpdatedAt(event.getUpdatedAt());
-        return dto;
-    }
-    
-    private Event convertToEntity(EventDTO dto) {
-        Event event = new Event();
-        event.setTitle(dto.getTitle());
-        event.setType(dto.getType());
-        event.setEventDate(dto.getEventDate());
-        event.setLocation(dto.getLocation());
-        event.setMaxParticipants(dto.getMaxParticipants());
-        event.setDescription(dto.getDescription());
-        event.setCreatorId(dto.getCreatorId());
-        event.setImage(dto.getImage());
-        if (dto.getStatus() != null) {
-            event.setStatus(dto.getStatus());
-        }
-        return event;
+        return eventMapper.toDTO(updatedEvent);
     }
 }

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthResponse } from '../../core/models/user.model';
+import { UserRoleBadgeComponent } from './user-role-badge/user-role-badge.component';
 
 @Component({
   selector: 'app-frontoffice-user-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserRoleBadgeComponent],
   template: `
     <div class="user-dropdown">
       <button
@@ -30,7 +31,10 @@ import { AuthResponse } from '../../core/models/user.model';
         class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50"
       >
         <div class="px-4 py-3 border-b border-gray-100">
-          <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
+            <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+          </div>
           <p class="text-xs text-gray-500">{{ currentUser?.email }}</p>
         </div>
         

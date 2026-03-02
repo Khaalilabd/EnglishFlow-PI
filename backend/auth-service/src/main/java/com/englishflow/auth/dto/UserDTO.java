@@ -34,6 +34,9 @@ public class UserDTO {
     private boolean registrationFeePaid;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Gamification fields
+    private UserLevelDTO gamificationLevel;
 
     public static UserDTO fromEntity(User user) {
         UserDTO dto = new UserDTO();

@@ -5,12 +5,13 @@ import { RouterModule } from '@angular/router';
 import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
 import { AuthService } from '../../../../core/services/auth.service';
 import { AuthResponse } from '../../../../core/models/user.model';
+import { UserRoleBadgeComponent } from '../../user-role-badge/user-role-badge.component';
 
 @Component({
   standalone: true,
   selector: 'app-user-dropdown',
   templateUrl: './user-dropdown.component.html',
-  imports:[CommonModule,RouterModule,DropdownComponent,DropdownItemTwoComponent]
+  imports:[CommonModule, RouterModule, DropdownComponent, DropdownItemTwoComponent, UserRoleBadgeComponent]
 })
 export class UserDropdownComponent {
   isOpen = false;
@@ -51,5 +52,12 @@ export class UserDropdownComponent {
         window.location.href = '/';
       }
     });
+  }
+
+  getLevelDescription(): string {
+    const levelName = this.currentUser?.gamificationLevel?.assessmentLevelName;
+    if (!levelName) return 'Level';
+    const parts = levelName.split(' - ');
+    return parts.length > 1 ? parts[1] : 'Level';
   }
 }

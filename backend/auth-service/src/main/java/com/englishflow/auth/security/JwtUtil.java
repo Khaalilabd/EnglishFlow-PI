@@ -16,6 +16,9 @@ public class JwtUtil {
 
     @Value("${jwt.expiration:86400000}") // 24 hours default (was 15 minutes)
     private Long expiration;
+    
+    @Value("${jwt.temp.expiration:300000}") // 5 minutes for temporary 2FA tokens
+    private Long tempExpiration;
 
     private Key getSigningKey() {
         return Keys.hmacShaKeyFor(secret.getBytes());
@@ -102,5 +105,55 @@ public class JwtUtil {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+    
+    /**
+     * Generate temporary token for 2FA verification (5 minutes validity)
+     */
+    public String generateTempToken(String email, Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + tempExpiration);
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("userId", userId)
+                .claim("temp", true)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                .compact();
+    }
+    
+    /**
+     * Validate temporary token
+     */
+    public boolean validateTempToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            
+            // Check if it's a temp token
+            Boolean isTemp = claims.get("temp", Boolean.class);
+            return isTemp != null && isTemp;
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Extract email from token (works for both regular and temp tokens)
+     */
+    public String extractEmailFromToken(String token) {
+        return getEmailFromToken(token);
+    }
+    
+    /**
+     * Extract userId from token (works for both regular and temp tokens)
+     */
+    public Long extractUserIdFromToken(String token) {
+        return extractUserId(token);
     }
 }

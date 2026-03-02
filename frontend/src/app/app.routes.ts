@@ -409,6 +409,12 @@ export const routes: Routes = [
     data: { animation: 'LoginPage' }
   },
   {
+    path: 'auth/verify-2fa',
+    loadComponent: () => import('./auth/verify-2fa/verify-2fa.component').then(m => m.Verify2FAComponent),
+    title: '2FA Verification | Jungle in English',
+    data: { animation: 'Verify2FAPage' }
+  },
+  {
     path: 'register',
     component: RegisterComponent,
     canActivate: [guestGuard],
@@ -488,7 +494,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.AdminSettingsComponent),
+        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.DashboardSettingsComponent),
         title: 'Settings Profile | Jungle in English Dashboard'
       },
       {
@@ -580,6 +586,11 @@ export const routes: Routes = [
         path: 'feedbacks',
         loadComponent: () => import('./pages/dashboard/feedbacks/feedbacks.component').then(m => m.FeedbacksComponent),
         title: 'Manage Feedbacks | Jungle in English Dashboard'
+      },
+      {
+        path: 'gamification',
+        loadComponent: () => import('./pages/dashboard/gamification/gamification.component').then(m => m.GamificationComponent),
+        title: 'Gamification Management | Jungle in English Dashboard'
       },
       {
         path: 'forum',

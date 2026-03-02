@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { UserService, User, CreateUserRequest, UpdateUserRequest } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { UserRoleBadgeComponent } from '../../../shared/components/user-role-badge/user-role-badge.component';
 
 @Component({
   selector: 'app-students',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, UserRoleBadgeComponent],
   templateUrl: './students.component.html',
   styleUrls: ['./students.component.scss']
 })

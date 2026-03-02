@@ -1,5 +1,10 @@
 server:
-  port: 8084
+  port: ${SERVER_PORT:8084}
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
+  http2:
+    enabled: true
 
 spring:
   application:
@@ -11,25 +16,58 @@ spring:
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
+      maximum-pool-size: 20
+      minimum-idle: 10
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
+      leak-detection-threshold: 60000
   
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
+        format_sql: ${JPA_FORMAT_SQL:false}
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+        query:
+          in_clause_parameter_padding: true
+    generate-ddl: true
+    open-in-view: false
   
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
+  
+  # Redis Configuration for caching and WebSocket clustering
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 60000
+      lettuce:
+        pool:
+          max-active: 20
+          max-idle: 10
+          min-idle: 5
+          max-wait: -1ms
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000
+      cache-null-values: false
+  
+  session:
+    store-type: redis
+    timeout: 1800s
 
 file:
   upload-dir: uploads/messages
@@ -47,11 +85,82 @@ jwt:
   secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
   expiration: ${JWT_EXPIRATION:86400000}
 
-logging:
-  level:
-    com.englishflow.messaging: DEBUG
-    org.springframework.messaging: DEBUG
-    org.springframework.web.socket: DEBUG
-
 websocket:
   allowed-origins: ${WEBSOCKET_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:3000,http://localhost:8080}
+  message-size-limit: 65536
+  send-time-limit: 20000
+  send-buffer-size-limit: 524288
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+    enabled: true
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+    display-request-duration: true
+    doc-expansion: none
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+        websocket.sessions: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:dev}
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+    redis:
+      enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Logging Configuration
+logging:
+  level:
+    root: ${LOG_LEVEL_ROOT:INFO}
+    com.englishflow.messaging: ${LOG_LEVEL_APP:INFO}
+    org.springframework.messaging: ${LOG_LEVEL_MESSAGING:INFO}
+    org.springframework.web.socket: ${LOG_LEVEL_WEBSOCKET:INFO}
+    org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
+    org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:WARN}
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/messaging-service.log
+    max-size: 10MB
+    max-history: 30
+
+# Rate Limiting Configuration
+rate-limit:
+  messages-per-minute: ${RATE_LIMIT_MESSAGES:60}
+  enabled: ${RATE_LIMIT_ENABLED:true}

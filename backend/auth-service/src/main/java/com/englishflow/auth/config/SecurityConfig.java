@@ -43,8 +43,8 @@ public class SecurityConfig {
                         // Swagger/OpenAPI endpoints (public access)
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", "/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                         // Endpoints publics (avec et sans préfixe /api)
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/activate/**", "/auth/activate-api", "/auth/forgot-password", "/auth/reset-password", "/auth/complete-profile/**", "/auth/activation-status/**").permitAll()
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/activate/**", "/api/auth/activate-api", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/complete-profile/**", "/api/auth/activation-status/**").permitAll()
+                        .requestMatchers("/auth/login", "/auth/register", "/auth/activate/**", "/auth/activate-api", "/auth/forgot-password", "/auth/reset-password", "/auth/complete-profile/**", "/auth/activation-status/**", "/auth/login/verify-2fa").permitAll()
+                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/activate/**", "/api/auth/activate-api", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/complete-profile/**", "/api/auth/activation-status/**", "/api/auth/login/verify-2fa").permitAll()
                         .requestMatchers("/actuator/**", "/oauth2/**", "/login/oauth2/**", "/public/**", "/activation-pending", "/activation-success", "/activation-error", "/uploads/**").permitAll()
                         // Endpoint public pour récupérer les infos utilisateur (pour inter-service communication)
                         .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public", "/users/*/public").permitAll()
@@ -57,6 +57,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/invitations/**", "/api/auth/invitations/**").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
                         // Endpoints admin
                         .requestMatchers("/auth/admin/**", "/api/auth/admin/**").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
+                        // Endpoints 2FA (nécessitent authentification)
+                        .requestMatchers("/auth/2fa/**", "/api/auth/2fa/**").authenticated()
                         // Endpoints sessions
                         .requestMatchers("/sessions/**", "/api/sessions/**").authenticated()
                         // Endpoints users

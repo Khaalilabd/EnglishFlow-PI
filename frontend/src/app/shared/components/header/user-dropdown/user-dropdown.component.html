@@ -3,7 +3,10 @@
     <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
       <img [src]="getProfilePhotoUrl()" [alt]="currentUser?.firstName" class="w-full h-full object-cover" />
     </span>
-    <span class="block mr-1 font-medium text-theme-sm">{{currentUser?.firstName}} {{currentUser?.lastName}}</span>
+    <div class="flex items-center gap-2 mr-1">
+      <span class="block font-medium text-theme-sm">{{currentUser?.firstName}} {{currentUser?.lastName}}</span>
+      <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+    </div>
     <svg [ngClass]="{
         'stroke-gray-500 dark:stroke-gray-400 transition-transform duration-200': true,
         'rotate-180': isOpen
@@ -16,12 +19,73 @@
   <app-dropdown [isOpen]="isOpen" (close)="closeDropdown()"
     className="absolute right-0 mt-[17px] flex w-[260px] flex-col rounded-2xl border border-gray-200 bg-white p-3 shadow-theme-lg dark:border-gray-800 dark:bg-gray-dark">
     <div>
-      <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
-        {{currentUser?.firstName}} {{currentUser?.lastName}}
-      </span>
-      <span class="mt-0.5 block text-theme-xs text-gray-500 dark:text-gray-400">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+          {{currentUser?.firstName}} {{currentUser?.lastName}}
+        </span>
+        <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+      </div>
+      <span class="block text-theme-xs text-gray-500 dark:text-gray-400">
         {{currentUser?.email}}
       </span>
+    </div>
+
+    <!-- Gamification Level Section - If level exists -->
+    <div *ngIf="currentUser?.gamificationLevel" class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+      <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">{{currentUser?.gamificationLevel?.assessmentLevelIcon}}</span>
+          <div>
+            <p class="text-xs font-bold text-gray-900 dark:text-white">{{currentUser?.gamificationLevel?.assessmentLevel}}</p>
+            <p class="text-[10px] text-gray-600 dark:text-gray-400">{{getLevelDescription()}}</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-md">
+          <span class="text-sm">🪙</span>
+          <span class="text-xs font-bold text-yellow-700 dark:text-yellow-400">{{currentUser?.gamificationLevel?.jungleCoins || 0}}</span>
+        </div>
+      </div>
+      
+      <!-- XP Progress Bar -->
+      <div class="mt-2">
+        <div class="flex justify-between items-center mb-1">
+          <span class="text-[10px] text-gray-600 dark:text-gray-400">{{currentUser?.gamificationLevel?.currentXP || 0}} / {{(currentUser?.gamificationLevel?.xpForNextLevel || 0) + (currentUser?.gamificationLevel?.currentXP || 0)}} XP</span>
+          <span class="text-[10px] font-semibold text-blue-600 dark:text-blue-400">{{currentUser?.gamificationLevel?.progressPercentage || 0}}%</span>
+        </div>
+        <div class="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-300" 
+               [style.width.%]="currentUser?.gamificationLevel?.progressPercentage || 0"></div>
+        </div>
+        <p class="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+          {{currentUser?.gamificationLevel?.xpForNextLevel || 0}} XP to {{currentUser?.gamificationLevel?.nextLevel || 'Next Level'}}
+        </p>
+      </div>
+      
+      <!-- Loyalty Tier -->
+      <div class="mt-2 flex items-center justify-between">
+        <div class="flex items-center gap-1">
+          <span class="text-sm">{{currentUser?.gamificationLevel?.loyaltyTierIcon}}</span>
+          <span class="text-[10px] font-semibold text-gray-700 dark:text-gray-300">{{currentUser?.gamificationLevel?.loyaltyTier}}</span>
+        </div>
+        <span class="text-[10px] text-green-600 dark:text-green-400 font-semibold">-{{currentUser?.gamificationLevel?.loyaltyDiscount || 0}}% discount</span>
+      </div>
+    </div>
+
+    <!-- Assessment Test Prompt - If level doesn't exist -->
+    <div *ngIf="!currentUser?.gamificationLevel" class="mt-3 p-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div class="flex items-start gap-2">
+        <span class="text-xl">📝</span>
+        <div class="flex-1">
+          <p class="text-xs font-bold text-gray-900 dark:text-white mb-1">Take Assessment Test</p>
+          <p class="text-[10px] text-gray-600 dark:text-gray-400 mb-2">
+            Complete your English level assessment to unlock badges, XP, and rewards!
+          </p>
+          <button 
+            class="w-full px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white text-[10px] font-semibold rounded-md transition-all duration-200 transform hover:scale-105">
+            Start Assessment 🚀
+          </button>
+        </div>
+      </div>
     </div>
 
     <ul class="flex flex-col gap-1 pt-4 pb-3 border-b border-gray-200 dark:border-gray-800">
