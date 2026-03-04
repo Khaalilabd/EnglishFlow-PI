@@ -6,6 +6,11 @@ spring:
     name: api-gateway
   config:
     import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
   cloud:
     config:
       enabled: false
@@ -15,6 +20,9 @@ spring:
         connect-timeout: 10000
         pool:
           max-idle-time: 300000
+      # Augmenter la limite de taille pour les uploads
+      codec:
+        max-in-memory-size: 50MB
       discovery:
         locator:
           enabled: true
@@ -60,6 +68,13 @@ spring:
           filters:
             - StripPrefix=1
           order: 10
+        
+        # Community Service - Static files (uploads) - Must be before community-service route
+        - id: community-uploads
+          uri: lb://community-service
+          predicates:
+            - Path=/uploads/**
+          order: 5
             
         # Complaints Service - SSE route must be before general complaints route
         - id: complaints-service-sse
@@ -318,7 +333,9 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "${FRONTEND_URL:http://localhost:4200}"
+            allowed-origins:
+              - "http://localhost:4200"
+              - "http://localhost:8080"
             allowed-methods:
               - GET
               - POST

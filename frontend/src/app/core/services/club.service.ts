@@ -78,6 +78,10 @@ export class ClubService {
     return this.http.get<Club[]>(`${this.apiUrl}/user/${userId}`);
   }
 
+  getUserMemberships(userId: number): Observable<Member[]> {
+    return this.http.get<Member[]>(`${environment.apiUrl}/clubs/members/user/${userId}`);
+  }
+
   approveClub(clubId: number, reviewerId: number, comment?: string): Observable<Club> {
     const params = new HttpParams()
       .set('reviewerId', reviewerId.toString())

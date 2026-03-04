@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @Table(name = "members", 
     indexes = {
         @Index(name = "idx_member_club_id", columnList = "club_id"),
-        @Index(name = "idx_member_user_id", columnList = "userId"),
+        @Index(name = "idx_member_user_id", columnList = "user_id"),
         @Index(name = "idx_member_rank", columnList = "rank"),
-        @Index(name = "idx_member_club_user", columnList = "club_id,userId", unique = true)
+        @Index(name = "idx_member_club_user", columnList = "club_id,user_id", unique = true)
     }
 )
 @Data
@@ -36,7 +36,7 @@ public class Member {
     @JoinColumn(name = "club_id", nullable = false)
     private Club club;
     
-    @Column(nullable = false)
+    @Column(name = "user_id", nullable = false)
     private Long userId; // Reference to User from auth-service
     
     @Column(nullable = false, updatable = false)

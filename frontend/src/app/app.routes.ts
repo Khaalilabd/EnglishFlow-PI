@@ -179,6 +179,11 @@ export const routes: Routes = [
         title: 'Topics | Jungle in English'
       },
       {
+        path: 'forum/reviews/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Reviews | Jungle in English'
+      },
+      {
         path: 'forum/topic/:topicId',
         loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
         title: 'Topic Details | Jungle in English'
@@ -371,6 +376,11 @@ export const routes: Routes = [
         path: 'forum/topics/:subCategoryId/:subCategoryName',
         loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
         title: 'Topics | Jungle in English'
+      },
+      {
+        path: 'forum/reviews/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Reviews | Jungle in English'
       },
       {
         path: 'forum/topic/:topicId',
@@ -589,6 +599,11 @@ export const routes: Routes = [
         title: 'Topics | Jungle in English Dashboard'
       },
       {
+        path: 'forum/reviews/:subCategoryId/:subCategoryName',
+        loadComponent: () => import('./pages/student-panel/forum/topic-list/topic-list.component').then(m => m.TopicListComponent),
+        title: 'Reviews | Jungle in English'
+      },
+      {
         path: 'forum/topic/:topicId',
         loadComponent: () => import('./pages/student-panel/forum/topic-detail/topic-detail.component').then(m => m.TopicDetailComponent),
         title: 'Topic Details | Jungle in English Dashboard'
@@ -783,3 +798,5 @@ export const routes: Routes = [
     title: 'Page Not Found | Jungle in English'
   }
 ];
+
+
