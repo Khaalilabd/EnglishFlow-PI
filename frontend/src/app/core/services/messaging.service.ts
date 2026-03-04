@@ -82,4 +82,29 @@ export class MessagingService {
   uploadGroupPhoto(formData: FormData): Observable<{groupPhoto: string}> {
     return this.http.post<{groupPhoto: string}>(`${this.apiUrl}/upload-group-photo`, formData);
   }
+  
+  // Group management
+  leaveGroup(conversationId: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/conversations/${conversationId}/leave`, {});
+  }
+  
+  addParticipants(conversationId: number, participantIds: number[]): Observable<Conversation> {
+    return this.http.post<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}/participants`,
+      { participantIds }
+    );
+  }
+  
+  removeParticipant(conversationId: number, participantId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/conversations/${conversationId}/participants/${participantId}`
+    );
+  }
+  
+  updateGroup(conversationId: number, title: string, description: string): Observable<Conversation> {
+    return this.http.put<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}`,
+      { title, description }
+    );
+  }
 }

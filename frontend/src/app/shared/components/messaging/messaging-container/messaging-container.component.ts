@@ -32,6 +32,8 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   isTyping: boolean = false;
   showNewConversationModal: boolean = false;
   showGroupInfoModal: boolean = false;
+  showAddParticipantModal: boolean = false;
+  showEditGroupModal: boolean = false;
   showEmojiPicker: boolean = false;
   hoveredMessageId: number | null = null;
   showReactionPicker: { [messageId: number]: boolean } = {};
@@ -40,6 +42,18 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   uploadingFile: boolean = false;
   imageUrls: { [messageId: number]: string } = {}; // Cache des URLs blob pour les images
   audioUrls: { [messageId: number]: string } = {}; // Cache des URLs blob pour les audios
+  
+  // Group management
+  participantSearchQuery: string = '';
+  groupInfoSearchQuery: string = '';
+  availableUsers: any[] = [];
+  filteredAvailableUsers: any[] = [];
+  selectedUsersToAdd: any[] = [];
+  editGroupTitle: string = '';
+  editGroupDescription: string = '';
+  editGroupPhoto: File | null = null;
+  editGroupPhotoPreview: string | null = null;
+  isLoadingParticipants: boolean = false;
   
   // Image modal
   selectedImageUrl: string | null = null;
@@ -1055,10 +1069,319 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   }
   
   openGroupInfo(): void {
-    this.showGroupInfoModal = true;
+    this.groupInfoSearchQuery = '';
+    // Recharger la conversation pour avoir les participants à jour
+    if (this.selectedConversationId) {
+      this.isLoadingParticipants = true;
+      this.messagingService.getConversation(this.selectedConversationId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (conversation) => {
+            this.selectedConversation = conversation;
+            this.showGroupInfoModal = true;
+            this.isLoadingParticipants = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error loading conversation:', error);
+            this.showGroupInfoModal = true;
+            this.isLoadingParticipants = false;
+          }
+        });
+    } else {
+      this.showGroupInfoModal = true;
+    }
+  }
+  
+  getFilteredParticipants() {
+    if (!this.selectedConversation) return [];
+    
+    const query = this.groupInfoSearchQuery.toLowerCase().trim();
+    if (!query) {
+      return this.selectedConversation.participants;
+    }
+    
+    return this.selectedConversation.participants.filter(p => 
+      p.userName.toLowerCase().includes(query) ||
+      p.userEmail.toLowerCase().includes(query)
+    );
+  }
+  
+  isPackGroup(): boolean {
+    return this.selectedConversation?.title?.startsWith('Pack: ') || false;
+  }
+  
+  canLeaveGroup(): boolean {
+    // Ne peut pas quitter un groupe de pack (doit se désinscrire du pack)
+    return !this.isPackGroup();
+  }
+  
+  isTutor(userId: number): boolean {
+    if (!this.selectedConversation) return false;
+    const participant = this.selectedConversation.participants.find(p => p.userId === userId);
+    return participant?.role === 'ADMIN';
+  }
+  
+  isPackConversation(conversation: Conversation): boolean {
+    return conversation.title?.startsWith('Pack: ') || false;
+  }
+  
+  getSortedConversations(): Conversation[] {
+    // Trier les conversations: groupes de pack en premier, puis par date
+    return [...this.filteredConversations].sort((a, b) => {
+      const aIsPack = this.isPackConversation(a);
+      const bIsPack = this.isPackConversation(b);
+      
+      // Les packs en premier
+      if (aIsPack && !bIsPack) return -1;
+      if (!aIsPack && bIsPack) return 1;
+      
+      // Sinon, trier par date du dernier message
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }
+  
+  getPackConversations(): Conversation[] {
+    return this.filteredConversations
+      .filter(conv => this.isPackConversation(conv))
+      .sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+  }
+  
+  getRegularConversations(): Conversation[] {
+    return this.filteredConversations
+      .filter(conv => !this.isPackConversation(conv))
+      .sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+  }
+  
+  removeParticipant(userId: number): void {
+    if (!this.selectedConversation) return;
+    
+    const participant = this.selectedConversation.participants.find(p => p.userId === userId);
+    if (!participant) return;
+    
+    if (!confirm(`Êtes-vous sûr de vouloir retirer ${participant.userName} du groupe?`)) {
+      return;
+    }
+    
+    this.messagingService.removeParticipant(this.selectedConversation.id, userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          // Recharger la conversation
+          this.openGroupInfo();
+          alert(`${participant.userName} a été retiré du groupe`);
+        },
+        error: (error) => {
+          console.error('Error removing participant:', error);
+          alert('Erreur lors du retrait du participant');
+        }
+      });
   }
   
   closeGroupInfo(): void {
     this.showGroupInfoModal = false;
   }
+  
+  openAddParticipant(): void {
+    this.participantSearchQuery = '';
+    this.selectedUsersToAdd = [];
+    this.loadAvailableUsers();
+    this.showAddParticipantModal = true;
+  }
+  
+  closeAddParticipant(): void {
+    this.showAddParticipantModal = false;
+    this.availableUsers = [];
+    this.filteredAvailableUsers = [];
+    this.selectedUsersToAdd = [];
+  }
+  
+  loadAvailableUsers(): void {
+    if (!this.selectedConversation) return;
+    
+    this.isLoadingParticipants = true;
+    // Récupérer tous les utilisateurs depuis auth-service
+    this.authService.getAllUsers().subscribe({
+      next: (users) => {
+        // Filtrer les utilisateurs qui ne sont pas déjà dans la conversation
+        const participantIds = this.selectedConversation!.participants.map(p => p.userId);
+        this.availableUsers = users.filter(u => !participantIds.includes(u.id));
+        this.filteredAvailableUsers = [...this.availableUsers];
+        this.isLoadingParticipants = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoadingParticipants = false;
+      }
+    });
+  }
+  
+  filterAvailableUsers(): void {
+    const query = this.participantSearchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredAvailableUsers = [...this.availableUsers];
+    } else {
+      this.filteredAvailableUsers = this.availableUsers.filter(user => 
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+    }
+  }
+  
+  toggleUserSelection(user: any): void {
+    const index = this.selectedUsersToAdd.findIndex(u => u.id === user.id);
+    if (index > -1) {
+      this.selectedUsersToAdd.splice(index, 1);
+    } else {
+      this.selectedUsersToAdd.push(user);
+    }
+  }
+  
+  isUserSelected(userId: number): boolean {
+    return this.selectedUsersToAdd.some(u => u.id === userId);
+  }
+  
+  removeUserFromSelection(userId: number): void {
+    this.selectedUsersToAdd = this.selectedUsersToAdd.filter(u => u.id !== userId);
+  }
+  
+  addSelectedParticipants(): void {
+    if (!this.selectedConversation || this.selectedUsersToAdd.length === 0) return;
+    
+    const participantIds = this.selectedUsersToAdd.map(u => u.id);
+    this.isLoadingParticipants = true;
+    
+    this.messagingService.addParticipants(this.selectedConversation.id, participantIds)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conversation) => {
+          this.selectedConversation = conversation;
+          this.closeAddParticipant();
+          this.isLoadingParticipants = false;
+          // Afficher un message de succès
+          alert(`${participantIds.length} participant(s) ajouté(s) avec succès!`);
+          // Recharger la conversation pour avoir les participants à jour
+          this.openGroupInfo();
+        },
+        error: (error) => {
+          console.error('Error adding participants:', error);
+          this.isLoadingParticipants = false;
+          alert('Erreur lors de l\'ajout des participants');
+        }
+      });
+  }
+  
+  openEditGroup(): void {
+    if (!this.selectedConversation) return;
+    
+    this.editGroupTitle = this.selectedConversation.title || '';
+    this.editGroupDescription = this.selectedConversation.description || '';
+    this.editGroupPhoto = null;
+    this.editGroupPhotoPreview = null;
+    this.showEditGroupModal = true;
+  }
+  
+  closeEditGroup(): void {
+    this.showEditGroupModal = false;
+    this.editGroupTitle = '';
+    this.editGroupDescription = '';
+    this.editGroupPhoto = null;
+    this.editGroupPhotoPreview = null;
+  }
+  
+  onEditGroupPhotoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.editGroupPhoto = file;
+      
+      // Créer une preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.editGroupPhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  saveGroupChanges(): void {
+    if (!this.selectedConversation || !this.editGroupTitle.trim()) return;
+    
+    // Si une nouvelle photo a été sélectionnée, l'uploader d'abord
+    if (this.editGroupPhoto) {
+      const formData = new FormData();
+      formData.append('file', this.editGroupPhoto);
+      
+      this.messagingService.uploadGroupPhoto(formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            // Mettre à jour le groupe avec la nouvelle photo
+            this.updateGroupInfo(response.groupPhoto);
+          },
+          error: (error) => {
+            console.error('Error uploading photo:', error);
+            alert('Erreur lors de l\'upload de la photo');
+          }
+        });
+    } else {
+      // Mettre à jour sans changer la photo
+      this.updateGroupInfo(this.selectedConversation.groupPhoto);
+    }
+  }
+  
+  private updateGroupInfo(groupPhoto?: string): void {
+    if (!this.selectedConversation) return;
+    
+    this.messagingService.updateGroup(
+      this.selectedConversation.id,
+      this.editGroupTitle,
+      this.editGroupDescription
+    ).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conversation) => {
+          this.selectedConversation = conversation;
+          this.closeEditGroup();
+          this.loadConversations();
+          // Recharger le modal d'info
+          this.openGroupInfo();
+        },
+        error: (error) => {
+          console.error('Error updating group:', error);
+          alert('Erreur lors de la modification du groupe');
+        }
+      });
+  }
+  
+  leaveGroup(): void {
+    if (!this.selectedConversation || !confirm('Êtes-vous sûr de vouloir quitter ce groupe ?')) {
+      return;
+    }
+    
+    this.messagingService.leaveGroup(this.selectedConversation.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.closeGroupInfo();
+          this.loadConversations();
+          this.selectedConversation = null;
+          this.selectedConversationId = null;
+        },
+        error: (error) => {
+          console.error('Error leaving group:', error);
+          alert('Erreur lors de la sortie du groupe');
+        }
+      });
+  }
 }
+

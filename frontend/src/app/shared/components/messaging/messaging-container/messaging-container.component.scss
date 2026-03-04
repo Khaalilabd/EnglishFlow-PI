@@ -2031,6 +2031,42 @@ $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
         font-weight: 600;
       }
     }
+    
+    .remove-participant-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(#dc2626, 0.1);
+      border: none;
+      color: #dc2626;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+      opacity: 0;
+      
+      svg {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2.5;
+      }
+      
+      &:hover {
+        background: #dc2626;
+        color: white;
+        transform: scale(1.1);
+      }
+      
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+  
+  .participant-item:hover .remove-participant-btn {
+    opacity: 1;
   }
 }
 
@@ -2096,6 +2132,709 @@ $shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
       width: 20px;
       height: 20px;
       stroke: #dc2626;
+    }
+  }
+}
+
+// Add Participant Modal & Edit Group Modal
+.add-participant-modal,
+.edit-group-modal {
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  
+  .modal-header {
+    padding: 20px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+  }
+  
+  .modal-content {
+    padding: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+  
+  .search-bar {
+    position: relative;
+    margin-bottom: 20px;
+    
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: #9ca3af;
+    }
+    
+    .search-input {
+      width: 100%;
+      padding: 10px 10px 10px 40px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+  }
+  
+  .selected-users {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: #f9fafb;
+    border-radius: 8px;
+    
+    .selected-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #667eea;
+      color: white;
+      border-radius: 20px;
+      font-size: 0.875rem;
+      
+      .remove-chip-btn {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.25rem;
+        cursor: pointer;
+        padding: 0;
+        width: 20px;
+        height: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+  
+  .users-list {
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    
+    .user-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      &:hover {
+        background: #f9fafb;
+      }
+      
+      &:not(:last-child) {
+        border-bottom: 1px solid #f3f4f6;
+      }
+      
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+      
+      .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      
+      .user-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        
+        .user-name {
+          font-weight: 500;
+          color: #1f2937;
+        }
+        
+        .user-email {
+          font-size: 0.875rem;
+          color: #6b7280;
+        }
+      }
+    }
+    
+    .no-users {
+      padding: 40px 20px;
+      text-align: center;
+      color: #9ca3af;
+    }
+  }
+  
+  .group-photo-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    
+    .group-photo-preview {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid #e5e7eb;
+    }
+    
+    .change-photo-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: #f3f4f6;
+      border: none;
+      border-radius: 8px;
+      color: #4b5563;
+      font-size: 0.875rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      
+      svg {
+        width: 18px;
+        height: 18px;
+      }
+      
+      &:hover {
+        background: #e5e7eb;
+      }
+    }
+  }
+  
+  .form-group {
+    margin-bottom: 20px;
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #374151;
+      font-size: 0.95rem;
+    }
+    
+    .form-input,
+    .form-textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      
+      &:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+    }
+    
+    .form-textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+  }
+  
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+    
+    button {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      
+      &.btn-secondary {
+        background: #f3f4f6;
+        border: none;
+        color: #4b5563;
+        
+        &:hover {
+          background: #e5e7eb;
+        }
+      }
+      
+      &.btn-primary {
+        background: #667eea;
+        border: none;
+        color: white;
+        
+        &:hover:not(:disabled) {
+          background: #5568d3;
+        }
+        
+        &:disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+      }
+    }
+  }
+}
+
+// Pack badge
+.pack-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+// Participants section improvements
+.participants-section {
+  .participants-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    
+    h4 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1f2937;
+    }
+    
+    .search-bar-small {
+      position: relative;
+      width: 200px;
+      
+      .search-icon {
+        position: absolute;
+        left: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        color: #9ca3af;
+      }
+      
+      .search-input-small {
+        width: 100%;
+        padding: 6px 6px 6px 32px;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        
+        &:focus {
+          outline: none;
+          border-color: #667eea;
+          box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+        }
+      }
+    }
+  }
+  
+  .loading-participants {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f4f6;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    p {
+      margin-top: 15px;
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+  }
+  
+  .no-participants {
+    padding: 40px 20px;
+    text-align: center;
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Participant badges
+.participant-badges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.tutor-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+// Tutor badge in messages
+.sender-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  
+  .sender-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #10b981;
+  }
+  
+  .tutor-badge-message {
+    display: inline-block;
+    padding: 2px 8px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    border-radius: 10px;
+    font-size: 0.65rem;
+    font-weight: 600;
+  }
+}
+
+// Pack info message
+.pack-info-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 20px;
+  background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+  border: 1px solid #bfdbfe;
+  border-radius: 12px;
+  margin-top: 15px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  
+  svg {
+    width: 24px;
+    height: 24px;
+    color: #3b82f6;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  
+  .pack-info-content {
+    flex: 1;
+    
+    .pack-info-title {
+      margin: 0 0 12px 0;
+      color: #1e40af;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    
+    .pack-info-list {
+      margin: 0;
+      padding-left: 20px;
+      
+      li {
+        color: #1e40af;
+        font-size: 0.875rem;
+        line-height: 1.6;
+        margin-bottom: 8px;
+        
+        &:last-child {
+          margin-bottom: 0;
+        }
+        
+        strong {
+          color: #1e3a8a;
+          font-weight: 600;
+        }
+      }
+    }
+  }
+}
+
+// Loading state for add participants modal
+.users-list {
+  position: relative;
+  
+  &.loading {
+    opacity: 0.6;
+    pointer-events: none;
+  }
+}
+
+// Animation for modals
+.modal-overlay {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.group-info-modal,
+.add-participant-modal,
+.edit-group-modal {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Success message animation
+@keyframes successPulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+// System messages
+.message-item.system-message {
+  justify-content: center;
+  margin: 15px 0;
+  
+  .message-bubble {
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 16px;
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    text-align: center;
+    max-width: 80%;
+    box-shadow: none;
+  }
+}
+
+// Pack conversation styling
+.conversation-card.pack-conversation {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  border-left: 3px solid #667eea;
+  
+  &:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  }
+  
+  &.active {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.15) 100%);
+    border-left-color: #764ba2;
+  }
+}
+
+// Pack icon badge on avatar
+.conv-avatar {
+  position: relative;
+  
+  .pack-icon-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    width: 20px;
+    height: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    svg {
+      width: 12px;
+      height: 12px;
+      color: white;
+    }
+  }
+}
+
+// Pack mini badge next to name
+.conv-name-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  
+  .conv-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0;
+  }
+  
+  .pack-mini-badge {
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    animation: pulse 2s ease-in-out infinite;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+// Update conv-top to use flexbox properly
+.conv-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+// Shimmer effect for pack conversations
+.conversation-card.pack-conversation::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+// Make conversation-card relative for shimmer effect
+.conversation-card {
+  position: relative;
+  overflow: hidden;
+}
+
+// Section headers
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  
+  .section-icon {
+    width: 16px;
+    height: 16px;
+    color: #667eea;
+  }
+  
+  span:first-of-type {
+    flex: 1;
+  }
+  
+  .section-count {
+    background: #667eea;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+}
+
+.pack-conversations-section,
+.regular-conversations-section {
+  .section-header:first-child {
+    margin-top: 0;
+  }
+}
+
+.regular-conversations-section {
+  .section-header {
+    margin-top: 8px;
+    
+    .section-icon {
+      color: #10b981;
+    }
+    
+    .section-count {
+      background: #10b981;
     }
   }
 }

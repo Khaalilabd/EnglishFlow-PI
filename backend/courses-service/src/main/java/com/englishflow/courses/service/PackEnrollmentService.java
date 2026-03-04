@@ -1,6 +1,7 @@
 package com.englishflow.courses.service;
 
 import com.englishflow.courses.client.AuthServiceClient;
+import com.englishflow.courses.client.MessagingServiceClient;
 import com.englishflow.courses.dto.PackEnrollmentDTO;
 import com.englishflow.courses.dto.UserDTO;
 import com.englishflow.courses.entity.Pack;
@@ -23,6 +24,7 @@ public class PackEnrollmentService implements IPackEnrollmentService {
     private final PackRepository packRepository;
     private final IPackService packService;
     private final AuthServiceClient authServiceClient;
+    private final MessagingServiceClient messagingServiceClient;
     
     @Override
     @Transactional
@@ -66,6 +68,23 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         
         // Update pack enrollment count
         packService.incrementEnrollment(packId);
+        
+        // Ajouter l'étudiant au groupe de discussion du pack
+        if (pack.getConversationId() != null) {
+            try {
+                boolean added = messagingServiceClient.addStudentToPackGroup(pack.getConversationId(), studentId);
+                
+                // Envoyer un message système pour notifier l'ajout
+                if (added) {
+                    String welcomeMessage = String.format("🎉 %s a rejoint le pack!", 
+                        enrollment.getStudentName());
+                    messagingServiceClient.sendSystemMessage(pack.getConversationId(), welcomeMessage);
+                }
+            } catch (Exception e) {
+                // Log l'erreur mais ne bloque pas l'inscription
+                System.err.println("Erreur lors de l'ajout de l'étudiant au groupe: " + e.getMessage());
+            }
+        }
         
         return toDTO(saved);
     }
@@ -147,6 +166,20 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         
         // Update pack enrollment count
         packService.decrementEnrollment(enrollment.getPackId());
+        
+        // Retirer l'étudiant du groupe de discussion du pack
+        Pack pack = packRepository.findById(enrollment.getPackId()).orElse(null);
+        if (pack != null && pack.getConversationId() != null) {
+            try {
+                messagingServiceClient.removeStudentFromPackGroup(
+                    pack.getConversationId(), 
+                    enrollment.getStudentId()
+                );
+            } catch (Exception e) {
+                // Log l'erreur mais ne bloque pas la désinscription
+                System.err.println("Erreur lors du retrait de l'étudiant du groupe: " + e.getMessage());
+            }
+        }
     }
     
     @Override

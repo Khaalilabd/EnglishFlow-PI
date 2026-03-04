@@ -19,22 +19,72 @@
     </div>
 
     <div class="conversations-list">
-      <div *ngFor="let conv of filteredConversations" 
-           class="conversation-card"
-           [class.active]="selectedConversationId === conv.id"
-           (click)="selectConversation(conv.id)">
-        <div class="conv-avatar">
-          <img [src]="getAvatar(conv)" [alt]="getTitle(conv)">
-          <span class="status-dot" [class.online]="isOnline(conv)"></span>
+      <!-- Pack Conversations Section -->
+      <div class="pack-conversations-section" *ngIf="getPackConversations().length > 0">
+        <div class="section-header">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="section-icon">
+            <path d="M12 3L1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+          </svg>
+          <span>Groupes de Pack</span>
+          <span class="section-count">{{ getPackConversations().length }}</span>
         </div>
-        <div class="conv-info">
-          <div class="conv-top">
-            <h3 class="conv-name">{{ getTitle(conv) }}</h3>
-            <span class="conv-time">{{ formatTime(conv.lastMessageAt) }}</span>
+        <div *ngFor="let conv of getPackConversations()" 
+             class="conversation-card pack-conversation"
+             [class.active]="selectedConversationId === conv.id"
+             (click)="selectConversation(conv.id)">
+          <div class="conv-avatar">
+            <img [src]="getAvatar(conv)" [alt]="getTitle(conv)">
+            <span class="status-dot" [class.online]="isOnline(conv)"></span>
+            <span class="pack-icon-badge">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 3L1 9l11 6 9-4.91V17h2V9M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z"/>
+              </svg>
+            </span>
           </div>
-          <div class="conv-bottom">
-            <p class="conv-preview">{{ conv.lastMessage?.content || 'Aucun message' }}</p>
-            <span class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
+          <div class="conv-info">
+            <div class="conv-top">
+              <div class="conv-name-wrapper">
+                <h3 class="conv-name">{{ getTitle(conv) }}</h3>
+                <span class="pack-mini-badge">📚</span>
+              </div>
+              <span class="conv-time">{{ formatTime(conv.lastMessageAt) }}</span>
+            </div>
+            <div class="conv-bottom">
+              <p class="conv-preview">{{ conv.lastMessage?.content || 'Aucun message' }}</p>
+              <span class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Regular Conversations Section -->
+      <div class="regular-conversations-section" *ngIf="getRegularConversations().length > 0">
+        <div class="section-header" *ngIf="getPackConversations().length > 0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="section-icon">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <span>Conversations</span>
+          <span class="section-count">{{ getRegularConversations().length }}</span>
+        </div>
+        <div *ngFor="let conv of getRegularConversations()" 
+             class="conversation-card"
+             [class.active]="selectedConversationId === conv.id"
+             (click)="selectConversation(conv.id)">
+          <div class="conv-avatar">
+            <img [src]="getAvatar(conv)" [alt]="getTitle(conv)">
+            <span class="status-dot" [class.online]="isOnline(conv)"></span>
+          </div>
+          <div class="conv-info">
+            <div class="conv-top">
+              <div class="conv-name-wrapper">
+                <h3 class="conv-name">{{ getTitle(conv) }}</h3>
+              </div>
+              <span class="conv-time">{{ formatTime(conv.lastMessageAt) }}</span>
+            </div>
+            <div class="conv-bottom">
+              <p class="conv-preview">{{ conv.lastMessage?.content || 'Aucun message' }}</p>
+              <span class="unread-badge" *ngIf="conv.unreadCount > 0">{{ conv.unreadCount }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -95,9 +145,11 @@
       <div class="messages-area" #messagesArea>
         <div *ngFor="let msg of messages" 
              class="message-wrapper"
+             [class.system-message]="msg.senderId === 0"
              (mouseenter)="onMessageMouseEnter(msg.id)"
              (mouseleave)="onMessageMouseLeave(msg.id)">
           <div class="message"
+               *ngIf="msg.senderId !== 0"
                [class.sent]="msg.senderId === currentUserId"
                [class.received]="msg.senderId !== currentUserId"
                [class.emoji-message]="msg.messageType === 'EMOJI'">
@@ -108,8 +160,9 @@
             
             <div class="message-content-wrapper">
               <!-- Nom de l'expéditeur pour les groupes -->
-              <div class="sender-name" *ngIf="msg.senderId !== currentUserId && selectedConversation?.type === 'GROUP'">
-                {{ msg.senderName }}
+              <div class="sender-info" *ngIf="msg.senderId !== currentUserId && selectedConversation?.type === 'GROUP'">
+                <span class="sender-name">{{ msg.senderName }}</span>
+                <span class="tutor-badge-message" *ngIf="isPackGroup() && isTutor(msg.senderId)">Tuteur</span>
               </div>
               
               <div class="message-bubble" [class.emoji-bubble]="msg.messageType === 'EMOJI'">
@@ -217,6 +270,13 @@
                 <circle cx="15" cy="9" r="1" fill="currentColor"/>
               </svg>
             </button>
+          </div>
+          
+          <!-- System Message -->
+          <div *ngIf="msg.senderId === 0" class="system-message-content">
+            <div class="message-bubble">
+              {{ msg.content }}
+            </div>
           </div>
         </div>
 
@@ -429,32 +489,70 @@
         <h3>{{ selectedConversation.title }}</h3>
         <p *ngIf="selectedConversation.description" class="group-description">{{ selectedConversation.description }}</p>
         <p class="group-participants-count">{{ selectedConversation.participants.length }} participants</p>
+        <span *ngIf="isPackGroup()" class="pack-badge">Groupe de Pack</span>
       </div>
       
       <!-- Liste des participants -->
       <div class="participants-section">
-        <h4>Participants</h4>
-        <div class="participants-list">
-          <div *ngFor="let participant of selectedConversation.participants" class="participant-item">
+        <div class="participants-header">
+          <h4>Participants</h4>
+          <!-- Barre de recherche -->
+          <div class="search-bar-small">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="search-icon">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.35-4.35"></path>
+            </svg>
+            <input 
+              type="text" 
+              [(ngModel)]="groupInfoSearchQuery"
+              placeholder="Rechercher..."
+              class="search-input-small">
+          </div>
+        </div>
+        
+        <!-- Loader -->
+        <div *ngIf="isLoadingParticipants" class="loading-participants">
+          <div class="spinner"></div>
+          <p>Chargement des participants...</p>
+        </div>
+        
+        <div *ngIf="!isLoadingParticipants" class="participants-list">
+          <div *ngFor="let participant of getFilteredParticipants()" class="participant-item">
             <img [src]="participant.userAvatar && !participant.userAvatar.includes('ui-avatars.com') ? 'http://localhost:8080' + participant.userAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(participant.userName) + '&background=667eea&color=fff&bold=true&size=128'" 
                  [alt]="participant.userName" class="participant-avatar">
             <div class="participant-info">
               <span class="participant-name">{{ participant.userName }}</span>
-              <span class="participant-role" *ngIf="participant.role === 'ADMIN'">Admin</span>
+              <div class="participant-badges">
+                <span class="participant-role" *ngIf="participant.role === 'ADMIN'">Admin</span>
+                <span class="tutor-badge" *ngIf="isPackGroup() && participant.role === 'ADMIN'">Tuteur</span>
+              </div>
             </div>
+            <!-- Bouton supprimer (seulement si admin et pas soi-même) -->
+            <button 
+              *ngIf="selectedConversation.createdBy === currentUserId && participant.userId !== currentUserId"
+              class="remove-participant-btn"
+              (click)="removeParticipant(participant.userId)"
+              title="Retirer du groupe">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+          <div *ngIf="getFilteredParticipants().length === 0" class="no-participants">
+            Aucun participant trouvé
           </div>
         </div>
       </div>
       
       <!-- Actions (si admin) -->
       <div class="group-actions" *ngIf="selectedConversation.createdBy === currentUserId">
-        <button class="action-btn">
+        <button class="action-btn" (click)="openAddParticipant()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
           </svg>
           Ajouter un participant
         </button>
-        <button class="action-btn">
+        <button class="action-btn" (click)="openEditGroup()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
           </svg>
@@ -462,13 +560,165 @@
         </button>
       </div>
       
-      <!-- Quitter le groupe -->
-      <div class="group-danger-zone">
-        <button class="danger-btn">
+      <!-- Quitter le groupe (seulement si ce n'est pas un groupe de pack) -->
+      <div class="group-danger-zone" *ngIf="canLeaveGroup()">
+        <button class="danger-btn" (click)="leaveGroup()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
           </svg>
           Quitter le groupe
+        </button>
+      </div>
+      
+      <!-- Message pour les groupes de pack -->
+      <div class="pack-info-message" *ngIf="isPackGroup()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M12 16v-4M12 8h.01"></path>
+        </svg>
+        <div class="pack-info-content">
+          <p>Ce groupe est lié à un pack. Les étudiants sont automatiquement ajoutés lors de leur inscription au pack et retirés lors de leur désinscription.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add Participant Modal -->
+<div class="modal-overlay" *ngIf="showAddParticipantModal" (click)="closeAddParticipant()">
+  <div class="add-participant-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Ajouter des participants</h2>
+      <button (click)="closeAddParticipant()" class="close-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-content">
+      <!-- Search bar -->
+      <div class="search-bar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="search-icon">
+          <circle cx="11" cy="11" r="8"></circle>
+          <path d="m21 21-4.35-4.35"></path>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="participantSearchQuery"
+          (ngModelChange)="filterAvailableUsers()"
+          placeholder="Rechercher un utilisateur..."
+          class="search-input">
+      </div>
+      
+      <!-- Selected users -->
+      <div class="selected-users" *ngIf="selectedUsersToAdd.length > 0">
+        <div class="selected-user-chip" *ngFor="let user of selectedUsersToAdd">
+          <span>{{ user.firstName }} {{ user.lastName }}</span>
+          <button (click)="removeUserFromSelection(user.id)" class="remove-chip-btn">×</button>
+        </div>
+      </div>
+      
+      <!-- Available users list -->
+      <div class="users-list" [class.loading]="isLoadingParticipants">
+        <!-- Loader -->
+        <div *ngIf="isLoadingParticipants" class="loading-participants">
+          <div class="spinner"></div>
+          <p>Chargement des utilisateurs...</p>
+        </div>
+        
+        <div *ngIf="!isLoadingParticipants">
+          <div 
+            *ngFor="let user of filteredAvailableUsers" 
+            class="user-item"
+            (click)="toggleUserSelection(user)">
+            <input 
+              type="checkbox" 
+              [checked]="isUserSelected(user.id)"
+              (click)="$event.stopPropagation()">
+            <img [src]="user.profilePhoto && !user.profilePhoto.includes('ui-avatars.com') ? 'http://localhost:8080' + user.profilePhoto : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(user.firstName + ' ' + user.lastName) + '&background=667eea&color=fff&bold=true&size=128'" 
+                 [alt]="user.firstName + ' ' + user.lastName" 
+                 class="user-avatar">
+            <div class="user-info">
+              <span class="user-name">{{ user.firstName }} {{ user.lastName }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            </div>
+          </div>
+          <div *ngIf="filteredAvailableUsers.length === 0 && !isLoadingParticipants" class="no-users">
+            Aucun utilisateur disponible
+          </div>
+        </div>
+      </div>
+      
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button (click)="closeAddParticipant()" class="btn-secondary">Annuler</button>
+        <button (click)="addSelectedParticipants()" [disabled]="selectedUsersToAdd.length === 0" class="btn-primary">
+          Ajouter ({{ selectedUsersToAdd.length }})
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Group Modal -->
+<div class="modal-overlay" *ngIf="showEditGroupModal && selectedConversation" (click)="closeEditGroup()">
+  <div class="edit-group-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Modifier le groupe</h2>
+      <button (click)="closeEditGroup()" class="close-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-content">
+      <!-- Group photo -->
+      <div class="group-photo-section">
+        <img [src]="editGroupPhotoPreview || getAvatar(selectedConversation)" 
+             [alt]="editGroupTitle" 
+             class="group-photo-preview">
+        <button (click)="editGroupPhotoInput.click()" class="change-photo-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Changer la photo
+        </button>
+        <input 
+          #editGroupPhotoInput
+          type="file" 
+          accept="image/*" 
+          (change)="onEditGroupPhotoSelected($event)"
+          style="display: none;">
+      </div>
+      
+      <!-- Group name -->
+      <div class="form-group">
+        <label>Nom du groupe</label>
+        <input 
+          type="text" 
+          [(ngModel)]="editGroupTitle"
+          placeholder="Nom du groupe"
+          class="form-input">
+      </div>
+      
+      <!-- Group description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea 
+          [(ngModel)]="editGroupDescription"
+          placeholder="Description du groupe (optionnel)"
+          rows="3"
+          class="form-textarea"></textarea>
+      </div>
+      
+      <!-- Actions -->
+      <div class="modal-actions">
+        <button (click)="closeEditGroup()" class="btn-secondary">Annuler</button>
+        <button (click)="saveGroupChanges()" [disabled]="!editGroupTitle.trim()" class="btn-primary">
+          Enregistrer
         </button>
       </div>
     </div>
