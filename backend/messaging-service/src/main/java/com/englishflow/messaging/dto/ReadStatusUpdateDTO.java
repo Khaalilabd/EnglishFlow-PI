@@ -5,17 +5,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ParticipantDTO {
+public class ReadStatusUpdateDTO {
+    private Long conversationId;
     private Long userId;
     private String userName;
-    private String userEmail;
-    private String userRole;
-    private String userAvatar;
-    private Boolean isOnline;
-    private LocalDateTime lastReadAt;
-    private String role; // ADMIN or MEMBER
+    private List<Long> messageIds; // IDs des messages qui ont été lus
+    private LocalDateTime readAt;
 }

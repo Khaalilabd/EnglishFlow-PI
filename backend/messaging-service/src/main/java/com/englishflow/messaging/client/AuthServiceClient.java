@@ -27,7 +27,8 @@ public class AuthServiceClient {
             
             UserInfo userInfo = restTemplate.getForObject(url, UserInfo.class);
             if (userInfo != null) {
-                log.info("Successfully fetched user info for userId {}: {} {}", userId, userInfo.getFirstName(), userInfo.getLastName());
+                log.info("Successfully fetched user info for userId {}: {} {} - ProfilePhoto: {}", 
+                    userId, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getProfilePhoto());
                 return userInfo;
             } else {
                 log.warn("User info is null for userId: {}", userId);
@@ -44,7 +45,8 @@ public class AuthServiceClient {
             
             UserInfo userInfo = directRestTemplate.getForObject(fallbackUrl, UserInfo.class);
             if (userInfo != null) {
-                log.info("Successfully fetched user info via fallback for userId {}: {} {}", userId, userInfo.getFirstName(), userInfo.getLastName());
+                log.info("Successfully fetched user info via fallback for userId {}: {} {} - ProfilePhoto: {}", 
+                    userId, userInfo.getFirstName(), userInfo.getLastName(), userInfo.getProfilePhoto());
                 return userInfo;
             } else {
                 log.warn("User info is null from fallback for userId: {}", userId);
@@ -77,7 +79,7 @@ public class AuthServiceClient {
         private String lastName;
         private String email;
         private String role;
-        private String profilePhoto;  // Changed from profilePhotoUrl to match UserDTO
+        private String profilePhoto;
         
         public UserInfo() {}
         
@@ -95,6 +97,11 @@ public class AuthServiceClient {
         // Getter for backward compatibility
         public String getProfilePhotoUrl() {
             return profilePhoto;
+        }
+        
+        // Setter pour accepter profilePhoto depuis le JSON
+        public void setProfilePhoto(String profilePhoto) {
+            this.profilePhoto = profilePhoto;
         }
     }
 }

@@ -5,7 +5,14 @@ Service de messagerie en temps réel pour la plateforme Jungle in English avec s
 ## 🚀 Fonctionnalités
 
 - ✅ Messagerie en temps réel via WebSocket
-- ✅ Conversations directes et de groupe
+- ✅ Conversations directes (1-à-1) et de groupe (multi-utilisateurs)
+- ✅ Gestion complète des groupes:
+  - Création de groupes avec titre et description
+  - Ajout/retrait de participants (par les admins)
+  - Système de rôles (ADMIN/MEMBER)
+  - Promotion de membres en admin
+  - Quitter un groupe
+  - Mise à jour du titre et description
 - ✅ Indicateurs de frappe (typing indicators)
 - ✅ Statuts de lecture des messages
 - ✅ Réactions aux messages (emojis)
@@ -126,8 +133,13 @@ Le service démarre sur le port **8084**.
 | Méthode | Endpoint | Description |
 |---------|----------|-------------|
 | GET | `/api/messaging/conversations` | Liste des conversations |
-| POST | `/api/messaging/conversations` | Créer une conversation |
+| POST | `/api/messaging/conversations` | Créer une conversation (directe ou groupe) |
 | GET | `/api/messaging/conversations/{id}` | Détails d'une conversation |
+| PUT | `/api/messaging/conversations/{id}` | Mettre à jour un groupe (titre, description) |
+| POST | `/api/messaging/conversations/{id}/participants` | Ajouter des participants à un groupe |
+| DELETE | `/api/messaging/conversations/{id}/participants/{userId}` | Retirer un participant d'un groupe |
+| POST | `/api/messaging/conversations/{id}/leave` | Quitter un groupe |
+| POST | `/api/messaging/conversations/{id}/participants/{userId}/promote` | Promouvoir un membre en admin |
 | GET | `/api/messaging/conversations/{id}/messages` | Messages d'une conversation (paginés) |
 | POST | `/api/messaging/conversations/{id}/messages` | Envoyer un message |
 | POST | `/api/messaging/conversations/{id}/mark-read` | Marquer comme lu |
@@ -299,6 +311,8 @@ messaging-service/
 - Swagger UI: http://localhost:8084/swagger-ui.html
 - OpenAPI JSON: http://localhost:8084/api-docs
 - Health Check: http://localhost:8084/actuator/health
+- Guide des Groupes: [docs/GROUP_CHAT_GUIDE.md](docs/GROUP_CHAT_GUIDE.md)
+- Monitoring: [docs/MONITORING_GUIDE.md](docs/MONITORING_GUIDE.md)
 
 ## 🤝 Intégration
 

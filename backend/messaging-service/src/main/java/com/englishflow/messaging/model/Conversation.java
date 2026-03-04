@@ -32,6 +32,15 @@ public class Conversation {
     @Column(length = 255)
     private String title;
     
+    @Column(length = 500)
+    private String description;
+    
+    @Column(name = "created_by")
+    private Long createdBy;
+    
+    @Column(name = "group_photo", length = 500)
+    private String groupPhoto;
+    
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

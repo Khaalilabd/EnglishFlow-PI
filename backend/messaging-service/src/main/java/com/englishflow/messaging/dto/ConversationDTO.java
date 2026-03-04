@@ -15,6 +15,9 @@ public class ConversationDTO {
     private Long id;
     private Conversation.ConversationType type;
     private String title;
+    private String description;
+    private Long createdBy;
+    private String groupPhoto;
     private List<ParticipantDTO> participants;
     private MessageDTO lastMessage;
     private Long unreadCount;

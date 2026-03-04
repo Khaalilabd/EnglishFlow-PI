@@ -4,6 +4,9 @@ export interface Conversation {
   id: number;
   type: ConversationType;
   title?: string;
+  description?: string;
+  createdBy?: number;
+  groupPhoto?: string;
   participants: ConversationParticipant[];
   lastMessage?: Message;
   unreadCount: number;
@@ -24,10 +27,13 @@ export interface ConversationParticipant {
   userAvatar?: string;
   isOnline: boolean;
   lastReadAt?: Date;
+  role?: string; // ADMIN or MEMBER
 }
 
 export interface CreateConversationRequest {
   participantIds: number[];
   type: ConversationType;
   title?: string;
+  description?: string;
+  groupPhoto?: string;
 }

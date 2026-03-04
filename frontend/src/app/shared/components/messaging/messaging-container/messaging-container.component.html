@@ -74,6 +74,13 @@
               <path d="m21 21-4.35-4.35"/>
             </svg>
           </button>
+          <button class="icon-btn" (click)="openGroupInfo()" *ngIf="selectedConversation?.type === 'GROUP'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="16" x2="12" y2="12"/>
+              <line x1="12" y1="8" x2="12.01" y2="8"/>
+            </svg>
+          </button>
           <button class="icon-btn">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <circle cx="12" cy="12" r="1"/>
@@ -100,6 +107,11 @@
             </div>
             
             <div class="message-content-wrapper">
+              <!-- Nom de l'expéditeur pour les groupes -->
+              <div class="sender-name" *ngIf="msg.senderId !== currentUserId && selectedConversation?.type === 'GROUP'">
+                {{ msg.senderName }}
+              </div>
+              
               <div class="message-bubble" [class.emoji-bubble]="msg.messageType === 'EMOJI'">
                 <div class="message-content">
                   <!-- Text message -->
@@ -395,5 +407,70 @@
   </button>
   <div class="image-modal-content" (click)="$event.stopPropagation()">
     <img [src]="selectedImageUrl" [alt]="selectedImageName">
+  </div>
+</div>
+
+<!-- Group Info Modal -->
+<div class="modal-overlay" *ngIf="showGroupInfoModal && selectedConversation?.type === 'GROUP'" (click)="closeGroupInfo()">
+  <div class="group-info-modal" (click)="$event.stopPropagation()">
+    <div class="group-info-header">
+      <h2>Informations du groupe</h2>
+      <button (click)="closeGroupInfo()" class="close-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="group-info-content" *ngIf="selectedConversation">
+      <!-- Photo et nom du groupe -->
+      <div class="group-header-info">
+        <img [src]="getAvatar(selectedConversation)" [alt]="selectedConversation.title" class="group-photo-large">
+        <h3>{{ selectedConversation.title }}</h3>
+        <p *ngIf="selectedConversation.description" class="group-description">{{ selectedConversation.description }}</p>
+        <p class="group-participants-count">{{ selectedConversation.participants.length }} participants</p>
+      </div>
+      
+      <!-- Liste des participants -->
+      <div class="participants-section">
+        <h4>Participants</h4>
+        <div class="participants-list">
+          <div *ngFor="let participant of selectedConversation.participants" class="participant-item">
+            <img [src]="participant.userAvatar && !participant.userAvatar.includes('ui-avatars.com') ? 'http://localhost:8080' + participant.userAvatar : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(participant.userName) + '&background=667eea&color=fff&bold=true&size=128'" 
+                 [alt]="participant.userName" class="participant-avatar">
+            <div class="participant-info">
+              <span class="participant-name">{{ participant.userName }}</span>
+              <span class="participant-role" *ngIf="participant.role === 'ADMIN'">Admin</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Actions (si admin) -->
+      <div class="group-actions" *ngIf="selectedConversation.createdBy === currentUserId">
+        <button class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Ajouter un participant
+        </button>
+        <button class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+          </svg>
+          Modifier le groupe
+        </button>
+      </div>
+      
+      <!-- Quitter le groupe -->
+      <div class="group-danger-zone">
+        <button class="danger-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Quitter le groupe
+        </button>
+      </div>
+    </div>
   </div>
 </div>

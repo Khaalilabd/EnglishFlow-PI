@@ -53,4 +53,12 @@ public class ConversationParticipant {
     
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "participant_role", nullable = false, length = 20)
+    private ParticipantRole participantRole = ParticipantRole.MEMBER;
+    
+    public enum ParticipantRole {
+        ADMIN, MEMBER
+    }
 }

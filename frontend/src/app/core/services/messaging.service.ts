@@ -77,4 +77,9 @@ export class MessagingService {
   downloadFile(url: string): Observable<Blob> {
     return this.http.get(url, { responseType: 'blob' });
   }
+  
+  // Upload group photo
+  uploadGroupPhoto(formData: FormData): Observable<{groupPhoto: string}> {
+    return this.http.post<{groupPhoto: string}>(`${this.apiUrl}/upload-group-photo`, formData);
+  }
 }

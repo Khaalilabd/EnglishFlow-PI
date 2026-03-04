@@ -153,6 +153,20 @@ spring:
             - Path=/public/**
           order: 20
         
+        # Route pour les photos de groupe (plus spécifique, donc avant)
+        - id: group-photos
+          uri: lb://messaging-service
+          predicates:
+            - Path=/uploads/group-photos/**
+          order: 19
+        
+        # Route pour les fichiers uploadés (photos de profil)
+        - id: auth-uploads
+          uri: lb://auth-service
+          predicates:
+            - Path=/uploads/**
+          order: 20
+        
         # Route pour la page HTML activation-pending
         - id: activation-pending
           uri: lb://auth-service

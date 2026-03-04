@@ -12,6 +12,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -159,29 +160,102 @@ public class MessagingController {
         }
     }
     
-    @GetMapping("/files/{fileName:.+}")
-    public ResponseEntity<Resource> downloadFile(
-            @PathVariable String fileName,
+    @PostMapping("/conversations/{conversationId}/participants")
+    public ResponseEntity<ConversationDTO> addParticipants(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody AddParticipantsRequest request,
             Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/participants for user: {}", conversationId, userId);
+        
+        ConversationDTO conversation = messagingService.addParticipantsToGroup(conversationId, request, userId);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @DeleteMapping("/conversations/{conversationId}/participants/{participantId}")
+    public ResponseEntity<Void> removeParticipant(
+            @PathVariable Long conversationId,
+            @PathVariable Long participantId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("DELETE /conversations/{}/participants/{} for user: {}", conversationId, participantId, userId);
+        
+        messagingService.removeParticipantFromGroup(conversationId, participantId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/conversations/{conversationId}/leave")
+    public ResponseEntity<Void> leaveGroup(
+            @PathVariable Long conversationId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/leave for user: {}", conversationId, userId);
+        
+        messagingService.leaveGroup(conversationId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PutMapping("/conversations/{conversationId}")
+    public ResponseEntity<ConversationDTO> updateGroup(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody UpdateGroupRequest request,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("PUT /conversations/{} for user: {}", conversationId, userId);
+        
+        ConversationDTO conversation = messagingService.updateGroup(conversationId, request, userId);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @PostMapping("/conversations/{conversationId}/participants/{participantId}/promote")
+    public ResponseEntity<Void> promoteToAdmin(
+            @PathVariable Long conversationId,
+            @PathVariable Long participantId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/participants/{}/promote for user: {}", conversationId, participantId, userId);
+        
+        messagingService.promoteToAdmin(conversationId, participantId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/upload-group-photo")
+    public ResponseEntity<Map<String, String>> uploadGroupPhoto(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("Group photo upload request from user: {}, filename: {}, size: {} bytes", 
+                userId, file.getOriginalFilename(), file.getSize());
+        
         try {
-            Path filePath = fileStorageService.getFilePath(fileName);
-            Resource resource = new UrlResource(filePath.toUri());
-            
-            if (resource.exists() && resource.isReadable()) {
-                String contentType = "application/octet-stream";
-                
-                return ResponseEntity.ok()
-                        .contentType(MediaType.parseMediaType(contentType))
-                        .header(HttpHeaders.CONTENT_DISPOSITION, 
-                               "attachment; filename=\"" + resource.getFilename() + "\"")
-                        .body(resource);
-            } else {
-                log.error("File not found or not readable: {}", fileName);
-                return ResponseEntity.notFound().build();
+            // Valider le fichier
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Please select a file"));
             }
-        } catch (MalformedURLException e) {
-            log.error("Error downloading file: {}", e.getMessage(), e);
-            return ResponseEntity.badRequest().build();
+            
+            // Vérifier le type
+            if (!fileStorageService.isValidImageFile(file)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Only image files are allowed"));
+            }
+            
+            // Vérifier la taille (max 5MB)
+            long maxSize = 5 * 1024 * 1024; // 5MB
+            if (!fileStorageService.isValidFileSize(file, maxSize)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "File size must be less than 5MB"));
+            }
+            
+            // Sauvegarder le fichier
+            String photoUrl = fileStorageService.storeFile(file);
+            
+            log.info("Group photo uploaded successfully: {}", photoUrl);
+            return ResponseEntity.ok(Map.of("groupPhoto", photoUrl));
+        } catch (Exception e) {
+            log.error("Error uploading group photo: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
         }
     }
 }

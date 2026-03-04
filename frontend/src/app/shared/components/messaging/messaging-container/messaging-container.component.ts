@@ -5,7 +5,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { MessagingService } from '../../../../core/services/messaging.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { Conversation } from '../../../../core/models/conversation.model';
-import { Message, SendMessageRequest, MessageType } from '../../../../core/models/message.model';
+import { Message, SendMessageRequest, MessageType, MessageStatus } from '../../../../core/models/message.model';
 import { NewConversationModalComponent } from '../new-conversation-modal/new-conversation-modal.component';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -31,6 +31,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   isTyping: boolean = false;
   showNewConversationModal: boolean = false;
+  showGroupInfoModal: boolean = false;
   showEmojiPicker: boolean = false;
   hoveredMessageId: number | null = null;
   showReactionPicker: { [messageId: number]: boolean } = {};
@@ -134,6 +135,9 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     this.stompClient.onConnect = (frame) => {
       console.log('WebSocket Connected successfully', frame);
       this.connected = true;
+      
+      // S'abonner aux mises à jour de toutes les conversations de l'utilisateur
+      this.subscribeToAllConversations();
     };
 
     this.stompClient.onStompError = (frame) => {
@@ -176,6 +180,14 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         next: (conversations) => {
           this.conversations = conversations;
           this.filteredConversations = conversations;
+          
+          // Mettre à jour selectedConversation si elle existe
+          if (this.selectedConversationId) {
+            const updated = conversations.find(c => c.id === this.selectedConversationId);
+            if (updated) {
+              this.selectedConversation = updated;
+            }
+          }
         },
         error: (error) => console.error('Error loading conversations:', error)
       });
@@ -266,6 +278,91 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         }
       }
     );
+    
+    // Subscribe to read status updates
+    this.stompClient.subscribe(
+      `/topic/conversation/${conversationId}/read-status`,
+      (message: IMessage) => {
+        const update = JSON.parse(message.body);
+        console.log('Received read status update:', update);
+        
+        // Mettre à jour le statut des messages qui ont été lus
+        if (update.messageIds && update.messageIds.length > 0) {
+          update.messageIds.forEach((messageId: number) => {
+            const msg = this.messages.find(m => m.id === messageId);
+            if (msg && msg.senderId === this.currentUserId) {
+              // Mettre à jour le statut du message
+              msg.status = MessageStatus.READ;
+              console.log('Updated message', messageId, 'status to READ');
+            }
+          });
+          this.cdr.detectChanges();
+        }
+      }
+    );
+  }
+  
+  subscribeToAllConversations(): void {
+    if (!this.stompClient || !this.connected) {
+      return;
+    }
+    
+    // S'abonner aux notifications de nouveaux messages pour toutes les conversations de l'utilisateur
+    this.stompClient.subscribe(
+      `/user/queue/messages`,
+      (message: IMessage) => {
+        const messageData = JSON.parse(message.body);
+        console.log('Received new message notification:', messageData);
+        
+        // Mettre à jour la liste des conversations
+        this.updateConversationList(messageData);
+      }
+    );
+  }
+  
+  updateConversationList(newMessage: any): void {
+    // Trouver la conversation dans la liste
+    const convIndex = this.conversations.findIndex(c => c.id === newMessage.conversationId);
+    
+    if (convIndex !== -1) {
+      const conv = this.conversations[convIndex];
+      
+      // Mettre à jour le dernier message
+      conv.lastMessage = {
+        id: newMessage.id,
+        conversationId: newMessage.conversationId,
+        content: newMessage.content,
+        messageType: newMessage.messageType,
+        senderId: newMessage.senderId,
+        senderName: newMessage.senderName,
+        senderAvatar: newMessage.senderAvatar,
+        createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt,
+        isEdited: newMessage.isEdited || false,
+        status: newMessage.status,
+        reactions: newMessage.reactions || [],
+        readBy: newMessage.readBy || []
+      };
+      conv.lastMessageAt = newMessage.createdAt;
+      
+      // Si le message n'est pas de l'utilisateur actuel et que la conversation n'est pas ouverte
+      if (newMessage.senderId !== this.currentUserId && 
+          this.selectedConversationId !== newMessage.conversationId) {
+        conv.unreadCount = (conv.unreadCount || 0) + 1;
+      }
+      
+      // Remonter la conversation en haut de la liste
+      this.conversations.splice(convIndex, 1);
+      this.conversations.unshift(conv);
+      
+      // Mettre à jour la liste filtrée
+      this.filterConversations();
+      
+      this.cdr.detectChanges();
+    } else {
+      // Si la conversation n'existe pas dans la liste, recharger toutes les conversations
+      this.loadConversations();
+    }
   }
   
   subscribeToReactionUpdates(): void {
@@ -481,16 +578,39 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
 
   getTitle(conv: Conversation): string {
     if (conv.title) return conv.title;
+    
     const other = conv.participants.find(p => p.userId !== this.currentUserId);
+    
+    // Si on ne trouve pas l'autre participant, c'est que les données ne sont pas encore chargées
+    if (!other) {
+      return 'Chargement...';
+    }
+    
     // Utiliser userName s'il existe et n'est pas vide, sinon utiliser l'email
-    if (other?.userName && other.userName !== 'User' && other.userName.trim() !== '') {
+    if (other.userName && other.userName !== 'User' && other.userName.trim() !== '') {
       return other.userName;
     }
+    
     // Fallback sur l'email si userName n'est pas disponible
-    return other?.userEmail?.split('@')[0] || 'Conversation';
+    return other.userEmail?.split('@')[0] || 'Conversation';
   }
 
   getAvatar(conv: Conversation): string {
+    // Pour les groupes, utiliser la photo du groupe si elle existe
+    if (conv.type === 'GROUP' && conv.groupPhoto) {
+      if (conv.groupPhoto.startsWith('http')) {
+        return conv.groupPhoto;
+      }
+      // Utiliser la même route que les photos de profil: /uploads/...
+      return `http://localhost:8080${conv.groupPhoto}`;
+    }
+    
+    // Pour les groupes sans photo, utiliser une icône de groupe
+    if (conv.type === 'GROUP') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.title || 'Groupe')}&background=667eea&color=fff&bold=true&size=128`;
+    }
+    
+    // Pour les conversations directes
     const other = conv.participants.find(p => p.userId !== this.currentUserId);
     if (other?.userAvatar && !other.userAvatar.includes('ui-avatars.com')) {
       return `http://localhost:8080${other.userAvatar}`;
@@ -932,5 +1052,13 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   closeImageModal(): void {
     this.selectedImageUrl = null;
     this.selectedImageName = '';
+  }
+  
+  openGroupInfo(): void {
+    this.showGroupInfoModal = true;
+  }
+  
+  closeGroupInfo(): void {
+    this.showGroupInfoModal = false;
   }
 }
