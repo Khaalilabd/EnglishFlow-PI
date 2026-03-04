@@ -89,16 +89,6 @@ export class StudentSidebarComponent {
           path: "/user-panel/quizzes",
         },
         {
-          icon: 'fas fa-graduation-cap',
-          name: "CEFR Exams",
-          path: "/user-panel/exams",
-        },
-        {
-          icon: 'fas fa-trophy',
-          name: "My Exam Results",
-          path: "/user-panel/my-exam-results",
-        },
-        {
           icon: 'fas fa-book-open',
           name: "Ebooks",
           path: "/user-panel/ebooks",
@@ -459,6 +449,12 @@ export class StudentSidebarComponent {
     this.eventService.getEventsByCreator(userId).subscribe({
       next: (createdEvents) => {
         console.log('📚 Events created by user loaded:', createdEvents);
+
+        // Separate APPROVED and PENDING events created by user
+        const approvedCreatedEvents = createdEvents.filter(e => e.status === 'APPROVED');
+        const pendingCreatedEvents = createdEvents.filter(e => e.status === 'PENDING');
+        console.log('✅ Approved created events for sidebar:', approvedCreatedEvents);
+        console.log('⏳ Pending created events for sidebar:', pendingCreatedEvents);
         
         // Also load events the user joined
         this.eventService.getUserEvents(userId).subscribe({
@@ -469,28 +465,46 @@ export class StudentSidebarComponent {
             // Get all events to find the joined ones
             this.eventService.getAllEvents().subscribe({
               next: (allEvents) => {
-                const joinedEvents = allEvents.filter(e => e.id && joinedEventIds.includes(e.id));
-                console.log('📚 Joined events:', joinedEvents);
-                
+                // Filter only APPROVED joined events
+                const joinedEvents = allEvents.filter(e => 
+                  e.id && 
+                  joinedEventIds.includes(e.id) && 
+                  e.status === 'APPROVED'
+                );
+                console.log('✅ Approved joined events for sidebar:', joinedEvents);
+
                 // Combine created and joined events (remove duplicates)
                 const myEventsMap = new Map<number, any>();
-                
-                // Add created events
-                createdEvents.forEach(event => {
+
+                // Add approved created events
+                approvedCreatedEvents.forEach(event => {
                   if (event.id) {
                     myEventsMap.set(event.id, {
                       event: event,
-                      isCreator: true
+                      isCreator: true,
+                      isPending: false
                     });
                   }
                 });
-                
-                // Add joined events
+
+                // Add pending created events
+                pendingCreatedEvents.forEach(event => {
+                  if (event.id) {
+                    myEventsMap.set(event.id, {
+                      event: event,
+                      isCreator: true,
+                      isPending: true
+                    });
+                  }
+                });
+
+                // Add approved joined events
                 joinedEvents.forEach(event => {
                   if (event.id && !myEventsMap.has(event.id)) {
                     myEventsMap.set(event.id, {
                       event: event,
-                      isCreator: false
+                      isCreator: false,
+                      isPending: false
                     });
                   }
                 });
@@ -516,27 +530,50 @@ export class StudentSidebarComponent {
                 if (communitySection) {
                   const eventsItem = communitySection.items.find(item => item.name === 'Events');
                   if (eventsItem) {
-                    const newSubItems = myEvents.map(({ event, isCreator }) => {
+                    const newSubItems = myEvents.map(({ event, isCreator, isPending }) => {
                       // Check if event is coming soon (more than 3 days away)
                       const now = new Date();
                       const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-                      const eventDate = new Date(event.eventDate);
-                      const isComingSoon = eventDate > threeDaysFromNow;
-                      
+                      const eventStartDate = new Date(event.startDate || event.eventDate);
+                      const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
+                      const isComingSoon = eventStartDate > threeDaysFromNow;
+                      const isEnded = eventEndDate < now;
+
                       let displayName = event.title;
-                      if (isCreator) {
+
+                      // Add status icon
+                      if (isPending) {
+                        displayName = `⏳ ${displayName}`;
+                      } else if (isEnded) {
+                        displayName = `✅ ${displayName}`;
+                      } else if (isCreator) {
                         displayName = `👑 ${displayName}`;
                       }
-                      
+
+                      // Determine badge
+                      let badge = undefined;
+                      let badgeColor = 'bg-[#F6BD60]';
+
+                      if (isPending) {
+                        badge = 'Pending';
+                        badgeColor = 'bg-yellow-500';
+                      } else if (isEnded) {
+                        badge = 'Ended';
+                        badgeColor = 'bg-gray-500';
+                      } else if (isComingSoon) {
+                        badge = 'Soon';
+                        badgeColor = 'bg-[#F6BD60]';
+                      }
+
                       return {
                         name: displayName,
                         path: `/user-panel/events/${event.id}`,
-                        badge: isComingSoon ? 'Soon' : undefined,
-                        badgeColor: 'bg-[#F6BD60]'
+                        badge: badge,
+                        badgeColor: badgeColor
                       };
                     });
                     eventsItem.subItems = newSubItems;
-                    console.log('✅ Updated events subItems:', newSubItems);
+                    console.log('✅ Updated events subItems (including PENDING):', newSubItems);
                   }
                 }
                 this.cdr.markForCheck();

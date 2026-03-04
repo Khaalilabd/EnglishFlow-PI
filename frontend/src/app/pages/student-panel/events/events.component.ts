@@ -22,15 +22,17 @@ import { LocationMapComponent } from '../../../shared/components/location-map/lo
 export class EventsComponent implements OnInit, OnDestroy {
   events: Event[] = [];
   upcomingEvents: Event[] = [];
+  pastEvents: Event[] = []; // New: Past events
   myEvents: Event[] = [];
   loading = false;
   currentUserId: number | null = null;
-  selectedTab: 'all' | 'upcoming' = 'upcoming';
+  selectedTab: 'all' | 'upcoming' | 'past' = 'upcoming'; // Updated to include 'past'
   isAdmin = false;
   canCreateEvent = false; // Nouvelle propriété pour vérifier les permissions
   searchQuery: string = ''; // Dynamic search
   filteredEvents: Event[] = [];
   filteredUpcomingEvents: Event[] = [];
+  filteredPastEvents: Event[] = []; // New: Filtered past events
 
   // Modal states
   showModal = false;
@@ -284,6 +286,14 @@ export class EventsComponent implements OnInit, OnDestroy {
     return now >= eventEndDate;
   }
 
+  // Check if a specific event is ended (for list view)
+  isEventEndedById(event: Event): boolean {
+    if (!event) return false;
+    const now = new Date();
+    const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+    return eventEndDate < now;
+  }
+
   getEventStatus(): 'upcoming' | 'ongoing' | 'ended' {
     if (!this.selectedEvent) return 'upcoming';
     
@@ -320,8 +330,12 @@ export class EventsComponent implements OnInit, OnDestroy {
         console.log('✅ Filtered APPROVED events:', filteredEvents.length, filteredEvents);
         
         this.events = this.filterAvailableEvents(filteredEvents);
+        this.pastEvents = this.filterPastEvents(filteredEvents); // New: Filter past events
         console.log('📅 Available events (within 3 days):', this.events.length, this.events);
+        console.log('🕐 Past events:', this.pastEvents.length, this.pastEvents);
         this.filteredEvents = [...this.events]; // Initialize filtered events
+        this.filteredPastEvents = [...this.pastEvents]; // Initialize filtered past events
+        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
         this.loading = false;
       },
       error: (error) => {
@@ -344,6 +358,7 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.upcomingEvents = this.filterUpcomingEvents(filteredEvents);
         console.log('📅 Upcoming events (more than 3 days):', this.upcomingEvents.length, this.upcomingEvents);
         this.filteredUpcomingEvents = [...this.upcomingEvents]; // Initialize filtered upcoming events
+        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
       },
       error: (error) => {
         console.error('Error loading upcoming events:', error);
@@ -352,7 +367,7 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     // Load user's events (created + joined)
     if (this.currentUserId) {
-      // Get events created by user (all statuses for creator)
+      // Get events created by user (ALL statuses for creator - including PENDING)
       this.eventService.getEventsByCreator(this.currentUserId).subscribe({
         next: (createdEvents) => {
           // Get events user joined
@@ -367,7 +382,7 @@ export class EventsComponent implements OnInit, OnDestroy {
                     joinedEventIds.includes(e.id) && 
                     e.status === 'APPROVED'
                   );
-                  // Combine created and joined events (remove duplicates)
+                  // Combine created events (ALL statuses) and joined events (remove duplicates)
                   const myEventsMap = new Map<number, Event>();
                   [...createdEvents, ...joinedEvents].forEach(event => {
                     if (event.id) {
@@ -375,6 +390,8 @@ export class EventsComponent implements OnInit, OnDestroy {
                     }
                   });
                   this.myEvents = Array.from(myEventsMap.values());
+                  console.log('📋 My events (including PENDING):', this.myEvents);
+                  this.addPendingEventsToFilteredLists(); // Add pending events when myEvents is loaded
                 },
                 error: (error) => console.error('Error loading all events for my events:', error)
               });
@@ -387,25 +404,46 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Filter events that are within 3 days or already started
+  // Filter events that are within 3 days or already started (but not ended)
   filterAvailableEvents(events: Event[]): Event[] {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    
+
     return events.filter(event => {
       const eventStartDate = new Date(event.startDate);
-      return eventStartDate <= threeDaysFromNow;
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      
+      // Event must start within 3 days AND not be ended yet
+      return eventStartDate <= threeDaysFromNow && eventEndDate >= now;
     });
   }
 
-  // Filter events that are more than 3 days away (coming soon)
+  // Filter events that are more than 3 days away (coming soon) and not ended
   filterUpcomingEvents(events: Event[]): Event[] {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    
+
     return events.filter(event => {
       const eventStartDate = new Date(event.startDate);
-      return eventStartDate > threeDaysFromNow;
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      
+      // Event must start more than 3 days away AND not be ended yet
+      return eventStartDate > threeDaysFromNow && eventEndDate >= now;
+    });
+  }
+
+  // Filter events that have ended (past events)
+  filterPastEvents(events: Event[]): Event[] {
+    const now = new Date();
+    
+    return events.filter(event => {
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      return eventEndDate < now;
+    }).sort((a, b) => {
+      // Sort by end date descending (most recent first)
+      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.startDate);
+      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.startDate);
+      return dateB.getTime() - dateA.getTime();
     });
   }
 
@@ -419,15 +457,7 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   // Check if user is the creator of the event
   isEventCreator(event: Event): boolean {
-    const result = event.creatorId === this.currentUserId;
-    console.log('isEventCreator check:', {
-      eventId: event.id,
-      eventTitle: event.title,
-      eventCreatorId: event.creatorId,
-      currentUserId: this.currentUserId,
-      isCreator: result
-    });
-    return result;
+    return event.creatorId === this.currentUserId;
   }
 
   openCreateModal() {
@@ -512,11 +542,28 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     if (this.isEditMode && this.eventForm.id) {
       const eventId = this.eventForm.id;
+      
+      // Check if event is APPROVED - if so, set status back to PENDING for re-approval
+      if (this.selectedEvent?.status === 'APPROVED') {
+        this.eventForm.status = 'PENDING';
+        this.notificationService.info(
+          'Modification Request', 
+          'Your changes will be submitted for approval by the Academic Manager'
+        );
+      }
+      
       this.eventService.updateEvent(eventId, this.eventForm).subscribe({
         next: (updatedEvent) => {
-          this.notificationService.success('Event Updated', 'Event has been updated successfully!');
+          if (this.selectedEvent?.status === 'APPROVED') {
+            this.notificationService.success(
+              'Request Submitted', 
+              'Your modification request has been sent for approval. The event will be updated once approved.'
+            );
+          } else {
+            this.notificationService.success('Event Updated', 'Event has been updated successfully!');
+          }
           this.closeModal();
-          
+
           // If we're in details view, update the selected event
           if (this.showDetailsView && this.selectedEvent?.id === eventId) {
             this.selectedEvent = { ...updatedEvent };
@@ -531,9 +578,13 @@ export class EventsComponent implements OnInit, OnDestroy {
         }
       });
     } else {
+      // New event creation - status will be PENDING by default
       this.eventService.createEvent(this.eventForm).subscribe({
         next: (createdEvent) => {
-          this.notificationService.success('Event Created', 'Event has been created successfully!');
+          this.notificationService.success(
+            'Event Created', 
+            'Your event has been submitted for approval by the Academic Manager!'
+          );
           this.closeModal();
           this.loadEvents();
         },
@@ -546,14 +597,26 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   deleteEvent(eventId: number) {
-    if (confirm('Are you sure you want to delete this event?')) {
-      this.eventService.deleteEvent(eventId).subscribe({
+    if (!this.selectedEvent) return;
+    
+    // All deletion requests require Academic Manager approval
+    if (confirm('Your deletion request will be sent to the Academic Manager for approval. Do you want to proceed?')) {
+      // Set status to REJECTED to mark for deletion approval
+      const deleteRequest = { ...this.selectedEvent, status: 'REJECTED' as const };
+      
+      this.eventService.updateEvent(eventId, deleteRequest).subscribe({
         next: () => {
-          this.notificationService.success('Event Deleted', 'Event has been deleted successfully!');
+          this.notificationService.success(
+            'Deletion Request Submitted', 
+            'Your deletion request has been sent to the Academic Manager for approval.'
+          );
           this.loadEvents();
+          if (this.showDetailsView) {
+            this.closeDetailsView();
+          }
         },
         error: (error) => {
-          this.notificationService.error('Delete Failed', 'Failed to delete event');
+          this.notificationService.error('Request Failed', 'Failed to submit deletion request');
         }
       });
     }
@@ -648,7 +711,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     return this.eventTypeColors[type] || 'bg-gray-100';
   }
 
-  selectTab(tab: 'all' | 'upcoming') {
+  selectTab(tab: 'all' | 'upcoming' | 'past') {
     this.selectedTab = tab;
     this.applyEventFilter();
   }
@@ -663,25 +726,57 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.filteredUpcomingEvents = this.upcomingEvents.filter(event =>
         event.clubName?.toLowerCase().includes(query)
       );
+      this.filteredPastEvents = this.pastEvents.filter(event =>
+        event.clubName?.toLowerCase().includes(query)
+      );
     } else {
       this.filteredEvents = [...this.events];
       this.filteredUpcomingEvents = [...this.upcomingEvents];
+      this.filteredPastEvents = [...this.pastEvents];
+    }
+    
+    // Add PENDING events to filtered lists
+    this.addPendingEventsToFilteredLists();
+  }
+
+  private addPendingEventsToFilteredLists() {
+    if (this.currentUserId && this.myEvents.length > 0) {
+      const pendingEvents = this.myEvents.filter(event => 
+        event.status === 'PENDING' && event.creatorId === this.currentUserId
+      );
+      
+      // Add to filteredEvents (all tab)
+      pendingEvents.forEach(pendingEvent => {
+        if (!this.filteredEvents.some(e => e.id === pendingEvent.id)) {
+          this.filteredEvents.push(pendingEvent);
+        }
+      });
+      
+      // Add to filteredUpcomingEvents (upcoming tab)
+      pendingEvents.forEach(pendingEvent => {
+        if (!this.filteredUpcomingEvents.some(e => e.id === pendingEvent.id)) {
+          this.filteredUpcomingEvents.push(pendingEvent);
+        }
+      });
     }
   }
 
-  onSearchChange() {
-    this.applyEventFilter();
-  }
-
   getDisplayEvents(): Event[] {
+    // Pure getter - no side effects, no array modifications
     switch (this.selectedTab) {
       case 'all':
         return this.filteredEvents;
       case 'upcoming':
         return this.filteredUpcomingEvents;
+      case 'past':
+        return this.filteredPastEvents;
       default:
         return this.filteredEvents;
     }
+  }
+
+  onSearchChange() {
+    this.applyEventFilter();
   }
 
   // Image handling methods

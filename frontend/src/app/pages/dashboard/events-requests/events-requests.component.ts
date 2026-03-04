@@ -102,4 +102,21 @@ export class EventsRequestsComponent implements OnInit {
   getEventIcon(type: string): string {
     return this.eventTypeIcons[type] || '📅';
   }
+
+  /**
+   * Check if an event is a modification request
+   * An event is considered a modification if it was updated after creation
+   */
+  isModificationRequest(event: Event): boolean {
+    if (!event.createdAt || !event.updatedAt) {
+      return false;
+    }
+    
+    const createdTime = new Date(event.createdAt).getTime();
+    const updatedTime = new Date(event.updatedAt).getTime();
+    
+    // If updated more than 5 seconds after creation, it's a modification
+    const timeDifference = updatedTime - createdTime;
+    return timeDifference > 5000; // 5 seconds threshold
+  }
 }

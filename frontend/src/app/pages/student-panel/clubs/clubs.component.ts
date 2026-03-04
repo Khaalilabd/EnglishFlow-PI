@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
@@ -79,6 +79,8 @@ export class ClubsComponent implements OnInit, OnDestroy {
   
   // Category dropdown
   showCategoryDropdown = false;
+  dropdownPosition = { top: 0, right: 0 };
+  @ViewChild('filterButton') filterButton!: ElementRef;
   
   // Members management modal
   showMembersModal = false;
@@ -419,6 +421,17 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   toggleCategoryDropdown() {
     this.showCategoryDropdown = !this.showCategoryDropdown;
+    
+    if (this.showCategoryDropdown && this.filterButton) {
+      // Calculate dropdown position after a short delay to ensure DOM is updated
+      setTimeout(() => {
+        const rect = this.filterButton.nativeElement.getBoundingClientRect();
+        this.dropdownPosition = {
+          top: rect.bottom + 12, // 12px gap below button
+          right: window.innerWidth - rect.right
+        };
+      }, 0);
+    }
   }
 
   getSelectedCategoryDisplay(): string {
