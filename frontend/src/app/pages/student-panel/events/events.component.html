@@ -58,7 +58,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Title Card -->
         <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-[#2D5757]">
-          <p class="text-xs font-bold text-gray-500 uppercase mb-2">Titre</p>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2">Title</p>
           <h1 class="text-2xl font-black text-[#2D5757]">{{ selectedEvent!.title }}</h1>
           <div class="flex items-center gap-2 mt-3">
             <span class="px-3 py-1 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-full text-xs font-bold">
@@ -75,7 +75,7 @@
 
         <!-- Date Card -->
         <div class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-[#F6BD60]">
-          <p class="text-xs font-bold text-gray-500 uppercase mb-2">Date & Durée</p>
+          <p class="text-xs font-bold text-gray-500 uppercase mb-2">Date & Duration</p>
           <div class="space-y-2">
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] flex items-center justify-center">
@@ -84,7 +84,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500">Début</p>
+                <p class="text-xs text-gray-500">Start</p>
                 <p class="text-sm font-bold text-[#2D5757]">{{ formatDate(selectedEvent!.startDate) }}</p>
               </div>
             </div>
@@ -95,7 +95,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs text-gray-500">Fin</p>
+                <p class="text-xs text-gray-500">End</p>
                 <p class="text-sm font-bold text-[#2D5757]">{{ formatDate(selectedEvent!.endDate) }}</p>
               </div>
             </div>
@@ -104,7 +104,7 @@
 
         <!-- Countdown Card -->
         <div *ngIf="!isEventStarted()" class="bg-gradient-to-br from-[#2D5757] to-[#3D3D60] rounded-xl p-6 shadow-lg text-white">
-          <p class="text-xs font-bold uppercase mb-3">Cooldown</p>
+          <p class="text-xs font-bold uppercase mb-3">Countdown</p>
           <div class="grid grid-cols-4 gap-2">
             <div class="text-center">
               <div class="text-2xl font-black">{{ countdown.days }}</div>
@@ -126,22 +126,29 @@
         </div>
 
         <!-- Event Status Display -->
+        <!-- Pending Event (Awaiting Approval) -->
+        <div *ngIf="selectedEvent!.status === 'PENDING'" class="bg-gradient-to-br from-yellow-500 to-amber-600 rounded-xl p-6 shadow-lg text-white text-center animate-pulse">
+          <div class="text-4xl mb-2">⏳</div>
+          <p class="text-lg font-black">Event Pending</p>
+          <p class="text-sm mt-1 opacity-90">Awaiting Academic Manager approval</p>
+        </div>
+
         <!-- Upcoming Event -->
-        <div *ngIf="getEventStatus() === 'upcoming'" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-lg text-white text-center">
+        <div *ngIf="selectedEvent!.status !== 'PENDING' && getEventStatus() === 'upcoming'" class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 shadow-lg text-white text-center">
           <div class="text-4xl mb-2">⏰</div>
           <p class="text-lg font-black">Upcoming Event</p>
           <p class="text-sm mt-1 opacity-90">Event hasn't started yet</p>
         </div>
 
         <!-- Event Started (Ongoing) -->
-        <div *ngIf="getEventStatus() === 'ongoing'" class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-lg text-white text-center">
+        <div *ngIf="selectedEvent!.status !== 'PENDING' && getEventStatus() === 'ongoing'" class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 shadow-lg text-white text-center">
           <div class="text-4xl mb-2">🎉</div>
           <p class="text-lg font-black">Event Started!</p>
           <p class="text-sm mt-1 opacity-90">Event is currently ongoing</p>
         </div>
 
         <!-- Event Ended -->
-        <div *ngIf="getEventStatus() === 'ended'" class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl p-6 shadow-lg text-white text-center">
+        <div *ngIf="selectedEvent!.status !== 'PENDING' && getEventStatus() === 'ended'" class="bg-gradient-to-br from-gray-500 to-gray-600 rounded-xl p-6 shadow-lg text-white text-center">
           <div class="text-4xl mb-2">✅</div>
           <p class="text-lg font-black">Event Ended</p>
           <p class="text-sm mt-1 opacity-90">This event has concluded</p>
@@ -158,8 +165,8 @@
             [class.cursor-pointer]="isEventCreator(selectedEvent)"
             (click)="isEventCreator(selectedEvent) ? openParticipantsModal(selectedEvent.id!) : null">
             <p class="text-xs font-bold text-gray-500 uppercase mb-3">
-              Participant / Max Participant
-              <span *ngIf="isEventCreator(selectedEvent)" class="text-[#F6BD60] ml-1">(Cliquer pour voir)</span>
+              Participants / Max Participants
+              <span *ngIf="isEventCreator(selectedEvent)" class="text-[#F6BD60] ml-1">(Click to view)</span>
             </p>
             <div class="flex items-center gap-4">
               <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-[#C84630] to-[#a83820] flex items-center justify-center">
@@ -183,9 +190,9 @@
 
           <!-- Description Card -->
           <div class="bg-white rounded-xl p-6 shadow-lg">
-            <p class="text-xs font-bold text-gray-500 uppercase mb-3">À propos de l'event</p>
+            <p class="text-xs font-bold text-gray-500 uppercase mb-3">About the Event</p>
             <p class="text-gray-700 leading-relaxed">
-              {{ selectedEvent!.description || 'Aucune description disponible.' }}
+              {{ selectedEvent!.description || 'No description available.' }}
             </p>
           </div>
 
@@ -193,8 +200,8 @@
           <div *ngIf="showFeedbackSection()" class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-[#F6BD60]">
             <!-- Feedback Form (for participants after event) -->
             <div *ngIf="showFeedbackForm()">
-              <p class="text-xs font-bold text-gray-500 uppercase mb-3">📝 Donnez votre avis</p>
-              <p class="text-sm text-gray-600 mb-4">Comment évaluez-vous cet événement?</p>
+              <p class="text-xs font-bold text-gray-500 uppercase mb-3">📝 Give Your Feedback</p>
+              <p class="text-sm text-gray-600 mb-4">How would you rate this event?</p>
               
               <!-- Star Rating -->
               <div class="feedback-form-container">
@@ -213,34 +220,34 @@
                 <div *ngIf="feedbackForm.rating > 0" class="mt-3 text-center animate-fade-in">
                   <p *ngIf="feedbackForm.rating >= 4.5" class="text-sm font-semibold text-[#F6BD60] flex items-center justify-center gap-2">
                     <span class="text-xl">🎉</span>
-                    <span>Excellent! Merci pour votre enthousiasme!</span>
+                    <span>Excellent! Thank you for your enthusiasm!</span>
                     <span class="text-xl">🎉</span>
                   </p>
                   <p *ngIf="feedbackForm.rating >= 3.5 && feedbackForm.rating < 4.5" class="text-sm font-semibold text-green-600 flex items-center justify-center gap-2">
                     <span class="text-xl">👍</span>
-                    <span>Très bien! Merci pour votre avis positif!</span>
+                    <span>Very good! Thank you for your positive feedback!</span>
                   </p>
                   <p *ngIf="feedbackForm.rating >= 2.5 && feedbackForm.rating < 3.5" class="text-sm font-semibold text-blue-600 flex items-center justify-center gap-2">
                     <span class="text-xl">👌</span>
-                    <span>Bien! Vos commentaires nous aideront à améliorer.</span>
+                    <span>Good! Your comments will help us improve.</span>
                   </p>
                   <p *ngIf="feedbackForm.rating < 2.5" class="text-sm font-semibold text-orange-600 flex items-center justify-center gap-2">
                     <span class="text-xl">💭</span>
-                    <span>Merci pour votre retour. Dites-nous comment améliorer!</span>
+                    <span>Thank you for your feedback. Tell us how to improve!</span>
                   </p>
                 </div>
               </div>
 
               <!-- Comment -->
               <div class="mb-4">
-                <label class="block text-sm font-semibold text-gray-700 mb-2">💬 Votre commentaire (optionnel)</label>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">💬 Your Comment (optional)</label>
                 <textarea 
                   [(ngModel)]="feedbackForm.comment"
                   rows="3"
                   maxlength="500"
                   class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F6BD60] focus:border-[#F6BD60] transition-all resize-none"
-                  placeholder="Partagez votre expérience..."></textarea>
-                <p class="text-xs text-gray-500 mt-1">{{ feedbackForm.comment?.length || 0 }}/500 caractères</p>
+                  placeholder="Share your experience..."></textarea>
+                <p class="text-xs text-gray-500 mt-1">{{ feedbackForm.comment?.length || 0 }}/500 characters</p>
               </div>
 
               <!-- Anonymous Option -->
@@ -253,9 +260,9 @@
                 <label for="anonymousCheckbox" class="flex-1 cursor-pointer">
                   <div class="flex items-center gap-2">
                     <span class="text-lg">🕶️</span>
-                    <span class="text-sm font-semibold text-gray-700">Commentaire anonyme</span>
+                    <span class="text-sm font-semibold text-gray-700">Anonymous Comment</span>
                   </div>
-                  <p class="text-xs text-gray-500 mt-1">Votre nom ne sera pas affiché avec votre commentaire (la note reste visible)</p>
+                  <p class="text-xs text-gray-500 mt-1">Your name will not be displayed with your comment (rating remains visible)</p>
                 </label>
               </div>
 
@@ -264,23 +271,23 @@
                 (click)="submitFeedback()"
                 [disabled]="feedbackForm.rating === 0 || submittingFeedback"
                 class="w-full px-4 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-                <span *ngIf="!submittingFeedback">Soumettre mon avis</span>
+                <span *ngIf="!submittingFeedback">Submit My Feedback</span>
                 <span *ngIf="submittingFeedback" class="flex items-center gap-2">
                   <span class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                  <span>Envoi...</span>
+                  <span>Sending...</span>
                 </span>
               </button>
             </div>
 
             <!-- Feedback Stats (for everyone when feedbacks exist) -->
             <div *ngIf="showFeedbackStats() && feedbackStats">
-              <p class="text-xs font-bold text-gray-500 uppercase mb-4">📊 Avis des Participants</p>
+              <p class="text-xs font-bold text-gray-500 uppercase mb-4">📊 Participants' Feedback</p>
               
               <!-- No feedbacks yet (for creator only) -->
               <div *ngIf="feedbackStats.totalFeedbacks === 0 && isEventCreator(selectedEvent!)" class="text-center py-8">
                 <div class="text-6xl mb-4">📊</div>
-                <h3 class="text-lg font-bold text-gray-800 mb-2">Aucun avis pour le moment</h3>
-                <p class="text-sm text-gray-600">Les participants pourront donner leur avis après la fin de l'événement.</p>
+                <h3 class="text-lg font-bold text-gray-800 mb-2">No feedback yet</h3>
+                <p class="text-sm text-gray-600">Participants will be able to give their feedback after the event ends.</p>
               </div>
               
               <!-- Stats display (when there are feedbacks) -->
@@ -300,11 +307,11 @@
                   <span class="text-4xl animate-pulse">😊</span>
                   <div class="text-center">
                     <span class="text-3xl font-black text-[#2D5757]">{{ feedbackStats.satisfactionRate.toFixed(0) }}%</span>
-                    <p class="text-sm text-gray-600 font-semibold">de satisfaction</p>
+                    <p class="text-sm text-gray-600 font-semibold">satisfaction</p>
                   </div>
                   <div class="text-center">
                     <span class="text-2xl font-black text-[#2D5757]">{{ feedbackStats.totalFeedbacks }}</span>
-                    <p class="text-xs text-gray-600 font-semibold">avis</p>
+                    <p class="text-xs text-gray-600 font-semibold">reviews</p>
                   </div>
                 </div>
 
@@ -336,7 +343,7 @@
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
                   </svg>
-                  <span>Voir les commentaires ({{ feedbackStats.totalFeedbacks }})</span>
+                  <span>View Comments ({{ feedbackStats.totalFeedbacks }})</span>
                 </button>
               </div>
             </div>
@@ -351,8 +358,8 @@
                   </svg>
                 </div>
                 <div>
-                  <h3 class="text-lg font-black text-gray-800">Votre Avis</h3>
-                  <p class="text-xs text-gray-500">Publié le {{ formatDate(userFeedback.createdAt!) }}</p>
+                  <h3 class="text-lg font-black text-gray-800">Your Feedback</h3>
+                  <p class="text-xs text-gray-500">Published on {{ formatDate(userFeedback.createdAt!) }}</p>
                 </div>
               </div>
               
@@ -451,7 +458,7 @@
         <!-- Right Column: Location -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow-lg flex flex-col overflow-hidden" style="max-height: 650px;">
-            <p class="text-xs font-bold text-gray-500 uppercase px-6 pt-6 pb-4">Emplacement</p>
+            <p class="text-xs font-bold text-gray-500 uppercase px-6 pt-6 pb-4">Location</p>
             
             <!-- Map Component -->
             <div class="relative" style="height: 400px;">
@@ -471,24 +478,24 @@
                 (click)="joinEvent(selectedEvent!.id!)"
                 [disabled]="isEventFull(selectedEvent!)"
                 class="w-full px-4 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-lg transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                {{ isEventFull(selectedEvent!) ? 'Complet' : 'Rejoindre' }}
+                {{ isEventFull(selectedEvent!) ? 'Full' : 'Join' }}
               </button>
               
               <button 
                 *ngIf="isUserRegistered(selectedEvent!.id!) && !isEventCreator(selectedEvent!)"
                 (click)="leaveEvent(selectedEvent!.id!)"
                 class="w-full px-4 py-3 bg-gradient-to-r from-[#C84630] to-[#a83820] text-white rounded-xl hover:shadow-lg transition-all font-semibold">
-                Quitter
+                Leave
               </button>
 
               <div *ngIf="isUserRegistered(selectedEvent!.id!) && !isEventCreator(selectedEvent!)" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-green-50 text-green-600 rounded-xl font-semibold border-2 border-green-200">
                 <span>✓</span>
-                <span>Inscrit</span>
+                <span>Registered</span>
               </div>
 
               <div *ngIf="isEventCreator(selectedEvent!)" class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-amber-50 text-amber-700 rounded-xl font-semibold border-2 border-amber-200">
                 <span>👑</span>
-                <span>Votre Event</span>
+                <span>Your Event</span>
               </div>
             </div>
           </div>
@@ -556,6 +563,19 @@
           <span>All Events</span>
         </span>
       </button>
+      <button 
+        (click)="selectTab('past')"
+        [class.bg-gradient-to-r]="selectedTab === 'past'"
+        [class.from-[#2D5757]]="selectedTab === 'past'"
+        [class.to-[#3D3D60]]="selectedTab === 'past'"
+        [class.text-white]="selectedTab === 'past'"
+        [class.shadow-md]="selectedTab === 'past'"
+        class="px-5 py-2 font-semibold rounded-lg transition-all duration-300 hover:bg-gray-50 text-sm">
+        <span class="flex items-center gap-2">
+          <span>🕐</span>
+          <span>Past Events</span>
+        </span>
+      </button>
     </div>
 
     <!-- Search Input -->
@@ -596,8 +616,22 @@
     <!-- Event Card -->
     <div 
       *ngFor="let event of getDisplayEvents(); let i = index"
-      class="group bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-[#F6BD60]"
+      class="group bg-white rounded-xl shadow-md transition-all duration-300 overflow-hidden border"
+      [class.hover:shadow-2xl]="event.status !== 'PENDING'"
+      [class.hover:border-[#F6BD60]]="event.status !== 'PENDING'"
+      [class.border-gray-100]="event.status !== 'PENDING'"
+      [class.border-yellow-400]="event.status === 'PENDING'"
+      [class.opacity-75]="event.status === 'PENDING'"
+      [class.cursor-not-allowed]="event.status === 'PENDING'"
       [style.animation-delay]="i * 100 + 'ms'">
+      
+      <!-- PENDING Status Badge Overlay -->
+      <div *ngIf="event.status === 'PENDING'" class="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-pulse">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>PENDING</span>
+      </div>
       
       <!-- Image -->
       <div class="relative h-56 bg-gradient-to-br from-[#2D5757] to-[#3D3D60] overflow-hidden">
@@ -605,7 +639,8 @@
           *ngIf="event.image" 
           [src]="event.image" 
           [alt]="event.title" 
-          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+          class="w-full h-full object-cover transition-transform duration-500"
+          [class.group-hover:scale-110]="event.status !== 'PENDING'">
         
         <div 
           *ngIf="!event.image" 
@@ -615,6 +650,9 @@
         
         <!-- Overlay -->
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+        
+        <!-- Pending Overlay -->
+        <div *ngIf="event.status === 'PENDING'" class="absolute inset-0 bg-yellow-500/20 backdrop-blur-[1px]"></div>
         
         <!-- Nom du Club -->
         <div class="absolute bottom-4 left-4 right-4">
@@ -629,15 +667,30 @@
 
       <!-- Nom de l'Event -->
       <div class="p-4">
-        <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-3 min-h-[3rem] group-hover:text-[#2D5757] transition-colors">
+        <h3 class="text-base font-bold text-gray-900 line-clamp-2 mb-3 min-h-[3rem] transition-colors"
+            [class.group-hover:text-[#2D5757]]="event.status !== 'PENDING'"
+            [class.text-gray-600]="event.status === 'PENDING'">
           {{ event.title }}
         </h3>
 
+        <!-- PENDING Status Message -->
+        <div *ngIf="event.status === 'PENDING'" class="mb-3 p-3 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+          <div class="flex items-start gap-2">
+            <svg class="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <div>
+              <p class="text-xs font-bold text-yellow-800">En attente d'approbation</p>
+              <p class="text-xs text-yellow-700 mt-1">Cet événement sera visible après validation par le manager</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Action Buttons -->
         <div class="space-y-2">
-          <!-- Join Button (if not registered and not creator) -->
+          <!-- Join Button (if not registered and not creator and NOT PENDING and NOT ENDED) -->
           <button 
-            *ngIf="!isUserRegistered(event.id!) && !isEventCreator(event) && !isComingSoon(event)"
+            *ngIf="!isUserRegistered(event.id!) && !isEventCreator(event) && !isComingSoon(event) && event.status !== 'PENDING' && !isEventEndedById(event)"
             (click)="joinEvent(event.id!); $event.stopPropagation()"
             [disabled]="isEventFull(event)"
             class="w-full px-4 py-2.5 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed">
@@ -645,25 +698,55 @@
             <span *ngIf="isEventFull(event)">🚫 Event Full</span>
           </button>
 
+          <!-- Event Ended Badge (for past events) -->
+          <div 
+            *ngIf="isEventEndedById(event) && !isEventCreator(event)"
+            class="w-full px-4 py-2.5 bg-gray-200 text-gray-600 rounded-lg text-center font-semibold text-sm border-2 border-gray-300 cursor-not-allowed">
+            ✅ Event Ended
+          </div>
+
           <!-- Already Registered Badge -->
           <div 
-            *ngIf="isUserRegistered(event.id!) && !isEventCreator(event)"
+            *ngIf="isUserRegistered(event.id!) && !isEventCreator(event) && event.status !== 'PENDING'"
             class="w-full px-4 py-2.5 bg-green-100 text-green-700 rounded-lg text-center font-semibold text-sm border-2 border-green-300">
             ✅ Registered
           </div>
 
           <!-- Creator Badge -->
           <div 
-            *ngIf="isEventCreator(event)"
+            *ngIf="isEventCreator(event) && event.status !== 'PENDING' && !isEventEndedById(event)"
             class="w-full px-4 py-2.5 bg-amber-100 text-amber-700 rounded-lg text-center font-semibold text-sm border-2 border-amber-300">
             👑 Your Event
           </div>
 
-          <!-- View Details Button -->
+          <!-- Creator Badge for Ended Events -->
+          <div 
+            *ngIf="isEventCreator(event) && isEventEndedById(event)"
+            class="w-full px-4 py-2.5 bg-gray-200 text-gray-600 rounded-lg text-center font-semibold text-sm border-2 border-gray-300">
+            👑 Your Event (Ended)
+          </div>
+
+          <!-- PENDING Creator Badge -->
+          <div 
+            *ngIf="isEventCreator(event) && event.status === 'PENDING'"
+            class="w-full px-4 py-2.5 bg-yellow-100 text-yellow-800 rounded-lg text-center font-semibold text-sm border-2 border-yellow-400">
+            ⏳ Your Event (Pending)
+          </div>
+
+          <!-- View Details Button (disabled for PENDING) -->
           <button 
+            *ngIf="event.status !== 'PENDING'"
             (click)="viewEventDetails(event); $event.stopPropagation()"
             class="w-full px-4 py-2.5 bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-gray-900 rounded-lg hover:shadow-lg transition-all font-semibold text-sm">
             View Details
+          </button>
+
+          <!-- Disabled View Details for PENDING -->
+          <button 
+            *ngIf="event.status === 'PENDING'"
+            disabled
+            class="w-full px-4 py-2.5 bg-gray-300 text-gray-500 rounded-lg font-semibold text-sm cursor-not-allowed opacity-60">
+            🔒 Details Unavailable
           </button>
         </div>
       </div>

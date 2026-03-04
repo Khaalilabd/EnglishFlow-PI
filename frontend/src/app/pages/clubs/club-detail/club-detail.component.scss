@@ -1,1 +1,184 @@
-// Club detail styles
+// Club detail styles - Enhanced card borders
+
+// Main content cards with elegant borders
+.bg-white.dark\:bg-gray-800 {
+  border-width: 1px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  }
+}
+
+// Stats cards with gradient borders and hover effects
+.bg-blue-50.dark\:bg-blue-900\/20,
+.bg-green-50.dark\:bg-green-900\/20 {
+  border: 1px solid;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.bg-blue-50.dark\:bg-blue-900\/20 {
+  border-color: rgba(59, 130, 246, 0.2);
+  
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+  }
+}
+
+.bg-green-50.dark\:bg-green-900\/20 {
+  border-color: rgba(34, 197, 94, 0.2);
+  
+  &:hover {
+    border-color: rgba(34, 197, 94, 0.4);
+  }
+}
+
+// Pending requests card with warning border
+.bg-yellow-50.dark\:bg-yellow-900\/20 {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 6px 20px rgba(234, 179, 8, 0.15);
+  }
+}
+
+// Member cards with subtle borders and smooth transitions
+.bg-gray-50.dark\:bg-gray-700 {
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.3);
+    background-color: rgba(59, 130, 246, 0.05);
+    transform: translateX(4px);
+  }
+}
+
+// Dark mode adjustments for better contrast
+:host-context(.dark) {
+  .bg-white.dark\:bg-gray-800:hover {
+    border-color: rgba(96, 165, 250, 0.4);
+    box-shadow: 0 4px 12px rgba(96, 165, 250, 0.15);
+  }
+  
+  .bg-gray-50.dark\:bg-gray-700:hover {
+    border-color: rgba(96, 165, 250, 0.4);
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+}
+
+// Elegant borders for badges and status indicators
+
+// Category badge with gradient border
+span[class*="inline-block"][class*="rounded-full"] {
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+  transition: all 0.3s ease;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(147, 51, 234, 0.3));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// Member rank badges with elegant borders
+.px-2.py-0\.5.text-xs.font-semibold {
+  border: 1px solid rgba(107, 114, 128, 0.3);
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 2px 6px rgba(59, 130, 246, 0.15);
+    transform: scale(1.05);
+  }
+}
+
+// Status badges in pending requests with colored borders
+.bg-white.dark\:bg-gray-800.rounded-lg.p-4.mb-4 {
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(234, 179, 8, 0.5);
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.1);
+  }
+}
+
+// Approval status indicators with elegant styling
+.flex.gap-2.mb-3.text-xs span {
+  padding: 2px 8px;
+  border-radius: 12px;
+  border: 1px solid;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  
+  &.text-green-600 {
+    border-color: rgba(34, 197, 94, 0.4);
+    background-color: rgba(34, 197, 94, 0.1);
+    box-shadow: 0 2px 4px rgba(34, 197, 94, 0.1);
+    
+    &:hover {
+      border-color: rgba(34, 197, 94, 0.6);
+      box-shadow: 0 3px 8px rgba(34, 197, 94, 0.2);
+    }
+  }
+  
+  &.text-gray-400 {
+    border-color: rgba(156, 163, 175, 0.3);
+    background-color: rgba(156, 163, 175, 0.05);
+  }
+}
+
+// User avatar circles with elegant borders
+.w-10.h-10.rounded-full {
+  border: 2px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.5);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+    transform: scale(1.1);
+  }
+}
+
+// Dark mode adjustments for badges
+:host-context(.dark) {
+  .px-2.py-0\.5.text-xs.font-semibold {
+    border-color: rgba(156, 163, 175, 0.4);
+    
+    &:hover {
+      border-color: rgba(96, 165, 250, 0.6);
+      box-shadow: 0 2px 6px rgba(96, 165, 250, 0.2);
+    }
+  }
+  
+  .w-10.h-10.rounded-full {
+    border-color: rgba(96, 165, 250, 0.3);
+    
+    &:hover {
+      border-color: rgba(96, 165, 250, 0.6);
+    }
+  }
+}

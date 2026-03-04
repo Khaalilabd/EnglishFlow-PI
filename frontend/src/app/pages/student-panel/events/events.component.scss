@@ -167,3 +167,325 @@
     margin-bottom: 1.5rem;
   }
 }
+
+// ============================================
+// ANIMATIONS FOR EVENT DETAILS PAGE
+// ============================================
+
+// Fade in from bottom animation
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Fade in from top animation
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Fade in from left
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Fade in from right
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Scale in animation
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Bounce in animation
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Rotate in animation
+@keyframes rotateIn {
+  from {
+    opacity: 0;
+    transform: rotate(-200deg) scale(0);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
+// Pulse animation
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+// Gradient animation
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Apply animations to detail page elements
+.min-h-screen.bg-gray-50,
+.min-h-screen.bg-gradient-to-br {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+// Top bar animation
+.bg-white.border-b.border-gray-200.sticky {
+  animation: fadeInDown 0.4s ease-out;
+}
+
+// Image section animation
+.relative.h-64.rounded-2xl,
+.relative.h-64.rounded-3xl {
+  animation: scaleIn 0.6s ease-out;
+  overflow: hidden;
+  
+  img {
+    transition: transform 0.5s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.1);
+  }
+}
+
+// Info cards animation with stagger
+.grid.grid-cols-1.md\:grid-cols-3 > div {
+  animation: fadeInUp 0.6s ease-out backwards;
+  
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+}
+
+// Cards with hover effects
+.bg-white.rounded-xl,
+.bg-white.rounded-2xl {
+  animation: fadeInUp 0.5s ease-out backwards;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Icon containers animation
+.w-12.h-12.rounded-xl,
+.w-16.h-16.rounded-2xl {
+  animation: bounceIn 0.6s ease-out backwards;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: rotate(10deg) scale(1.1);
+  }
+}
+
+// Countdown animation
+.bg-gradient-to-br.from-\[\#2D5757\] {
+  animation: scaleIn 0.7s ease-out;
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+// Progress bar animation
+.h-2.bg-gray-200,
+.h-3.bg-gray-200 {
+  .bg-gradient-to-r {
+    animation: slideInFromLeft 1s ease-out;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    width: 0;
+  }
+}
+
+// Badge animations
+span[class*="px-3"][class*="py-1"][class*="rounded-full"] {
+  animation: fadeInRight 0.5s ease-out backwards;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Button animations
+button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+}
+
+// Gallery images animation
+.grid.grid-cols-2 > div,
+.grid.grid-cols-3 > div {
+  animation: scaleIn 0.5s ease-out backwards;
+  
+  @for $i from 1 through 12 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.1}s;
+    }
+  }
+  
+  img {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  &:hover img {
+    transform: scale(1.05);
+    filter: brightness(1.1);
+  }
+}
+
+// Feedback section animations
+.feedback-form-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+// Status badges with pulse
+.bg-green-100,
+.bg-yellow-100,
+.bg-amber-100,
+.bg-red-100 {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+// Smooth transitions for all interactive elements
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Stagger animation for lists
+.space-y-2 > *,
+.space-y-3 > *,
+.space-y-4 > *,
+.space-y-6 > * {
+  animation: fadeInLeft 0.5s ease-out backwards;
+  
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+}
+
+// Floating animation for special elements
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+// Shimmer effect for loading states
+@keyframes shimmerEffect {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmerEffect 2s infinite;
+}
