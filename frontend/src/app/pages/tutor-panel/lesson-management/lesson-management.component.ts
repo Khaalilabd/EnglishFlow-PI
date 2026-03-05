@@ -7,9 +7,11 @@ import { EditorModule } from '@tinymce/tinymce-angular';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
+import { QuizService } from '../../../core/services/quiz.service';
 import { Lesson, LessonType, CreateLessonRequest, UpdateLessonRequest } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
+import { Quiz } from '../../../core/models/quiz.model';
 import * as mammoth from 'mammoth';
 
 @Component({
@@ -25,6 +27,7 @@ export class LessonManagementComponent implements OnInit {
   course: Course | null = null;
   chapter: Chapter | null = null;
   lessons: Lesson[] = [];
+  availableQuizzes: Quiz[] = [];
   loading = false;
   
   // Modal states
@@ -85,6 +88,7 @@ export class LessonManagementComponent implements OnInit {
     private lessonService: LessonService,
     private chapterService: ChapterService,
     private courseService: CourseService,
+    private quizService: QuizService,
     private sanitizer: DomSanitizer
   ) {}
 
@@ -95,6 +99,18 @@ export class LessonManagementComponent implements OnInit {
     this.loadCourse();
     this.loadChapter();
     this.loadLessons();
+    this.loadAvailableQuizzes();
+  }
+
+  loadAvailableQuizzes(): void {
+    this.quizService.getQuizzesByCourse(this.courseId).subscribe({
+      next: (quizzes) => {
+        this.availableQuizzes = quizzes;
+      },
+      error: (error) => {
+        console.error('Error loading quizzes:', error);
+      }
+    });
   }
 
   loadCourse(): void {
@@ -359,7 +375,7 @@ export class LessonManagementComponent implements OnInit {
       case LessonType.TEXT:
         return !!(lesson.content && lesson.content.trim().length > 0);
       case LessonType.QUIZ:
-        return false; // Quiz builder not implemented yet
+        return !!(lesson.contentUrl && lesson.contentUrl.trim().length > 0); // contentUrl stores quiz ID
       case LessonType.ASSIGNMENT:
         return !!(
           (lesson.content && lesson.content.trim().length > 0) ||
@@ -373,8 +389,8 @@ export class LessonManagementComponent implements OnInit {
   }
 
   getPublishTooltip(lesson: any): string {
-    if (lesson.lessonType === LessonType.QUIZ) {
-      return 'Quiz builder coming soon - cannot publish yet';
+    if (lesson.lessonType === LessonType.QUIZ && (!lesson.contentUrl || lesson.contentUrl.trim().length === 0)) {
+      return 'Select a quiz before publishing';
     }
     return 'Add content before publishing';
   }

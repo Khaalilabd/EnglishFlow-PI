@@ -1294,8 +1294,8 @@ export class EbooksComponent implements OnInit, OnDestroy {
 
   readOnline(ebook: Ebook) {
     if (ebook.id) {
-      // Open reader in a new tab
-      const readerUrl = `/user-panel/ebooks/read/${ebook.id}`;
+      // Open reader in a new tab without sidebar
+      const readerUrl = `/ebook-reader/${ebook.id}`;
       window.open(readerUrl, '_blank');
     }
   }

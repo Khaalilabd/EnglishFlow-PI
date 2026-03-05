@@ -53,6 +53,14 @@ export const routes: Routes = [
     title: 'Pack Details | Jungle in English'
   },
   
+  // Ebook Reader - Standalone (no sidebar)
+  {
+    path: 'ebook-reader/:id',
+    loadComponent: () => import('./pages/student-panel/ebook-reader/ebook-reader.component').then(m => m.EbookReaderComponent),
+    canActivate: [authGuard],
+    title: 'Read Ebook | Jungle in English'
+  },
+  
   // Student Panel avec layout et sidebar - Protégé pour STUDENT uniquement
   {
     path: 'user-panel',
@@ -148,6 +156,11 @@ export const routes: Routes = [
         path: 'ebooks',
         loadComponent: () => import('./pages/student-panel/ebooks/ebooks.component').then(m => m.EbooksComponent),
         title: 'Ebooks | Jungle in English'
+      },
+      {
+        path: 'ebooks/read/:id',
+        loadComponent: () => import('./pages/student-panel/ebook-reader/ebook-reader.component').then(m => m.EbookReaderComponent),
+        title: 'Read Ebook | Jungle in English'
       },
       {
         path: 'exams',

@@ -409,8 +409,26 @@
         </div>
       </div>
       
-      <!-- URL Input for other types -->
-      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT">
+      <!-- Quiz Selection for QUIZ type -->
+      <div *ngIf="lessonForm.lessonType === LessonType.QUIZ">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Select Quiz <span class="text-red-500">*</span>
+        </label>
+        <select [(ngModel)]="lessonForm.contentUrl"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+          <option value="">Choose a quiz</option>
+          <option *ngFor="let quiz of availableQuizzes" [value]="quiz.id">
+            {{ quiz.title }} ({{ quiz.questions?.length || 0 }} questions)
+          </option>
+        </select>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <i class="fas fa-info-circle mr-1"></i>
+          Select a quiz you've created from the Quiz Management section
+        </p>
+      </div>
+
+      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE) -->
+      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT && lessonForm.lessonType !== LessonType.QUIZ">
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
         <input type="text" [(ngModel)]="lessonForm.contentUrl"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
@@ -656,8 +674,26 @@
         </div>
       </div>
       
-      <!-- URL Input for other types -->
-      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT">
+      <!-- Quiz Selection for QUIZ type -->
+      <div *ngIf="lessonForm.lessonType === LessonType.QUIZ">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Select Quiz <span class="text-red-500">*</span>
+        </label>
+        <select [(ngModel)]="lessonForm.contentUrl"
+          class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+          <option value="">Choose a quiz</option>
+          <option *ngFor="let quiz of availableQuizzes" [value]="quiz.id">
+            {{ quiz.title }} ({{ quiz.questions?.length || 0 }} questions)
+          </option>
+        </select>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          <i class="fas fa-info-circle mr-1"></i>
+          Select a quiz you've created from the Quiz Management section
+        </p>
+      </div>
+
+      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE) -->
+      <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT && lessonForm.lessonType !== LessonType.QUIZ">
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
         <input type="text" [(ngModel)]="lessonForm.contentUrl"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"

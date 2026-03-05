@@ -39,9 +39,13 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   isCompleted = false;
   sidebarCollapsed = false;
   
-  // Getter for quizId (temporary until Lesson model is updated)
+  // Getter for quizId - stored in contentUrl field
   get lessonQuizId(): number | undefined {
-    return (this.lesson as any)?.quizId;
+    if (this.lesson?.lessonType === 'QUIZ' && this.lesson?.contentUrl) {
+      const quizId = parseInt(this.lesson.contentUrl, 10);
+      return isNaN(quizId) ? undefined : quizId;
+    }
+    return undefined;
   }
   
   private progressSubscription?: Subscription;
