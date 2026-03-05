@@ -1,309 +1,399 @@
-<aside
-  class="fixed flex flex-col top-0 px-5 left-0 bg-gradient-to-b from-primary to-primary-800 dark:from-gray-900 dark:to-gray-950 text-white h-screen transition-all duration-300 ease-in-out z-50 border-r border-primary-700 dark:border-gray-800 shadow-xl"
-  [ngClass]="{
-    'w-[290px]': (isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async),
-    'w-[90px]': !((isExpanded$ | async) || (isMobileOpen$ | async) || (isHovered$ | async)),
-    'translate-x-0': isMobileOpen$ | async,
-    '-translate-x-full': !(isMobileOpen$ | async),
-    'xl:translate-x-0': true
-  }"
+<aside 
   (mouseenter)="onSidebarMouseEnter()"
-  (mouseleave)="sidebarService.setHovered(false)">
+  (mouseleave)="sidebarService.setHovered(false)"
+  [ngClass]="{
+    'translate-x-0': (isMobileOpen$ | async),
+    '-translate-x-full xl:translate-x-0': !(isMobileOpen$ | async),
+    'w-72': (isExpanded$ | async) || (isHovered$ | async),
+    'w-20': !(isExpanded$ | async) && !(isHovered$ | async),
+    'bg-gradient-to-b from-[#01161e] via-[#124559] to-[#0d2d3a]': currentUserRole === 'ADMIN',
+    'bg-gradient-to-b from-[#22223b] via-[#4a4e69] to-[#2d2e3f]': currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'
+  }"
+  class="fixed left-0 top-0 h-screen text-white transition-all duration-300 ease-in-out shadow-2xl z-50 flex flex-col"
+  [style.background]="currentUserRole === 'ADMIN' ? 'linear-gradient(to bottom, #01161e, #124559, #0d2d3a)' : 'linear-gradient(to bottom, #22223b, #4a4e69, #2d2e3f)'">
   
-  <div class="py-6 flex justify-start">
-    <a routerLink="/" class="flex items-center">
-      @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-      <img class="h-20 w-auto" src="/images/logo/jungle-in-english-removebg-preview.png" alt="Logo" />
-      } @else {
-      <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Logo" class="w-16 h-16 object-contain" />
-      }
-    </a>
+  <!-- Header with Logo -->
+  <div class="p-6 border-b border-white/10" [ngClass]="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR' ? 'border-[#9a8c98]/20' : ''">
+    <div class="flex items-center justify-between">
+      <a 
+        routerLink="/"
+        [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'flex items-center space-x-3 hover:opacity-80 transition-opacity' : 'hidden'">
+        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl">
+          <span 
+            class="text-2xl font-black bg-clip-text text-transparent"
+            [ngClass]="currentUserRole === 'ADMIN' ? 'bg-gradient-to-br from-[#C84630] to-[#F6BD60]' : 'bg-gradient-to-br from-[#9a8c98] to-[#c9ada7]'">JE</span>
+        </div>
+        <div>
+          <h1 class="text-lg font-bold leading-tight text-[#F7EDE2]">Jungle in English</h1>
+          <p class="text-xs font-medium" [ngClass]="currentUserRole === 'ADMIN' ? 'text-[#F6BD60]' : 'text-[#c9ada7]'">{{ currentUserRole === 'ADMIN' ? 'Admin Panel' : 'Academic Panel' }}</p>
+        </div>
+      </a>
+      <a 
+        routerLink="/"
+        *ngIf="!(isExpanded$ | async) && !(isHovered$ | async)"
+        class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-xl hover:opacity-80 transition-opacity">
+        <span 
+          class="text-xl font-black bg-clip-text text-transparent"
+          [ngClass]="currentUserRole === 'ADMIN' ? 'bg-gradient-to-br from-[#C84630] to-[#F6BD60]' : 'bg-gradient-to-br from-[#9a8c98] to-[#c9ada7]'">JE</span>
+      </a>
+      <button 
+        (click)="sidebarService.toggleExpanded()"
+        class="p-2 hover:bg-white/10 rounded-lg transition-colors ml-auto">
+        <i [class]="((isExpanded$ | async) || (isHovered$ | async)) ? 'fas fa-chevron-left text-white' : 'fas fa-chevron-right text-white'"></i>
+      </button>
+    </div>
   </div>
 
-  <div class="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-    <nav class="mb-6">
-      <div class="flex flex-col gap-6">
-        
-        <!-- OVERVIEW - Tous -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📊 OVERVIEW } @else { 📊 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of overviewItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" [routerLinkActiveOptions]="{ exact: true }" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- USER MANAGEMENT - ADMIN -->
-        @if (currentUserRole === 'ADMIN') {
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 👥 USER MANAGEMENT } @else { 👥 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of adminUserManagementItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- STATISTICS - ADMIN -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📈 STATISTICS } @else { 📈 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of adminStatisticsItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-        }
-
-        <!-- SCHEDULE - ACADEMIC_OFFICE_AFFAIR -->
-        @if (currentUserRole === 'ACADEMIC_OFFICE_AFFAIR') {
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📅 SCHEDULE } @else { 📅 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of academicScheduleItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- FINANCIAL - ACADEMIC_OFFICE_AFFAIR -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 💰 FINANCIAL } @else { 💰 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of academicFinancialItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- CLUBS & EVENTS - ACADEMIC_OFFICE_AFFAIR -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 🎯 CLUBS & EVENTS } @else { 🎯 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of academicClubsEventsItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- FEEDBACK - ACADEMIC_OFFICE_AFFAIR -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📝 FEEDBACK } @else { 📝 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of academicFeedbackItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- CLUBS - ACADEMIC_OFFICE_AFFAIR uniquement (SUPPRIMÉ - duplication) -->
-        }
-
-        <!-- CONTENT MANAGEMENT - ADMIN (Ebooks uniquement) -->
-        @if (currentUserRole === 'ADMIN') {
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📚 CONTENT } @else { 📚 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of adminContentItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- COMMUNICATION - ADMIN -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 💬 COMMUNICATION } @else { 💬 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of communicationItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- FORUM MANAGEMENT - ADMIN -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 🗣️ FORUM } @else { 🗣️ }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of forumManagementItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-        }
-
-        <!-- CONTENT MANAGEMENT - ACADEMIC_OFFICE_AFFAIR (Ebooks et Assignments) -->
-        @if (currentUserRole === 'ACADEMIC_OFFICE_AFFAIR') {
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 📚 CONTENT } @else { 📚 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of academicContentItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- COMMUNICATION - ACADEMIC_OFFICE_AFFAIR -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 💬 COMMUNICATION } @else { 💬 }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of communicationItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
-        <!-- FORUM MANAGEMENT - ACADEMIC_OFFICE_AFFAIR -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { 🗣️ FORUM } @else { 🗣️ }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of forumManagementItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-        }
-
-        <!-- SYSTEM - Tous -->
-        <div>
-          <h2 class="mb-3 text-xs font-semibold text-[#F6BD60]">
-            @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) { ⚙️ SYSTEM } @else { ⚙️ }
-          </h2>
-          <ul class="flex flex-col gap-1">
-            @for (nav of systemItems; track $index) {
-            <li>
-              <a [routerLink]="nav.path" routerLinkActive="menu-item-active" class="menu-item group" [ngClass]="{ 'menu-item-inactive': !isActive(nav.path!) }">
-                <span class="menu-item-icon-size" [innerHTML]="nav.icon | safeHtml"></span>
-                @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-                <span class="menu-item-text">{{ nav.name }}</span>
-                }
-              </a>
-            </li>
-            }
-          </ul>
-        </div>
-
+  <!-- Scrollable Menu Section -->
+  <div 
+    class="flex-1 overflow-y-auto py-6 px-3 space-y-6 scrollbar-thin scrollbar-track-white/10"
+    [ngClass]="currentUserRole === 'ADMIN' ? 'scrollbar-thumb-[#F6BD60]' : 'scrollbar-thumb-[#c9ada7]'">
+    
+    <!-- OVERVIEW Section -->
+    <div class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold uppercase tracking-wider flex items-center gap-2"
+           [ngClass]="currentUserRole === 'ADMIN' ? 'text-[#F6BD60]/70' : 'text-[#9a8c98]/70'">
+          <span>📊</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">OVERVIEW</span>
+        </p>
       </div>
-    </nav>
-    @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
-    <app-sidebar-widget />
-    }
+      <a 
+        *ngFor="let nav of overviewItems"
+        [routerLink]="nav.path"
+        routerLinkActive
+        [routerLinkActiveOptions]="{ exact: true }"
+        #rla="routerLinkActive"
+        [ngClass]="{
+          'bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]': rla.isActive && currentUserRole === 'ADMIN',
+          'bg-[#c9ada7]/20 shadow-lg border-l-4 border-[#c9ada7]': rla.isActive && currentUserRole === 'ACADEMIC_OFFICE_AFFAIR',
+          'hover:bg-[#9a8c98]/20': currentUserRole === 'ACADEMIC_OFFICE_AFFAIR',
+          'hover:bg-[#C84630]/30': currentUserRole === 'ADMIN'
+        }"
+        class="flex items-center px-4 py-3 rounded-xl transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span 
+          class="text-lg w-6 transition-colors"
+          [ngClass]="rla.isActive ? (currentUserRole === 'ADMIN' ? 'text-[#F6BD60]' : 'text-[#c9ada7]') : (currentUserRole === 'ADMIN' ? 'text-[#FCA5A5]' : 'text-[#9a8c98]/80')"
+          [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : (currentUserRole === 'ADMIN' ? 'text-slate-200' : 'text-[#c9ada7]')">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- USER MANAGEMENT Section - ADMIN only -->
+    <div *ngIf="currentUserRole === 'ADMIN'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>👥</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">USER MANAGEMENT</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of adminUserManagementItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- STATISTICS Section - ADMIN only -->
+    <div *ngIf="currentUserRole === 'ADMIN'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>📈</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">STATISTICS</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of adminStatisticsItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- SCHEDULE Section - ACADEMIC only -->
+    <div *ngIf="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>📅</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">SCHEDULE</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of academicScheduleItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- FINANCIAL Section - ACADEMIC only -->
+    <div *ngIf="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>💰</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">FINANCIAL</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of academicFinancialItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- CLUBS & EVENTS Section - ACADEMIC only -->
+    <div *ngIf="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>🎯</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">CLUBS & EVENTS</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of academicClubsEventsItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- FEEDBACK Section - ACADEMIC only -->
+    <div *ngIf="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>📝</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">FEEDBACK</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of academicFeedbackItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- CONTENT Section - ADMIN -->
+    <div *ngIf="currentUserRole === 'ADMIN'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>📚</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">CONTENT</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of adminContentItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- CONTENT Section - ACADEMIC -->
+    <div *ngIf="currentUserRole === 'ACADEMIC_OFFICE_AFFAIR'" class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>📚</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">CONTENT</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of academicContentItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- COMMUNICATION Section -->
+    <div class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>💬</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">COMMUNICATION</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of communicationItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- FORUM Section -->
+    <div class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>🗣️</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">FORUM</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of forumManagementItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+    <!-- SYSTEM Section -->
+    <div class="space-y-1">
+      <div class="px-3 mb-3">
+        <p class="text-xs font-semibold text-[#F7EDE2]/70 uppercase tracking-wider flex items-center gap-2">
+          <span>⚙️</span>
+          <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">SYSTEM</span>
+        </p>
+      </div>
+      <a 
+        *ngFor="let nav of systemItems"
+        [routerLink]="nav.path"
+        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+        #rla="routerLinkActive"
+        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+        <span 
+          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+          class="ml-4 font-medium transition-colors"
+          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+          {{ nav.name }}
+        </span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="p-4 border-t border-white/10">
+    <div *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="bg-white/10 rounded-xl p-4 backdrop-blur-sm mb-3">
+      <div class="flex items-center space-x-3 mb-3">
+        <div 
+          class="w-10 h-10 rounded-full flex items-center justify-center shadow-lg"
+          [ngClass]="currentUserRole === 'ADMIN' ? 'bg-gradient-to-br from-[#F6BD60] to-[#C84630]' : 'bg-gradient-to-br from-[#9a8c98] to-[#c9ada7]'">
+          <i class="fas fa-question-circle text-white"></i>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-[#F7EDE2]">Need Help?</p>
+          <p class="text-xs" [ngClass]="currentUserRole === 'ADMIN' ? 'text-slate-300' : 'text-slate-300'">Contact support</p>
+        </div>
+      </div>
+      <button 
+        class="w-full text-white text-sm font-medium py-2 px-4 rounded-lg transition-all duration-200 shadow-lg"
+        [ngClass]="currentUserRole === 'ADMIN' ? 'bg-gradient-to-r from-[#F6BD60] to-[#C84630] hover:from-[#C84630] hover:to-[#F6BD60]' : 'bg-gradient-to-r from-[#9a8c98] to-[#c9ada7] hover:from-[#c9ada7] hover:to-[#9a8c98]'">
+        Get Support
+      </button>
+    </div>
+    
+    <button 
+      *ngIf="!(isExpanded$ | async) && !(isHovered$ | async)"
+      class="w-full p-3 bg-white/10 rounded-xl hover:bg-white/20 transition-colors mb-3"
+      title="Get Support">
+      <i class="fas fa-question-circle" [ngClass]="currentUserRole === 'ADMIN' ? 'text-[#F6BD60]' : 'text-[#c9ada7]'"></i>
+    </button>
+
+    <!-- Logout Button -->
+    <button class="w-full flex items-center px-4 py-3 rounded-xl hover:bg-red-500/20 text-[#F7EDE2]/90 hover:text-red-400 transition-all duration-200">
+      <i class="fas fa-sign-out-alt text-lg w-6"></i>
+      <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)" class="ml-4 font-medium">Logout</span>
+    </button>
   </div>
 </aside>

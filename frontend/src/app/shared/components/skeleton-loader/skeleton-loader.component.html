@@ -1,0 +1,52 @@
+<div class="skeleton-wrapper" [class]="'skeleton-' + type">
+  <!-- Card Skeleton -->
+  <div *ngIf="type === 'card'" class="skeleton-card">
+    <div class="skeleton-header">
+      <div class="skeleton-badge"></div>
+    </div>
+    <div class="skeleton-avatar"></div>
+    <div class="skeleton-content">
+      <div class="skeleton-line skeleton-title"></div>
+      <div class="skeleton-line skeleton-subtitle"></div>
+      <div class="skeleton-tags">
+        <div class="skeleton-tag"></div>
+        <div class="skeleton-tag"></div>
+        <div class="skeleton-tag"></div>
+      </div>
+    </div>
+    <div class="skeleton-actions">
+      <div class="skeleton-button"></div>
+      <div class="skeleton-button"></div>
+      <div class="skeleton-button"></div>
+    </div>
+  </div>
+
+  <!-- List Skeleton -->
+  <div *ngIf="type === 'list'" class="skeleton-list-item">
+    <div class="skeleton-list-avatar"></div>
+    <div class="skeleton-list-content">
+      <div class="skeleton-line skeleton-list-title"></div>
+      <div class="skeleton-line skeleton-list-subtitle"></div>
+      <div class="skeleton-list-meta">
+        <div class="skeleton-meta-item"></div>
+        <div class="skeleton-meta-item"></div>
+        <div class="skeleton-meta-item"></div>
+      </div>
+    </div>
+    <div class="skeleton-list-actions">
+      <div class="skeleton-action-btn"></div>
+      <div class="skeleton-action-btn"></div>
+      <div class="skeleton-action-btn"></div>
+    </div>
+  </div>
+
+  <!-- Stats Skeleton -->
+  <div *ngIf="type === 'stats'" class="skeleton-stat">
+    <div class="skeleton-stat-icon"></div>
+    <div class="skeleton-stat-content">
+      <div class="skeleton-line skeleton-stat-label"></div>
+      <div class="skeleton-line skeleton-stat-value"></div>
+      <div class="skeleton-line skeleton-stat-trend"></div>
+    </div>
+  </div>
+</div>

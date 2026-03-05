@@ -1,23 +1,29 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { UserService, User, CreateUserRequest, UpdateUserRequest } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmationDialogComponent, ConfirmationConfig } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-academic-affairs',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, ConfirmationDialogComponent, SkeletonLoaderComponent],
   templateUrl: './academic-affairs.component.html',
   styleUrl: './academic-affairs.component.scss'
 })
-export class AcademicAffairsComponent implements OnInit {
+export class AcademicAffairsComponent implements OnInit, OnDestroy {
+  @ViewChild(ConfirmationDialogComponent) confirmDialog!: ConfirmationDialogComponent;
+  
   users: User[] = [];
   filteredUsers: User[] = [];
   loading = false;
   searchTerm = '';
   selectedStatus = 'ALL';
+  selectedCity = 'ALL';
+  showAdvancedFilters = false;
   
   showCreateModal = false;
   showEditModal = false;
@@ -32,6 +38,10 @@ export class AcademicAffairsComponent implements OnInit {
   itemsPerPage = 10;
   totalPages = 1;
 
+  // Sorting
+  sortField: 'firstName' | 'lastName' | 'email' | 'city' = 'firstName';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   constructor(
     private userService: UserService,
     private fb: FormBuilder,
@@ -43,6 +53,50 @@ export class AcademicAffairsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadAcademicAffairs();
+    this.setupKeyboardShortcuts();
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('keydown', this.handleKeyboardShortcut);
+  }
+
+  private handleKeyboardShortcut = (event: KeyboardEvent): void => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+      event.preventDefault();
+      this.openCreateModal();
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault();
+      const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+      if (searchInput) searchInput.focus();
+    }
+    if (event.key === 'Escape') {
+      if (this.showCreateModal) this.closeCreateModal();
+      if (this.showEditModal) this.closeEditModal();
+      if (this.showViewModal) this.closeViewModal();
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
+      event.preventDefault();
+      this.exportToCSV();
+    }
+  };
+
+  private setupKeyboardShortcuts(): void {
+    document.addEventListener('keydown', this.handleKeyboardShortcut);
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedStatus = 'ALL';
+    this.selectedCity = 'ALL';
+    this.applyFilters();
+  }
+
+  get uniqueCities(): string[] {
+    const cities = this.users
+      .map(u => u.city)
+      .filter((city): city is string => city !== null && city !== undefined && city.trim() !== '');
+    return Array.from(new Set(cities)).sort();
   }
 
   initForms(): void {
@@ -108,9 +162,40 @@ export class AcademicAffairsComponent implements OnInit {
       filtered = filtered.filter(user => !user.isActive);
     }
 
+    // City filter
+    if (this.selectedCity !== 'ALL') {
+      filtered = filtered.filter(user => user.city === this.selectedCity);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[this.sortField];
+      let bValue: any = b[this.sortField];
+      
+      if (aValue === null || aValue === undefined) aValue = '';
+      if (bValue === null || bValue === undefined) bValue = '';
+      
+      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+      
+      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     this.filteredUsers = filtered;
     this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
     this.currentPage = 1;
+  }
+
+  sortBy(field: 'firstName' | 'lastName' | 'email' | 'city'): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.applyFilters();
   }
 
   get paginatedUsers(): User[] {
@@ -268,7 +353,24 @@ export class AcademicAffairsComponent implements OnInit {
   }
 
   deactivateUser(user: User): void {
-    if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
+    const config: ConfirmationConfig = {
+      title: 'Deactivate Staff Member',
+      message: `Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`,
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      type: 'warning',
+      details: [
+        'Staff member will lose access to the platform',
+        'Administrative history will be preserved',
+        'Access permissions will be revoked',
+        'Can be reactivated later'
+      ]
+    };
+
+    this.confirmDialog.config = config;
+    this.confirmDialog.show();
+    
+    const subscription = this.confirmDialog.confirmed.subscribe(() => {
       this.userService.deactivateUser(user.id).subscribe({
         next: (updatedUser) => {
           const index = this.users.findIndex(u => u.id === user.id);
@@ -283,11 +385,31 @@ export class AcademicAffairsComponent implements OnInit {
           this.toastService.error('Failed to deactivate academic affairs staff.');
         }
       });
-    }
+      subscription.unsubscribe();
+    });
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}? This action cannot be undone.`)) {
+    const config: ConfirmationConfig = {
+      title: '⚠️ Delete Staff Member',
+      message: `You are about to permanently delete ${user.firstName} ${user.lastName}. This action cannot be undone.`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger',
+      requireTextConfirmation: true,
+      confirmationText: user.lastName,
+      details: [
+        'All staff records will be removed',
+        'Administrative history will be deleted',
+        'Access permissions will be revoked',
+        'This action is irreversible'
+      ]
+    };
+
+    this.confirmDialog.config = config;
+    this.confirmDialog.show();
+    
+    const subscription = this.confirmDialog.confirmed.subscribe(() => {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
           this.users = this.users.filter(u => u.id !== user.id);
@@ -299,11 +421,26 @@ export class AcademicAffairsComponent implements OnInit {
           this.toastService.error('Failed to delete academic affairs staff.');
         }
       });
-    }
+      subscription.unsubscribe();
+    });
   }
 
   getActiveCount(): number {
     return this.users.filter(u => u.isActive).length;
+  }
+
+  getActivePercentage(): number {
+    if (this.users.length === 0) return 0;
+    return Math.round((this.getActiveCount() / this.users.length) * 100);
+  }
+
+  getFeesCollectedCount(): number {
+    return this.users.filter(u => u.registrationFeePaid).length;
+  }
+
+  getFeesCollectedPercentage(): number {
+    if (this.users.length === 0) return 0;
+    return Math.round((this.getFeesCollectedCount() / this.users.length) * 100);
   }
 
   getUserInitials(user: User): string {
@@ -312,6 +449,45 @@ export class AcademicAffairsComponent implements OnInit {
 
   goToInvitePage(): void {
     this.router.navigate(['/dashboard/users/academic-affairs/create']);
+  }
+
+  // New features
+  itemsPerPageOptions = [12, 24, 48, 96];
+
+  changeItemsPerPage(value: number): void {
+    this.itemsPerPage = value;
+    this.currentPage = 1;
+  }
+
+  exportToCSV(): void {
+    const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'CIN', 'City', 'Status', 'Fee Paid'];
+    const data = this.filteredUsers.map(u => [
+      u.firstName,
+      u.lastName,
+      u.email,
+      u.phone || '',
+      u.cin || '',
+      u.city || '',
+      u.isActive ? 'Active' : 'Inactive',
+      u.registrationFeePaid ? 'Paid' : 'Unpaid'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `academic_affairs_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.toastService.success('Academic Affairs exported successfully!');
   }
 
   get Math() {

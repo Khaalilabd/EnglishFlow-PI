@@ -1,0 +1,55 @@
+<div *ngIf="isVisible" class="confirmation-overlay" (click)="onCancel()">
+  <div class="confirmation-dialog" [class]="'dialog-' + config.type" (click)="$event.stopPropagation()">
+    <!-- Icon -->
+    <div class="dialog-icon" [class]="'icon-' + config.type">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="iconSvg"></path>
+      </svg>
+    </div>
+
+    <!-- Content -->
+    <div class="dialog-content">
+      <h3 class="dialog-title">{{ config.title }}</h3>
+      <p class="dialog-message">{{ config.message }}</p>
+
+      <!-- Details List -->
+      <ul *ngIf="config.details && config.details.length > 0" class="dialog-details">
+        <li *ngFor="let detail of config.details">{{ detail }}</li>
+      </ul>
+
+      <!-- Text Confirmation Input -->
+      <div *ngIf="config.requireTextConfirmation" class="confirmation-input-wrapper">
+        <label class="confirmation-label">
+          Type <strong>{{ config.confirmationText }}</strong> to confirm:
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="userInput"
+          [placeholder]="config.confirmationText"
+          class="confirmation-input"
+          (keyup.enter)="canConfirm && onConfirm()"
+          autofocus
+        />
+        <p *ngIf="userInput && !canConfirm" class="input-error">
+          Text does not match. Please type exactly: {{ config.confirmationText }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="dialog-actions">
+      <button type="button" (click)="onCancel()" class="btn-cancel">
+        {{ config.cancelText || 'Cancel' }}
+      </button>
+      <button
+        type="button"
+        (click)="onConfirm()"
+        [disabled]="!canConfirm"
+        class="btn-confirm"
+        [class]="'btn-' + config.type"
+      >
+        {{ config.confirmText || 'Confirm' }}
+      </button>
+    </div>
+  </div>
+</div>

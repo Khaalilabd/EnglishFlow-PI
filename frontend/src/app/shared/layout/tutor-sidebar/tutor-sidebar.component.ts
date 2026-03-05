@@ -35,27 +35,34 @@ export class TutorSidebarComponent implements OnInit {
       ]
     },
     {
-      id: 'teaching',
-      title: 'TEACHING',
+      id: 'courses',
+      title: 'COURSE MANAGEMENT',
       icon: '📚',
       items: [
         { icon: 'fas fa-book', label: 'My Courses', route: '/tutor-panel/courses', badge: 5 },
+        { icon: 'fas fa-book-open', label: 'Ebooks', route: '/tutor-panel/ebooks' },
         { icon: 'fas fa-clock', label: 'Availability', route: '/tutor-panel/availability' },
-        { icon: 'fas fa-calendar-alt', label: 'Schedule', route: '/tutor-panel/schedule' },
+        { icon: 'fas fa-calendar-alt', label: 'Schedule', route: '/tutor-panel/schedule' }
+      ]
+    },
+    {
+      id: 'assessment',
+      title: 'ASSESSMENT & GRADING',
+      icon: '📝',
+      items: [
         { icon: 'fas fa-tasks', label: 'Assignments', route: '/tutor-panel/assignments' },
         { icon: 'fas fa-clipboard-list', label: 'Quiz Management', route: '/tutor-panel/quiz-management' },
-        { icon: 'fas fa-graduation-cap', label: 'Exam Grading', route: '/tutor-panel/exam-grading' },
-        { icon: 'fas fa-book-open', label: 'Ebooks', route: '/tutor-panel/ebooks' }
+        { icon: 'fas fa-file-alt', label: 'Create Exam', route: '/tutor-panel/create-exam' },
+        { icon: 'fas fa-graduation-cap', label: 'Exam Grading', route: '/tutor-panel/exam-grading' }
       ]
     },
     {
       id: 'students',
-      title: 'STUDENTS',
+      title: 'STUDENT MANAGEMENT',
       icon: '👥',
       items: [
         { icon: 'fas fa-users', label: 'My Students', route: '/tutor-panel/students', badge: 24 },
-        { icon: 'fas fa-chart-line', label: 'Analytics', route: '/tutor-panel/analytics' },
-        { icon: 'fas fa-comments', label: 'Messages', route: '/tutor-panel/messages', badge: 3 }
+        { icon: 'fas fa-chart-line', label: 'Analytics', route: '/tutor-panel/analytics' }
       ]
     },
     {
@@ -63,13 +70,14 @@ export class TutorSidebarComponent implements OnInit {
       title: 'COMMUNICATION',
       icon: '💬',
       items: [
+        { icon: 'fas fa-comments', label: 'Messages', route: '/tutor-panel/messages', badge: 3 },
         { icon: 'fas fa-comment-dots', label: 'Forum', route: '/tutor-panel/forum' },
         { icon: 'fas fa-exclamation-triangle', label: 'Complaints', route: '/tutor-panel/complaints' }
       ]
     },
     {
       id: 'account',
-      title: 'ACCOUNT',
+      title: 'MY ACCOUNT',
       icon: '⚙️',
       items: [
         { icon: 'fas fa-cog', label: 'Settings', route: '/tutor-panel/settings' },

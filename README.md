@@ -255,7 +255,7 @@ CREATE DATABASE englishflow_messaging_db;
 CREATE DATABASE englishflow_jungle_club_db;
 CREATE DATABASE englishflow_courses;
 CREATE DATABASE englishflow_exams;
-CREATE DATABASE event_db;
+CREATE DATABASE englishflow_event_db;
 CREATE DATABASE englishflow_complaints;
 CREATE DATABASE englishflow_gamification;
 

@@ -11,12 +11,21 @@
           <p class="page-subtitle">Manage and track your English learning students</p>
         </div>
       </div>
-      <button (click)="openCreateModal()" class="btn-create">
-        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-        </svg>
-        Add New Student
-      </button>
+      <div class="header-actions">
+        <button (click)="openCreateModal()" class="btn-create">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Add New Student
+          <span class="keyboard-hint">Ctrl+N</span>
+        </button>
+        <button (click)="openImportModal()" class="btn-import" title="Import CSV">
+          <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          Import CSV
+        </button>
+      </div>
     </div>
   </div>
 
@@ -83,12 +92,15 @@
       </svg>
       <input
         type="text"
-        [(ngModel)]="searchTerm"
-        (ngModelChange)="applyFilters()"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearchChange($event)"
         placeholder="Search by name, email, or CIN..."
         class="search-input"
       />
-      <span class="search-count" *ngIf="searchTerm">{{ filteredUsers.length }} results</span>
+      <div class="search-spinner" *ngIf="isSearching">
+        <div class="spinner-small"></div>
+      </div>
+      <span class="search-count" *ngIf="searchTerm && !isSearching">{{ filteredUsers.length }} results</span>
     </div>
 
     <div class="filter-group">
@@ -116,18 +128,123 @@
         <span class="chip-dot inactive"></span>
         Inactive
       </button>
+      <button
+        (click)="showAdvancedFilters = !showAdvancedFilters"
+        class="filter-chip advanced-toggle"
+        [class.active]="showAdvancedFilters"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+        Advanced
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div *ngIf="showAdvancedFilters" class="advanced-filters-panel">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label>English Level</label>
+          <select [(ngModel)]="selectedEnglishLevel" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="ALL">All Levels</option>
+            <option *ngFor="let level of englishLevels" [value]="level.value">{{ level.label }}</option>
+          </select>
+        </div>
+        
+        <div class="filter-item">
+          <label>Payment Status</label>
+          <select [(ngModel)]="selectedPaymentStatus" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="ALL">All</option>
+            <option value="PAID">Paid</option>
+            <option value="UNPAID">Unpaid</option>
+          </select>
+        </div>
+
+        <button (click)="clearFilters()" class="btn-clear-filters">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <button (click)="exportToCSV()" class="btn-export" title="Export to CSV">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Export
+      <span class="keyboard-hint">Ctrl+E</span>
+    </button>
+
+    <div class="items-per-page">
+      <label>Show:</label>
+      <select [(ngModel)]="itemsPerPage" (ngModelChange)="changeItemsPerPage($event)" class="items-select">
+        <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+      </select>
+    </div>
+
+    <!-- View Mode Toggle -->
+    <div class="view-mode-toggle">
+      <button 
+        (click)="setViewMode('compact')" 
+        [class.active]="viewMode === 'compact'"
+        class="view-btn"
+        title="Compact view"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </button>
+      <button 
+        (click)="setViewMode('comfortable')" 
+        [class.active]="viewMode === 'comfortable'"
+        class="view-btn"
+        title="Comfortable view"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+        </svg>
+      </button>
+      <button 
+        (click)="setViewMode('spacious')" 
+        [class.active]="viewMode === 'spacious'"
+        class="view-btn"
+        title="Spacious view"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-container">
-    <div class="loading-spinner"></div>
-    <p class="loading-text">Loading students...</p>
+  <!-- Loading State with Skeleton -->
+  <div *ngIf="loading">
+    <!-- Stats Skeleton -->
+    <div class="stats-dashboard">
+      <app-skeleton-loader type="stats" *ngFor="let i of [1,2,3,4]"></app-skeleton-loader>
+    </div>
+    
+    <!-- Cards Skeleton -->
+    <div class="students-grid" style="margin-top: 24px;">
+      <app-skeleton-loader type="card" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]"></app-skeleton-loader>
+    </div>
   </div>
 
   <!-- Students Grid -->
-  <div *ngIf="!loading && filteredUsers.length > 0" class="students-grid">
-    <div *ngFor="let student of paginatedUsers" class="student-card">
+  <div *ngIf="!loading && filteredUsers.length > 0" class="students-grid" [class]="'view-' + viewMode">
+    <div *ngFor="let student of paginatedUsers" class="student-card" [class.card-selected]="isUserSelected(student.id)">
+      <!-- Selection Checkbox -->
+      <div class="card-checkbox">
+        <input 
+          type="checkbox" 
+          [checked]="isUserSelected(student.id)"
+          (change)="toggleUserSelection(student.id)"
+          class="checkbox-input"
+        />
+      </div>
+      
       <!-- Card Ribbon -->
       <div class="card-ribbon" [class.ribbon-active]="student.isActive" [class.ribbon-inactive]="!student.isActive">
         {{ student.isActive ? 'Active' : 'Inactive' }}
@@ -554,6 +671,149 @@
         </button>
         <button (click)="closeViewModal()" class="btn-close">Close</button>
       </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Import CSV Modal -->
+<div *ngIf="showImportModal" class="modal-overlay" (click)="closeImportModal()">
+  <div class="modal-content modal-import" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Import Students from CSV</h2>
+      <button (click)="closeImportModal()" class="modal-close-btn">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="import-instructions">
+        <h3>📋 Instructions</h3>
+        <ol>
+          <li>Download the CSV template below</li>
+          <li>Fill in your student data (required: First Name, Last Name, Email, Password)</li>
+          <li>Upload the completed CSV file</li>
+          <li>Review the preview and click Import</li>
+        </ol>
+        <button (click)="downloadTemplate()" class="btn-download-template">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+          Download Template
+        </button>
+      </div>
+
+      <div class="import-upload">
+        <label class="upload-area">
+          <input type="file" accept=".csv" (change)="onFileSelected($event)" style="display: none;">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <span *ngIf="!importFile">Click to upload CSV file</span>
+          <span *ngIf="importFile" class="file-name">{{ importFile.name }}</span>
+        </label>
+      </div>
+
+      <div *ngIf="importPreview.length > 0" class="import-preview">
+        <h3>Preview ({{ getValidPreviewCount() }} valid / {{ importPreview.length }} total)</h3>
+        <div class="preview-table-wrapper">
+          <table class="preview-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Email</th>
+                <th>English Level</th>
+                <th>Errors</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let preview of importPreview.slice(0, 10)" [class.invalid-row]="!preview.valid">
+                <td>
+                  <span *ngIf="preview.valid" class="status-valid">✓</span>
+                  <span *ngIf="!preview.valid" class="status-invalid">✗</span>
+                </td>
+                <td>{{ preview.data.firstname }}</td>
+                <td>{{ preview.data.lastname }}</td>
+                <td>{{ preview.data.email }}</td>
+                <td>{{ preview.data.englishlevel || '-' }}</td>
+                <td>
+                  <span *ngIf="preview.errors.length > 0" class="error-text">
+                    {{ preview.errors.join(', ') }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <p *ngIf="importPreview.length > 10" class="preview-note">
+            Showing first 10 rows. Total: {{ importPreview.length }}
+          </p>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" (click)="closeImportModal()" class="btn-cancel">Cancel</button>
+        <button 
+          type="button" 
+          (click)="importStudents()" 
+          [disabled]="getValidPreviewCount() === 0"
+          class="btn-submit"
+        >
+          Import {{ getValidPreviewCount() }} Student(s)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Confirmation Dialog -->
+<app-confirmation-dialog></app-confirmation-dialog>
+
+<!-- Bulk Actions Toolbar -->
+<div *ngIf="selectedUserIds.size > 0" class="bulk-actions-toolbar">
+  <div class="toolbar-content">
+    <div class="toolbar-left">
+      <button (click)="toggleSelectAll()" class="btn-toolbar btn-select-all">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        {{ selectAll ? 'Deselect All' : 'Select All' }}
+      </button>
+      <span class="selection-count">{{ selectedUserIds.size }} selected</span>
+    </div>
+    
+    <div class="toolbar-actions">
+      <button (click)="bulkActivate()" class="btn-toolbar btn-activate" title="Activate selected">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Activate
+      </button>
+      
+      <button (click)="bulkDeactivate()" class="btn-toolbar btn-deactivate" title="Deactivate selected">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Deactivate
+      </button>
+      
+      <button (click)="exportSelected()" class="btn-toolbar btn-export-selected" title="Export selected">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        Export
+      </button>
+      
+      <button (click)="selectedUserIds.clear(); selectAll = false" class="btn-toolbar btn-clear" title="Clear selection">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+        Clear
+      </button>
     </div>
   </div>
 </div>

@@ -1,0 +1,108 @@
+// Admin/Academic Dashboard Styles - MÊME STRUCTURE QUE STUDENT/TUTOR
+:host {
+  display: block;
+}
+
+// Smooth animations for all elements
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Fade in animation
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// Slide up animation
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Apply animations
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.6s ease-out backwards;
+}
+
+// Custom scrollbar - Modern design
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(243, 244, 246, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #3b82f6 0%, #4f46e5 100%); // Bleu/Indigo pour Admin
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  
+  &:hover {
+    background: linear-gradient(180deg, #4f46e5 0%, #3b82f6 100%);
+    background-clip: padding-box;
+  }
+}
+
+// Pour Academic (violet/rose) - sera appliqué dynamiquement
+.academic-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #9333ea 0%, #ec4899 100%);
+  
+  &:hover {
+    background: linear-gradient(180deg, #ec4899 0%, #9333ea 100%);
+  }
+}
+
+// Card hover effects with smooth transitions
+.hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+// Smooth scale transitions
+.group:hover .group-hover\:scale-110 {
+  transform: scale(1.1);
+}
+
+// Focus states for accessibility
+*:focus-visible {
+  outline: 2px solid #3b82f6; // Bleu pour Admin
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+// Pour Academic
+.academic-focus *:focus-visible {
+  outline-color: #9333ea; // Violet pour Academic
+}
+
+// Smooth color transitions
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+// Responsive utilities
+@media (max-width: 768px) {
+  .animate-slide-up {
+    animation-delay: 0ms !important;
+  }
+}

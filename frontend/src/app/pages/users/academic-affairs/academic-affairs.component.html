@@ -41,6 +41,7 @@
       <div class="stat-content">
         <span class="stat-value">{{ users.length }}</span>
         <span class="stat-label">Total Staff</span>
+        <span class="stat-trend positive">+8% this month</span>
       </div>
     </div>
 
@@ -53,6 +54,7 @@
       <div class="stat-content">
         <span class="stat-value">{{ getActiveCount() }}</span>
         <span class="stat-label">Active</span>
+        <span class="stat-trend positive">{{ getActivePercentage() }}% active</span>
       </div>
     </div>
 
@@ -65,6 +67,20 @@
       <div class="stat-content">
         <span class="stat-value">{{ users.length - getActiveCount() }}</span>
         <span class="stat-label">Inactive</span>
+        <span class="stat-trend neutral">Need attention</span>
+      </div>
+    </div>
+
+    <div class="stat-box stat-fees">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-value">{{ getFeesCollectedCount() }}</span>
+        <span class="stat-label">Fees Collected</span>
+        <span class="stat-trend positive">{{ getFeesCollectedPercentage() }}% paid</span>
       </div>
     </div>
   </div>
@@ -82,6 +98,7 @@
         placeholder="Search by name, email, or CIN..."
         class="search-input"
       />
+      <span class="search-count" *ngIf="searchTerm">{{ filteredUsers.length }} results</span>
     </div>
 
     <div class="filter-tabs">
@@ -106,13 +123,64 @@
       >
         Inactive ({{ users.length - getActiveCount() }})
       </button>
+      <button
+        (click)="showAdvancedFilters = !showAdvancedFilters"
+        class="tab-btn advanced-toggle"
+        [class.active]="showAdvancedFilters"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+        Advanced
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div *ngIf="showAdvancedFilters" class="advanced-filters-panel">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label>City</label>
+          <select [(ngModel)]="selectedCity" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="ALL">All Cities</option>
+            <option *ngFor="let city of uniqueCities" [value]="city">{{ city }}</option>
+          </select>
+        </div>
+
+        <button (click)="clearFilters()" class="btn-clear-filters">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <button (click)="exportToCSV()" class="btn-export" title="Export to CSV">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Export
+    </button>
+
+    <div class="items-per-page">
+      <label>Show:</label>
+      <select [(ngModel)]="itemsPerPage" (ngModelChange)="changeItemsPerPage($event)" class="items-select">
+        <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+      </select>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="loading-wrapper">
-    <div class="loader"></div>
-    <p class="loading-text">Loading staff members...</p>
+  <!-- Loading State with Skeleton -->
+  <div *ngIf="loading">
+    <!-- Stats Skeleton -->
+    <div class="stats-container">
+      <app-skeleton-loader type="stats" *ngFor="let i of [1,2,3,4]"></app-skeleton-loader>
+    </div>
+    
+    <!-- List Skeleton -->
+    <div class="staff-list" style="margin-top: 24px;">
+      <app-skeleton-loader type="list" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10]"></app-skeleton-loader>
+    </div>
   </div>
 
   <!-- Staff List -->
@@ -237,28 +305,28 @@
   </div>
 
   <!-- Pagination -->
-  <div *ngIf="!loading && filteredUsers.length > 0" class="pagination-container">
+  <div *ngIf="!loading && filteredUsers.length > 0" class="pagination-wrapper">
     <div class="pagination-info-text">
-      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} staff members
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} staff members
     </div>
     
-    <div class="pagination-buttons">
+    <div class="pagination-controls">
       <button
         (click)="previousPage()"
         [disabled]="currentPage === 1"
-        class="page-nav-btn"
+        class="pagination-btn"
       >
         <svg fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
         </svg>
       </button>
       
-      <div class="page-numbers">
+      <div class="pagination-pages">
         <button
           *ngFor="let page of pageNumbers.slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))"
           (click)="goToPage(page)"
           [class.active]="currentPage === page"
-          class="page-number-btn"
+          class="page-btn"
         >
           {{ page }}
         </button>
@@ -267,7 +335,7 @@
       <button
         (click)="nextPage()"
         [disabled]="currentPage === totalPages"
-        class="page-nav-btn"
+        class="pagination-btn"
       >
         <svg fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
@@ -538,3 +606,7 @@
     </div>
   </div>
 </div>
+
+
+<!-- Confirmation Dialog -->
+<app-confirmation-dialog></app-confirmation-dialog>

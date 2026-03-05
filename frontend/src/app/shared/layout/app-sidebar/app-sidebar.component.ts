@@ -26,10 +26,38 @@ type NavItem = {
     SidebarWidgetComponent
   ],
   templateUrl: './app-sidebar.component.html',
+  styleUrl: './app-sidebar.component.scss'
 })
 export class AppSidebarComponent implements OnInit, OnDestroy {
   
   currentUserRole: string = '';
+  
+  // Couleurs dynamiques selon le rôle
+  get accentColor(): string {
+    return this.currentUserRole === 'ADMIN' ? '#5B21B6' : '#3D3D60';
+  }
+  
+  get textAccentClass(): string {
+    return this.currentUserRole === 'ADMIN' ? 'text-[#5B21B6]' : 'text-[#3D3D60]';
+  }
+  
+  get bgAccentClass(): string {
+    return this.currentUserRole === 'ADMIN' ? 'bg-[#5B21B6]/20' : 'bg-[#3D3D60]/20';
+  }
+  
+  get borderAccentClass(): string {
+    return this.currentUserRole === 'ADMIN' ? 'border-[#5B21B6]' : 'border-[#3D3D60]';
+  }
+  
+  get headerTextClass(): string {
+    return this.currentUserRole === 'ADMIN' ? 'text-[#F7EDE2]/70' : 'text-[#F7EDE2]/70';
+  }
+  
+  get gradientButtonClass(): string {
+    return this.currentUserRole === 'ADMIN' 
+      ? 'from-[#5B21B6] to-[#F6BD60] hover:from-[#7C3AED] hover:to-[#F6BD60]'
+      : 'from-[#3D3D60] to-[#F6BD60] hover:from-[#4D4D70] hover:to-[#F6BD60]';
+  }
 
   // 📊 OVERVIEW - Vue d'ensemble (visible pour ADMIN et ACADEMIC_OFFICE_AFFAIR)
   overviewItems: NavItem[] = [
