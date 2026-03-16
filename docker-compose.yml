@@ -1,156 +1,346 @@
 version: '3.8'
 
 services:
-  # Frontend Angular
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "4200:80"
-    depends_on:
-      - api-gateway
-    networks:
-      - englishflow-network
-
-  # API Gateway
-  api-gateway:
-    build:
-      context: ./backend/api-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
+  # ==================== Infrastructure ====================
+  
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: englishflow-postgres
     environment:
-      - SPRING_PROFILES_ACTIVE=docker
-    depends_on:
-      - eureka-server
-      - config-server
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     networks:
       - englishflow-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
-  # Eureka Service Discovery
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: englishflow-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - englishflow-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # ==================== Service Discovery ====================
+  
+  # Eureka Server
   eureka-server:
     build:
       context: ./backend/eureka-server
       dockerfile: Dockerfile
+    container_name: englishflow-eureka
     ports:
       - "8761:8761"
     networks:
       - englishflow-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
 
-  # Config Server
-  config-server:
+  # ==================== API Gateway ====================
+  
+  api-gateway:
     build:
-      context: ./backend/config-server
+      context: ./backend/api-gateway
       dockerfile: Dockerfile
+    container_name: englishflow-gateway
     ports:
-      - "8888:8888"
+      - "8080:8080"
     networks:
       - englishflow-network
-
-  # PostgreSQL Database for Auth Service
-  postgres:
-    image: postgres:15-alpine
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: englishflow_identity
-      POSTGRES_USER: englishflow
-      POSTGRES_PASSWORD: englishflow123
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - englishflow-network
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
-  # PostgreSQL Database for Learning Service
-  postgres-learning:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: learning_db
-      POSTGRES_USER: englishflow
-      POSTGRES_PASSWORD: englishflow123
+  # ==================== Microservices ====================
+  
+  # Auth Service
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: englishflow-auth
     ports:
-      - "5433:5432"
-    volumes:
-      - postgres-learning-data:/var/lib/postgresql/data
+      - "8081:8081"
     networks:
       - englishflow-network
-
-  # PostgreSQL Database for Club Service
-  postgres-club:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: club_db
-      POSTGRES_USER: englishflow
-      POSTGRES_PASSWORD: englishflow123
-    ports:
-      - "5434:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
     volumes:
-      - postgres-club-data:/var/lib/postgresql/data
-    networks:
-      - englishflow-network
-
-  # PostgreSQL Database for Community Service
-  postgres-community:
-    image: postgres:15-alpine
+      - auth_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: englishflow_community
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-    ports:
-      - "5435:5432"
-    volumes:
-      - postgres-community-data:/var/lib/postgresql/data
-    networks:
-      - englishflow-network
-
-  # PostgreSQL Database for Courses Service
-  postgres-courses:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_DB: englishflow_courses
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: root
-    ports:
-      - "5436:5432"
-    volumes:
-      - postgres-courses-data:/var/lib/postgresql/data
-    networks:
-      - englishflow-network
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_identity
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - RECAPTCHA_SECRET=${RECAPTCHA_SECRET}
+      - FRONTEND_URL=http://localhost:4200
+      - BACKEND_URL=http://localhost:8080
 
   # Courses Service
   courses-service:
     build:
       context: ./backend/courses-service
       dockerfile: Dockerfile
+    container_name: englishflow-courses
     ports:
-      - "8082:8082"
+      - "8086:8086"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    volumes:
+      - courses_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-courses:5432/englishflow_courses
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=root
-    depends_on:
-      - postgres-courses
-      - eureka-server
-    networks:
-      - englishflow-network
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_courses
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
-  # Redis Cache
-  redis:
-    image: redis:7-alpine
+  # Exam Service
+  exam-service:
+    build:
+      context: ./backend/exam-service
+      dockerfile: Dockerfile
+    container_name: englishflow-exam
     ports:
-      - "6379:6379"
+      - "8087:8087"
     networks:
       - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_exams
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
+  # Messaging Service
+  messaging-service:
+    build:
+      context: ./backend/messaging-service
+      dockerfile: Dockerfile
+    container_name: englishflow-messaging
+    ports:
+      - "8084:8084"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    volumes:
+      - messaging_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=englishflow_messaging_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
+
+  # Community Service
+  community-service:
+    build:
+      context: ./backend/community-service
+      dockerfile: Dockerfile
+    container_name: englishflow-community
+    ports:
+      - "8082:8082"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    volumes:
+      - community_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_community
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
+  # Club Service
+  club-service:
+    build:
+      context: ./backend/club-service
+      dockerfile: Dockerfile
+    container_name: englishflow-club
+    ports:
+      - "8085:8085"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8085/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=englishflow_jungle_club_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
+  # ==================== Frontend ====================
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: englishflow-frontend
+    ports:
+      - "4200:80"
+    networks:
+      - englishflow-network
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+# ==================== Networks ====================
 networks:
   englishflow-network:
     driver: bridge
 
+# ==================== Volumes ====================
 volumes:
-  postgres-data:
-  postgres-learning-data:
-  postgres-club-data:
-  postgres-community-data:
-  postgres-courses-data:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  auth_uploads:
+    driver: local
+  courses_uploads:
+    driver: local
+  messaging_uploads:
+    driver: local
+  community_uploads:
+    driver: local

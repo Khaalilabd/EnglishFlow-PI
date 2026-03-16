@@ -103,12 +103,14 @@ export class LessonManagementComponent implements OnInit {
   }
 
   loadAvailableQuizzes(): void {
+    console.log('🎯 Loading quizzes for courseId:', this.courseId);
     this.quizService.getQuizzesByCourse(this.courseId).subscribe({
       next: (quizzes) => {
+        console.log('✅ Quizzes loaded:', quizzes);
         this.availableQuizzes = quizzes;
       },
       error: (error) => {
-        console.error('Error loading quizzes:', error);
+        console.error('❌ Error loading quizzes:', error);
       }
     });
   }

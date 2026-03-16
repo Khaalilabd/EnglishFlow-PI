@@ -69,14 +69,24 @@ export class QuizManagementComponent implements OnInit {
   }
 
   loadCourses() {
-    this.courseService.getAllCourses().subscribe({
-      next: (courses) => {
-        this.courses = courses;
-      },
-      error: (error) => {
-        console.error('Error loading courses:', error);
-      }
-    });
+    // Get current user ID from auth service
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const tutorId = currentUser.id;
+    
+    if (tutorId) {
+      console.log('📚 Loading courses for tutor:', tutorId);
+      this.courseService.getCoursesByTutor(tutorId).subscribe({
+        next: (courses) => {
+          console.log('✅ Courses loaded:', courses);
+          this.courses = courses;
+        },
+        error: (error) => {
+          console.error('❌ Error loading courses:', error);
+        }
+      });
+    } else {
+      console.error('❌ No tutor ID found in current user');
+    }
   }
 
   loadQuizzes() {

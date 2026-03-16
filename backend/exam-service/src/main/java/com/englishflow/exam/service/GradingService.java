@@ -63,13 +63,13 @@ public class GradingService implements IGradingService {
         List<StudentAnswer> ungradedAnswers = answerRepository.findByIsCorrectIsNull();
         
         // ✅ OPTIMIZED: Fetch all questions at once
-        List<Long> questionIds = ungradedAnswers.stream()
+        List<String> questionIds = ungradedAnswers.stream()
                 .map(StudentAnswer::getQuestionId)
                 .distinct()
                 .collect(Collectors.toList());
         
         List<Question> questions = questionRepository.findAllById(questionIds);
-        var questionMap = questions.stream()
+        java.util.Map<String, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
         
         return ungradedAnswers.stream()
@@ -113,14 +113,14 @@ public class GradingService implements IGradingService {
         List<StudentAnswer> answers = answerRepository.findByAttemptId(attemptId);
         
         // ✅ OPTIMIZED: Fetch all questions at once instead of one by one
-        List<Long> questionIds = answers.stream()
+        List<String> questionIds = answers.stream()
                 .map(StudentAnswer::getQuestionId)
                 .collect(Collectors.toList());
         
         List<Question> questions = questionRepository.findAllById(questionIds);
         
         // Create a map for quick lookup
-        var questionMap = questions.stream()
+        java.util.Map<String, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
         
         // Calculate total score
@@ -235,7 +235,7 @@ public class GradingService implements IGradingService {
         return totalPairs > 0 ? (correctPairs / (double) totalPairs) * maxPoints : 0.0;
     }
     
-    private GradingQueueItemDTO mapToGradingQueueItem(StudentAnswer answer, java.util.Map<Long, Question> questionMap) {
+    private GradingQueueItemDTO mapToGradingQueueItem(StudentAnswer answer, java.util.Map<String, Question> questionMap) {
         Question question = questionMap.get(answer.getQuestionId());
         
         return GradingQueueItemDTO.builder()

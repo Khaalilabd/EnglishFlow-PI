@@ -119,12 +119,12 @@ public class ResultService implements IResultService {
         List<StudentAnswer> answers = answerRepository.findByAttemptId(attempt.getId());
         
         // ✅ OPTIMIZED: Fetch all questions at once
-        List<Long> questionIds = answers.stream()
+        List<String> questionIds = answers.stream()
                 .map(StudentAnswer::getQuestionId)
                 .collect(Collectors.toList());
         
         List<Question> questions = questionRepository.findAllById(questionIds);
-        var questionMap = questions.stream()
+        Map<String, Question> questionMap = questions.stream()
                 .collect(Collectors.toMap(Question::getId, q -> q));
         
         Map<String, List<StudentAnswer>> answersByPart = new HashMap<>();
