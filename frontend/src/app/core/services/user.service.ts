@@ -18,6 +18,7 @@ export interface User {
   bio?: string;
   englishLevel?: string;
   yearsOfExperience?: number;
+  applicationId?: number;
   role: string;
   isActive: boolean;
   registrationFeePaid: boolean;
@@ -75,6 +76,10 @@ export class UserService {
 
   getUsersByRole(role: string): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/auth/admin/users/role/${role}`);
+  }
+
+  getPublicTutors(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/auth/users/public/tutors`);
   }
 
   createUser(userData: CreateUserRequest): Observable<User> {

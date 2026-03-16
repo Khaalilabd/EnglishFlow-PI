@@ -24,13 +24,14 @@
       <!-- Desktop Navigation -->
       <div class="nav-menu" [class.active]="mobileMenuOpen">
         <ul class="nav-links">
-          <li><a href="#home" class="nav-link active">Home</a></li>
-          <li><a href="#services" class="nav-link">Services</a></li>
-          <li><a href="#courses" class="nav-link">Courses</a></li>
-          <li><a routerLink="/clubs" class="nav-link">Clubs</a></li>
-          <li><a href="#team" class="nav-link">Team</a></li>
-          <li><a routerLink="/events" class="nav-link">Events</a></li>
-          <li><a href="#contact" class="nav-link">Contact</a></li>
+          <li><a href="#home" class="nav-link" [class.active]="activeSection === 'home'">Home</a></li>
+          <li><a href="#services" class="nav-link" [class.active]="activeSection === 'services'">Services</a></li>
+          <li><a href="#courses" class="nav-link" [class.active]="activeSection === 'courses'">Courses</a></li>
+          <li><a href="#clubs" class="nav-link" [class.active]="activeSection === 'clubs'">Clubs</a></li>
+          <li><a href="#team" class="nav-link" [class.active]="activeSection === 'team'">Team</a></li>
+          <li><a routerLink="/careers" class="nav-link">Careers</a></li>
+          <li><a href="#events" class="nav-link" [class.active]="activeSection === 'events'">Events</a></li>
+          <li><a href="#contact" class="nav-link" [class.active]="activeSection === 'contact'">Contact</a></li>
         </ul>
 
         <!-- Auth Buttons / User Menu -->
@@ -236,6 +237,62 @@
 </section>
 <!-- ***** Learning Packs Section End ***** -->
 
+<!-- ***** Clubs Section Start ***** -->
+<section class="clubs-section" id="clubs">
+  <div class="section-container">
+    <div class="section-header">
+      <span class="section-badge">Our Clubs</span>
+      <h2 class="section-title">Join Our Community Clubs</h2>
+      <p class="section-description">Connect with fellow learners and practice English in a fun environment</p>
+    </div>
+
+    @if (loadingClubs) {
+      <div class="loading-state-simple">
+        <div class="spinner-simple"></div>
+        <p>Loading clubs...</p>
+      </div>
+    } @else if (clubs.length === 0) {
+      <div class="empty-state-simple">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+        <h3>No clubs available</h3>
+        <p>Check back later for new clubs</p>
+      </div>
+    } @else {
+      <div class="clubs-grid">
+        @for (club of clubs; track club.id) {
+          <div class="club-card">
+            <div class="club-image">
+              <img [src]="club.image || 'assets/images/course-01.jpg'" [alt]="club.name">
+              <span class="club-category">{{ club.category }}</span>
+            </div>
+            <div class="club-content">
+              <h3 class="club-name">{{ club.name }}</h3>
+              <p class="club-description">{{ club.description }}</p>
+              <div class="club-stats">
+                <span class="club-stat">👥 {{ club.currentMembersCount || 0 }} members</span>
+                <span class="club-stat">📚 {{ club.category }}</span>
+              </div>
+              <a [routerLink]="['/clubs', club.id]" class="club-link">View Club →</a>
+            </div>
+          </div>
+        }
+      </div>
+      
+      <div class="text-center mt-8">
+        <a routerLink="/clubs" class="inline-flex items-center px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 transition-colors">
+          View All Clubs
+          <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      </div>
+    }
+  </div>
+</section>
+<!-- ***** Clubs Section End ***** -->
+
 <!-- ***** Team Section Start ***** -->
 <section class="team-section" id="team">
   <div class="section-container">
@@ -245,67 +302,66 @@
       <p class="section-description">Learn from the best English teachers in the industry</p>
     </div>
 
-    <div class="team-grid">
-      <div class="team-card">
-        <div class="team-image">
-          <img src="assets/images/member-01.jpg" alt="Sarah Johnson">
+    @if (loadingTutors) {
+      <div class="loading-state-simple">
+        <div class="spinner-simple"></div>
+        <p>Loading tutors...</p>
+      </div>
+    } @else if (tutors.length === 0) {
+      <div class="empty-state-simple">
+        <svg class="empty-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+        </svg>
+        <h3>No tutors available</h3>
+        <p>Check back later</p>
+      </div>
+    } @else {
+      <div class="team-carousel-wrapper">
+        <!-- Bouton Précédent -->
+        @if (hasPreviousTutorPage) {
+          <button class="carousel-btn carousel-btn-prev" (click)="previousTutorPage()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+          </button>
+        }
+
+        <div class="team-grid">
+          @for (tutor of tutors; track tutor.id) {
+            <div class="team-card">
+              <div class="team-image">
+                <img [src]="getTutorPhotoUrl(tutor.profilePhoto)" [alt]="tutor.firstName + ' ' + tutor.lastName">
+              </div>
+              <div class="team-content">
+                <h3 class="team-name">{{ tutor.firstName }} {{ tutor.lastName }}</h3>
+                <span class="team-role">{{ tutor.englishLevel || 'English Teacher' }}</span>
+                <p class="team-bio">{{ tutor.bio || (tutor.yearsOfExperience ? tutor.yearsOfExperience + '+ years of experience in English education' : 'Experienced English teacher') }}</p>
+                <div class="team-social">
+                  <a href="#"><i class="fab fa-linkedin"></i></a>
+                  <a href="#"><i class="fab fa-twitter"></i></a>
+                </div>
+              </div>
+            </div>
+          }
         </div>
-        <div class="team-content">
-          <h3 class="team-name">Sarah Johnson</h3>
-          <span class="team-role">Lead Teacher</span>
-          <p class="team-bio">10+ years of experience in English education</p>
-          <div class="team-social">
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-          </div>
-        </div>
+
+        <!-- Bouton Suivant -->
+        @if (hasNextTutorPage) {
+          <button class="carousel-btn carousel-btn-next" (click)="nextTutorPage()">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          </button>
+        }
       </div>
 
-      <div class="team-card">
-        <div class="team-image">
-          <img src="assets/images/member-02.jpg" alt="Michael Brown">
+      <!-- Indicateur de pagination -->
+      @if (totalTutorPages > 1) {
+        <div class="pagination-indicator">
+          <span>{{ currentTutorPage + 1 }} / {{ totalTutorPages }}</span>
         </div>
-        <div class="team-content">
-          <h3 class="team-name">Michael Brown</h3>
-          <span class="team-role">Business English Expert</span>
-          <p class="team-bio">Specialized in corporate training programs</p>
-          <div class="team-social">
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-          </div>
-        </div>
-      </div>
-
-      <div class="team-card">
-        <div class="team-image">
-          <img src="assets/images/member-03.jpg" alt="Emma Wilson">
-        </div>
-        <div class="team-content">
-          <h3 class="team-name">Emma Wilson</h3>
-          <span class="team-role">IELTS Specialist</span>
-          <p class="team-bio">Helped 500+ students achieve their target scores</p>
-          <div class="team-social">
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-          </div>
-        </div>
-      </div>
-
-      <div class="team-card">
-        <div class="team-image">
-          <img src="assets/images/member-04.jpg" alt="James Davis">
-        </div>
-        <div class="team-content">
-          <h3 class="team-name">James Davis</h3>
-          <span class="team-role">Conversation Master</span>
-          <p class="team-bio">Expert in conversational English and pronunciation</p>
-          <div class="team-social">
-            <a href="#"><i class="fab fa-linkedin"></i></a>
-            <a href="#"><i class="fab fa-twitter"></i></a>
-          </div>
-        </div>
-      </div>
-    </div>
+      }
+    }
   </div>
 </section>
 <!-- ***** Team Section End ***** -->

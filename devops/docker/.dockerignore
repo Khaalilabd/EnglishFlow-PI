@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# IDE
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Build artifacts
+**/target/
+**/build/
+**/dist/
+**/out/
+
+# Node modules
+**/node_modules/
+**/.angular/
+
+# Logs
+**/logs/
+**/*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+**/.env
+**/.env.local
+
+# Test
+**/coverage/
+**/.nyc_output/
+
+# Temporary files
+**/*.tmp
+**/*.temp
+**/*.swp
+**/*.swo
+
+# Documentation
+**/docs/
+**/*.md
+!README.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Database
+**/*.db
+**/*.sqlite
+
+# Uploads (will be in volumes)
+**/uploads/

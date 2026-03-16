@@ -83,6 +83,9 @@ export interface AuthResponse {
   postalCode?: string;
   bio?: string;
   englishLevel?: string;
+  yearsOfExperience?: number;
+  specializations?: string;
+  applicationId?: number;
   profileCompleted?: boolean;
   expiresIn?: number;
   refreshTokenExpiryDate?: string;

@@ -50,8 +50,8 @@ eureka:
     lease-renewal-interval-in-seconds: 5
     # Durée avant expiration (par défaut 90s, réduit à 10s)
     lease-expiration-duration-in-seconds: 10
-    # Métadonnées pour identifier l'instance
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
     # Statut initial
     initial-status: STARTING
     # Activer le healthcheck endpoint

@@ -18,11 +18,12 @@ import Swal from 'sweetalert2';
 })
 export class DashboardSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
-  activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
+  activeTab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional' = 'profile';
   
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
   notificationForm!: FormGroup;
+  professionalForm!: FormGroup;
   
   isLoadingProfile = false;
   isLoadingPassword = false;
@@ -40,6 +41,14 @@ export class DashboardSettingsComponent implements OnInit {
   
   // Dark mode
   isDarkMode = false;
+  
+  // Professional documents
+  professionalDocuments: any[] = [];
+  isLoadingDocuments = false;
+  selectedDocumentFile: File | null = null;
+  documentType: string = 'cv';
+  showDocumentViewer = false;
+  currentDocument: any = null;
   
   // Active sessions
   activeSessions: any[] = [];
@@ -156,6 +165,11 @@ export class DashboardSettingsComponent implements OnInit {
           this.authService.updateCurrentUser(updatedUser);
           
           this.initializeForms();
+          
+          // Load professional documents if user is a tutor
+          if (this.currentUser.role === 'TUTOR') {
+            this.loadProfessionalDocuments();
+          }
         }
       },
       error: (error) => {
@@ -195,6 +209,17 @@ export class DashboardSettingsComponent implements OnInit {
       messageNotifications: [true],
       weeklyDigest: [false]
     });
+    
+    this.professionalForm = this.fb.group({
+      yearsOfExperience: [this.currentUser?.yearsOfExperience || 0, [Validators.min(0), Validators.max(50)]],
+      englishLevel: [this.currentUser?.englishLevel || ''],
+      specializations: [this.currentUser?.specializations || '', [Validators.required, Validators.minLength(3)]],
+      education: ['', [Validators.required, Validators.minLength(10)]],
+      certifications: [''],
+      workExperience: ['', [Validators.minLength(10)]],
+      teachingPhilosophy: ['', [Validators.maxLength(1000)]],
+      availability: ['']
+    });
   }
 
   passwordMatchValidator(g: FormGroup) {
@@ -227,7 +252,7 @@ export class DashboardSettingsComponent implements OnInit {
     }
   }
 
-  setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance') {
+  setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional') {
     this.activeTab = tab;
   }
 
@@ -728,5 +753,268 @@ export class DashboardSettingsComponent implements OnInit {
 
   getStatusColor(status: string): string {
     return this.sessionService.getStatusColor(status);
+  }
+
+  // ========== Professional Profile Methods ==========
+
+  loadProfessionalDocuments() {
+    if (!this.currentUser) return;
+    
+    console.log('📄 Loading professional documents for user:', this.currentUser.id);
+    console.log('📋 Application ID:', this.currentUser.applicationId);
+    
+    // S'assurer que le formulaire est initialisé
+    if (!this.professionalForm) {
+      console.log('⚠️ Professional form not initialized yet, initializing...');
+      this.professionalForm = this.fb.group({
+        yearsOfExperience: [0, [Validators.min(0), Validators.max(50)]],
+        englishLevel: [''],
+        specializations: ['', [Validators.required, Validators.minLength(3)]],
+        education: ['', [Validators.required, Validators.minLength(10)]],
+        certifications: [''],
+        workExperience: ['', [Validators.minLength(10)]],
+        teachingPhilosophy: ['', [Validators.maxLength(1000)]],
+        availability: ['']
+      });
+    }
+    
+    this.isLoadingDocuments = true;
+    
+    // Charger les documents professionnels uploadés par le tuteur
+    this.http.get<any[]>(`http://localhost:8080/api/users/${this.currentUser.id}/documents`).subscribe({
+      next: (documents) => {
+        console.log('✅ Professional documents loaded:', documents);
+        this.professionalDocuments = documents;
+        this.isLoadingDocuments = false;
+      },
+      error: (error) => {
+        console.error('❌ Failed to load professional documents:', error);
+        this.professionalDocuments = [];
+        this.isLoadingDocuments = false;
+      }
+    });
+
+    // Si le tuteur a un applicationId, charger aussi les données de recrutement
+    if (this.currentUser.applicationId) {
+      console.log('🎓 Loading recruitment application data...');
+      this.http.get<any>(`http://localhost:8080/api/auth/recruitment/my-application`).subscribe({
+        next: (application) => {
+          console.log('✅ Application data loaded:', application);
+          
+          // Ajouter les documents de l'application à la liste
+          if (application.documents && application.documents.length > 0) {
+            console.log('📎 Adding recruitment documents:', application.documents.length);
+            this.professionalDocuments = [...this.professionalDocuments, ...application.documents];
+          }
+          
+          // Pré-remplir le formulaire avec les données de l'application
+          console.log('📝 Pre-filling form with application data');
+          const formData = {
+            yearsOfExperience: application.yearsOfExperience || this.currentUser?.yearsOfExperience || 0,
+            englishLevel: application.englishLevel || this.currentUser?.englishLevel || '',
+            specializations: application.specializations || this.currentUser?.specializations || '',
+            education: application.education || '',
+            certifications: application.certifications || '',
+            workExperience: application.workExperience || '',
+            teachingPhilosophy: application.teachingPhilosophy || '',
+            availability: application.availability || ''
+          };
+          
+          console.log('📝 Form data to patch:', formData);
+          this.professionalForm.patchValue(formData);
+          console.log('✅ Form values after patch:', this.professionalForm.value);
+        },
+        error: (error) => {
+          console.error('❌ Failed to load recruitment application:', error);
+          // Pré-remplir avec les données du currentUser si disponibles
+          console.log('📝 Pre-filling form with currentUser data');
+          this.professionalForm.patchValue({
+            yearsOfExperience: this.currentUser?.yearsOfExperience || 0,
+            englishLevel: this.currentUser?.englishLevel || '',
+            specializations: this.currentUser?.specializations || ''
+          });
+        }
+      });
+    } else {
+      // Pas d'applicationId, utiliser les données du currentUser
+      console.log('📝 No application ID, using currentUser data');
+      this.professionalForm.patchValue({
+        yearsOfExperience: this.currentUser?.yearsOfExperience || 0,
+        englishLevel: this.currentUser?.englishLevel || '',
+        specializations: this.currentUser?.specializations || ''
+      });
+    }
+  }
+
+  onDocumentFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (file) {
+      // Validate file size (50MB)
+      if (file.size > 50 * 1024 * 1024) {
+        Swal.fire({
+          icon: 'error',
+          title: 'File Too Large',
+          text: 'Please select a file smaller than 50MB',
+          confirmButtonColor: '#3b82f6'
+        });
+        return;
+      }
+      this.selectedDocumentFile = file;
+    }
+  }
+
+  uploadDocument() {
+    if (!this.selectedDocumentFile || !this.currentUser) return;
+
+    const formData = new FormData();
+    formData.append('file', this.selectedDocumentFile);
+    formData.append('documentType', this.documentType);
+
+    this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-document`, formData).subscribe({
+      next: (response) => {
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Document uploaded successfully',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+        this.selectedDocumentFile = null;
+        
+        // Recharger uniquement les documents professionnels (pas toute l'application)
+        this.http.get<any[]>(`http://localhost:8080/api/users/${this.currentUser?.id}/documents`).subscribe({
+          next: (documents) => {
+            // Garder les documents de l'application si ils existent
+            const applicationDocs = this.professionalDocuments.filter(doc => doc.applicationId);
+            this.professionalDocuments = [...documents, ...applicationDocs];
+          },
+          error: (error) => {
+            console.error('Failed to reload documents:', error);
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Upload error:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.error || 'Failed to upload document',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  viewDocument(document: any) {
+    this.currentDocument = document;
+    this.showDocumentViewer = true;
+  }
+
+  closeDocumentViewer() {
+    this.showDocumentViewer = false;
+    this.currentDocument = null;
+  }
+
+  downloadDocument(document: any) {
+    const url = `http://localhost:8081${document.filePath}`;
+    window.open(url, '_blank');
+  }
+
+  deleteDocument(documentId: number) {
+    Swal.fire({
+      title: 'Delete Document?',
+      text: 'This action cannot be undone',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, delete it'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.http.delete(`http://localhost:8080/api/users/documents/${documentId}`).subscribe({
+          next: () => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: 'Document has been deleted',
+              confirmButtonColor: '#3b82f6',
+              timer: 2000
+            });
+            
+            // Retirer le document de la liste
+            this.professionalDocuments = this.professionalDocuments.filter(doc => doc.id !== documentId);
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: error.error?.message || 'Failed to delete document',
+              confirmButtonColor: '#3b82f6'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  onSubmitProfessional() {
+    if (this.professionalForm.invalid) {
+      Object.keys(this.professionalForm.controls).forEach(key => this.professionalForm.get(key)?.markAsTouched());
+      return;
+    }
+
+    const formData = this.professionalForm.value;
+    
+    // Mettre à jour le profil utilisateur
+    this.http.put(`http://localhost:8080/api/users/${this.currentUser?.id}/professional`, formData).subscribe({
+      next: () => {
+        // Mettre à jour currentUser avec les nouvelles valeurs
+        if (this.currentUser) {
+          this.currentUser.yearsOfExperience = formData.yearsOfExperience;
+          this.currentUser.englishLevel = formData.englishLevel;
+          this.currentUser.specializations = formData.specializations;
+          this.authService.updateCurrentUser(this.currentUser);
+        }
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: 'Professional profile updated',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+      },
+      error: (error) => {
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Failed to update professional profile',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  getDocumentIcon(documentType: string): string {
+    const icons: any = {
+      'cv': 'fa-file-alt',
+      'diploma': 'fa-graduation-cap',
+      'certificate': 'fa-certificate',
+      'video': 'fa-video',
+      'other': 'fa-file'
+    };
+    return icons[documentType] || 'fa-file';
+  }
+
+  isVideoFile(filePath: string): boolean {
+    return filePath?.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
+  }
+
+  isPdfFile(filePath: string): boolean {
+    return filePath?.match(/\.pdf$/i) !== null;
+  }
+
+  isImageFile(filePath: string): boolean {
+    return filePath?.match(/\.(jpg|jpeg|png|gif|webp)$/i) !== null;
   }
 }

@@ -28,6 +28,7 @@ import { OAuth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback.
 import { StudentLayoutComponent } from './shared/layout/student-layout/student-layout.component';
 import { TutorLayoutComponent } from './shared/layout/tutor-layout/tutor-layout.component';
 import { authGuard } from './core/guards/auth.guard';
+import { TutorApplicationComponent } from './pages/tutor-application/tutor-application.component';
 import { LessonManagementComponent } from './pages/tutor-panel/lesson-management/lesson-management.component';
 import { roleGuard } from './core/guards/role.guard';
 import { guestGuard } from './core/guards/guest.guard';
@@ -560,6 +561,11 @@ export const routes: Routes = [
         title: 'Invitations | Jungle in English Dashboard'
       },
       {
+        path: 'recruitment',
+        loadComponent: () => import('./pages/admin-panel/recruitment-dashboard/recruitment-dashboard.component').then(m => m.RecruitmentDashboardComponent),
+        title: 'Tutor Recruitment | Jungle in English Dashboard'
+      },
+      {
         path: 'sessions',
         loadComponent: () => import('./pages/admin-sessions/admin-sessions.component').then(m => m.AdminSessionsComponent),
         title: 'Session Management | Jungle in English Dashboard'
@@ -811,6 +817,20 @@ export const routes: Routes = [
         title: 'Gamification | Jungle in English Dashboard'
       }
     ]
+  },
+  
+  // Careers Page - Public route
+  {
+    path: 'careers',
+    loadComponent: () => import('./pages/careers/careers.component').then(m => m.CareersComponent),
+    title: 'Careers | Jungle in English'
+  },
+  
+  // Tutor Application Form - Public route
+  {
+    path: 'apply-tutor',
+    component: TutorApplicationComponent,
+    title: 'Become a Tutor | Jungle in English'
   },
   
   // Page 404 - DOIT ÊTRE EN DERNIER

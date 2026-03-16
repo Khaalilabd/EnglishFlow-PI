@@ -5,8 +5,11 @@ import { AuthService } from '../../core/services/auth.service';
 import { PackService } from '../../core/services/pack.service';
 import { CourseCategoryService } from '../../core/services/course-category.service';
 import { EventService, Event as ClubEvent } from '../../core/services/event.service';
+import { ClubService } from '../../core/services/club.service';
+import { UserService, User } from '../../core/services/user.service';
 import { Pack, PackStatus } from '../../core/models/pack.model';
 import { CourseCategory } from '../../core/models/course-category.model';
+import { Club } from '../../core/models/club.model';
 import { FrontofficeUserDropdownComponent } from '../../shared/components/frontoffice-user-dropdown.component';
 import { FrontofficeNotificationDropdownComponent } from '../../shared/components/frontoffice-notification-dropdown.component';
 import { map } from 'rxjs/operators';
@@ -24,6 +27,7 @@ export class HomeComponent implements OnInit, AfterViewInit {
   mobileMenuOpen = false;
   isAuthenticated$;
   currentUser$;
+  activeSection = 'home';
   
   packs: Pack[] = [];
   categories: CourseCategory[] = [];
@@ -34,11 +38,24 @@ export class HomeComponent implements OnInit, AfterViewInit {
   upcomingEvents: ClubEvent[] = [];
   loadingEvents = false;
   
+  // Clubs
+  clubs: Club[] = [];
+  loadingClubs = false;
+  
+  // Tutors
+  tutors: User[] = [];
+  loadingTutors = false;
+  allTutors: User[] = []; // Tous les tuteurs
+  currentTutorPage = 0;
+  tutorsPerPage = 4;
+  
   constructor(
     public authService: AuthService,
     private packService: PackService,
     private categoryService: CourseCategoryService,
-    private eventService: EventService
+    private eventService: EventService,
+    private clubService: ClubService,
+    private userService: UserService
   ) {
     this.isAuthenticated$ = this.authService.currentUser$.pipe(
       map(user => !!user)
@@ -75,10 +92,15 @@ export class HomeComponent implements OnInit, AfterViewInit {
       }
     }, 500);
     
-    // Charger les catégories et les packs
+    // Charger toutes les données
     this.loadCategories();
     this.loadPacks();
     this.loadUpcomingEvents();
+    this.loadClubs();
+    this.loadTutors();
+    
+    // Ajouter le listener de scroll pour activer les sections
+    this.setupScrollListener();
   }
 
   ngAfterViewInit() {
@@ -110,6 +132,26 @@ export class HomeComponent implements OnInit, AfterViewInit {
         }
       }, 100);
     }
+  }
+
+  setupScrollListener(): void {
+    window.addEventListener('scroll', () => {
+      const sections = ['home', 'services', 'courses', 'clubs', 'team', 'events', 'contact'];
+      const scrollPosition = window.scrollY + 150; // Offset pour la navbar
+      
+      for (const sectionId of sections) {
+        const section = document.getElementById(sectionId);
+        if (section) {
+          const sectionTop = section.offsetTop;
+          const sectionHeight = section.offsetHeight;
+          
+          if (scrollPosition >= sectionTop && scrollPosition < sectionTop + sectionHeight) {
+            this.activeSection = sectionId;
+            break;
+          }
+        }
+      }
+    });
   }
 
   loadCategories(): void {
@@ -210,6 +252,84 @@ export class HomeComponent implements OnInit, AfterViewInit {
         this.loadingEvents = false;
       }
     });
+  }
+
+  loadClubs(): void {
+    this.loadingClubs = true;
+    this.clubService.getApprovedClubs().subscribe({
+      next: (clubs) => {
+        this.clubs = clubs.slice(0, 4); // Show only 4 clubs
+        this.loadingClubs = false;
+      },
+      error: (error) => {
+        console.error('Error loading clubs:', error);
+        this.loadingClubs = false;
+      }
+    });
+  }
+
+  loadTutors(): void {
+    this.loadingTutors = true;
+    console.log('🔍 Loading tutors from public endpoint...');
+    
+    this.userService.getPublicTutors().subscribe({
+      next: (tutors) => {
+        console.log('✅ Tutors received:', tutors);
+        console.log('📊 Number of tutors:', tutors.length);
+        this.allTutors = tutors;
+        this.updateDisplayedTutors();
+        this.loadingTutors = false;
+      },
+      error: (error) => {
+        console.error('❌ Error loading tutors:', error);
+        this.loadingTutors = false;
+        this.tutors = [];
+      }
+    });
+  }
+
+  updateDisplayedTutors(): void {
+    const start = this.currentTutorPage * this.tutorsPerPage;
+    const end = start + this.tutorsPerPage;
+    this.tutors = this.allTutors.slice(start, end);
+  }
+
+  nextTutorPage(): void {
+    if ((this.currentTutorPage + 1) * this.tutorsPerPage < this.allTutors.length) {
+      this.currentTutorPage++;
+      this.updateDisplayedTutors();
+    }
+  }
+
+  previousTutorPage(): void {
+    if (this.currentTutorPage > 0) {
+      this.currentTutorPage--;
+      this.updateDisplayedTutors();
+    }
+  }
+
+  get hasNextTutorPage(): boolean {
+    return (this.currentTutorPage + 1) * this.tutorsPerPage < this.allTutors.length;
+  }
+
+  get hasPreviousTutorPage(): boolean {
+    return this.currentTutorPage > 0;
+  }
+
+  get totalTutorPages(): number {
+    return Math.ceil(this.allTutors.length / this.tutorsPerPage);
+  }
+
+  getTutorPhotoUrl(photoUrl: string | null | undefined): string {
+    if (!photoUrl) {
+      return 'assets/images/member-01.jpg'; // Default image
+    }
+    
+    if (photoUrl.startsWith('http')) {
+      return photoUrl;
+    }
+    
+    return `http://localhost:8081${photoUrl}`;
   }
 
   formatEventDate(dateString: string): string {

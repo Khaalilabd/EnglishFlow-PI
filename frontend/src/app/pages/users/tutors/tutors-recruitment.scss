@@ -1,0 +1,488 @@
+// Recruitment Details Styles
+.modal-large {
+  max-width: 900px !important;
+}
+
+.detail-section {
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #E0E0E0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  h3 {
+    color: #2D5757;
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  h4 {
+    color: #3D3D60;
+    margin: 15px 0 10px 0;
+    font-size: 16px;
+    font-weight: 600;
+  }
+}
+
+.scores-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-bottom: 20px;
+
+  .score-card {
+    background: #F7EDE2;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+
+    .score-label {
+      font-size: 13px;
+      color: #666;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .score-value {
+      font-size: 36px;
+      font-weight: 700;
+      line-height: 1;
+    }
+  }
+}
+
+.recruitment-info {
+  background: #F7EDE2;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .info-row {
+    margin-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.6;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+
+    strong {
+      color: #3D3D60;
+      margin-right: 8px;
+    }
+  }
+}
+
+.documents-section {
+  .documents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    .document-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: #F7EDE2;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: #f0e0cc;
+      }
+
+      .doc-icon {
+        font-size: 28px;
+      }
+
+      .doc-info {
+        flex: 1;
+
+        .doc-name {
+          font-weight: 500;
+          color: #3D3D60;
+          margin-bottom: 4px;
+        }
+
+        .doc-meta {
+          font-size: 12px;
+          color: #666;
+        }
+      }
+
+      .doc-actions {
+        display: flex;
+        gap: 8px;
+
+        .btn-icon {
+          padding: 8px 12px;
+          background: white;
+          border: 1px solid #E0E0E0;
+          border-radius: 6px;
+          cursor: pointer;
+          font-size: 16px;
+          transition: all 0.3s ease;
+
+          &:hover {
+            background: #2D5757;
+            border-color: #2D5757;
+            transform: scale(1.1);
+          }
+        }
+      }
+    }
+  }
+}
+
+.timeline-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-top: 15px;
+
+  .timeline-item {
+    font-size: 14px;
+    color: #666;
+
+    strong {
+      color: #3D3D60;
+      margin-right: 6px;
+    }
+  }
+}
+
+.loading-state {
+  text-align: center;
+  padding: 40px;
+  color: #666;
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(45, 87, 87, 0.2);
+    border-top-color: #2D5757;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+  }
+
+  p {
+    margin: 0;
+    font-size: 14px;
+  }
+}
+
+.no-data {
+  text-align: center;
+  padding: 30px;
+  color: #999;
+  font-style: italic;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Document Viewer Modal (reuse from recruitment dashboard)
+.document-modal {
+  .modal-content {
+    max-width: 95vw;
+    max-height: 95vh;
+    width: 95vw;
+    height: 95vh;
+    display: flex;
+    flex-direction: column;
+
+    .modal-header {
+      padding: 20px 30px;
+      background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+      color: white;
+      border-radius: 12px 12px 0 0;
+
+      h2 {
+        color: white;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 0;
+
+        .doc-icon {
+          font-size: 28px;
+        }
+
+        .doc-info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .doc-name {
+            font-size: 18px;
+            font-weight: 600;
+          }
+
+          .doc-meta {
+            font-size: 13px;
+            opacity: 0.9;
+            font-weight: 400;
+          }
+        }
+      }
+
+      .btn-close {
+        color: white;
+        opacity: 0.8;
+        transition: all 0.3s ease;
+        background: none;
+        border: none;
+        font-size: 32px;
+        cursor: pointer;
+        line-height: 1;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+
+        &:hover {
+          opacity: 1;
+          transform: rotate(90deg);
+        }
+      }
+    }
+
+    .modal-body {
+      padding: 0;
+      flex: 1;
+      overflow: hidden;
+      background: #2a2a2a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .video-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+
+        video {
+          max-width: 100%;
+          max-height: 100%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+        }
+      }
+
+      .pdf-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #525252;
+
+        .pdf-viewer {
+          width: 100%;
+          height: 100%;
+          border: none;
+          background: white;
+        }
+      }
+
+      .image-container {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        overflow: auto;
+
+        .image-viewer {
+          max-width: 100%;
+          max-height: 100%;
+          width: auto;
+          height: auto;
+          object-fit: contain;
+          border-radius: 8px;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+      }
+
+      .document-download-prompt {
+        text-align: center;
+        padding: 60px 40px;
+        color: white;
+
+        .download-icon {
+          font-size: 80px;
+          margin-bottom: 20px;
+          opacity: 0.7;
+        }
+
+        h3 {
+          color: white;
+          margin: 0 0 15px 0;
+          font-size: 24px;
+        }
+
+        p {
+          color: rgba(255, 255, 255, 0.8);
+          margin-bottom: 30px;
+          font-size: 16px;
+        }
+
+        .btn-download {
+          padding: 15px 40px;
+          background: #F6BD60;
+          color: #3D3D60;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+
+          &:hover {
+            background: #f5b04a;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(246, 189, 96, 0.4);
+          }
+        }
+      }
+    }
+
+    .modal-footer {
+      padding: 15px 30px;
+      background: #f8f9fa;
+      border-top: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .document-info {
+        display: flex;
+        gap: 20px;
+        font-size: 14px;
+        color: #666;
+
+        .info-item {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+
+          .icon {
+            font-size: 16px;
+          }
+        }
+      }
+
+      .document-actions {
+        display: flex;
+        gap: 10px;
+
+        .btn-action {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 6px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+
+          &.btn-download {
+            background: #2D5757;
+            color: white;
+
+            &:hover {
+              background: #1f3d3d;
+              transform: translateY(-2px);
+            }
+          }
+
+          &.btn-close-footer {
+            background: #E0E0E0;
+            color: #3D3D60;
+
+            &:hover {
+              background: #d0d0d0;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .scores-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .document-modal {
+    .modal-content {
+      max-width: 100vw;
+      max-height: 100vh;
+      width: 100vw;
+      height: 100vh;
+      border-radius: 0;
+
+      .modal-header {
+        border-radius: 0;
+        padding: 15px 20px;
+
+        h2 {
+          font-size: 16px;
+
+          .doc-icon {
+            font-size: 24px;
+          }
+
+          .doc-info {
+            .doc-name {
+              font-size: 16px;
+            }
+
+            .doc-meta {
+              font-size: 12px;
+            }
+          }
+        }
+      }
+
+      .modal-footer {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px 20px;
+
+        .document-info {
+          flex-direction: column;
+          gap: 8px;
+          width: 100%;
+        }
+
+        .document-actions {
+          width: 100%;
+          justify-content: stretch;
+
+          .btn-action {
+            flex: 1;
+          }
+        }
+      }
+    }
+  }
+}

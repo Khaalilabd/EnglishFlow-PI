@@ -33,6 +33,16 @@ public class UserService {
     private final EmailService emailService;
     private final GamificationIntegrationService gamificationIntegrationService;
     private final ActivationTokenRepository activationTokenRepository;
+    private final com.englishflow.auth.repository.ProfessionalDocumentRepository professionalDocumentRepository;
+    private final com.englishflow.auth.repository.TutorApplicationRepository tutorApplicationRepository;
+
+    public com.englishflow.auth.repository.ProfessionalDocumentRepository getProfessionalDocumentRepository() {
+        return professionalDocumentRepository;
+    }
+    
+    public com.englishflow.auth.repository.TutorApplicationRepository getTutorApplicationRepository() {
+        return tutorApplicationRepository;
+    }
 
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()

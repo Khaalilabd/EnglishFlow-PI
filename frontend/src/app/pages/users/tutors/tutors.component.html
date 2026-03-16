@@ -424,9 +424,9 @@
   </div>
 </div>
 
-<!-- View Modal -->
+<!-- View Modal - Enhanced with Recruitment Details -->
 <div *ngIf="showViewModal && selectedUser" class="modal-overlay" (click)="closeViewModal()">
-  <div class="modal-container modal-view" (click)="$event.stopPropagation()">
+  <div class="modal-container modal-view modal-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2 class="modal-title">Tutor Details</h2>
       <button (click)="closeViewModal()" class="modal-close">
@@ -445,65 +445,180 @@
           {{ selectedUser.isActive ? 'Active' : 'Pending Activation' }}
         </span>
       </div>
-      
-      <div class="view-info-grid">
-        <div class="view-info-item">
-          <span class="view-label">Full Name</span>
-          <span class="view-value">{{ selectedUser.firstName }} {{ selectedUser.lastName }}</span>
-        </div>
-        
-        <div class="view-info-item">
-          <span class="view-label">Email</span>
-          <span class="view-value">{{ selectedUser.email }}</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.phone">
-          <span class="view-label">Phone</span>
-          <span class="view-value">{{ selectedUser.phone }}</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.cin">
-          <span class="view-label">CIN</span>
-          <span class="view-value">{{ selectedUser.cin }}</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.dateOfBirth">
-          <span class="view-label">Date of Birth</span>
-          <span class="view-value">{{ selectedUser.dateOfBirth }}</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.yearsOfExperience">
-          <span class="view-label">Years of Experience</span>
-          <span class="view-value">{{ selectedUser.yearsOfExperience }} years</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.city">
-          <span class="view-label">City</span>
-          <span class="view-value">{{ selectedUser.city }}</span>
-        </div>
-        
-        <div class="view-info-item" *ngIf="selectedUser.postalCode">
-          <span class="view-label">Postal Code</span>
-          <span class="view-value">{{ selectedUser.postalCode }}</span>
-        </div>
-        
-        <div class="view-info-item full-width" *ngIf="selectedUser.address">
-          <span class="view-label">Address</span>
-          <span class="view-value">{{ selectedUser.address }}</span>
-        </div>
-        
-        <div class="view-info-item full-width" *ngIf="selectedUser.bio">
-          <span class="view-label">Bio</span>
-          <span class="view-value">{{ selectedUser.bio }}</span>
-        </div>
-        
-        <div class="view-info-item">
-          <span class="view-label">Registration Fee</span>
-          <span class="view-value">
-            <span [class]="selectedUser.registrationFeePaid ? 'badge-paid' : 'badge-unpaid'">
-              {{ selectedUser.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+
+      <!-- Basic Information -->
+      <div class="detail-section">
+        <h3>📋 Basic Information</h3>
+        <div class="view-info-grid">
+          <div class="view-info-item">
+            <span class="view-label">Full Name</span>
+            <span class="view-value">{{ selectedUser.firstName }} {{ selectedUser.lastName }}</span>
+          </div>
+          
+          <div class="view-info-item">
+            <span class="view-label">Email</span>
+            <span class="view-value">{{ selectedUser.email }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.phone">
+            <span class="view-label">Phone</span>
+            <span class="view-value">{{ selectedUser.phone }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.cin">
+            <span class="view-label">CIN</span>
+            <span class="view-value">{{ selectedUser.cin }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.dateOfBirth">
+            <span class="view-label">Date of Birth</span>
+            <span class="view-value">{{ selectedUser.dateOfBirth }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.yearsOfExperience">
+            <span class="view-label">Years of Experience</span>
+            <span class="view-value">{{ selectedUser.yearsOfExperience }} years</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.city">
+            <span class="view-label">City</span>
+            <span class="view-value">{{ selectedUser.city }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.postalCode">
+            <span class="view-label">Postal Code</span>
+            <span class="view-value">{{ selectedUser.postalCode }}</span>
+          </div>
+          
+          <div class="view-info-item full-width" *ngIf="selectedUser.address">
+            <span class="view-label">Address</span>
+            <span class="view-value">{{ selectedUser.address }}</span>
+          </div>
+          
+          <div class="view-info-item full-width" *ngIf="selectedUser.bio">
+            <span class="view-label">Bio</span>
+            <span class="view-value">{{ selectedUser.bio }}</span>
+          </div>
+          
+          <div class="view-info-item">
+            <span class="view-label">Registration Fee</span>
+            <span class="view-value">
+              <span [class]="selectedUser.registrationFeePaid ? 'badge-paid' : 'badge-unpaid'">
+                {{ selectedUser.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+              </span>
             </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recruitment Details -->
+      <div class="detail-section">
+        <h3>🎓 Recruitment Details</h3>
+        
+        <!-- Debug info -->
+        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px;">
+          <strong>Debug Info:</strong><br>
+          User ID: {{ selectedUser.id }}<br>
+          Application ID: {{ selectedUser.applicationId || 'NOT SET' }}<br>
+          <span *ngIf="!selectedUser.applicationId" style="color: #856404;">
+            ⚠️ This tutor was not created through the recruitment system or the database needs to be updated.
           </span>
+        </div>
+        
+        <div *ngIf="selectedUser.applicationId">
+          <div *ngIf="loadingApplication" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading recruitment details...</p>
+          </div>
+
+          <div *ngIf="!loadingApplication && selectedApplication">
+          <!-- Scores -->
+          <div class="scores-grid" *ngIf="selectedApplication.overallScore">
+            <div class="score-card">
+              <div class="score-label">Qualification</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.qualificationScore)">
+                {{ selectedApplication.qualificationScore || 'N/A' }}
+              </div>
+            </div>
+            <div class="score-card">
+              <div class="score-label">Presentation</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.presentationScore)">
+                {{ selectedApplication.presentationScore || 'N/A' }}
+              </div>
+            </div>
+            <div class="score-card">
+              <div class="score-label">Overall</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.overallScore)">
+                {{ selectedApplication.overallScore || 'N/A' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Qualifications -->
+          <div class="recruitment-info">
+            <div class="info-row" *ngIf="selectedApplication.education">
+              <strong>Education:</strong> {{ selectedApplication.education }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.certifications">
+              <strong>Certifications:</strong> {{ selectedApplication.certifications }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.workExperience">
+              <strong>Work Experience:</strong> {{ selectedApplication.workExperience }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.englishLevel">
+              <strong>English Level:</strong> {{ selectedApplication.englishLevel }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.specializations">
+              <strong>Specializations:</strong> {{ selectedApplication.specializations }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.availability">
+              <strong>Availability:</strong> {{ selectedApplication.availability }}
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="documents-section" *ngIf="selectedApplication.documents && selectedApplication.documents.length > 0">
+            <h4>📎 Documents</h4>
+            <div class="documents-list">
+              <div class="document-item" *ngFor="let doc of selectedApplication.documents">
+                <span class="doc-icon">{{ getDocumentIcon(doc) }}</span>
+                <div class="doc-info">
+                  <div class="doc-name">{{ doc.fileName }}</div>
+                  <div class="doc-meta">
+                    {{ getDocumentTypeName(doc.type) }} • {{ formatFileSize(doc.fileSize) }}
+                  </div>
+                </div>
+                <div class="doc-actions">
+                  <button class="btn-icon" (click)="openDocumentModal(doc)" title="View">👁️</button>
+                  <button class="btn-icon" (click)="downloadDocument(doc)" title="Download">⬇️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Application Timeline -->
+          <div class="timeline-info">
+            <div class="timeline-item">
+              <strong>Applied:</strong> {{ formatDate(selectedApplication.createdAt) }}
+            </div>
+            <div class="timeline-item" *ngIf="selectedApplication.submittedAt">
+              <strong>Submitted:</strong> {{ formatDate(selectedApplication.submittedAt) }}
+            </div>
+            <div class="timeline-item" *ngIf="selectedApplication.interviewScheduledAt">
+              <strong>Interview:</strong> {{ formatDate(selectedApplication.interviewScheduledAt) }}
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedUser.applicationId" class="no-data">
+          <p>⚠️ This tutor was not created through the recruitment system.</p>
+          <p style="font-size: 13px; color: #666;">
+            To see recruitment details, please accept a new application from the Recruitment Dashboard.
+          </p>
+        </div>
+
+        <div *ngIf="selectedUser.applicationId && !loadingApplication && !selectedApplication" class="no-data">
+          <p>No recruitment details available</p>
         </div>
       </div>
       
@@ -520,6 +635,82 @@
   </div>
 </div>
 
+<!-- Document Viewer Modal -->
+<div class="modal-overlay document-modal" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="doc-icon">{{ getDocumentIcon(selectedDocument) }}</span>
+        <div class="doc-info">
+          <span class="doc-name">{{ selectedDocument?.fileName }}</span>
+          <span class="doc-meta">
+            {{ getDocumentTypeName(selectedDocument?.type) }} • 
+            {{ formatFileSize(selectedDocument?.fileSize) }}
+          </span>
+        </div>
+      </h2>
+      <button class="btn-close" (click)="closeDocumentModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Video Player -->
+      <div *ngIf="isVideoDocument(selectedDocument)" class="video-container">
+        <video controls class="video-player" autoplay>
+          <source [src]="documentViewerUrl" [type]="selectedDocument?.fileType">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <!-- PDF Viewer -->
+      <div *ngIf="isPdfDocument(selectedDocument)" class="pdf-container">
+        <iframe [src]="getSafeUrl(documentViewerUrl)" class="pdf-viewer"></iframe>
+      </div>
+      
+      <!-- Image Viewer -->
+      <div *ngIf="isImageDocument(selectedDocument)" class="image-container">
+        <img [src]="documentViewerUrl" [alt]="selectedDocument?.fileName" class="image-viewer">
+      </div>
+      
+      <!-- Other Documents -->
+      <div *ngIf="!isVideoDocument(selectedDocument) && !isPdfDocument(selectedDocument) && !isImageDocument(selectedDocument)" 
+           class="document-download-prompt">
+        <div class="download-icon">📥</div>
+        <h3>Preview not available</h3>
+        <p>This file type cannot be previewed in the browser. Click below to download.</p>
+        <button class="btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>📥</span>
+          Download {{ selectedDocument?.fileName }}
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="document-info">
+        <div class="info-item">
+          <span class="icon">📅</span>
+          <span>Uploaded: {{ formatDate(selectedDocument?.uploadedAt) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📦</span>
+          <span>Size: {{ formatFileSize(selectedDocument?.fileSize) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📄</span>
+          <span>Type: {{ getDocumentTypeName(selectedDocument?.type) }}</span>
+        </div>
+      </div>
+      <div class="document-actions">
+        <button class="btn-action btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>⬇️</span>
+          Download
+        </button>
+        <button class="btn-action btn-close-footer" (click)="closeDocumentModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Confirmation Dialog -->
 <app-confirmation-dialog></app-confirmation-dialog>

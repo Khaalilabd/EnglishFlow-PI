@@ -1,0 +1,136 @@
+<div class="careers-page">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Become a Tutor at Jungle in English</h1>
+      <p class="hero-subtitle">Join our global community of passionate English educators and make a difference in students' lives</p>
+      <button class="btn-apply-hero" (click)="applyNow()">
+        Apply Now
+        <span class="arrow">→</span>
+      </button>
+    </div>
+    <div class="hero-image">
+      <div class="floating-card">
+        <span class="emoji">🌟</span>
+        <div>
+          <div class="card-title">Join 500+ Tutors</div>
+          <div class="card-subtitle">Teaching worldwide</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section">
+    <div class="section-header">
+      <h2>Why Teach With Us?</h2>
+      <p>Discover the benefits of joining our teaching community</p>
+    </div>
+    
+    <div class="benefits-grid">
+      <div class="benefit-card" *ngFor="let benefit of benefits">
+        <div class="benefit-icon">{{ benefit.icon }}</div>
+        <h3>{{ benefit.title }}</h3>
+        <p>{{ benefit.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requirements Section -->
+  <section class="requirements-section">
+    <div class="section-header">
+      <h2>What We're Looking For</h2>
+      <p>Requirements to become a tutor</p>
+    </div>
+    
+    <div class="requirements-content">
+      <div class="requirements-list">
+        <div class="requirement-item" *ngFor="let req of requirements">
+          <span class="check-icon">✓</span>
+          <span>{{ req }}</span>
+        </div>
+      </div>
+      
+      <div class="requirements-cta">
+        <h3>Ready to Apply?</h3>
+        <p>The application process takes about 15-20 minutes to complete</p>
+        <button class="btn-apply" (click)="applyNow()">Start Your Application</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Application Process -->
+  <section class="process-section">
+    <div class="section-header">
+      <h2>Application Process</h2>
+      <p>Simple steps to join our team</p>
+    </div>
+    
+    <div class="process-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Submit Application</h3>
+        <p>Fill out our online application form with your details and qualifications</p>
+      </div>
+      
+      <div class="step-arrow">→</div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Review & Interview</h3>
+        <p>Our team reviews your application and schedules an interview</p>
+      </div>
+      
+      <div class="step-arrow">→</div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Skills Assessment</h3>
+        <p>Complete a brief teaching skills assessment</p>
+      </div>
+      
+      <div class="step-arrow">→</div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <h3>Start Teaching</h3>
+        <p>Get onboarded and start teaching amazing students!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section">
+    <div class="section-header">
+      <h2>What Our Tutors Say</h2>
+      <p>Hear from educators who are already part of our community</p>
+    </div>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+        <div class="quote-icon">"</div>
+        <p class="quote">{{ testimonial.quote }}</p>
+        <div class="author">
+          <div class="author-photo">{{ testimonial.photo }}</div>
+          <div class="author-info">
+            <div class="author-name">{{ testimonial.name }}</div>
+            <div class="author-role">{{ testimonial.role }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Make a Difference?</h2>
+      <p>Join our community of passionate educators and start your teaching journey today</p>
+      <button class="btn-apply-large" (click)="applyNow()">
+        Apply to Become a Tutor
+        <span class="arrow">→</span>
+      </button>
+      <p class="cta-note">Application takes 15-20 minutes • No application fee</p>
+    </div>
+  </section>
+</div>

@@ -7,8 +7,8 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: 50MB
+      max-request-size: 50MB
   cloud:
     config:
       enabled: false
@@ -69,6 +69,14 @@ spring:
               - email
               - profile
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
 app:
   frontend:
@@ -107,8 +115,8 @@ eureka:
     lease-renewal-interval-in-seconds: 5
     # Durée avant expiration (par défaut 90s, réduit à 10s)
     lease-expiration-duration-in-seconds: 10
-    # Métadonnées pour identifier l'instance
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
     # Statut initial
     initial-status: STARTING
     # Activer le healthcheck endpoint

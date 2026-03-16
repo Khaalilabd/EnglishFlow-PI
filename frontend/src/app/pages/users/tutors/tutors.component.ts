@@ -2,7 +2,9 @@ import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { UserService, User, UpdateUserRequest } from '../../../core/services/user.service';
+import { RecruitmentService, ApplicationResponse } from '../../../core/services/recruitment.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmationDialogComponent, ConfirmationConfig } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loader/skeleton-loader.component';
@@ -27,8 +29,13 @@ export class TutorsComponent implements OnInit, OnDestroy {
   
   showEditModal = false;
   showViewModal = false;
+  showDocumentModal = false;
   editForm!: FormGroup;
   selectedUser: User | null = null;
+  selectedApplication: ApplicationResponse | null = null;
+  selectedDocument: any = null;
+  documentViewerUrl: string = '';
+  loadingApplication = false;
   
   currentPage = 1;
   itemsPerPage = 10;
@@ -40,8 +47,10 @@ export class TutorsComponent implements OnInit, OnDestroy {
 
   constructor(
     private userService: UserService,
+    private recruitmentService: RecruitmentService,
     private fb: FormBuilder,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private sanitizer: DomSanitizer
   ) {
     this.initForms();
   }
@@ -364,12 +373,128 @@ export class TutorsComponent implements OnInit, OnDestroy {
 
   openViewModal(user: User): void {
     this.selectedUser = user;
+    this.selectedApplication = null;
     this.showViewModal = true;
+    
+    console.log('👤 Opening view modal for user:', user);
+    console.log('📋 User applicationId:', user.applicationId);
+    
+    // Load recruitment application if exists
+    if (user.applicationId) {
+      console.log('✅ Loading recruitment application...');
+      this.loadingApplication = true;
+      this.recruitmentService.getApplicationByUserId(user.id).subscribe({
+        next: (application) => {
+          console.log('✅ Application loaded:', application);
+          this.selectedApplication = application;
+          this.loadingApplication = false;
+        },
+        error: (error) => {
+          console.error('❌ Error loading application:', error);
+          this.loadingApplication = false;
+        }
+      });
+    } else {
+      console.log('⚠️ No applicationId found for this user');
+    }
   }
 
   closeViewModal(): void {
     this.showViewModal = false;
     this.selectedUser = null;
+    this.selectedApplication = null;
+  }
+
+  // Document viewer methods
+  openDocumentModal(document: any): void {
+    this.selectedDocument = document;
+    this.documentViewerUrl = this.getDocumentUrl(document);
+    this.showDocumentModal = true;
+  }
+
+  closeDocumentModal(): void {
+    this.showDocumentModal = false;
+    this.selectedDocument = null;
+    this.documentViewerUrl = '';
+  }
+
+  getDocumentUrl(document: any): string {
+    return `http://localhost:8080/${document.filePath}`;
+  }
+
+  getSafeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  downloadDocument(document: any): void {
+    const url = this.getDocumentUrl(document);
+    window.open(url, '_blank');
+  }
+
+  getDocumentIcon(document: any): string {
+    const type = document.type.toLowerCase();
+    const fileType = document.fileType?.toLowerCase() || '';
+    
+    if (type === 'video_presentation' || fileType.includes('video')) {
+      return '🎥';
+    } else if (fileType.includes('pdf')) {
+      return '📄';
+    } else if (fileType.includes('image')) {
+      return '🖼️';
+    } else if (fileType.includes('word') || fileType.includes('doc')) {
+      return '📝';
+    }
+    return '📎';
+  }
+
+  isVideoDocument(document: any): boolean {
+    return document.type === 'VIDEO_PRESENTATION' || 
+           document.fileType?.toLowerCase().includes('video');
+  }
+
+  isPdfDocument(document: any): boolean {
+    return document.fileType?.toLowerCase().includes('pdf');
+  }
+
+  isImageDocument(document: any): boolean {
+    return document.fileType?.toLowerCase().includes('image');
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  getDocumentTypeName(type: string): string {
+    const names: { [key: string]: string } = {
+      'CV': 'Curriculum Vitae',
+      'DEGREE': 'Degree Certificate',
+      'CERTIFICATE': 'Teaching Certificate',
+      'ID_CARD': 'ID Card',
+      'VIDEO_PRESENTATION': 'Video Presentation',
+      'OTHER': 'Other Document'
+    };
+    return names[type] || type;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  getScoreColor(score: number | undefined): string {
+    if (!score) return '#999';
+    if (score >= 80) return '#2D5757';
+    if (score >= 60) return '#F6BD60';
+    return '#C84630';
   }
 
   getUserInitials(user: User): string {
