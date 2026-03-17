@@ -249,8 +249,8 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // ACADEMIC_OFFICE_AFFAIR: Ebooks et Assignments
-  academicContentItems: NavItem[] = [
+  // 📚 COURSE MANAGEMENT - Gestion des cours (ACADEMIC only)
+  academicCourseManagementItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 7h10M7 12h10M7 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
       name: "Category Management",
@@ -268,13 +268,21 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       name: "Courses Management",
       path: "/dashboard/courses",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
-    },
+    }
+  ];
+
+  // 📖 LEARNING RESOURCES - Ressources pédagogiques (ACADEMIC only)
+  academicLearningResourcesItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.25736 3.25 4.25 4.25736 4.25 5.5V18.5C4.25 19.7426 5.25736 20.75 6.5 20.75H17.5C18.7426 20.75 19.75 19.7426 19.75 18.5V5.5C19.75 4.25736 18.7426 3.25 17.5 3.25H6.5ZM5.75 5.5C5.75 5.08579 6.08579 4.75 6.5 4.75H17.5C17.9142 4.75 18.25 5.08579 18.25 5.5V18.5C18.25 18.9142 17.9142 19.25 17.5 19.25H6.5C6.08579 19.25 5.75 18.9142 5.75 18.5V5.5Z" fill="currentColor"/></svg>`,
       name: "Ebooks Management",
       path: "/dashboard/ebooks",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
-    },
+    }
+  ];
+
+  // 📝 ASSESSMENT - Évaluations (ACADEMIC only)
+  academicAssessmentItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H18.5001C19.7427 20.75 20.7501 19.7426 20.7501 18.5V5.5C20.7501 4.25736 19.7427 3.25 18.5001 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5001C18.9143 4.75 19.2501 5.08579 19.2501 5.5V18.5C19.2501 18.9142 18.9143 19.25 18.5001 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V5.5ZM6.25005 9.7143C6.25005 9.30008 6.58583 8.9643 7.00005 8.9643L17 8.96429C17.4143 8.96429 17.75 9.30008 17.75 9.71429C17.75 10.1285 17.4143 10.4643 17 10.4643L7.00005 10.4643C6.58583 10.4643 6.25005 10.1285 6.25005 9.7143ZM6.25005 14.2857C6.25005 13.8715 6.58583 13.5357 7.00005 13.5357H17C17.4143 13.5357 17.75 13.8715 17.75 14.2857C17.75 14.6999 17.4143 15.0357 17 15.0357H7.00005C6.58583 15.0357 6.25005 14.6999 6.25005 14.2857Z" fill="currentColor"></path></svg>`,
       name: "Assignments Management",
@@ -295,18 +303,14 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // 💬 COMMUNICATION - Messages
+  // 💬 COMMUNICATION & COMMUNITY - Messages et Forum
   communicationItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 4.48122 4.48122 3.25 6 3.25H18C19.5188 3.25 20.75 4.48122 20.75 6V14C20.75 15.5188 19.5188 16.75 18 16.75H13.5L9.31802 19.8453C8.89676 20.1099 8.34199 20.0677 7.96967 19.7462C7.59735 19.4247 7.5 18.8972 7.72361 18.4722L8.5 17H6C4.48122 17 3.25 15.7688 3.25 14V6ZM6 4.75C5.30964 4.75 4.75 5.30964 4.75 6V14C4.75 14.6904 5.30964 15.25 6 15.25H9C9.30341 15.25 9.58835 15.3949 9.76393 15.6389L9.18198 16.6547L12.682 14.0297C12.8576 13.8951 13.0759 13.8214 13.3 13.8214H18C18.6904 13.8214 19.25 13.2618 19.25 12.5714V6C19.25 5.30964 18.6904 4.75 18 4.75H6Z" fill="currentColor"/><path d="M7.25 8C7.25 7.58579 7.58579 7.25 8 7.25H16C16.4142 7.25 16.75 7.58579 16.75 8C16.75 8.41421 16.4142 8.75 16 8.75H8C7.58579 8.75 7.25 8.41421 7.25 8Z" fill="currentColor"/><path d="M7.25 11C7.25 10.5858 7.58579 10.25 8 10.25H13C13.4142 10.25 13.75 10.5858 13.75 11C13.75 11.4142 13.4142 11.75 13 11.75H8C7.58579 11.75 7.25 11.4142 7.25 11Z" fill="currentColor"/></svg>`,
       name: "Messages",
       path: "/dashboard/messages",
       roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
-    }
-  ];
-
-  // 💬 FORUM MANAGEMENT - Pour ADMIN et ACADEMIC_OFFICE_AFFAIR
-  forumManagementItems: NavItem[] = [
+    },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 4.48122 4.48122 3.25 6 3.25H18C19.5188 3.25 20.75 4.48122 20.75 6V14C20.75 15.5188 19.5188 16.75 18 16.75H13.5L9.31802 19.8453C8.89676 20.1099 8.34199 20.0677 7.96967 19.7462C7.59735 19.4247 7.5 18.8972 7.72361 18.4722L8.5 17H6C4.48122 17 3.25 15.7688 3.25 14V6ZM6 4.75C5.30964 4.75 4.75 5.30964 4.75 6V14C4.75 14.6904 5.30964 15.25 6 15.25H9C9.30341 15.25 9.58835 15.3949 9.76393 15.6389L9.18198 16.6547L12.682 14.0297C12.8576 13.8951 13.0759 13.8214 13.3 13.8214H18C18.6904 13.8214 19.25 13.2618 19.25 12.5714V6C19.25 5.30964 18.6904 4.75 18 4.75H6Z" fill="currentColor"/><path d="M7.25 8C7.25 7.58579 7.58579 7.25 8 7.25H16C16.4142 7.25 16.75 7.58579 16.75 8C16.75 8.41421 16.4142 8.75 16 8.75H8C7.58579 8.75 7.25 8.41421 7.25 8Z" fill="currentColor"/><path d="M7.25 11C7.25 10.5858 7.58579 10.25 8 10.25H13C13.4142 10.25 13.75 10.5858 13.75 11C13.75 11.4142 13.4142 11.75 13 11.75H8C7.58579 11.75 7.25 11.4142 7.25 11Z" fill="currentColor"/></svg>`,
       name: "Forum Management",

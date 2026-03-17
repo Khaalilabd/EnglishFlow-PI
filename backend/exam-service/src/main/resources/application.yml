@@ -3,9 +3,12 @@ spring:
     name: exam-service
   
   cache:
-    type: redis
-    redis:
-      time-to-live: 7200000
+    type: none
+  # Redis cache désactivé temporairement
+  # cache:
+  #   type: redis
+  #   redis:
+  #     time-to-live: 7200000
   
   data:
     redis:

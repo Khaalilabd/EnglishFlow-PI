@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { RecruitmentService, ApplicationResponse } from '../../core/services/recruitment.service';
 
 @Component({
   selector: 'app-tutor-application',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule],
   templateUrl: './tutor-application.component.html',
   styleUrls: ['./tutor-application.component.scss']
 })
@@ -24,6 +24,9 @@ export class TutorApplicationComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
   successMessage = '';
+  
+  // Animation states
+  isButtonAnimating = false;
 
   constructor(
     private fb: FormBuilder,
@@ -66,6 +69,9 @@ export class TutorApplicationComponent implements OnInit {
   }
 
   nextStep(): void {
+    this.isButtonAnimating = true;
+    setTimeout(() => this.isButtonAnimating = false, 600);
+    
     if (this.currentStep === 1 && this.step1Form.valid) {
       this.submitStep1();
     } else if (this.currentStep === 2 && this.step2Form.valid) {
@@ -78,10 +84,17 @@ export class TutorApplicationComponent implements OnInit {
   }
 
   previousStep(): void {
+    this.isButtonAnimating = true;
+    setTimeout(() => this.isButtonAnimating = false, 600);
+    
     if (this.currentStep > 1) {
       this.currentStep--;
       this.errorMessage = '';
     }
+  }
+  
+  goHome(): void {
+    this.router.navigate(['/']);
   }
 
   submitStep1(): void {

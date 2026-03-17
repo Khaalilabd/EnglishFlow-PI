@@ -1,15 +1,27 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { AuthService } from '../../core/services/auth.service';
+import { FrontofficeNotificationDropdownComponent } from '../../shared/components/frontoffice-notification-dropdown.component';
+import { FrontofficeUserDropdownComponent } from '../../shared/components/frontoffice-user-dropdown.component';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-careers',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    CommonModule, 
+    RouterModule,
+    FrontofficeNotificationDropdownComponent,
+    FrontofficeUserDropdownComponent
+  ],
   templateUrl: './careers.component.html',
   styleUrls: ['./careers.component.scss']
 })
 export class CareersComponent {
+  mobileMenuOpen = false;
+  isAuthenticated$;
+
   benefits = [
     { icon: '💰', title: 'Competitive Pay', description: 'Earn competitive rates for your teaching expertise' },
     { icon: '⏰', title: 'Flexible Schedule', description: 'Set your own availability and work hours' },
@@ -49,7 +61,18 @@ export class CareersComponent {
     }
   ];
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {
+    this.isAuthenticated$ = this.authService.currentUser$.pipe(
+      map(user => !!user)
+    );
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
 
   applyNow(): void {
     this.router.navigate(['/apply-tutor']);

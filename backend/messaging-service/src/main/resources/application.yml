@@ -45,6 +45,19 @@ spring:
       max-file-size: 10MB
       max-request-size: 10MB
   
+  # Redis Configuration désactivée temporairement
+  cache:
+    type: none
+  # cache:
+  #   type: redis
+  #   redis:
+  #     time-to-live: 300000
+  #     cache-null-values: false
+  
+  # session:
+  #   store-type: redis
+  #   timeout: 1800s
+  
   # Redis Configuration for caching and WebSocket clustering
   data:
     redis:
@@ -58,16 +71,6 @@ spring:
           max-idle: 10
           min-idle: 5
           max-wait: -1ms
-  
-  cache:
-    type: redis
-    redis:
-      time-to-live: 300000
-      cache-null-values: false
-  
-  session:
-    store-type: redis
-    timeout: 1800s
 
 file:
   upload-dir: uploads/group-photos
@@ -155,6 +158,8 @@ management:
       enabled: true
     readinessState:
       enabled: true
+    redis:
+      enabled: false
     redis:
       enabled: true
   tracing:

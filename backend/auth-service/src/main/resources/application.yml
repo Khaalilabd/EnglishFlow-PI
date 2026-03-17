@@ -13,9 +13,12 @@ spring:
     config:
       enabled: false
   cache:
-    type: redis
-    redis:
-      time-to-live: 3600000
+    type: none
+  # Redis cache désactivé temporairement
+  # cache:
+  #   type: redis
+  #   redis:
+  #     time-to-live: 3600000
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -168,6 +171,8 @@ management:
       enabled: true
     readinessState:
       enabled: true
+    redis:
+      enabled: false
   tracing:
     sampling:
       probability: 1.0
