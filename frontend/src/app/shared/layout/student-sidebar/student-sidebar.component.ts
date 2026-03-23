@@ -166,9 +166,14 @@ export class StudentSidebarComponent {
     },
     {
       id: 'account',
-      title: 'MY ACCOUNT',
-      icon: '⚙️',
+      title: 'ACCOUNT & SECURITY',
+      icon: '🔐',
       items: [
+        {
+          icon: 'fas fa-cog',
+          name: "Settings",
+          path: "/user-panel/settings",
+        },
         {
           icon: 'fas fa-desktop',
           name: "My Sessions",
@@ -178,12 +183,14 @@ export class StudentSidebarComponent {
           icon: 'fas fa-credit-card',
           name: "Subscription",
           path: "/user-panel/subscription",
-        },
-        {
-          icon: 'fas fa-cog',
-          name: "Settings",
-          path: "/user-panel/settings",
-        },
+        }
+      ]
+    },
+    {
+      id: 'support',
+      title: 'HELP & SUPPORT',
+      icon: '💬',
+      items: [
         {
           icon: 'fas fa-exclamation-circle',
           name: "Report Issue",
@@ -191,7 +198,7 @@ export class StudentSidebarComponent {
         },
         {
           icon: 'fas fa-life-ring',
-          name: "Help & Support",
+          name: "Help Center",
           path: "/user-panel/support",
         }
       ]

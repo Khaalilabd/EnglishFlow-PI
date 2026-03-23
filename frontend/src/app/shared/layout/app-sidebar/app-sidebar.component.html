@@ -368,21 +368,23 @@
           <span *ngIf="(isExpanded$ | async) || (isHovered$ | async)">SYSTEM</span>
         </p>
       </div>
-      <a 
-        *ngFor="let nav of systemItems"
-        [routerLink]="nav.path"
-        routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
-        #rla="routerLinkActive"
-        class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
-        [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
-        <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
-        <span 
-          *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
-          class="ml-4 font-medium transition-colors"
-          [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
-          {{ nav.name }}
-        </span>
-      </a>
+      <ng-container *ngFor="let nav of systemItems">
+        <a 
+          *ngIf="!nav.roles || nav.roles.includes(currentUserRole)"
+          [routerLink]="nav.path"
+          routerLinkActive="bg-[#F6BD60]/20 shadow-lg border-l-4 border-[#F6BD60]"
+          #rla="routerLinkActive"
+          class="flex items-center px-4 py-3 rounded-xl hover:bg-white/10 transition-all duration-200 group relative"
+          [title]="!(isExpanded$ | async) && !(isHovered$ | async) ? nav.name : ''">
+          <span class="text-lg w-6 transition-colors" [ngClass]="rla.isActive ? 'text-[#F6BD60]' : 'text-[#F7EDE2]/80'" [innerHTML]="nav.icon | safeHtml"></span>
+          <span 
+            *ngIf="(isExpanded$ | async) || (isHovered$ | async)" 
+            class="ml-4 font-medium transition-colors"
+            [ngClass]="rla.isActive ? 'text-[#F7EDE2]' : 'text-[#F7EDE2]/90'">
+            {{ nav.name }}
+          </span>
+        </a>
+      </ng-container>
     </div>
 
   </div>

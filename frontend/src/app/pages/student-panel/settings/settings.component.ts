@@ -632,40 +632,88 @@ export class DashboardSettingsComponent implements OnInit {
   }
 
   revokeSession(sessionId: number, sessionInfo: string) {
+    // Check if this is the current session
+    // Since sessionToken might be null (OAuth login issue), we check multiple conditions:
+    const session = this.activeSessions.find(s => s.id === sessionId);
+    const storedSessionId = localStorage.getItem('currentSessionId');
+    const isOnlySession = this.activeSessions.length === 1;
+    const isCurrentSession = session?.isCurrent || isOnlySession || (storedSessionId && sessionId.toString() === storedSessionId);
+    
     Swal.fire({
-      title: 'Revoke Session?',
-      html: `Are you sure you want to revoke this session?<br><small class="text-gray-600">${sessionInfo}</small>`,
+      title: isCurrentSession ? 'Terminate Current Session?' : 'Revoke Session?',
+      html: isCurrentSession 
+        ? `<p class="text-red-600 font-semibold mb-2">⚠️ Warning: This is your current session!</p><p>You will be logged out immediately.</p><small class="text-gray-600">${sessionInfo}</small>`
+        : `Are you sure you want to revoke this session?<br><small class="text-gray-600">${sessionInfo}</small>`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, revoke it',
+      confirmButtonText: isCurrentSession ? 'Yes, log me out' : 'Yes, revoke it',
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.sessionService.terminateSession(sessionId).subscribe({
-          next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Session Revoked!',
-              text: 'The session has been terminated successfully',
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-            this.loadSessionSummary();
-            if (this.showSessionsModal) {
-              this.loadAllSessions();
+        if (isCurrentSession) {
+          // If terminating current session, clear everything and logout immediately
+          
+          // Terminate session on backend first
+          this.sessionService.terminateSession(sessionId).subscribe({
+            next: () => {
+              // Clear all storage immediately
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Show success message briefly
+              Swal.fire({
+                icon: 'success',
+                title: 'Logged out!',
+                text: 'Redirecting to home page...',
+                confirmButtonColor: '#3b82f6',
+                timer: 500,
+                showConfirmButton: false,
+                allowOutsideClick: false
+              }).then(() => {
+                // Force complete page reload to home
+                window.location.replace('/');
+              });
+            },
+            error: (error) => {
+              // Even if backend fails, still logout locally
+              console.error('Failed to terminate session on backend:', error);
+              
+              // Clear all storage
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Force redirect
+              window.location.replace('/');
             }
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: error.error?.message || 'Failed to revoke session',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
+          });
+        } else {
+          // Normal revoke for other sessions
+          this.sessionService.terminateSession(sessionId).subscribe({
+            next: () => {
+              Swal.fire({
+                icon: 'success',
+                title: 'Session Revoked!',
+                text: 'The session has been terminated successfully',
+                confirmButtonColor: '#3b82f6',
+                timer: 2000
+              });
+              this.loadSessionSummary();
+              if (this.showSessionsModal) {
+                this.loadAllSessions();
+              }
+            },
+            error: (error) => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.error?.message || 'Failed to revoke session',
+                confirmButtonColor: '#3b82f6'
+              });
+            }
+          });
+        }
       }
     });
   }

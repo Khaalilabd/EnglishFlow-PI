@@ -80,11 +80,17 @@ export class AdminSessionsComponent implements OnInit {
   loadSessions() {
     this.isLoading = true;
     
+    // Get current session token to mark which session is current
+    const currentToken = this.sessionService.getCurrentSessionToken();
+    
     // For now, we'll use the user's own sessions endpoint
     // In production, you'd call the admin search endpoint
-    this.sessionService.getMyActiveSessions().subscribe({
+    this.sessionService.getMyActiveSessions(currentToken || undefined).subscribe({
       next: (sessions) => {
         this.sessions = sessions;
+        console.log('📋 Sessions loaded:', sessions);
+        console.log('🔍 Current session token:', currentToken);
+        console.log('✅ Sessions with isCurrent flag:', sessions.filter(s => s.isCurrent));
         this.applyFilters();
         this.isLoading = false;
       },
@@ -184,44 +190,113 @@ export class AdminSessionsComponent implements OnInit {
   }
 
   terminateSession(session: UserSession) {
+    // Check if this is the current session
+    // Since sessionToken might be null (OAuth login issue), we check multiple conditions:
+    // 1. session.isCurrent flag from backend
+    // 2. If there's only one session, it must be the current one
+    // 3. Compare with stored session ID if available
+    const storedSessionId = localStorage.getItem('currentSessionId');
+    const isOnlySession = this.sessions.length === 1;
+    const isCurrentSession = session.isCurrent || isOnlySession || (storedSessionId && session.id.toString() === storedSessionId);
+    
+    console.log('🔍 Terminating session:', session);
+    console.log('🔍 Is current session?', isCurrentSession);
+    console.log('🔍 Session isCurrent flag:', session.isCurrent);
+    console.log('🔍 Is only session?', isOnlySession);
+    console.log('🔍 Total sessions:', this.sessions.length);
+    console.log('🔍 Stored session ID:', storedSessionId);
+    
     Swal.fire({
-      title: 'Terminate Session?',
-      html: `
-        <div class="text-left">
-          <p class="mb-2">User: <strong>${session.userName || session.userEmail || 'Unknown'}</strong></p>
-          <p class="mb-2">Device: <strong>${session.browserName} on ${session.operatingSystem}</strong></p>
-          <p class="mb-2">Location: <strong>${this.formatLocation(session)}</strong></p>
-        </div>
-      `,
+      title: isCurrentSession ? 'Terminate Current Session?' : 'Terminate Session?',
+      html: isCurrentSession 
+        ? `
+          <div class="text-left">
+            <p class="text-red-600 font-semibold mb-3">⚠️ Warning: This is your current session!</p>
+            <p class="mb-3">You will be logged out immediately and redirected to the home page.</p>
+            <hr class="my-3">
+            <p class="mb-2">Device: <strong>${session.browserName} on ${session.operatingSystem}</strong></p>
+            <p class="mb-2">Location: <strong>${this.formatLocation(session)}</strong></p>
+          </div>
+        `
+        : `
+          <div class="text-left">
+            <p class="mb-2">User: <strong>${session.userName || session.userEmail || 'Unknown'}</strong></p>
+            <p class="mb-2">Device: <strong>${session.browserName} on ${session.operatingSystem}</strong></p>
+            <p class="mb-2">Location: <strong>${this.formatLocation(session)}</strong></p>
+          </div>
+        `,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonColor: '#ef4444',
       cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, terminate',
+      confirmButtonText: isCurrentSession ? 'Yes, log me out' : 'Yes, terminate',
       cancelButtonText: 'Cancel'
     }).then((result) => {
       if (result.isConfirmed) {
-        this.sessionService.terminateSession(session.id).subscribe({
-          next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Session Terminated',
-              text: 'The session has been terminated successfully',
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-            this.loadSessions();
-            this.loadStatistics();
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: error.error?.message || 'Failed to terminate session',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
+        if (isCurrentSession) {
+          console.log('✅ Confirmed: Logging out current session');
+          // If terminating current session, clear everything and logout immediately
+          
+          // Terminate session on backend first
+          this.sessionService.terminateSession(session.id).subscribe({
+            next: () => {
+              console.log('✅ Backend session terminated, clearing storage...');
+              // Clear all local storage immediately
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Show success message briefly
+              Swal.fire({
+                icon: 'success',
+                title: 'Logged out!',
+                text: 'Redirecting to home page...',
+                confirmButtonColor: '#3b82f6',
+                timer: 500,
+                showConfirmButton: false,
+                allowOutsideClick: false
+              }).then(() => {
+                console.log('✅ Redirecting to home...');
+                // Force complete page reload to home
+                window.location.replace('/');
+              });
+            },
+            error: (error) => {
+              // Even if backend fails, still logout locally
+              console.error('Failed to terminate session on backend:', error);
+              
+              // Clear all storage
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Force redirect
+              window.location.replace('/');
+            }
+          });
+        } else {
+          console.log('✅ Confirmed: Terminating other session');
+          // Normal terminate for other sessions
+          this.sessionService.terminateSession(session.id).subscribe({
+            next: () => {
+              Swal.fire({
+                icon: 'success',
+                title: 'Session Terminated',
+                text: 'The session has been terminated successfully',
+                confirmButtonColor: '#3b82f6',
+                timer: 2000
+              });
+              this.loadSessions();
+              this.loadStatistics();
+            },
+            error: (error) => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.error?.message || 'Failed to terminate session',
+                confirmButtonColor: '#3b82f6'
+              });
+            }
+          });
+        }
       }
     });
   }

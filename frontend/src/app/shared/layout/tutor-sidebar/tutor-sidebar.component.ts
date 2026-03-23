@@ -81,6 +81,7 @@ export class TutorSidebarComponent implements OnInit {
       icon: '⚙️',
       items: [
         { icon: 'fas fa-cog', label: 'Settings', route: '/tutor-panel/settings' },
+        { icon: 'fas fa-desktop', label: 'My Sessions', route: '/dashboard/sessions' },
         { icon: 'fas fa-life-ring', label: 'Help & Support', route: '/tutor-panel/support' }
       ]
     }

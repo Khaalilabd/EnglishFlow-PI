@@ -1111,6 +1111,19 @@
                 Revoke
               </button>
             </div>
+            
+            <!-- Current Session Warning -->
+            <div *ngIf="session.isCurrent" class="ml-4">
+              <button 
+                (click)="revokeSession(session.id, session.browserName + ' - ' + formatLocation(session))"
+                class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all shadow-md hover:shadow-lg font-medium">
+                <i class="fas fa-power-off mr-2"></i>
+                Logout
+              </button>
+              <p class="text-xs text-gray-500 mt-1 text-center">
+                (You will be logged out)
+              </p>
+            </div>
           </div>
         </div>
       </div>
