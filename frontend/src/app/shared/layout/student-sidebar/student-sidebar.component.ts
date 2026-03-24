@@ -45,7 +45,7 @@ export class StudentSidebarComponent {
     {
       id: 'home',
       title: 'HOME',
-      icon: '🏠',
+      icon: 'fas fa-home',
       items: [
         {
           icon: 'fas fa-th-large',
@@ -55,17 +55,17 @@ export class StudentSidebarComponent {
       ]
     },
     {
-      id: 'courses',
-      title: 'MY COURSES',
-      icon: '📚',
+      id: 'learning',
+      title: 'LEARNING',
+      icon: 'fas fa-graduation-cap',
       items: [
         {
-          icon: 'fas fa-box',
-          name: "Course Packs",
+          icon: 'fas fa-boxes',
+          name: "My Packs",
           path: "/user-panel/my-packs",
         },
         {
-          icon: 'fas fa-book',
+          icon: 'fas fa-chalkboard',
           name: "My Courses",
           path: "/user-panel/my-courses",
         },
@@ -75,6 +75,11 @@ export class StudentSidebarComponent {
           path: "/user-panel/course-catalog",
         },
         {
+          icon: 'fas fa-tablet-alt',
+          name: "Ebooks",
+          path: "/user-panel/ebooks",
+        },
+        {
           icon: 'fas fa-calendar-alt',
           name: "My Schedule",
           path: "/user-panel/schedule",
@@ -82,15 +87,10 @@ export class StudentSidebarComponent {
       ]
     },
     {
-      id: 'learning',
-      title: 'LEARNING RESOURCES',
-      icon: '📖',
+      id: 'activities',
+      title: 'ACTIVITIES',
+      icon: 'fas fa-tasks',
       items: [
-        {
-          icon: 'fas fa-book-open',
-          name: "Ebooks Library",
-          path: "/user-panel/ebooks",
-        },
         {
           icon: 'fas fa-clipboard-list',
           name: "Assignments",
@@ -99,25 +99,18 @@ export class StudentSidebarComponent {
           badgeColor: "bg-orange-500"
         },
         {
-          icon: 'fas fa-question-circle',
+          icon: 'fas fa-clipboard-check',
           name: "Quizzes",
           path: "/user-panel/quizzes",
-        }
-      ]
-    },
-    {
-      id: 'assessment',
-      title: 'ASSESSMENT',
-      icon: '🎓',
-      items: [
+        },
         {
-          icon: 'fas fa-graduation-cap',
+          icon: 'fas fa-certificate',
           name: "CEFR Exams",
           path: "/user-panel/exams",
         },
         {
           icon: 'fas fa-chart-bar',
-          name: "My Exam Results",
+          name: "My Results",
           path: "/user-panel/my-exam-results",
         },
         {
@@ -130,7 +123,7 @@ export class StudentSidebarComponent {
     {
       id: 'community',
       title: 'COMMUNITY',
-      icon: '👥',
+      icon: 'fas fa-users',
       items: [
         {
           icon: 'fas fa-users',
@@ -166,9 +159,14 @@ export class StudentSidebarComponent {
     },
     {
       id: 'account',
-      title: 'ACCOUNT & SECURITY',
-      icon: '🔐',
+      title: 'MY ACCOUNT',
+      icon: 'fas fa-user-circle',
       items: [
+        {
+          icon: 'fas fa-user',
+          name: "Profile",
+          path: "/user-panel/profile",
+        },
         {
           icon: 'fas fa-cog',
           name: "Settings",
@@ -176,7 +174,7 @@ export class StudentSidebarComponent {
         },
         {
           icon: 'fas fa-desktop',
-          name: "My Sessions",
+          name: "Sessions",
           path: "/user-panel/sessions",
         },
         {
@@ -188,18 +186,18 @@ export class StudentSidebarComponent {
     },
     {
       id: 'support',
-      title: 'HELP & SUPPORT',
-      icon: '💬',
+      title: 'SUPPORT',
+      icon: 'fas fa-life-ring',
       items: [
-        {
-          icon: 'fas fa-exclamation-circle',
-          name: "Report Issue",
-          path: "/user-panel/complaints",
-        },
         {
           icon: 'fas fa-life-ring',
           name: "Help Center",
           path: "/user-panel/support",
+        },
+        {
+          icon: 'fas fa-exclamation-circle',
+          name: "Report Issue",
+          path: "/user-panel/complaints",
         }
       ]
     }

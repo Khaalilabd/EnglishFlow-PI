@@ -59,22 +59,25 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       : 'from-[#3D3D60] to-[#F6BD60] hover:from-[#4D4D70] hover:to-[#F6BD60]';
   }
 
-  // 📊 OVERVIEW - Vue d'ensemble (visible pour ADMIN et ACADEMIC_OFFICE_AFFAIR)
+  // 📊 OVERVIEW - Vue d'ensemble
   overviewItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V8.99998C3.25 10.2426 4.25736 11.25 5.5 11.25H9C10.2426 11.25 11.25 10.2426 11.25 8.99998V5.5C11.25 4.25736 10.2426 3.25 9 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H9C9.41421 4.75 9.75 5.08579 9.75 5.5V8.99998C9.75 9.41419 9.41421 9.74998 9 9.74998H5.5C5.08579 9.74998 4.75 9.41419 4.75 8.99998V5.5ZM5.5 12.75C4.25736 12.75 3.25 13.7574 3.25 15V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H9C10.2426 20.75 11.25 19.7427 11.25 18.5V15C11.25 13.7574 10.2426 12.75 9 12.75H5.5ZM4.75 15C4.75 14.5858 5.08579 14.25 5.5 14.25H9C9.41421 14.25 9.75 14.5858 9.75 15V18.5C9.75 18.9142 9.41421 19.25 9 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V15ZM12.75 5.5C12.75 4.25736 13.7574 3.25 15 3.25H18.5C19.7426 3.25 20.75 4.25736 20.75 5.5V8.99998C20.75 10.2426 19.7426 11.25 18.5 11.25H15C13.7574 11.25 12.75 10.2426 12.75 8.99998V5.5ZM15 4.75C14.5858 4.75 14.25 5.08579 14.25 5.5V8.99998C14.25 9.41419 14.5858 9.74998 15 9.74998H18.5C18.9142 9.74998 19.25 9.41419 19.25 8.99998V5.5C19.25 5.08579 18.9142 4.75 18.5 4.75H15ZM15 12.75C13.7574 12.75 12.75 13.7574 12.75 15V18.5C12.75 19.7426 13.7574 20.75 15 20.75H18.5C19.7426 20.75 20.75 19.7427 20.75 18.5V15C20.75 13.7574 19.7426 12.75 18.5 12.75H15ZM14.25 15C14.25 14.5858 14.5858 14.25 15 14.25H18.5C18.9142 14.25 19.25 14.5858 19.25 15V18.5C19.25 18.9142 18.9142 19.25 18.5 19.25H15C14.5858 19.25 14.25 18.9142 14.25 18.5V15Z" fill="currentColor"></path></svg>`,
       name: "Dashboard",
       path: "/dashboard",
+      roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
     },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
       name: "Home",
       path: "/",
+      roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
     },
     {
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2ZM8 5.25H5.5C5.08579 5.25 4.75 5.58579 4.75 6V8.25H19.25V6C19.25 5.58579 18.9142 5.25 18.5 5.25H16H8ZM19.25 9.75H4.75V19C4.75 19.4142 5.08579 19.75 5.5 19.75H18.5C18.9142 19.75 19.25 19.4142 19.25 19V9.75Z" fill="currentColor"></path></svg>`,
       name: "Calendar",
       path: "/dashboard/calendar",
+      roles: ['ADMIN', 'ACADEMIC_OFFICE_AFFAIR']
     },
   ];
 
@@ -139,11 +142,11 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // 📈 STATISTICS - Pour ADMIN uniquement
-  adminStatisticsItems: NavItem[] = [
+  // 📈 ANALYTICS - Pour ADMIN uniquement
+  adminAnalyticsItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C11.5858 2 11.25 2.33579 11.25 2.75V12C11.25 12.4142 11.5858 12.75 12 12.75H21.25C21.6642 12.75 22 12.4142 22 12C22 6.47715 17.5228 2 12 2ZM12.75 11.25V3.53263C13.2645 3.57761 13.7659 3.66843 14.25 3.80098V3.80099C15.6929 4.19606 16.9827 4.96184 18.0104 5.98959C19.0382 7.01734 19.8039 8.30707 20.199 9.75C20.3316 10.2341 20.4224 10.7355 20.4674 11.25H12.75ZM2 12C2 7.25083 5.31065 3.27489 9.75 2.25415V3.80099C6.14748 4.78734 3.5 8.0845 3.5 12C3.5 16.6944 7.30558 20.5 12 20.5C15.9155 20.5 19.2127 17.8525 20.199 14.25H21.7459C20.7251 18.6894 16.7492 22 12 22C6.47715 22 2 17.5229 2 12Z" fill="currentColor"></path></svg>`,
-      name: "View Statistics",
+      name: "Statistics",
       path: "/dashboard/statistics",
       roles: ['ADMIN']
     },
@@ -155,8 +158,14 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // 📅 SCHEDULE MANAGEMENT - Pour ACADEMIC_OFFICE_AFFAIR uniquement
-  academicScheduleItems: NavItem[] = [
+  // 💼 OPERATIONS - Gestion opérationnelle (ACADEMIC only - fusion SCHEDULE + FINANCIAL)
+  academicOperationsItems: NavItem[] = [
+    {
+      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2ZM8 5.25H5.5C5.08579 5.25 4.75 5.58579 4.75 6V8.25H19.25V6C19.25 5.58579 18.9142 5.25 18.5 5.25H16H8ZM19.25 9.75H4.75V19C4.75 19.4142 5.08579 19.75 5.5 19.75H18.5C18.9142 19.75 19.25 19.4142 19.25 19V9.75Z" fill="currentColor"></path></svg>`,
+      name: "Schedules",
+      path: "/dashboard/schedules",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
     {
       icon: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2ZM8 5.25H5.5C5.08579 5.25 4.75 5.58579 4.75 6V8.25H19.25V6C19.25 5.58579 18.9142 5.25 18.5 5.25H16H8ZM19.25 9.75H4.75V19C4.75 19.4142 5.08579 19.75 5.5 19.75H18.5C18.9142 19.75 19.25 19.4142 19.25 19V9.75Z" fill="currentColor"></path></svg>`,
       name: "Manage Schedules",
@@ -164,59 +173,67 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
-      icon: `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 2C8.41421 2 8.75 2.33579 8.75 2.75V3.75H15.25V2.75C15.25 2.33579 15.5858 2 16 2C16.4142 2 16.75 2.33579 16.75 2.75V3.75H18.5C19.7426 3.75 20.75 4.75736 20.75 6V9V19C20.75 20.2426 19.7426 21.25 18.5 21.25H5.5C4.25736 21.25 3.25 20.2426 3.25 19V9V6C3.25 4.75736 4.25736 3.75 5.5 3.75H7.25V2.75C7.25 2.33579 7.58579 2 8 2ZM8 5.25H5.5C5.08579 5.25 4.75 5.58579 4.75 6V8.25H19.25V6C19.25 5.58579 18.9142 5.25 18.5 5.25H16H8ZM19.25 9.75H4.75V19C4.75 19.4142 5.08579 19.75 5.5 19.75H18.5C18.9142 19.75 19.25 19.4142 19.25 19V9.75Z" fill="currentColor"></path></svg>`,
-      name: "View Schedules",
-      path: "/dashboard/schedules",
-      roles: ['ACADEMIC_OFFICE_AFFAIR']
-    }
-  ];
-
-  // 💰 FINANCIAL MANAGEMENT - Pour ACADEMIC_OFFICE_AFFAIR uniquement
-  academicFinancialItems: NavItem[] = [
-    {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" fill="currentColor"/></svg>`,
-      name: "Manage Refunds",
-      path: "/dashboard/refunds",
-      roles: ['ACADEMIC_OFFICE_AFFAIR']
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" fill="currentColor"/></svg>`,
-      name: "Manage Payments",
+      name: "Payments",
       path: "/dashboard/payments",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" fill="currentColor"/></svg>`,
-      name: "Manage Subscriptions",
+      name: "Refunds",
+      path: "/dashboard/refunds",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z" fill="currentColor"/></svg>`,
+      name: "Subscriptions",
       path: "/dashboard/subscriptions",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     }
   ];
 
-  // 🎯 CLUBS & EVENTS - Pour ACADEMIC_OFFICE_AFFAIR uniquement
-  academicClubsEventsItems: NavItem[] = [
+  // 👥 COMMUNITY - Clubs, Events & Communication (ACADEMIC only - fusion)
+  academicCommunityItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
-      name: "Manage Clubs",
+      name: "Clubs",
       path: "/dashboard/clubs/manage",
-      roles: ['ACADEMIC_OFFICE_AFFAIR']
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
-      name: "Manage Events",
-      path: "/dashboard/events/manage",
-      roles: ['ACADEMIC_OFFICE_AFFAIR']
-    },
-    {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
-      name: "Event Requests",
-      path: "/dashboard/events/requests",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
       name: "Club Requests",
       path: "/dashboard/clubs/requests",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/></svg>`,
+      name: "Events",
+      path: "/dashboard/events/manage",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM12 7C12.4142 7 12.75 7.33579 12.75 7.75V11.25H16.25C16.6642 11.25 17 11.5858 17 12C17 12.4142 16.6642 12.75 16.25 12.75H12.75V16.25C12.75 16.6642 12.4142 17 12 17C11.5858 17 11.25 16.6642 11.25 16.25V12.75H7.75C7.33579 12.75 7 12.4142 7 12C7 11.5858 7.33579 11.25 7.75 11.25H11.25V7.75C11.25 7.33579 11.5858 7 12 7Z" fill="currentColor"/><path d="M15.5 5.5C15.5 5.08579 15.8358 4.75 16.25 4.75H20.25C20.6642 4.75 21 5.08579 21 5.5C21 5.91421 20.6642 6.25 20.25 6.25H16.25C15.8358 6.25 15.5 5.91421 15.5 5.5Z" fill="currentColor"/></svg>`,
+      name: "Event Requests",
+      path: "/dashboard/events/requests",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 4.48122 4.48122 3.25 6 3.25H18C19.5188 3.25 20.75 4.48122 20.75 6V14C20.75 15.5188 19.5188 16.75 18 16.75H13.5L9.31802 19.8453C8.89676 20.1099 8.34199 20.0677 7.96967 19.7462C7.59735 19.4247 7.5 18.8972 7.72361 18.4722L8.5 17H6C4.48122 17 3.25 15.7688 3.25 14V6ZM6 4.75C5.30964 4.75 4.75 5.30964 4.75 6V14C4.75 14.6904 5.30964 15.25 6 15.25H9C9.30341 15.25 9.58835 15.3949 9.76393 15.6389L9.18198 16.6547L12.682 14.0297C12.8576 13.8951 13.0759 13.8214 13.3 13.8214H18C18.6904 13.8214 19.25 13.2618 19.25 12.5714V6C19.25 5.30964 18.6904 4.75 18 4.75H6Z" fill="currentColor"/><path d="M7.25 8C7.25 7.58579 7.58579 7.25 8 7.25H16C16.4142 7.25 16.75 7.58579 16.75 8C16.75 8.41421 16.4142 8.75 16 8.75H8C7.58579 8.75 7.25 8.41421 7.25 8Z" fill="currentColor"/><path d="M7.25 11C7.25 10.5858 7.58579 10.25 8 10.25H13C13.4142 10.25 13.75 10.5858 13.75 11C13.75 11.4142 13.4142 11.75 13 11.75H8C7.58579 11.75 7.25 11.4142 7.25 11Z" fill="currentColor"/></svg>`,
+      name: "Messages",
+      path: "/dashboard/messages",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.25 6C3.25 4.48122 4.48122 3.25 6 3.25H18C19.5188 3.25 20.75 4.48122 20.75 6V14C20.75 15.5188 19.5188 16.75 18 16.75H13.5L9.31802 19.8453C8.89676 20.1099 8.34199 20.0677 7.96967 19.7462C7.59735 19.4247 7.5 18.8972 7.72361 18.4722L8.5 17H6C4.48122 17 3.25 15.7688 3.25 14V6ZM6 4.75C5.30964 4.75 4.75 5.30964 4.75 6V14C4.75 14.6904 5.30964 15.25 6 15.25H9C9.30341 15.25 9.58835 15.3949 9.76393 15.6389L9.18198 16.6547L12.682 14.0297C12.8576 13.8951 13.0759 13.8214 13.3 13.8214H18C18.6904 13.8214 19.25 13.2618 19.25 12.5714V6C19.25 5.30964 18.6904 4.75 18 4.75H6Z" fill="currentColor"/><path d="M7.25 8C7.25 7.58579 7.58579 7.25 8 7.25H16C16.4142 7.25 16.75 7.58579 16.75 8C16.75 8.41421 16.4142 8.75 16 8.75H8C7.58579 8.75 7.25 8.41421 7.25 8Z" fill="currentColor"/><path d="M7.25 11C7.25 10.5858 7.58579 10.25 8 10.25H13C13.4142 10.25 13.75 10.5858 13.75 11C13.75 11.4142 13.4142 11.75 13 11.75H8C7.58579 11.75 7.25 11.4142 7.25 11Z" fill="currentColor"/></svg>`,
+      name: "Forum",
+      path: "/dashboard/forum",
+      roles: ['ACADEMIC_OFFICE_AFFAIR']
+    },
+    {
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM12 4C16.4183 4 20 7.58172 20 12C20 16.4183 16.4183 20 12 20C7.58172 20 4 16.4183 4 12C4 7.58172 7.58172 4 12 4ZM11.25 8C11.25 7.58579 11.5858 7.25 12 7.25C12.4142 7.25 12.75 7.58579 12.75 8V11.25H16C16.4142 11.25 16.75 11.5858 16.75 12C16.75 12.4142 16.4142 12.75 16 12.75H12.75V16C12.75 16.4142 12.4142 16.75 12 16.75C11.5858 16.75 11.25 16.4142 11.25 16V12.75H8C7.58579 12.75 7.25 12.4142 7.25 12C7.25 11.5858 7.58579 11.25 8 11.25H11.25V8Z" fill="currentColor"/><path d="M15.5 5.5C15.5 5.08579 15.8358 4.75 16.25 4.75H20.25C20.6642 4.75 21 5.08579 21 5.5C21 5.91421 20.6642 6.25 20.25 6.25H16.25C15.8358 6.25 15.5 5.91421 15.5 5.5Z" fill="currentColor"/></svg>`,
+      name: "Moderation",
+      path: "/dashboard/forum-moderation",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     }
   ];
@@ -237,65 +254,56 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-  // 📚 CONTENT MANAGEMENT - Gestion du contenu
-  // ADMIN: Ebooks uniquement
+  // 📚 CONTENT - Gestion du contenu (ADMIN only)
   adminContentItems: NavItem[] = [
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.25736 3.25 4.25 4.25736 4.25 5.5V18.5C4.25 19.7426 5.25736 20.75 6.5 20.75H17.5C18.7426 20.75 19.75 19.7426 19.75 18.5V5.5C19.75 4.25736 18.7426 3.25 17.5 3.25H6.5ZM5.75 5.5C5.75 5.08579 6.08579 4.75 6.5 4.75H17.5C17.9142 4.75 18.25 5.08579 18.25 5.5V18.5C18.25 18.9142 17.9142 19.25 17.5 19.25H6.5C6.08579 19.25 5.75 18.9142 5.75 18.5V5.5Z" fill="currentColor"/></svg>`,
-      name: "Ebooks Management",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 2H9c-1.1 0-2 .9-2 2v5.5c0 .3.2.5.5.5s.5-.2.5-.5V4c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v16c0 .6-.4 1-1 1H9c-.6 0-1-.4-1-1v-5.5c0-.3-.2-.5-.5-.5s-.5.2-.5.5V20c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="currentColor"/><path d="M16 7H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5S16.3 7 16 7zM16 10H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5zM16 13H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5z" fill="currentColor"/></svg>`,
+      name: "Ebooks",
       path: "/dashboard/ebooks",
       roles: ['ADMIN']
     }
   ];
 
-  // 📚 COURSE MANAGEMENT - Gestion des cours (ACADEMIC only)
-  academicCourseManagementItems: NavItem[] = [
+  // 📚 ACADEMIC - Gestion académique (ACADEMIC only - fusion de COURSE + ASSESSMENT + RESOURCES)
+  academicContentItems: NavItem[] = [
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 7h10M7 12h10M7 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
-      name: "Category Management",
+      name: "Categories",
       path: "/dashboard/categories",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
-      name: "Pack Management",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h7v7H3V3zm0 11h7v7H3v-7zm11-11h7v7h-7V3zm0 11h7v7h-7v-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      name: "Packs",
       path: "/dashboard/packs",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.25736 3.25 4.25 4.25736 4.25 5.5V18.5C4.25 19.7426 5.25736 20.75 6.5 20.75H17.5C18.7426 20.75 19.75 19.7426 19.75 18.5V5.5C19.75 4.25736 18.7426 3.25 17.5 3.25H6.5ZM5.75 5.5C5.75 5.08579 6.08579 4.75 6.5 4.75H17.5C17.9142 4.75 18.25 5.08579 18.25 5.5V18.5C18.25 18.9142 17.9142 19.25 17.5 19.25H6.5C6.08579 19.25 5.75 18.9142 5.75 18.5V5.5Z" fill="currentColor"/></svg>`,
-      name: "Courses Management",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 19.5A2.5 2.5 0 0 0 6.5 22H20M4 19.5V4.5A2.5 2.5 0 0 1 6.5 2H20v15M20 17v5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 7h8M8 11h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+      name: "Courses",
       path: "/dashboard/courses",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
-    }
-  ];
-
-  // 📖 LEARNING RESOURCES - Ressources pédagogiques (ACADEMIC only)
-  academicLearningResourcesItems: NavItem[] = [
+    },
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M6.5 3.25C5.25736 3.25 4.25 4.25736 4.25 5.5V18.5C4.25 19.7426 5.25736 20.75 6.5 20.75H17.5C18.7426 20.75 19.75 19.7426 19.75 18.5V5.5C19.75 4.25736 18.7426 3.25 17.5 3.25H6.5ZM5.75 5.5C5.75 5.08579 6.08579 4.75 6.5 4.75H17.5C17.9142 4.75 18.25 5.08579 18.25 5.5V18.5C18.25 18.9142 17.9142 19.25 17.5 19.25H6.5C6.08579 19.25 5.75 18.9142 5.75 18.5V5.5Z" fill="currentColor"/></svg>`,
-      name: "Ebooks Management",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 2H9c-1.1 0-2 .9-2 2v5.5c0 .3.2.5.5.5s.5-.2.5-.5V4c0-.6.4-1 1-1h10c.6 0 1 .4 1 1v16c0 .6-.4 1-1 1H9c-.6 0-1-.4-1-1v-5.5c0-.3-.2-.5-.5-.5s-.5.2-.5.5V20c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" fill="currentColor"/><path d="M16 7H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5S16.3 7 16 7zM16 10H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5zM16 13H11c-.3 0-.5.2-.5.5s.2.5.5.5h5c.3 0 .5-.2.5-.5s-.2-.5-.5-.5z" fill="currentColor"/></svg>`,
+      name: "Ebooks",
       path: "/dashboard/ebooks",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
-    }
-  ];
-
-  // 📝 ASSESSMENT - Évaluations (ACADEMIC only)
-  academicAssessmentItems: NavItem[] = [
+    },
     {
       icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M5.5 3.25C4.25736 3.25 3.25 4.25736 3.25 5.5V18.5C3.25 19.7426 4.25736 20.75 5.5 20.75H18.5001C19.7427 20.75 20.7501 19.7426 20.7501 18.5V5.5C20.7501 4.25736 19.7427 3.25 18.5001 3.25H5.5ZM4.75 5.5C4.75 5.08579 5.08579 4.75 5.5 4.75H18.5001C18.9143 4.75 19.2501 5.08579 19.2501 5.5V18.5C19.2501 18.9142 18.9143 19.25 18.5001 19.25H5.5C5.08579 19.25 4.75 18.9142 4.75 18.5V5.5ZM6.25005 9.7143C6.25005 9.30008 6.58583 8.9643 7.00005 8.9643L17 8.96429C17.4143 8.96429 17.75 9.30008 17.75 9.71429C17.75 10.1285 17.4143 10.4643 17 10.4643L7.00005 10.4643C6.58583 10.4643 6.25005 10.1285 6.25005 9.7143ZM6.25005 14.2857C6.25005 13.8715 6.58583 13.5357 7.00005 13.5357H17C17.4143 13.5357 17.75 13.8715 17.75 14.2857C17.75 14.6999 17.4143 15.0357 17 15.0357H7.00005C6.58583 15.0357 6.25005 14.6999 6.25005 14.2857Z" fill="currentColor"></path></svg>`,
-      name: "Assignments Management",
+      name: "Assignments",
       path: "/dashboard/assignments",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M9 2.25C8.58579 2.25 8.25 2.58579 8.25 3V4.25H6C4.48122 4.25 3.25 5.48122 3.25 7V19C3.25 20.5188 4.48122 21.75 6 21.75H18C19.5188 21.75 20.75 20.5188 20.75 19V7C20.75 5.48122 19.5188 4.25 18 4.25H15.75V3C15.75 2.58579 15.4142 2.25 15 2.25C14.5858 2.25 14.25 2.58579 14.25 3V4.25H9.75V3C9.75 2.58579 9.41421 2.25 9 2.25ZM8.25 5.75V7C8.25 7.41421 8.58579 7.75 9 7.75C9.41421 7.75 9.75 7.41421 9.75 7V5.75H14.25V7C14.25 7.41421 14.5858 7.75 15 7.75C15.4142 7.75 15.75 7.41421 15.75 7V5.75H18C18.6904 5.75 19.25 6.30964 19.25 7V9.25H4.75V7C4.75 6.30964 5.30964 5.75 6 5.75H8.25ZM4.75 10.75V19C4.75 19.6904 5.30964 20.25 6 20.25H18C18.6904 20.25 19.25 19.6904 19.25 19V10.75H4.75ZM8 13.25C7.58579 13.25 7.25 13.5858 7.25 14C7.25 14.4142 7.58579 14.75 8 14.75H16C16.4142 14.75 16.75 14.4142 16.75 14C16.75 13.5858 16.4142 13.25 16 13.25H8ZM7.25 17C7.25 16.5858 7.58579 16.25 8 16.25H13C13.4142 16.25 13.75 16.5858 13.75 17C13.75 17.4142 13.4142 17.75 13 17.75H8C7.58579 17.75 7.25 17.4142 7.25 17Z" fill="currentColor"/></svg>`,
-      name: "Exam Management",
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" fill="currentColor"/><path d="M13.83 19c.65 0 1.2-.42 1.4-1.03l.78-2.36c.18-.54.66-.96 1.22-1.07l2.42-.48c.62-.12 1.08-.66 1.08-1.29v-1.54c0-.63-.46-1.17-1.08-1.29l-2.42-.48c-.56-.11-1.04-.53-1.22-1.07l-.78-2.36c-.2-.61-.75-1.03-1.4-1.03h-3.66c-.65 0-1.2.42-1.4 1.03l-.78 2.36c-.18.54-.66.96-1.22 1.07l-2.42.48C3.46 9.06 3 9.6 3 10.23v1.54c0 .63.46 1.17 1.08 1.29l2.42.48c.56.11 1.04.53 1.22 1.07l.78 2.36c.2.61.75 1.03 1.4 1.03h3.66z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+      name: "Exams",
       path: "/dashboard/exams",
       roles: ['ACADEMIC_OFFICE_AFFAIR']
     },
     {
-      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12 2.25C6.61522 2.25 2.25 6.61522 2.25 12C2.25 17.3848 6.61522 21.75 12 21.75C17.3848 21.75 21.75 17.3848 21.75 12C21.75 6.61522 17.3848 2.25 12 2.25ZM3.75 12C3.75 7.44365 7.44365 3.75 12 3.75C16.5563 3.75 20.25 7.44365 20.25 12C20.25 16.5563 16.5563 20.25 12 20.25C7.44365 20.25 3.75 16.5563 3.75 12ZM12 7.25C12.4142 7.25 12.75 7.58579 12.75 8V11.6893L15.0303 13.9697C15.3232 14.2626 15.3232 14.7374 15.0303 15.0303C14.7374 15.3232 14.2626 15.3232 13.9697 15.0303L11.4697 12.5303C11.329 12.3897 11.25 12.1989 11.25 12V8C11.25 7.58579 11.5858 7.25 12 7.25Z" fill="currentColor"/></svg>`,
+      icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 11l3 3L22 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
       name: "Exam Results",
       path: "/dashboard/exam-results",
       roles: ['ACADEMIC_OFFICE_AFFAIR']

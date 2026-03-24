@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.net.MalformedURLException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -256,6 +257,45 @@ public class MessagingController {
             log.error("Error uploading group photo: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/users/by-role/{role}")
+    public ResponseEntity<List<AuthServiceClient.UserInfo>> getUsersByRole(
+            @PathVariable String role,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("GET /users/by-role/{} for user: {}", role, userId);
+        
+        try {
+            log.info("Calling authServiceClient.getUsersByRole({})", role);
+            AuthServiceClient.UserInfo[] users = authServiceClient.getUsersByRole(role);
+            log.info("Received {} users from auth-service for role: {}", users != null ? users.length : 0, role);
+            
+            if (users == null || users.length == 0) {
+                log.warn("No users returned from auth-service for role: {}", role);
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            
+            List<AuthServiceClient.UserInfo> userList = java.util.Arrays.asList(users);
+            log.info("Before filtering: {} users", userList.size());
+            
+            // Filtrer l'utilisateur actuel de la liste
+            userList = userList.stream()
+                .filter(user -> {
+                    boolean keep = !user.getId().equals(userId);
+                    if (!keep) {
+                        log.info("Filtering out current user: {} (ID: {})", user.getFullName(), user.getId());
+                    }
+                    return keep;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            log.info("After filtering current user (ID: {}), returning {} users", userId, userList.size());
+            return ResponseEntity.ok(userList);
+        } catch (Exception e) {
+            log.error("Error fetching users by role: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

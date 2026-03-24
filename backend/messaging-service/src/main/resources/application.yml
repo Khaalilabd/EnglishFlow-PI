@@ -159,8 +159,6 @@ management:
     readinessState:
       enabled: true
     redis:
-      enabled: false
-    redis:
       enabled: true
   tracing:
     sampling:

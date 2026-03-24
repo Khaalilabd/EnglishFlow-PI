@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { MessagingService } from '../../../../core/services/messaging.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Conversation } from '../../../../core/models/conversation.model';
+import { Conversation, ConversationType, CreateConversationRequest } from '../../../../core/models/conversation.model';
 import { Message, SendMessageRequest, MessageType, MessageStatus } from '../../../../core/models/message.model';
 import { NewConversationModalComponent } from '../new-conversation-modal/new-conversation-modal.component';
 import { Client, IMessage } from '@stomp/stompjs';
@@ -55,6 +55,15 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   editGroupPhotoPreview: string | null = null;
   isLoadingParticipants: boolean = false;
   
+  // Tutor-to-tutor messaging
+  tutors: any[] = [];
+  filteredTutors: any[] = [];
+  tutorSearchQuery: string = '';
+  showTutorsSection: boolean = false;
+  showPackSection: boolean = true;
+  showDiscussionsSection: boolean = true;
+  currentUserRole: string = '';
+  
   // Image modal
   selectedImageUrl: string | null = null;
   selectedImageName: string = '';
@@ -102,6 +111,12 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     const currentUser = this.authService.currentUserValue;
     if (currentUser) {
       this.currentUserId = currentUser.id;
+      this.currentUserRole = currentUser.role;
+      
+      // Si l'utilisateur est un tuteur, charger la liste des tuteurs
+      if (this.currentUserRole === 'TUTOR') {
+        this.loadTutors();
+      }
     }
     this.loadConversations();
     this.connectWebSocket();
@@ -205,6 +220,85 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         },
         error: (error) => console.error('Error loading conversations:', error)
       });
+  }
+  
+  loadTutors(): void {
+    console.log('🔍 loadTutors called, currentUserRole:', this.currentUserRole);
+    this.messagingService.getUsersByRole('TUTOR')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tutors) => {
+          console.log('✅ Tutors received from API:', tutors);
+          console.log('📊 Number of tutors:', tutors.length);
+          this.tutors = tutors;
+          this.filteredTutors = tutors;
+          console.log('Loaded tutors:', tutors);
+        },
+        error: (error) => {
+          console.error('❌ Error loading tutors:', error);
+          console.error('Error details:', error.error);
+          console.error('Status:', error.status);
+        }
+      });
+  }
+  
+  filterTutors(): void {
+    if (!this.tutorSearchQuery.trim()) {
+      this.filteredTutors = this.tutors;
+    } else {
+      const query = this.tutorSearchQuery.toLowerCase();
+      this.filteredTutors = this.tutors.filter(tutor =>
+        `${tutor.firstName} ${tutor.lastName}`.toLowerCase().includes(query) ||
+        tutor.email.toLowerCase().includes(query)
+      );
+    }
+  }
+  
+  toggleTutorsSection(): void {
+    this.showTutorsSection = !this.showTutorsSection;
+  }
+  
+  togglePackSection(): void {
+    this.showPackSection = !this.showPackSection;
+  }
+  
+  toggleDiscussionsSection(): void {
+    this.showDiscussionsSection = !this.showDiscussionsSection;
+  }
+  
+  startConversationWithTutor(tutor: any): void {
+    // Vérifier si une conversation existe déjà avec ce tuteur
+    const existingConversation = this.conversations.find(conv => 
+      conv.type === ConversationType.DIRECT && 
+      conv.participants.some(p => p.userId === tutor.id)
+    );
+    
+    if (existingConversation) {
+      // Sélectionner la conversation existante
+      this.selectConversation(existingConversation.id);
+      this.showTutorsSection = false;
+    } else {
+      // Créer une nouvelle conversation
+      const request: CreateConversationRequest = {
+        type: ConversationType.DIRECT,
+        participantIds: [tutor.id],
+        title: undefined,
+        description: undefined,
+        groupPhoto: undefined
+      };
+      
+      this.messagingService.createConversation(request)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (conversation) => {
+            this.conversations.unshift(conversation);
+            this.filteredConversations = this.conversations;
+            this.selectConversation(conversation.id);
+            this.showTutorsSection = false;
+          },
+          error: (error) => console.error('Error creating conversation:', error)
+        });
+    }
   }
 
   filterConversations(): void {

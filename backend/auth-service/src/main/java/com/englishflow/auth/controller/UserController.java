@@ -180,6 +180,26 @@ public class UserController {
         }
     }
     
+    @GetMapping("/by-role/{role}")
+    public ResponseEntity<List<UserDTO>> getUsersByRolePublic(@PathVariable String role) {
+        try {
+            log.info("Public endpoint: Fetching users with role: {}", role);
+            User.Role userRole = User.Role.valueOf(role.toUpperCase());
+            List<User> users = userRepository.findByRoleAndIsActive(userRole, true);
+            List<UserDTO> userDTOs = users.stream()
+                    .map(UserDTO::fromEntity)
+                    .collect(Collectors.toList());
+            log.info("Found {} active users with role {}", userDTOs.size(), role);
+            return ResponseEntity.ok(userDTOs);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid role: {}", role);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error fetching users by role: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/{id}/public")
     public ResponseEntity<UserDTO> getUserByIdPublic(@PathVariable Long id) {
         log.info("Public endpoint called for user ID: {}", id);
@@ -187,7 +207,7 @@ public class UserController {
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         log.info("Found user: {} {}", user.getFirstName(), user.getLastName());
-        return ResponseEntity.ok(UserDTO.fromEntity(user));
+        return ResponseEntity.ok(UserDTO::fromEntity);
     }
 
     @PostMapping("/batch")

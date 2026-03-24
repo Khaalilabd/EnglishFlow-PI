@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Conversation, CreateConversationRequest } from '../models/conversation.model';
 import { Message, SendMessageRequest, Page, ReactionSummary, AddReactionRequest } from '../models/message.model';
 import { User } from '../models/user.model';
@@ -81,6 +82,19 @@ export class MessagingService {
   // Upload group photo
   uploadGroupPhoto(formData: FormData): Observable<{groupPhoto: string}> {
     return this.http.post<{groupPhoto: string}>(`${this.apiUrl}/upload-group-photo`, formData);
+  }
+  
+  // Get users by role (for tutor-to-tutor messaging)
+  getUsersByRole(role: string): Observable<any[]> {
+    const url = `${this.apiUrl}/users/by-role/${role}`;
+    console.log('🌐 Calling API:', url);
+    return this.http.get<any[]>(url).pipe(
+      tap(response => console.log('📥 API Response:', response)),
+      catchError(error => {
+        console.error('❌ API Error:', error);
+        return throwError(() => error);
+      })
+    );
   }
   
   // Group management

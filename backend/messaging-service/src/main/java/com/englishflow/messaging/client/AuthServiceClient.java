@@ -61,6 +61,43 @@ public class AuthServiceClient {
         return createDefaultUserInfo(userId);
     }
     
+    public UserInfo[] getUsersByRole(String role) {
+        // Utiliser l'endpoint public qui fonctionne correctement
+        String endpoint = role.equalsIgnoreCase("TUTOR") ? "/public/tutors" : "/by-role/" + role;
+        
+        // Essayer d'abord via Eureka
+        try {
+            String url = "http://auth-service/auth/users" + endpoint;
+            log.info("Fetching users by role from Eureka: {}", url);
+            
+            UserInfo[] users = restTemplate.getForObject(url, UserInfo[].class);
+            if (users != null) {
+                log.info("Successfully fetched {} users with role {} via Eureka", users.length, role);
+                return users;
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch users by role via Eureka for role: {}. Error: {}", role, e.getMessage());
+        }
+        
+        // Fallback: essayer via localhost
+        try {
+            String fallbackUrl = "http://localhost:8080/api/auth/users" + endpoint;
+            log.info("Trying fallback URL: {}", fallbackUrl);
+            
+            UserInfo[] users = directRestTemplate.getForObject(fallbackUrl, UserInfo[].class);
+            if (users != null) {
+                log.info("Successfully fetched {} users with role {} via fallback", users.length, role);
+                return users;
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch users by role via fallback for role: {}. Error: {}", role, e.getMessage());
+            log.error("Full error:", e);
+        }
+        
+        log.warn("All attempts failed, returning empty array for role: {}", role);
+        return new UserInfo[0];
+    }
+    
     private UserInfo createDefaultUserInfo(Long userId) {
         UserInfo defaultInfo = new UserInfo();
         defaultInfo.setId(userId);
