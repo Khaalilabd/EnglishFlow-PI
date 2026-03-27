@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Received</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #3D3D60;
+            background-color: #F7EDE2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+            color: #F7EDE2;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #2D5757;
+            font-size: 22px;
+            margin-top: 0;
+        }
+        .content p {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        .highlight-box {
+            background-color: #F7EDE2;
+            border-left: 4px solid #F6BD60;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .next-steps {
+            background-color: #F7EDE2;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 25px 0;
+        }
+        .next-steps h3 {
+            color: #2D5757;
+            margin-top: 0;
+            font-size: 18px;
+        }
+        .next-steps ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin: 8px 0;
+        }
+        .footer {
+            background-color: #3D3D60;
+            color: #F7EDE2;
+            text-align: center;
+            padding: 25px 30px;
+            font-size: 14px;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">✅</div>
+            <h1>Application Received!</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello <span th:text="${firstName}">Candidate</span>,</h2>
+            
+            <p>Thank you for submitting your application to become a tutor at <strong>Jungle in English</strong>!</p>
+            
+            <div class="highlight-box">
+                <p style="margin: 0; font-size: 18px; color: #2D5757;">
+                    <strong>🎉 Your application has been successfully received and is now under review.</strong>
+                </p>
+            </div>
+            
+            <p>We're excited to learn more about your teaching experience and passion for English education. Our recruitment team will carefully review your application, including:</p>
+            
+            <ul>
+                <li>Your qualifications and certifications</li>
+                <li>Teaching experience and methodology</li>
+                <li>Motivation letter and teaching philosophy</li>
+                <li>Submitted documents (CV, certificates, video)</li>
+            </ul>
+            
+            <div class="next-steps">
+                <h3>📋 What Happens Next?</h3>
+                <ul>
+                    <li><strong>Review Process:</strong> Our team will review your application within 3-5 business days</li>
+                    <li><strong>Status Updates:</strong> You'll receive email notifications as your application progresses</li>
+                    <li><strong>Interview:</strong> If selected, we'll schedule an interview to discuss your teaching approach</li>
+                    <li><strong>Skills Assessment:</strong> You may be invited to complete a teaching skills test</li>
+                </ul>
+            </div>
+            
+            <p>We appreciate your interest in joining our team of dedicated English tutors. If you have any questions in the meantime, please don't hesitate to reach out.</p>
+            
+            <p style="margin-top: 30px;">
+                Best regards,<br>
+                <strong>The Jungle in English Recruitment Team</strong>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Jungle in English</strong></p>
+            <p>Empowering English learners worldwide</p>
+            <p style="margin-top: 15px; font-size: 12px; opacity: 0.8;">
+                This is an automated message. Please do not reply directly to this email.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

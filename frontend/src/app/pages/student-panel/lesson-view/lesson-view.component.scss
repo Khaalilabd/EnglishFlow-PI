@@ -1,0 +1,14 @@
+.lesson-content {
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.list-group-item.active {
+  background-color: #2D5757;
+  border-color: #2D5757;
+}
+
+.sticky-top {
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+}

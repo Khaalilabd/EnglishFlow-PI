@@ -1,0 +1,95 @@
+// Admin/Academic Sidebar Styles - Couleurs distinctes par rôle
+:host {
+  display: block;
+}
+
+// Smooth animations for all elements
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Custom scrollbar - Admin (Violet)
+.scrollbar-thumb-blue-400::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #60a5fa 0%, #3b82f6 100%);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  
+  &:hover {
+    background: linear-gradient(180deg, #3b82f6 0%, #2563eb 100%);
+    background-clip: padding-box;
+  }
+}
+
+// Custom scrollbar - Academic (Bleu foncé + Or)
+.scrollbar-thumb-pink-400::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #F6BD60 0%, #F7A020 100%);
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  
+  &:hover {
+    background: linear-gradient(180deg, #F7A020 0%, #F6BD60 100%);
+    background-clip: padding-box;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+// Gradient text effect for logo
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+// Smooth hover effects
+.hover\:opacity-80:hover {
+  opacity: 0.8;
+}
+
+// Glow effect for active items - Academic Panel
+.border-l-4.border-\[\#F6BD60\] {
+  box-shadow: 0 0 20px rgba(246, 189, 96, 0.3);
+}
+
+// Hover glow effect for Academic Panel
+.hover\:bg-\[\#3D3D60\]\/30:hover {
+  box-shadow: 0 4px 12px rgba(61, 61, 96, 0.2);
+}
+
+// Focus states for accessibility
+*:focus-visible {
+  outline: 2px solid #F6BD60;
+  outline-offset: 2px;
+  border-radius: 0.5rem;
+}
+
+// Smooth color transitions
+.transition-colors {
+  transition-property: color, background-color, border-color;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+// Backdrop blur fallback for older browsers
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm {
+    background-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+// Responsive utilities
+@media (max-width: 768px) {
+  aside {
+    width: 100% !important;
+  }
+}

@@ -1,0 +1,237 @@
+# Prometheus Alert Rules for EnglishFlow Auth Service
+# Save this file in your project root directory (same location as prometheus.yml)
+
+groups:
+  - name: auth-service-alerts
+    interval: 30s
+    rules:
+      # ==================== Authentication Alerts ====================
+      
+      # High login failure rate - possible brute force attack
+      - alert: HighLoginFailureRate
+        expr: rate(auth_login_failure_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: security
+        annotations:
+          summary: "High login failure rate detected"
+          description: "Login failure rate is {{ $value | humanize }} per second (threshold: 10). Possible brute force attack."
+          dashboard: "http://localhost:3000/d/auth-service"
+
+      # Very high login failure rate - critical security issue
+      - alert: CriticalLoginFailureRate
+        expr: rate(auth_login_failure_total[5m]) > 50
+        for: 2m
+        labels:
+          severity: critical
+          service: auth-service
+          category: security
+        annotations:
+          summary: "CRITICAL: Very high login failure rate"
+          description: "Login failure rate is {{ $value | humanize }} per second (threshold: 50). Likely under attack!"
+
+      # No successful logins for extended period
+      - alert: NoSuccessfulLogins
+        expr: rate(auth_login_success_total[30m]) == 0 and auth_login_success_total > 0
+        for: 30m
+        labels:
+          severity: warning
+          service: auth-service
+          category: availability
+        annotations:
+          summary: "No successful logins for 30 minutes"
+          description: "There have been no successful logins in the last 30 minutes. Service might be down or users can't login."
+
+      # ==================== Performance Alerts ====================
+      
+      # Slow login performance
+      - alert: SlowLoginPerformance
+        expr: rate(auth_login_duration_seconds_sum[5m]) / rate(auth_login_duration_seconds_count[5m]) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: performance
+        annotations:
+          summary: "Login operations are slow"
+          description: "Average login duration is {{ $value | humanize }}s (threshold: 2s). Performance degradation detected."
+
+      # Very slow login performance
+      - alert: VerySlowLoginPerformance
+        expr: rate(auth_login_duration_seconds_sum[5m]) / rate(auth_login_duration_seconds_count[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: auth-service
+          category: performance
+        annotations:
+          summary: "CRITICAL: Login operations are very slow"
+          description: "Average login duration is {{ $value | humanize }}s (threshold: 5s). Severe performance issue!"
+
+      # ==================== Security Alerts ====================
+      
+      # High rate limit violations
+      - alert: HighRateLimitViolations
+        expr: rate(auth_ratelimit_exceeded_total[5m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: security
+        annotations:
+          summary: "High rate limit violations"
+          description: "Rate limit exceeded {{ $value | humanize }} times per second (threshold: 5). Possible abuse or attack."
+
+      # Many invalid token attempts
+      - alert: HighInvalidTokenAttempts
+        expr: rate(auth_token_invalid_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: security
+        annotations:
+          summary: "High invalid token attempts"
+          description: "Invalid token attempts: {{ $value | humanize }} per second (threshold: 10). Possible token theft or attack."
+
+      # Suspicious sessions detected
+      - alert: SuspiciousSessionsDetected
+        expr: rate(auth_session_suspicious_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: security
+        annotations:
+          summary: "Suspicious sessions detected"
+          description: "{{ $value | humanize }} suspicious sessions per second detected. Investigate immediately."
+
+      # ==================== System Health Alerts ====================
+      
+      # Service is down
+      - alert: AuthServiceDown
+        expr: up{job="auth-service"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: auth-service
+          category: availability
+        annotations:
+          summary: "Auth service is DOWN"
+          description: "Auth service has been down for more than 1 minute. Immediate action required!"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap",job="auth-service"} / jvm_memory_max_bytes{area="heap",job="auth-service"}) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: resources
+        annotations:
+          summary: "High memory usage"
+          description: "JVM heap memory usage is {{ $value | humanize }}% (threshold: 85%). Consider increasing memory or investigating memory leaks."
+
+      # Critical memory usage
+      - alert: CriticalMemoryUsage
+        expr: (jvm_memory_used_bytes{area="heap",job="auth-service"} / jvm_memory_max_bytes{area="heap",job="auth-service"}) * 100 > 95
+        for: 2m
+        labels:
+          severity: critical
+          service: auth-service
+          category: resources
+        annotations:
+          summary: "CRITICAL: Memory usage very high"
+          description: "JVM heap memory usage is {{ $value | humanize }}% (threshold: 95%). Service may crash soon!"
+
+      # ==================== Email Service Alerts ====================
+      
+      # High email failure rate
+      - alert: HighEmailFailureRate
+        expr: rate(auth_email_failed_total[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: email
+        annotations:
+          summary: "High email failure rate"
+          description: "Email failure rate is {{ $value | humanize }} per second (threshold: 1). Check SMTP configuration."
+
+      # No emails being sent
+      - alert: NoEmailsSent
+        expr: rate(auth_email_sent_total[30m]) == 0 and auth_email_sent_total > 0
+        for: 30m
+        labels:
+          severity: warning
+          service: auth-service
+          category: email
+        annotations:
+          summary: "No emails sent for 30 minutes"
+          description: "Email service might be down or misconfigured."
+
+      # ==================== Business Metrics Alerts ====================
+      
+      # Unusual registration spike
+      - alert: UnusualRegistrationSpike
+        expr: rate(auth_registration_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: info
+          service: auth-service
+          category: business
+        annotations:
+          summary: "Unusual registration spike"
+          description: "Registration rate is {{ $value | humanize }} per second (threshold: 10). Could be legitimate growth or bot activity."
+
+      # No registrations for extended period
+      - alert: NoRegistrations
+        expr: rate(auth_registration_total[24h]) == 0 and auth_registration_total > 0
+        for: 24h
+        labels:
+          severity: info
+          service: auth-service
+          category: business
+        annotations:
+          summary: "No new registrations in 24 hours"
+          description: "No new user registrations in the last 24 hours. This might be normal or indicate an issue."
+
+      # ==================== HTTP Performance Alerts ====================
+      
+      # High HTTP error rate (5xx)
+      - alert: HighServerErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"5..",job="auth-service"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: critical
+          service: auth-service
+          category: availability
+        annotations:
+          summary: "High server error rate (5xx)"
+          description: "Server error rate is {{ $value | humanize }} per second. Service is experiencing errors!"
+
+      # High HTTP client error rate (4xx)
+      - alert: HighClientErrorRate
+        expr: rate(http_server_requests_seconds_count{status=~"4..",job="auth-service"}[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: availability
+        annotations:
+          summary: "High client error rate (4xx)"
+          description: "Client error rate is {{ $value | humanize }} per second. Check API usage or validation."
+
+      # Slow HTTP response time
+      - alert: SlowHTTPResponseTime
+        expr: histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job="auth-service"}[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: auth-service
+          category: performance
+        annotations:
+          summary: "Slow HTTP response time"
+          description: "95th percentile response time is {{ $value | humanize }}s (threshold: 2s). Service is slow."

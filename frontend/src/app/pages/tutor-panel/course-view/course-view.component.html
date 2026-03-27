@@ -1,0 +1,414 @@
+<!-- Course View Page -->
+<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
+  
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center min-h-screen">
+    <div class="text-center">
+      <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-600"></div>
+      <p class="mt-4 text-gray-600 dark:text-gray-400 font-medium">Loading course...</p>
+    </div>
+  </div>
+
+  <!-- Course Content -->
+  <div *ngIf="!loading && course" class="max-w-7xl mx-auto px-6 py-8">
+    
+    <!-- Header -->
+    <div class="mb-8 flex items-center justify-between">
+      <button (click)="goBack()" 
+        class="group flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-800 rounded-lg transition-all shadow-sm">
+        <svg class="w-5 h-5 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+        </svg>
+        <span class="font-medium">Back to Courses</span>
+      </button>
+      
+      <button (click)="editCourse()"
+        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+        </svg>
+        Edit Course
+      </button>
+      
+      <button (click)="manageContent()"
+        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        Manage Content
+      </button>
+    </div>
+
+    <!-- Course Hero Section -->
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden mb-8">
+      <!-- Thumbnail -->
+      <div class="relative h-96 bg-gradient-to-br from-blue-500 to-indigo-600 overflow-hidden">
+        <img *ngIf="course.thumbnailUrl" [src]="getThumbnailUrl(course.thumbnailUrl)" alt="Course thumbnail" class="w-full h-full object-cover">
+        <div *ngIf="!course.thumbnailUrl" class="absolute inset-0 flex items-center justify-center">
+          <div class="text-center text-white">
+            <svg class="w-32 h-32 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+            </svg>
+            <p class="text-2xl font-semibold opacity-75">{{course.title}}</p>
+          </div>
+        </div>
+        
+        <!-- Status Badge -->
+        <div class="absolute top-6 right-6 px-5 py-2 rounded-xl font-bold text-sm shadow-lg backdrop-blur-sm"
+          [ngClass]="getStatusColor(course.status)">
+          {{course.status}}
+        </div>
+        
+        <!-- Featured Badge -->
+        <div *ngIf="course.isFeatured" class="absolute top-6 left-6 px-5 py-2 bg-amber-500 text-white rounded-xl font-bold text-sm shadow-lg flex items-center gap-2">
+          <span>⭐</span> Featured
+        </div>
+      </div>
+
+      <!-- Course Info -->
+      <div class="p-10">
+        <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-6">{{course.title}}</h1>
+        
+        <!-- Meta Info -->
+        <div class="flex flex-wrap gap-3 mb-8">
+          <span class="px-5 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl font-semibold text-sm flex items-center gap-2">
+            <span class="text-2xl">{{getCategoryIcon(course.category)}}</span>
+            {{course.category}}
+          </span>
+          <span class="px-5 py-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-xl font-bold text-sm">
+            Level: {{course.level}}
+          </span>
+          <span class="px-5 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-xl font-semibold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{course.duration}}h
+          </span>
+          <span *ngIf="course.maxStudents" class="px-5 py-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-xl font-semibold text-sm flex items-center gap-2">
+            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/>
+            </svg>
+            Max {{course.maxStudents}} students
+          </span>
+        </div>
+
+        <!-- Price -->
+        <div class="mb-8">
+          <div *ngIf="course.price && course.price > 0" class="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border-2 border-green-200 dark:border-green-800">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div>
+              <p class="text-sm text-green-600 dark:text-green-400 font-medium">Course Price</p>
+              <p class="text-3xl font-bold text-green-700 dark:text-green-300">{{course.price}} TND</p>
+            </div>
+          </div>
+          <div *ngIf="!course.price || course.price === 0" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-2xl font-bold text-2xl shadow-lg">
+            FREE COURSE
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="mb-8">
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+            <svg class="w-7 h-7 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+            </svg>
+            About This Course
+          </h2>
+          <p class="text-lg text-gray-700 dark:text-gray-300 leading-relaxed">{{course.description}}</p>
+        </div>
+
+        <!-- Objectives and Prerequisites Grid -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+          <!-- Objectives -->
+          <div *ngIf="course.objectives" class="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border-2 border-blue-200 dark:border-blue-800">
+            <h3 class="text-xl font-bold text-blue-900 dark:text-blue-100 mb-4 flex items-center gap-2">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/>
+                <path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/>
+              </svg>
+              Learning Objectives
+            </h3>
+            <p class="text-blue-700 dark:text-blue-300 whitespace-pre-line leading-relaxed">{{course.objectives}}</p>
+          </div>
+
+          <!-- Prerequisites -->
+          <div *ngIf="course.prerequisites" class="p-6 bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 rounded-2xl border-2 border-amber-200 dark:border-amber-800">
+            <h3 class="text-xl font-bold text-amber-900 dark:text-amber-100 mb-4 flex items-center gap-2">
+              <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+              </svg>
+              Prerequisites
+            </h3>
+            <p class="text-amber-700 dark:text-amber-300 whitespace-pre-line leading-relaxed">{{course.prerequisites}}</p>
+          </div>
+        </div>
+
+        <!-- Course Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-gradient-to-r from-gray-50 to-slate-50 dark:from-gray-900/50 dark:to-slate-900/50 rounded-2xl border border-gray-200 dark:border-gray-700">
+          <div class="text-center">
+            <p class="text-3xl font-bold text-blue-600">{{course.chapterCount || 0}}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Chapters</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-bold text-purple-600">{{course.lessonCount || 0}}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Lessons</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-bold text-emerald-600">{{course.duration}}h</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Duration</p>
+          </div>
+          <div class="text-center">
+            <p class="text-3xl font-bold text-indigo-600">{{course.maxStudents || 'Unlimited'}}</p>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Max Students</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Course Content Section (Chapters & Lessons) -->
+    <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden p-10">
+      <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+        <svg class="w-8 h-8 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+        </svg>
+        Course Content
+      </h2>
+      
+      <!-- Empty State -->
+      <div *ngIf="chapters.length === 0" class="text-center py-16">
+        <svg class="w-24 h-24 mx-auto text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+        </svg>
+        <p class="text-xl text-gray-500 dark:text-gray-400 font-medium">No published chapters yet</p>
+        <p class="text-gray-400 dark:text-gray-500 mt-2">Publish chapters to make them visible here</p>
+        <button (click)="manageContent()" class="mt-6 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg">
+          Manage Content
+        </button>
+      </div>
+
+      <!-- Chapters List -->
+      <div *ngIf="chapters.length > 0" class="space-y-6">
+        <div *ngFor="let chapter of chapters; let i = index" 
+          class="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-2xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all">
+          
+          <!-- Chapter Header (Clickable) -->
+          <div (click)="toggleChapter(chapter.id)" 
+            class="p-6 bg-gradient-to-r from-blue-500 to-purple-600 cursor-pointer hover:from-blue-600 hover:to-purple-700 transition-all">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4 flex-1">
+                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-white font-bold text-xl">
+                  {{i + 1}}
+                </div>
+                <div class="flex-1">
+                  <h3 class="text-xl font-bold text-white">{{chapter.title}}</h3>
+                  <p class="text-blue-100 text-sm mt-1">{{chapter.description}}</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="px-3 py-1 bg-white/20 text-white rounded-lg text-sm font-semibold">
+                  {{getLessonsForChapter(chapter.id).length}} lessons
+                </span>
+                <span *ngIf="chapter.estimatedDuration" class="px-3 py-1 bg-white/20 text-white rounded-lg text-sm font-semibold">
+                  {{chapter.estimatedDuration}} min
+                </span>
+                <!-- Expand/Collapse Icon -->
+                <div class="ml-2 text-white transition-transform" [class.rotate-180]="isChapterExpanded(chapter.id)">
+                  <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lessons List (Collapsible) -->
+          <div *ngIf="isChapterExpanded(chapter.id)" class="p-6 animate-fadeIn">
+            <div *ngIf="getLessonsForChapter(chapter.id).length === 0" class="text-center py-8 text-gray-500 dark:text-gray-400">
+              <p class="text-sm">No published lessons in this chapter yet</p>
+            </div>
+            
+            <div *ngIf="getLessonsForChapter(chapter.id).length > 0" class="space-y-3">
+              <div *ngFor="let lesson of getLessonsForChapter(chapter.id); let j = index"
+                (click)="openLessonModal(lesson)"
+                class="flex items-center gap-4 p-4 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-600 transition-all cursor-pointer hover:shadow-md">
+                
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center text-blue-600 font-semibold">
+                  {{j + 1}}
+                </div>
+                
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-900 dark:text-white">{{lesson.title}}</h4>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-1">{{lesson.description}}</p>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                  <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-semibold">
+                    {{lesson.lessonType}}
+                  </span>
+                  <span *ngIf="lesson.duration" class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    {{lesson.duration}} min
+                  </span>
+                  <span *ngIf="lesson.isPreview" class="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded text-xs font-semibold flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    </svg>
+                    Preview
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- Lesson Content Modal -->
+<div *ngIf="showLessonModal && selectedLesson" class="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4" (click)="closeLessonModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+    
+    <!-- Modal Header -->
+    <div class="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-6 rounded-t-3xl flex items-center justify-between z-10">
+      <div class="flex-1">
+        <div class="flex items-center gap-3 mb-2">
+          <span class="px-3 py-1 bg-white/20 rounded-lg text-sm font-semibold">
+            {{selectedLesson.lessonType}}
+          </span>
+          <span *ngIf="selectedLesson.duration" class="text-sm flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{selectedLesson.duration}} min
+          </span>
+        </div>
+        <h2 class="text-2xl font-bold">{{selectedLesson.title}}</h2>
+        <p class="text-blue-100 mt-2">{{selectedLesson.description}}</p>
+      </div>
+      <button (click)="closeLessonModal()" class="ml-4 p-2 hover:bg-white/20 rounded-lg transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Modal Content -->
+    <div class="p-8">
+      
+      <!-- VIDEO Content -->
+      <div *ngIf="isVideoLesson()" class="space-y-4">
+        <div *ngIf="selectedLesson.contentUrl" class="bg-black rounded-2xl overflow-hidden">
+          <video *ngIf="!selectedLesson.contentUrl.includes('youtube') && !selectedLesson.contentUrl.includes('vimeo')" 
+            [src]="getContentUrl(selectedLesson.contentUrl)" 
+            controls 
+            class="w-full aspect-video">
+            Your browser does not support the video tag.
+          </video>
+          
+          <!-- YouTube Embed -->
+          <iframe *ngIf="selectedLesson.contentUrl.includes('youtube')" 
+            [src]="selectedLesson.contentUrl | safe: 'resourceUrl'"
+            class="w-full aspect-video"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+          
+          <!-- Vimeo Embed -->
+          <iframe *ngIf="selectedLesson.contentUrl.includes('vimeo')" 
+            [src]="selectedLesson.contentUrl | safe: 'resourceUrl'"
+            class="w-full aspect-video"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+        </div>
+        
+        <div *ngIf="!selectedLesson.contentUrl" class="text-center py-16 bg-gray-100 dark:bg-gray-900 rounded-2xl">
+          <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <p class="text-gray-500 dark:text-gray-400">No video content available</p>
+        </div>
+      </div>
+
+      <!-- TEXT Content -->
+      <div *ngIf="isTextLesson()" class="prose dark:prose-invert max-w-none">
+        <div *ngIf="selectedLesson.content" class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6">
+          <div [innerHTML]="selectedLesson.content" class="text-gray-800 dark:text-gray-200 leading-relaxed whitespace-pre-wrap"></div>
+        </div>
+        <div *ngIf="!selectedLesson.content" class="text-center py-16 bg-gray-100 dark:bg-gray-900 rounded-2xl">
+          <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          <p class="text-gray-500 dark:text-gray-400">No text content available</p>
+        </div>
+      </div>
+
+      <!-- DOCUMENT Content -->
+      <div *ngIf="isDocumentLesson()" class="space-y-4">
+        <div *ngIf="selectedLesson.contentUrl" class="bg-gray-50 dark:bg-gray-900 rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-semibold text-gray-900 dark:text-white">Document</p>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Click to download or view</p>
+              </div>
+            </div>
+            <a [href]="getContentUrl(selectedLesson.contentUrl)" target="_blank" download
+              class="px-4 py-2 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-all flex items-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download
+            </a>
+          </div>
+          
+          <!-- PDF Preview -->
+          <iframe *ngIf="selectedLesson.contentUrl.toLowerCase().endsWith('.pdf')"
+            [src]="getContentUrl(selectedLesson.contentUrl) | safe: 'resourceUrl'"
+            class="w-full h-[600px] rounded-lg border-2 border-gray-200 dark:border-gray-700">
+          </iframe>
+        </div>
+        
+        <div *ngIf="!selectedLesson.contentUrl" class="text-center py-16 bg-gray-100 dark:bg-gray-900 rounded-2xl">
+          <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+          </svg>
+          <p class="text-gray-500 dark:text-gray-400">No document available</p>
+        </div>
+      </div>
+
+      <!-- Other Lesson Types (QUIZ, ASSIGNMENT, INTERACTIVE) -->
+      <div *ngIf="!isVideoLesson() && !isTextLesson() && !isDocumentLesson()" class="text-center py-16 bg-gray-100 dark:bg-gray-900 rounded-2xl">
+        <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+        </svg>
+        <p class="text-gray-500 dark:text-gray-400 font-semibold">{{selectedLesson.lessonType}} Content</p>
+        <p class="text-gray-400 text-sm mt-2">This lesson type will be available soon</p>
+      </div>
+
+    </div>
+
+    <!-- Modal Footer -->
+    <div class="sticky bottom-0 bg-gray-50 dark:bg-gray-900 p-6 rounded-b-3xl border-t border-gray-200 dark:border-gray-700">
+      <button (click)="closeLessonModal()" 
+        class="w-full px-6 py-3 bg-gray-600 text-white rounded-xl font-semibold hover:bg-gray-700 transition-all">
+        Close
+      </button>
+    </div>
+  </div>
+</div>

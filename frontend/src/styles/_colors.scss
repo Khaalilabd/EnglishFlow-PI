@@ -1,0 +1,53 @@
+/* ===== JUNGLE IN ENGLISH - COLOR PALETTE ===== */
+/* Based on Home Page Design */
+
+/* Primary Colors */
+$primary-dark: #2D5757;      /* Main green - navbar, titles, buttons */
+$primary-medium: #3D3D60;    /* Gradient complement */
+$primary-light: #3D6D6D;     /* Lighter green variant */
+
+/* Accent Colors */
+$accent-gold: #F6BD60;       /* Main accent - hover, badges, highlights */
+$accent-gold-hover: #f5b04a; /* Darker gold for hover states */
+$accent-red: #C84630;        /* Alerts, important badges */
+
+/* Background Colors */
+$bg-cream: #F7EDE2;          /* Light cream background */
+$bg-white: #ffffff;          /* Pure white */
+$bg-gray-light: #f5f5f5;     /* Light gray */
+
+/* Text Colors */
+$text-dark: #2D5757;         /* Primary text */
+$text-medium: #4a4a4a;       /* Secondary text */
+$text-light: #6b7280;        /* Tertiary text */
+$text-white: #ffffff;        /* White text */
+
+/* Border Colors */
+$border-light: #e5e7eb;      /* Light borders */
+$border-medium: #d1d5db;     /* Medium borders */
+
+/* Status Colors */
+$success: #4ade80;           /* Success green */
+$warning: #F6BD60;           /* Warning gold */
+$error: #C84630;             /* Error red */
+$info: #2D5757;              /* Info dark green */
+
+/* Gradients */
+$gradient-primary: linear-gradient(135deg, $primary-dark 0%, $primary-medium 100%);
+$gradient-accent: linear-gradient(135deg, $accent-gold 0%, $accent-gold-hover 100%);
+$gradient-warm: linear-gradient(135deg, $accent-gold 0%, $accent-red 100%);
+$gradient-bg: linear-gradient(135deg, $bg-cream 0%, $bg-white 100%);
+
+/* Shadows */
+$shadow-sm: 0 2px 8px rgba(45, 87, 87, 0.1);
+$shadow-md: 0 4px 20px rgba(45, 87, 87, 0.15);
+$shadow-lg: 0 8px 32px rgba(45, 87, 87, 0.2);
+$shadow-xl: 0 12px 48px rgba(45, 87, 87, 0.25);
+
+/* Opacity Variants */
+$primary-10: rgba(45, 87, 87, 0.1);
+$primary-20: rgba(45, 87, 87, 0.2);
+$accent-10: rgba(246, 189, 96, 0.1);
+$accent-20: rgba(246, 189, 96, 0.2);
+$white-10: rgba(255, 255, 255, 0.1);
+$white-20: rgba(255, 255, 255, 0.2);

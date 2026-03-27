@@ -1,0 +1,461 @@
+server:
+  port: ${SERVER_PORT:8080}
+
+spring:
+  application:
+    name: api-gateway
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+  codec:
+    max-in-memory-size: 50MB
+  config:
+    import: optional:configserver:${CONFIG_SERVER_URL:http://localhost:8888}
+  cloud:
+    config:
+      enabled: false
+    gateway:
+      httpclient:
+        response-timeout: 300s
+        connect-timeout: 10000
+        pool:
+          max-idle-time: 300000
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Routes les plus spécifiques en premier
+        - id: admin-users-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/admin/users/**
+          filters:
+            - StripPrefix=1
+          order: 1
+            
+        - id: user-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+          order: 2
+        
+        - id: auth-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=1
+          order: 3
+        
+        - id: sessions-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/sessions/**
+          order: 4
+        
+        - id: sessions-service-api
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/sessions/**
+          filters:
+            - StripPrefix=1
+          order: 5
+            
+        - id: community-uploads
+          uri: lb://community-service
+          predicates:
+            - Path=/api/community/uploads/**
+          filters:
+            - StripPrefix=2
+          order: 9
+            
+        - id: community-service
+          uri: lb://community-service
+          predicates:
+            - Path=/api/community/**
+          filters:
+            - StripPrefix=1
+          order: 10
+            
+        # Complaints Service - SSE route must be before general complaints route
+        - id: complaints-service-sse
+          uri: lb://complaints-service
+          predicates:
+            - Path=/api/complaints/notifications/stream/**
+          filters:
+            - StripPrefix=1
+          order: 9
+            
+        - id: complaints-service
+          uri: lb://complaints-service
+          predicates:
+            - Path=/api/complaints/**
+          filters:
+            - StripPrefix=1
+          order: 10
+        
+        # Learning Service - Collections and Reading Progress routes
+        - id: collections-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/collections/**
+          order: 8
+            
+        - id: reading-progress-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/reading-progress/**
+          order: 8
+            
+        - id: learning-service
+          uri: lb://learning-service
+          predicates:
+            - Path=/api/learning/**
+          filters:
+            - StripPrefix=1
+          order: 11
+            
+        - id: club-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/clubs/**
+          filters:
+            - StripPrefix=1
+          order: 12
+            
+        - id: club-members-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/members/**
+          filters:
+            - StripPrefix=1
+          order: 13
+            
+        - id: club-tasks-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/tasks/**
+          filters:
+            - StripPrefix=1
+          order: 14
+            
+        - id: club-update-requests
+          uri: lb://club-service
+          predicates:
+            - Path=/api/club-update-requests/**
+          filters:
+            - StripPrefix=1
+          order: 15
+            
+        - id: event-service
+          uri: lb://event-service
+          predicates:
+            - Path=/api/events/**
+          filters:
+            - StripPrefix=1
+          order: 16
+            
+        - id: event-participants
+          uri: lb://event-service
+          predicates:
+            - Path=/api/participants/**
+          filters:
+            - StripPrefix=1
+          order: 17
+            
+        - id: public-users
+          uri: http://localhost:8081
+          predicates:
+            - Path=/public/**
+          order: 20
+        
+        # Route pour les photos de groupe (plus spécifique, donc avant)
+        - id: group-photos
+          uri: lb://messaging-service
+          predicates:
+            - Path=/uploads/group-photos/**
+          order: 19
+        
+        # Route pour les fichiers uploadés (photos de profil)
+        - id: auth-uploads
+          uri: lb://auth-service
+          predicates:
+            - Path=/uploads/**
+          order: 20
+        
+        # Route pour la page HTML activation-pending
+        - id: activation-pending
+          uri: lb://auth-service
+          predicates:
+            - Path=/activation-pending
+          order: 21
+        
+        # Routes pour les pages d'activation success/error
+        - id: activation-pages
+          uri: lb://auth-service
+          predicates:
+            - Path=/activation-success,/activation-error
+          order: 22
+            
+        - id: messaging-service
+          uri: lb://messaging-service
+          predicates:
+            - Path=/api/messaging/**
+          filters:
+            - StripPrefix=1
+          order: 21
+            
+        - id: messaging-websocket
+          uri: lb://messaging-service
+          predicates:
+            - Path=/ws/**
+          order: 22
+            
+        - id: courses-categories
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/categories/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-packs
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/packs/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-pack-enrollments
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/pack-enrollments/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-tutor-availability
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/tutor-availability/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Chapters and Lessons routes
+        - id: courses-chapters
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/chapters/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-lessons
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lessons/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Lesson Media routes
+        - id: courses-lesson-media
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lesson-media/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # File Upload routes
+        - id: courses-files
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/files/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Enrollment routes
+        - id: courses-enrollments
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/enrollments/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Progress routes
+        - id: courses-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-chapter-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/chapter-progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-lesson-progress
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/lesson-progress/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # User info routes
+        - id: courses-users
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/users/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        # Route for course static files (thumbnails, materials)
+        - id: courses-static-files
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/uploads/courses/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-service
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/courses/**
+          filters:
+            - StripPrefix=1
+          order: 23
+            
+        - id: exam-service
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/exams/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: exam-attempts
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/exam-attempts/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: exam-parts
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/exam-parts/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: exam-questions
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/questions/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: exam-results
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/exam-results/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: exam-grading
+          uri: lb://exam-service
+          predicates:
+            - Path=/api/grading/**
+          filters:
+            - StripPrefix=1
+          order: 24
+            
+        - id: gamification-service
+          uri: lb://gamification-service
+          predicates:
+            - Path=/api/gamification/**
+          filters:
+            - StripPrefix=1
+          order: 25
+            
+        - id: notification-service
+          uri: lb://notification-service
+          predicates:
+            - Path=/api/notifications/**
+          filters:
+            - StripPrefix=1
+          order: 26
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowed-origins: "${FRONTEND_URL:http://localhost:4200}"
+            allowed-methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowed-headers: "*"
+            allow-credentials: true
+            max-age: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: true
+    # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
+    registry-fetch-interval-seconds: 5
+    # Activer le healthcheck
+    healthcheck:
+      enabled: true
+    # Désactiver le cache local pour un rafraîchissement immédiat
+    disable-delta: false
+  instance:
+    prefer-ip-address: true
+    # Intervalle de heartbeat (par défaut 30s, réduit à 5s)
+    lease-renewal-interval-in-seconds: 5
+    # Durée avant expiration (par défaut 90s, réduit à 10s)
+    lease-expiration-duration-in-seconds: 10
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
+    # Statut initial
+    initial-status: STARTING
+    # Activer le healthcheck endpoint
+    health-check-url-path: /actuator/health
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,routes
+  endpoint:
+    gateway:
+      enabled: true
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}

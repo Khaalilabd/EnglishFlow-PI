@@ -1,0 +1,257 @@
+<div class="p-6 space-y-6">
+  <!-- Header -->
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+        <i class="fas fa-headset text-amber-500 mr-2"></i>
+        Complaint Handling Center
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400 mt-1">Academic complaint management system</p>
+    </div>
+  </div>
+
+  <!-- Performance Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div class="bg-gradient-to-br from-red-500 to-red-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm opacity-90 font-medium">Overdue Complaints</div>
+          <div class="text-4xl font-bold mt-2">{{ stats.overdue }}</div>
+          <div class="text-xs opacity-75 mt-1">Requires immediate attention</div>
+        </div>
+        <i class="fas fa-exclamation-triangle text-5xl opacity-30"></i>
+      </div>
+    </div>
+    <div class="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6 text-white transform hover:scale-105 transition-transform duration-200">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-sm opacity-90 font-medium">Resolution Rate</div>
+          <div class="text-4xl font-bold mt-2">{{ stats.resolutionRate }}%</div>
+          <div class="text-xs opacity-75 mt-1">Overall performance</div>
+        </div>
+        <i class="fas fa-chart-line text-5xl opacity-30"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 border-l-4 border-gray-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Total</div>
+          <div class="text-3xl font-bold text-gray-900 dark:text-white mt-1">{{ stats.total }}</div>
+        </div>
+        <i class="fas fa-clipboard-list text-2xl text-gray-400"></i>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 border-l-4 border-blue-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">Open</div>
+          <div class="text-3xl font-bold text-blue-700 dark:text-blue-300 mt-1">{{ stats.open }}</div>
+        </div>
+        <i class="fas fa-folder-open text-2xl text-blue-400"></i>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 border-l-4 border-purple-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wide">In Progress</div>
+          <div class="text-3xl font-bold text-purple-700 dark:text-purple-300 mt-1">{{ stats.inProgress }}</div>
+        </div>
+        <i class="fas fa-spinner text-2xl text-purple-400"></i>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-lg transition-shadow p-5 border-l-4 border-green-500">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">Resolved</div>
+          <div class="text-3xl font-bold text-green-700 dark:text-green-300 mt-1">{{ stats.resolved }}</div>
+        </div>
+        <i class="fas fa-check-circle text-2xl text-green-400"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Filters -->
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div class="border-b border-gray-200 dark:border-gray-700">
+      <nav class="flex flex-wrap gap-2 px-6 py-4" aria-label="Tabs">
+        <button
+          (click)="changeView('all')"
+          [class.bg-amber-500]="filterView === 'all'"
+          [class.text-white]="filterView === 'all'"
+          [class.shadow-md]="filterView === 'all'"
+          [class.bg-gray-100]="filterView !== 'all'"
+          [class.dark:bg-gray-700]="filterView !== 'all'"
+          [class.text-gray-700]="filterView !== 'all'"
+          [class.dark:text-gray-300]="filterView !== 'all'"
+          class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-md">
+          <i class="fas fa-list mr-2"></i>All Complaints
+        </button>
+        <button
+          (click)="changeView('resolved')"
+          [class.bg-green-500]="filterView === 'resolved'"
+          [class.text-white]="filterView === 'resolved'"
+          [class.shadow-md]="filterView === 'resolved'"
+          [class.bg-gray-100]="filterView !== 'resolved'"
+          [class.dark:bg-gray-700]="filterView !== 'resolved'"
+          [class.text-gray-700]="filterView !== 'resolved'"
+          [class.dark:text-gray-300]="filterView !== 'resolved'"
+          class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-md">
+          <i class="fas fa-check-circle mr-2"></i>Resolved
+        </button>
+        <button
+          (click)="changeView('overdue')"
+          [class.bg-red-500]="filterView === 'overdue'"
+          [class.text-white]="filterView === 'overdue'"
+          [class.shadow-md]="filterView === 'overdue'"
+          [class.bg-gray-100]="filterView !== 'overdue'"
+          [class.dark:bg-gray-700]="filterView !== 'overdue'"
+          [class.text-gray-700]="filterView !== 'overdue'"
+          [class.dark:text-gray-300]="filterView !== 'overdue'"
+          class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-md">
+          <i class="fas fa-exclamation-triangle mr-2"></i>Overdue
+        </button>
+        <button
+          (click)="changeView('highPriority')"
+          [class.bg-orange-500]="filterView === 'highPriority'"
+          [class.text-white]="filterView === 'highPriority'"
+          [class.shadow-md]="filterView === 'highPriority'"
+          [class.bg-gray-100]="filterView !== 'highPriority'"
+          [class.dark:bg-gray-700]="filterView !== 'highPriority'"
+          [class.text-gray-700]="filterView !== 'highPriority'"
+          [class.dark:text-gray-300]="filterView !== 'highPriority'"
+          class="px-5 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 hover:shadow-md">
+          <i class="fas fa-fire mr-2"></i>High Priority
+        </button>
+      </nav>
+    </div>
+
+    <!-- Filters -->
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="applyFilters()"
+            placeholder="Search by student name, email, or subject..."
+            class="w-full pl-10 pr-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all">
+        </div>
+        
+        <select
+          [(ngModel)]="filterStatus"
+          (ngModelChange)="applyFilters()"
+          class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all">
+          <option value="all">All Status</option>
+          <option value="OPEN">Open</option>
+          <option value="IN_PROGRESS">In Progress</option>
+          <option value="RESOLVED">Resolved</option>
+          <option value="REJECTED">Rejected</option>
+        </select>
+
+        <select
+          [(ngModel)]="filterPriority"
+          (ngModelChange)="applyFilters()"
+          class="px-4 py-2.5 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all">
+          <option value="all">All Priority</option>
+          <option value="URGENT">Urgent</option>
+          <option value="HIGH">High</option>
+          <option value="MEDIUM">Medium</option>
+          <option value="LOW">Low</option>
+        </select>
+
+        <button
+          (click)="loadComplaints()"
+          class="px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg font-semibold transition-all duration-200 hover:shadow-md transform hover:scale-105">
+          <i class="fas fa-sync-alt mr-2"></i>Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Complaints Cards Grid -->
+    <div class="p-6">
+      <div *ngIf="isLoading" class="text-center py-12">
+        <i class="fas fa-spinner fa-spin text-4xl text-gray-400"></i>
+        <p class="text-gray-500 dark:text-gray-400 mt-4">Loading complaints...</p>
+      </div>
+
+      <div *ngIf="!isLoading && filteredComplaints.length === 0" class="text-center py-12">
+        <i class="fas fa-inbox text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+        <p class="text-gray-500 dark:text-gray-400 text-lg">No complaints found</p>
+      </div>
+
+      <div *ngIf="!isLoading && filteredComplaints.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div *ngFor="let complaint of filteredComplaints" 
+             (click)="viewDetails(complaint)"
+             class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer border-l-4 transform hover:-translate-y-1"
+             [class.border-red-500]="complaint.priority === 'URGENT'"
+             [class.border-orange-500]="complaint.priority === 'HIGH'"
+             [class.border-yellow-500]="complaint.priority === 'MEDIUM'"
+             [class.border-gray-400]="complaint.priority === 'LOW'">
+          
+          <!-- Card Header -->
+          <div class="p-5 border-b border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-start mb-2">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-gray-900 dark:text-white text-lg truncate">{{ complaint.username }}</h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 truncate flex items-center mt-1">
+                  <i class="fas fa-envelope text-xs mr-1.5"></i>{{ complaint.userEmail }}
+                </p>
+              </div>
+              <span [class]="getSeverityBadge(complaint.priority).class" 
+                    class="px-3 py-1 text-white text-xs font-bold rounded-full shadow-sm ml-2 flex-shrink-0">
+                {{ getSeverityBadge(complaint.priority).text }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Card Body -->
+          <div class="p-5 space-y-4">
+            <div>
+              <p class="font-semibold text-gray-900 dark:text-white text-base mb-1 truncate">{{ complaint.subject }}</p>
+              <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed">{{ complaint.description }}</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="bg-gray-50 dark:bg-gray-750 rounded-lg p-2.5">
+                <span class="text-gray-500 dark:text-gray-400 text-xs block mb-1">Category</span>
+                <p class="font-semibold text-gray-900 dark:text-white truncate">{{ complaint.category }}</p>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-750 rounded-lg p-2.5">
+                <span class="text-gray-500 dark:text-gray-400 text-xs block mb-1">Priority</span>
+                <span [class]="getPriorityClass(complaint.priority)" class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full">
+                  {{ complaint.priority }}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 text-sm">
+              <div class="bg-gray-50 dark:bg-gray-750 rounded-lg p-2.5">
+                <span class="text-gray-500 dark:text-gray-400 text-xs block mb-1">Status</span>
+                <span [class]="getStatusClass(complaint.status)" class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full">
+                  {{ complaint.status }}
+                </span>
+              </div>
+              <div class="bg-gray-50 dark:bg-gray-750 rounded-lg p-2.5">
+                <span class="text-gray-500 dark:text-gray-400 text-xs block mb-1">Date</span>
+                <p class="font-semibold text-gray-900 dark:text-white">{{ complaint.createdAt | date:'shortDate' }}</p>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Card Footer -->
+          <div class="px-5 py-3 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-750 dark:to-gray-700 rounded-b-xl flex justify-between items-center border-t border-gray-200 dark:border-gray-700">
+            <button class="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-semibold text-sm flex items-center transition-colors">
+              View Details <i class="fas fa-arrow-right ml-1.5"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

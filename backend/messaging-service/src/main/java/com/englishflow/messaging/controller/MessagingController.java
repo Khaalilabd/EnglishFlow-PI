@@ -1,0 +1,301 @@
+package com.englishflow.messaging.controller;
+
+import com.englishflow.messaging.client.AuthServiceClient;
+import com.englishflow.messaging.config.JwtUtil;
+import com.englishflow.messaging.dto.*;
+import com.englishflow.messaging.service.FileStorageService;
+import com.englishflow.messaging.service.MessagingService;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@RestController
+@RequestMapping("/messaging")
+@RequiredArgsConstructor
+@Slf4j
+public class MessagingController {
+    
+    private final MessagingService messagingService;
+    private final JwtUtil jwtUtil;
+    private final AuthServiceClient authServiceClient;
+    private final FileStorageService fileStorageService;
+    
+    @GetMapping("/conversations")
+    public ResponseEntity<List<ConversationDTO>> getConversations(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("GET /conversations for user: {}", userId);
+        
+        List<ConversationDTO> conversations = messagingService.getUserConversations(userId);
+        return ResponseEntity.ok(conversations);
+    }
+    
+    @GetMapping("/conversations/{conversationId}")
+    public ResponseEntity<ConversationDTO> getConversation(
+            @PathVariable Long conversationId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("GET /conversations/{} for user: {}", conversationId, userId);
+        
+        ConversationDTO conversation = messagingService.getConversation(conversationId, userId);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @PostMapping("/conversations")
+    public ResponseEntity<ConversationDTO> createConversation(
+            @Valid @RequestBody CreateConversationRequest request,
+            Authentication authentication,
+            @RequestHeader("Authorization") String authHeader) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations for user: {}", userId);
+        
+        // Extraire les infos utilisateur du token
+        String token = authHeader.substring(7);
+        String userEmail = jwtUtil.extractEmail(token);
+        String userRole = jwtUtil.extractRole(token);
+        
+        // Récupérer le nom et l'avatar depuis auth-service
+        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+        String userName = userInfo.getFullName();
+        String userAvatar = userInfo.getProfilePhotoUrl();
+        
+        ConversationDTO conversation = messagingService.createConversation(
+            request, userId, userName, userEmail, userRole, userAvatar);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @GetMapping("/conversations/{conversationId}/messages")
+    public ResponseEntity<Page<MessageDTO>> getMessages(
+            @PathVariable Long conversationId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "50") int size,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("GET /conversations/{}/messages for user: {} (page: {}, size: {})", 
+                 conversationId, userId, page, size);
+        
+        Page<MessageDTO> messages = messagingService.getMessages(conversationId, userId, page, size);
+        return ResponseEntity.ok(messages);
+    }
+    
+    @PostMapping("/conversations/{conversationId}/messages")
+    public ResponseEntity<MessageDTO> sendMessage(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody SendMessageRequest request,
+            Authentication authentication,
+            @RequestHeader("Authorization") String authHeader) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/messages for user: {}", conversationId, userId);
+        
+        // Récupérer le nom et l'avatar depuis auth-service
+        AuthServiceClient.UserInfo userInfo = authServiceClient.getUserInfo(userId);
+        String senderName = userInfo.getFullName();
+        String senderAvatar = userInfo.getProfilePhotoUrl();
+        
+        MessageDTO message = messagingService.sendMessage(
+            conversationId, request, userId, senderName, senderAvatar);
+        return ResponseEntity.ok(message);
+    }
+    
+    @PostMapping("/conversations/{conversationId}/mark-read")
+    public ResponseEntity<Void> markAsRead(
+            @PathVariable Long conversationId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/mark-read for user: {}", conversationId, userId);
+        
+        messagingService.markAsRead(conversationId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/unread-count")
+    public ResponseEntity<Map<String, Long>> getUnreadCount(Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("GET /unread-count for user: {}", userId);
+        
+        Long count = messagingService.getUnreadCount(userId);
+        Map<String, Long> response = new HashMap<>();
+        response.put("count", count);
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, String>> uploadFile(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("File upload request from user: {}, filename: {}, size: {} bytes", 
+                userId, file.getOriginalFilename(), file.getSize());
+        
+        try {
+            String fileName = fileStorageService.storeFile(file);
+            String fileUrl = "/api/messaging/files/" + fileName;
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("fileName", file.getOriginalFilename());
+            response.put("fileUrl", fileUrl);
+            response.put("fileSize", String.valueOf(file.getSize()));
+            response.put("contentType", file.getContentType());
+            
+            log.info("File uploaded successfully: {}", fileName);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error uploading file: {}", e.getMessage(), e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
+    @PostMapping("/conversations/{conversationId}/participants")
+    public ResponseEntity<ConversationDTO> addParticipants(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody AddParticipantsRequest request,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/participants for user: {}", conversationId, userId);
+        
+        ConversationDTO conversation = messagingService.addParticipantsToGroup(conversationId, request, userId);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @DeleteMapping("/conversations/{conversationId}/participants/{participantId}")
+    public ResponseEntity<Void> removeParticipant(
+            @PathVariable Long conversationId,
+            @PathVariable Long participantId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("DELETE /conversations/{}/participants/{} for user: {}", conversationId, participantId, userId);
+        
+        messagingService.removeParticipantFromGroup(conversationId, participantId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/conversations/{conversationId}/leave")
+    public ResponseEntity<Void> leaveGroup(
+            @PathVariable Long conversationId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/leave for user: {}", conversationId, userId);
+        
+        messagingService.leaveGroup(conversationId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PutMapping("/conversations/{conversationId}")
+    public ResponseEntity<ConversationDTO> updateGroup(
+            @PathVariable Long conversationId,
+            @Valid @RequestBody UpdateGroupRequest request,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("PUT /conversations/{} for user: {}", conversationId, userId);
+        
+        ConversationDTO conversation = messagingService.updateGroup(conversationId, request, userId);
+        return ResponseEntity.ok(conversation);
+    }
+    
+    @PostMapping("/conversations/{conversationId}/participants/{participantId}/promote")
+    public ResponseEntity<Void> promoteToAdmin(
+            @PathVariable Long conversationId,
+            @PathVariable Long participantId,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.debug("POST /conversations/{}/participants/{}/promote for user: {}", conversationId, participantId, userId);
+        
+        messagingService.promoteToAdmin(conversationId, participantId, userId);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @PostMapping("/upload-group-photo")
+    public ResponseEntity<Map<String, String>> uploadGroupPhoto(
+            @RequestParam("file") MultipartFile file,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("Group photo upload request from user: {}, filename: {}, size: {} bytes", 
+                userId, file.getOriginalFilename(), file.getSize());
+        
+        try {
+            // Valider le fichier
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Please select a file"));
+            }
+            
+            // Vérifier le type
+            if (!fileStorageService.isValidImageFile(file)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Only image files are allowed"));
+            }
+            
+            // Vérifier la taille (max 5MB)
+            long maxSize = 5 * 1024 * 1024; // 5MB
+            if (!fileStorageService.isValidFileSize(file, maxSize)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "File size must be less than 5MB"));
+            }
+            
+            // Sauvegarder le fichier
+            String photoUrl = fileStorageService.storeFile(file);
+            
+            log.info("Group photo uploaded successfully: {}", photoUrl);
+            return ResponseEntity.ok(Map.of("groupPhoto", photoUrl));
+        } catch (Exception e) {
+            log.error("Error uploading group photo: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to upload file: " + e.getMessage()));
+        }
+    }
+    
+    @GetMapping("/users/by-role/{role}")
+    public ResponseEntity<List<AuthServiceClient.UserInfo>> getUsersByRole(
+            @PathVariable String role,
+            Authentication authentication) {
+        Long userId = (Long) authentication.getPrincipal();
+        log.info("GET /users/by-role/{} for user: {}", role, userId);
+        
+        try {
+            log.info("Calling authServiceClient.getUsersByRole({})", role);
+            AuthServiceClient.UserInfo[] users = authServiceClient.getUsersByRole(role);
+            log.info("Received {} users from auth-service for role: {}", users != null ? users.length : 0, role);
+            
+            if (users == null || users.length == 0) {
+                log.warn("No users returned from auth-service for role: {}", role);
+                return ResponseEntity.ok(new ArrayList<>());
+            }
+            
+            List<AuthServiceClient.UserInfo> userList = java.util.Arrays.asList(users);
+            log.info("Before filtering: {} users", userList.size());
+            
+            // Filtrer l'utilisateur actuel de la liste
+            userList = userList.stream()
+                .filter(user -> {
+                    boolean keep = !user.getId().equals(userId);
+                    if (!keep) {
+                        log.info("Filtering out current user: {} (ID: {})", user.getFullName(), user.getId());
+                    }
+                    return keep;
+                })
+                .collect(java.util.stream.Collectors.toList());
+            
+            log.info("After filtering current user (ID: {}), returning {} users", userId, userList.size());
+            return ResponseEntity.ok(userList);
+        } catch (Exception e) {
+            log.error("Error fetching users by role: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}

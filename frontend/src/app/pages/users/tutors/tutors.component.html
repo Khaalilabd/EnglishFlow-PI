@@ -1,0 +1,716 @@
+<div class="tutors-management">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="page-title">
+          <span class="title-icon">👨‍🏫</span>
+          Tutors Management
+        </h1>
+        <p class="page-subtitle">Manage your expert English teachers and their profiles</p>
+      </div>
+      <a routerLink="/dashboard/users/tutors/create" class="btn-create">
+        <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Add New Tutor
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stat-card stat-total">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Total Tutors</span>
+        <span class="stat-value">{{ users.length }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-active">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Active</span>
+        <span class="stat-value">{{ getActiveCount() }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-inactive">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Pending</span>
+        <span class="stat-value">{{ users.length - getActiveCount() }}</span>
+      </div>
+    </div>
+
+    <div class="stat-card stat-experienced">
+      <div class="stat-icon">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path>
+        </svg>
+      </div>
+      <div class="stat-content">
+        <span class="stat-label">Avg Experience</span>
+        <span class="stat-value">{{ getAverageExperience() }} yrs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search tutors by name, email, or CIN..."
+        class="search-input"
+      />
+      <span class="search-count" *ngIf="searchTerm">{{ filteredUsers.length }} results</span>
+    </div>
+
+    <div class="filter-buttons">
+      <button
+        [class.active]="selectedStatus === 'ALL'"
+        (click)="selectedStatus = 'ALL'; applyFilters()"
+        class="filter-btn"
+      >
+        All
+      </button>
+      <button
+        [class.active]="selectedStatus === 'ACTIVE'"
+        (click)="selectedStatus = 'ACTIVE'; applyFilters()"
+        class="filter-btn"
+      >
+        Active
+      </button>
+      <button
+        [class.active]="selectedStatus === 'PENDING'"
+        (click)="selectedStatus = 'PENDING'; applyFilters()"
+        class="filter-btn"
+      >
+        Pending Activation
+      </button>
+      <button
+        [class.active]="selectedStatus === 'INACTIVE'"
+        (click)="selectedStatus = 'INACTIVE'; applyFilters()"
+        class="filter-btn"
+      >
+        Inactive
+      </button>
+      <button
+        (click)="showAdvancedFilters = !showAdvancedFilters"
+        class="filter-btn advanced-toggle"
+        [class.active]="showAdvancedFilters"
+      >
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+        Advanced
+      </button>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    <div *ngIf="showAdvancedFilters" class="advanced-filters-panel">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label>Experience Range</label>
+          <select [(ngModel)]="selectedExperienceRange" (ngModelChange)="applyFilters()" class="filter-select">
+            <option value="ALL">All Experience</option>
+            <option value="0-2">0-2 years</option>
+            <option value="3-5">3-5 years</option>
+            <option value="5+">5+ years</option>
+          </select>
+        </div>
+
+        <button (click)="clearFilters()" class="btn-clear-filters">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width: 16px; height: 16px;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <button (click)="exportToCSV()" class="btn-export" title="Export to CSV">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+      </svg>
+      Export
+    </button>
+
+    <div class="items-per-page">
+      <label>Show:</label>
+      <select [(ngModel)]="itemsPerPage" (ngModelChange)="changeItemsPerPage($event)" class="items-select">
+        <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading State with Skeleton -->
+  <div *ngIf="loading">
+    <!-- Stats Skeleton -->
+    <div class="stats-grid">
+      <app-skeleton-loader type="stats" *ngFor="let i of [1,2,3,4]"></app-skeleton-loader>
+    </div>
+    
+    <!-- Cards Skeleton -->
+    <div class="tutors-grid" style="margin-top: 24px;">
+      <app-skeleton-loader type="card" *ngFor="let i of [1,2,3,4,5,6,7,8,9,10,11,12]"></app-skeleton-loader>
+    </div>
+  </div>
+
+  <!-- Tutors Grid -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="tutors-grid">
+    <div *ngFor="let tutor of paginatedUsers" class="tutor-card">
+      <!-- Card Header with Status Badge -->
+      <div class="card-header">
+        <span [class]="'status-badge ' + (tutor.isActive ? 'status-active' : 'status-pending')">
+          {{ tutor.isActive ? 'Active' : 'Pending Activation' }}
+        </span>
+      </div>
+
+      <!-- Tutor Avatar -->
+      <div class="tutor-avatar">
+        <div class="avatar-circle">
+          <span class="avatar-initials">{{ getUserInitials(tutor) }}</span>
+        </div>
+      </div>
+
+      <!-- Tutor Info -->
+      <div class="tutor-info">
+        <h3 class="tutor-name">{{ tutor.firstName }} {{ tutor.lastName }}</h3>
+        <p class="tutor-email">{{ tutor.email }}</p>
+        
+        <div class="tutor-meta">
+          <div class="meta-item" *ngIf="tutor.yearsOfExperience">
+            <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+            <span>{{ tutor.yearsOfExperience }} years exp.</span>
+          </div>
+          <div class="meta-item" *ngIf="tutor.phone">
+            <svg class="meta-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+            </svg>
+            <span>{{ tutor.phone }}</span>
+          </div>
+        </div>
+
+        <p class="tutor-bio" *ngIf="tutor.bio">{{ tutor.bio | slice:0:80 }}{{ tutor.bio && tutor.bio.length > 80 ? '...' : '' }}</p>
+      </div>
+
+      <!-- Card Footer with Actions -->
+      <div class="card-footer">
+        <button (click)="openViewModal(tutor)" class="btn-footer btn-view">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+          </svg>
+          View
+        </button>
+        <button (click)="openEditModal(tutor)" class="btn-footer btn-edit">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit
+        </button>
+        <button
+          *ngIf="!tutor.isActive"
+          (click)="activateUser(tutor)"
+          class="btn-footer btn-activate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Activate
+        </button>
+        <button
+          *ngIf="tutor.isActive"
+          (click)="deactivateUser(tutor)"
+          class="btn-footer btn-deactivate"
+        >
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+          </svg>
+          Deactivate
+        </button>
+        <button (click)="deleteUser(tutor)" class="btn-footer btn-delete">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+          </svg>
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && filteredUsers.length === 0" class="empty-state">
+    <div class="empty-icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+      </svg>
+    </div>
+    <h3 class="empty-title">No tutors found</h3>
+    <p class="empty-description">Try adjusting your search or filter criteria, or add a new tutor to get started.</p>
+    <a routerLink="/dashboard/users/tutors/create" class="btn-empty">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+      Add Your First Tutor
+    </a>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="!loading && filteredUsers.length > 0" class="pagination-wrapper">
+    <div class="pagination-info-text">
+      Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, filteredUsers.length) }} of {{ filteredUsers.length }} tutors
+    </div>
+    <div class="pagination-controls">
+      <button
+        (click)="previousPage()"
+        [disabled]="currentPage === 1"
+        class="pagination-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+      
+      <div class="pagination-pages">
+        <button
+          *ngFor="let page of pageNumbers.slice(Math.max(0, currentPage - 3), Math.min(totalPages, currentPage + 2))"
+          (click)="goToPage(page)"
+          [class.active]="currentPage === page"
+          class="page-btn"
+        >
+          {{ page }}
+        </button>
+      </div>
+
+      <button
+        (click)="nextPage()"
+        [disabled]="currentPage === totalPages"
+        class="pagination-btn"
+      >
+        <svg fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Edit Modal -->
+<div *ngIf="showEditModal" class="modal-overlay" (click)="closeEditModal()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Edit Tutor</h2>
+      <button (click)="closeEditModal()" class="modal-close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <form [formGroup]="editForm" (ngSubmit)="updateTutor()" class="modal-form">
+      <div class="form-row">
+        <div class="form-field">
+          <label>First Name <span class="required">*</span></label>
+          <input type="text" formControlName="firstName" placeholder="Enter first name">
+          <span class="error-message" *ngIf="editForm.get('firstName')?.invalid && editForm.get('firstName')?.touched">
+            First name is required
+          </span>
+        </div>
+        
+        <div class="form-field">
+          <label>Last Name <span class="required">*</span></label>
+          <input type="text" formControlName="lastName" placeholder="Enter last name">
+          <span class="error-message" *ngIf="editForm.get('lastName')?.invalid && editForm.get('lastName')?.touched">
+            Last name is required
+          </span>
+        </div>
+      </div>
+      
+      <div class="form-field">
+        <label>Email <span class="required">*</span></label>
+        <input type="email" formControlName="email" placeholder="Enter email">
+        <span class="error-message" *ngIf="editForm.get('email')?.invalid && editForm.get('email')?.touched">
+          Valid email is required
+        </span>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Phone</label>
+          <input type="text" formControlName="phone" placeholder="Enter phone number">
+        </div>
+        
+        <div class="form-field">
+          <label>CIN</label>
+          <input type="text" formControlName="cin" placeholder="Enter CIN">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>Date of Birth</label>
+          <input type="date" formControlName="dateOfBirth">
+        </div>
+        
+        <div class="form-field">
+          <label>Years of Experience</label>
+          <input type="number" formControlName="yearsOfExperience" placeholder="Enter years">
+        </div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field">
+          <label>City</label>
+          <input type="text" formControlName="city" placeholder="Enter city">
+        </div>
+        
+        <div class="form-field">
+          <label>Postal Code</label>
+          <input type="text" formControlName="postalCode" placeholder="Enter postal code">
+        </div>
+      </div>
+      
+      <div class="form-field">
+        <label>Address</label>
+        <input type="text" formControlName="address" placeholder="Enter address">
+      </div>
+      
+      <div class="form-field">
+        <label>Bio</label>
+        <textarea formControlName="bio" rows="4" placeholder="Enter bio"></textarea>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-field-checkbox">
+          <input type="checkbox" formControlName="isActive" id="editIsActive">
+          <label for="editIsActive">Active</label>
+        </div>
+        
+        <div class="form-field-checkbox">
+          <input type="checkbox" formControlName="registrationFeePaid" id="editFeePaid">
+          <label for="editFeePaid">Registration Fee Paid</label>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button type="button" (click)="closeEditModal()" class="btn-cancel">Cancel</button>
+        <button type="submit" [disabled]="editForm.invalid" class="btn-save">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- View Modal - Enhanced with Recruitment Details -->
+<div *ngIf="showViewModal && selectedUser" class="modal-overlay" (click)="closeViewModal()">
+  <div class="modal-container modal-view modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Tutor Details</h2>
+      <button (click)="closeViewModal()" class="modal-close">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="view-avatar">
+        <div class="view-avatar-circle">
+          <span class="view-avatar-initials">{{ getUserInitials(selectedUser) }}</span>
+        </div>
+        <span [class]="'view-status-badge ' + (selectedUser.isActive ? 'status-active' : 'status-pending')">
+          {{ selectedUser.isActive ? 'Active' : 'Pending Activation' }}
+        </span>
+      </div>
+
+      <!-- Basic Information -->
+      <div class="detail-section">
+        <h3>📋 Basic Information</h3>
+        <div class="view-info-grid">
+          <div class="view-info-item">
+            <span class="view-label">Full Name</span>
+            <span class="view-value">{{ selectedUser.firstName }} {{ selectedUser.lastName }}</span>
+          </div>
+          
+          <div class="view-info-item">
+            <span class="view-label">Email</span>
+            <span class="view-value">{{ selectedUser.email }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.phone">
+            <span class="view-label">Phone</span>
+            <span class="view-value">{{ selectedUser.phone }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.cin">
+            <span class="view-label">CIN</span>
+            <span class="view-value">{{ selectedUser.cin }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.dateOfBirth">
+            <span class="view-label">Date of Birth</span>
+            <span class="view-value">{{ selectedUser.dateOfBirth }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.yearsOfExperience">
+            <span class="view-label">Years of Experience</span>
+            <span class="view-value">{{ selectedUser.yearsOfExperience }} years</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.city">
+            <span class="view-label">City</span>
+            <span class="view-value">{{ selectedUser.city }}</span>
+          </div>
+          
+          <div class="view-info-item" *ngIf="selectedUser.postalCode">
+            <span class="view-label">Postal Code</span>
+            <span class="view-value">{{ selectedUser.postalCode }}</span>
+          </div>
+          
+          <div class="view-info-item full-width" *ngIf="selectedUser.address">
+            <span class="view-label">Address</span>
+            <span class="view-value">{{ selectedUser.address }}</span>
+          </div>
+          
+          <div class="view-info-item full-width" *ngIf="selectedUser.bio">
+            <span class="view-label">Bio</span>
+            <span class="view-value">{{ selectedUser.bio }}</span>
+          </div>
+          
+          <div class="view-info-item">
+            <span class="view-label">Registration Fee</span>
+            <span class="view-value">
+              <span [class]="selectedUser.registrationFeePaid ? 'badge-paid' : 'badge-unpaid'">
+                {{ selectedUser.registrationFeePaid ? 'Paid' : 'Unpaid' }}
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recruitment Details -->
+      <div class="detail-section">
+        <h3>🎓 Recruitment Details</h3>
+        
+        <!-- Debug info -->
+        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px;">
+          <strong>Debug Info:</strong><br>
+          User ID: {{ selectedUser.id }}<br>
+          Application ID: {{ selectedUser.applicationId || 'NOT SET' }}<br>
+          <span *ngIf="!selectedUser.applicationId" style="color: #856404;">
+            ⚠️ This tutor was not created through the recruitment system or the database needs to be updated.
+          </span>
+        </div>
+        
+        <div *ngIf="selectedUser.applicationId">
+          <div *ngIf="loadingApplication" class="loading-state">
+            <div class="spinner"></div>
+            <p>Loading recruitment details...</p>
+          </div>
+
+          <div *ngIf="!loadingApplication && selectedApplication">
+          <!-- Scores -->
+          <div class="scores-grid" *ngIf="selectedApplication.overallScore">
+            <div class="score-card">
+              <div class="score-label">Qualification</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.qualificationScore)">
+                {{ selectedApplication.qualificationScore || 'N/A' }}
+              </div>
+            </div>
+            <div class="score-card">
+              <div class="score-label">Presentation</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.presentationScore)">
+                {{ selectedApplication.presentationScore || 'N/A' }}
+              </div>
+            </div>
+            <div class="score-card">
+              <div class="score-label">Overall</div>
+              <div class="score-value" [style.color]="getScoreColor(selectedApplication.overallScore)">
+                {{ selectedApplication.overallScore || 'N/A' }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Qualifications -->
+          <div class="recruitment-info">
+            <div class="info-row" *ngIf="selectedApplication.education">
+              <strong>Education:</strong> {{ selectedApplication.education }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.certifications">
+              <strong>Certifications:</strong> {{ selectedApplication.certifications }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.workExperience">
+              <strong>Work Experience:</strong> {{ selectedApplication.workExperience }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.englishLevel">
+              <strong>English Level:</strong> {{ selectedApplication.englishLevel }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.specializations">
+              <strong>Specializations:</strong> {{ selectedApplication.specializations }}
+            </div>
+            <div class="info-row" *ngIf="selectedApplication.availability">
+              <strong>Availability:</strong> {{ selectedApplication.availability }}
+            </div>
+          </div>
+
+          <!-- Documents -->
+          <div class="documents-section" *ngIf="selectedApplication.documents && selectedApplication.documents.length > 0">
+            <h4>📎 Documents</h4>
+            <div class="documents-list">
+              <div class="document-item" *ngFor="let doc of selectedApplication.documents">
+                <span class="doc-icon">{{ getDocumentIcon(doc) }}</span>
+                <div class="doc-info">
+                  <div class="doc-name">{{ doc.fileName }}</div>
+                  <div class="doc-meta">
+                    {{ getDocumentTypeName(doc.type) }} • {{ formatFileSize(doc.fileSize) }}
+                  </div>
+                </div>
+                <div class="doc-actions">
+                  <button class="btn-icon" (click)="openDocumentModal(doc)" title="View">👁️</button>
+                  <button class="btn-icon" (click)="downloadDocument(doc)" title="Download">⬇️</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Application Timeline -->
+          <div class="timeline-info">
+            <div class="timeline-item">
+              <strong>Applied:</strong> {{ formatDate(selectedApplication.createdAt) }}
+            </div>
+            <div class="timeline-item" *ngIf="selectedApplication.submittedAt">
+              <strong>Submitted:</strong> {{ formatDate(selectedApplication.submittedAt) }}
+            </div>
+            <div class="timeline-item" *ngIf="selectedApplication.interviewScheduledAt">
+              <strong>Interview:</strong> {{ formatDate(selectedApplication.interviewScheduledAt) }}
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="!selectedUser.applicationId" class="no-data">
+          <p>⚠️ This tutor was not created through the recruitment system.</p>
+          <p style="font-size: 13px; color: #666;">
+            To see recruitment details, please accept a new application from the Recruitment Dashboard.
+          </p>
+        </div>
+
+        <div *ngIf="selectedUser.applicationId && !loadingApplication && !selectedApplication" class="no-data">
+          <p>No recruitment details available</p>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button (click)="closeViewModal(); editUser(selectedUser)" class="btn-edit-modal">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+          Edit Tutor
+        </button>
+        <button (click)="closeViewModal()" class="btn-close-modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Document Viewer Modal -->
+<div class="modal-overlay document-modal" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="doc-icon">{{ getDocumentIcon(selectedDocument) }}</span>
+        <div class="doc-info">
+          <span class="doc-name">{{ selectedDocument?.fileName }}</span>
+          <span class="doc-meta">
+            {{ getDocumentTypeName(selectedDocument?.type) }} • 
+            {{ formatFileSize(selectedDocument?.fileSize) }}
+          </span>
+        </div>
+      </h2>
+      <button class="btn-close" (click)="closeDocumentModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Video Player -->
+      <div *ngIf="isVideoDocument(selectedDocument)" class="video-container">
+        <video controls class="video-player" autoplay>
+          <source [src]="documentViewerUrl" [type]="selectedDocument?.fileType">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <!-- PDF Viewer -->
+      <div *ngIf="isPdfDocument(selectedDocument)" class="pdf-container">
+        <iframe [src]="getSafeUrl(documentViewerUrl)" class="pdf-viewer"></iframe>
+      </div>
+      
+      <!-- Image Viewer -->
+      <div *ngIf="isImageDocument(selectedDocument)" class="image-container">
+        <img [src]="documentViewerUrl" [alt]="selectedDocument?.fileName" class="image-viewer">
+      </div>
+      
+      <!-- Other Documents -->
+      <div *ngIf="!isVideoDocument(selectedDocument) && !isPdfDocument(selectedDocument) && !isImageDocument(selectedDocument)" 
+           class="document-download-prompt">
+        <div class="download-icon">📥</div>
+        <h3>Preview not available</h3>
+        <p>This file type cannot be previewed in the browser. Click below to download.</p>
+        <button class="btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>📥</span>
+          Download {{ selectedDocument?.fileName }}
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="document-info">
+        <div class="info-item">
+          <span class="icon">📅</span>
+          <span>Uploaded: {{ formatDate(selectedDocument?.uploadedAt) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📦</span>
+          <span>Size: {{ formatFileSize(selectedDocument?.fileSize) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📄</span>
+          <span>Type: {{ getDocumentTypeName(selectedDocument?.type) }}</span>
+        </div>
+      </div>
+      <div class="document-actions">
+        <button class="btn-action btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>⬇️</span>
+          Download
+        </button>
+        <button class="btn-action btn-close-footer" (click)="closeDocumentModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirmation Dialog -->
+<app-confirmation-dialog></app-confirmation-dialog>

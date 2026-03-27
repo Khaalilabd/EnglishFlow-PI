@@ -1,0 +1,487 @@
+<div class="recruitment-dashboard">
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Tutor Recruitment Dashboard</h1>
+      <p>Manage tutor applications and recruitment process</p>
+    </div>
+  </div>
+
+  <!-- Statistics Cards -->
+  <div class="statistics-grid" *ngIf="statistics">
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #F6BD60;">📊</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ statistics.total }}</div>
+        <div class="stat-label">Total Applications</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #2D5757;">📝</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ statistics.submitted }}</div>
+        <div class="stat-label">New Submissions</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #3D3D60;">🔍</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ statistics.underReview }}</div>
+        <div class="stat-label">Under Review</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon" style="background: #2D5757;">✅</div>
+      <div class="stat-content">
+        <div class="stat-value">{{ statistics.accepted }}</div>
+        <div class="stat-label">Accepted</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="applyFilters()"
+        placeholder="Search by name or email...">
+    </div>
+    
+    <div class="filter-group">
+      <select [(ngModel)]="selectedStatus" (ngModelChange)="applyFilters()">
+        <option value="ALL">All Status</option>
+        <option value="SUBMITTED">Submitted</option>
+        <option value="UNDER_REVIEW">Under Review</option>
+        <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+        <option value="TEST_PENDING">Test Pending</option>
+        <option value="TEST_COMPLETED">Test Completed</option>
+        <option value="ACCEPTED">Accepted</option>
+        <option value="REJECTED">Rejected</option>
+      </select>
+    </div>
+    
+    <button class="btn-refresh" (click)="loadApplications()">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="message success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="message error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <!-- Kanban Board -->
+  <div class="kanban-board">
+    <div class="kanban-column" *ngFor="let column of columns">
+      <div class="column-header" [style.background]="column.color">
+        <h3>{{ column.title }}</h3>
+        <span class="count">{{ getApplicationsByStatus(column.status).length }}</span>
+      </div>
+      
+      <div class="column-content">
+        <div 
+          class="application-card" 
+          *ngFor="let app of getApplicationsByStatus(column.status)"
+          (click)="openDetailModal(app)">
+          
+          <div class="card-header">
+            <h4>{{ app.firstName }} {{ app.lastName }}</h4>
+            <span class="badge" [ngClass]="getStatusBadgeClass(app.status)">
+              {{ app.status }}
+            </span>
+          </div>
+          
+          <div class="card-body">
+            <div class="info-row">
+              <span class="icon">📧</span>
+              <span class="text">{{ app.email }}</span>
+            </div>
+            <div class="info-row">
+              <span class="icon">📞</span>
+              <span class="text">{{ app.phone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="icon">📅</span>
+              <span class="text">{{ formatDate(app.createdAt) }}</span>
+            </div>
+          </div>
+          
+          <div class="card-scores" *ngIf="app.overallScore">
+            <div class="score-item">
+              <span>Overall:</span>
+              <span class="score" [style.color]="getScoreColor(app.overallScore)">
+                {{ app.overallScore }}/100
+              </span>
+            </div>
+          </div>
+          
+          <div class="card-actions" (click)="$event.stopPropagation()">
+            <button class="btn-icon" (click)="openScoreModal(app)" title="Score">📊</button>
+            <button class="btn-icon" (click)="openInterviewModal(app)" title="Schedule Interview">📅</button>
+            <button class="btn-icon" (click)="openNoteModal(app)" title="Add Note">📝</button>
+            <button class="btn-icon" (click)="acceptApplication(app)" title="Accept" *ngIf="app.status !== 'ACCEPTED' && app.status !== 'REJECTED'">✅</button>
+            <button class="btn-icon btn-danger" (click)="openRejectModal(app)" title="Reject" *ngIf="app.status !== 'ACCEPTED' && app.status !== 'REJECTED'">❌</button>
+          </div>
+          
+          <!-- Quick Status Change -->
+          <div class="card-status-change" (click)="$event.stopPropagation()" *ngIf="app.status !== 'ACCEPTED' && app.status !== 'REJECTED'">
+            <label>Move to:</label>
+            <select (change)="onStatusChange(app, $event)" [value]="app.status">
+              <option value="SUBMITTED">New Applications</option>
+              <option value="UNDER_REVIEW">Under Review</option>
+              <option value="INTERVIEW_SCHEDULED">Interview Scheduled</option>
+              <option value="TEST_PENDING">Test Pending</option>
+              <option value="TEST_COMPLETED">Test Completed</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="empty-state" *ngIf="getApplicationsByStatus(column.status).length === 0">
+          <p>No applications</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accepted & Rejected Section -->
+  <div class="final-status-section">
+    <div class="status-column accepted">
+      <h3>✅ Accepted ({{ statistics?.accepted || 0 }})</h3>
+      <div class="application-list">
+        <div class="list-item" *ngFor="let app of getApplicationsByStatus('ACCEPTED')">
+          <span>{{ app.firstName }} {{ app.lastName }}</span>
+          <span class="date">{{ formatDate(app.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="status-column rejected">
+      <h3>❌ Rejected ({{ statistics?.rejected || 0 }})</h3>
+      <div class="application-list">
+        <div class="list-item" *ngFor="let app of getApplicationsByStatus('REJECTED')">
+          <span>{{ app.firstName }} {{ app.lastName }}</span>
+          <span class="date">{{ formatDate(app.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" *ngIf="showDetailModal" (click)="closeDetailModal()">
+  <div class="modal-content large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Application Details</h2>
+      <button class="btn-close" (click)="closeDetailModal()">×</button>
+    </div>
+    
+    <div class="modal-body" *ngIf="selectedApplication">
+      <div class="detail-section">
+        <h3>Personal Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <label>Name:</label>
+            <span>{{ selectedApplication.firstName }} {{ selectedApplication.lastName }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Email:</label>
+            <span>{{ selectedApplication.email }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Phone:</label>
+            <span>{{ selectedApplication.phone }}</span>
+          </div>
+          <div class="detail-item">
+            <label>Status:</label>
+            <span class="badge" [ngClass]="getStatusBadgeClass(selectedApplication.status)">
+              {{ selectedApplication.status }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="detail-section" *ngIf="selectedApplication.overallScore">
+        <h3>Scores</h3>
+        <div class="scores-grid">
+          <div class="score-card">
+            <div class="score-label">Qualification</div>
+            <div class="score-value" [style.color]="getScoreColor(selectedApplication.qualificationScore)">
+              {{ selectedApplication.qualificationScore || 'N/A' }}
+            </div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Presentation</div>
+            <div class="score-value" [style.color]="getScoreColor(selectedApplication.presentationScore)">
+              {{ selectedApplication.presentationScore || 'N/A' }}
+            </div>
+          </div>
+          <div class="score-card">
+            <div class="score-label">Overall</div>
+            <div class="score-value" [style.color]="getScoreColor(selectedApplication.overallScore)">
+              {{ selectedApplication.overallScore || 'N/A' }}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="detail-section" *ngIf="selectedApplication.documents && selectedApplication.documents.length > 0">
+        <h3>📎 Documents ({{ selectedApplication.documents.length }})</h3>
+        <div class="documents-grid">
+          <div class="document-card" *ngFor="let doc of selectedApplication.documents">
+            <div class="document-card-header">
+              <span class="doc-icon-large">{{ getDocumentIcon(doc) }}</span>
+              <div class="doc-info">
+                <div class="doc-type-badge">{{ getDocumentTypeName(doc.type) }}</div>
+                <div class="doc-name" [title]="doc.fileName">{{ doc.fileName }}</div>
+                <div class="doc-meta">{{ formatFileSize(doc.fileSize) }} • {{ formatDate(doc.uploadedAt) }}</div>
+              </div>
+            </div>
+            <div class="document-card-actions">
+              <button class="btn-view" (click)="openDocumentModal(doc)" title="View Document">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                  <circle cx="12" cy="12" r="3" stroke-width="2"/>
+                </svg>
+                View
+              </button>
+              <button class="btn-download-small" (click)="downloadDocument(doc)" title="Download">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="detail-section" *ngIf="selectedApplication.notes && selectedApplication.notes.length > 0">
+        <h3>Internal Notes</h3>
+        <div class="notes-list">
+          <div class="note-item" *ngFor="let note of selectedApplication.notes">
+            <div class="note-content">{{ note.content }}</div>
+            <div class="note-meta">{{ formatDate(note.createdAt) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeDetailModal()">Close</button>
+      <button class="btn-primary" (click)="openScoreModal(selectedApplication!)" *ngIf="selectedApplication">
+        Score Application
+      </button>
+      <button class="btn-success" (click)="acceptApplication(selectedApplication!)" *ngIf="selectedApplication && selectedApplication.status !== 'ACCEPTED'">
+        Accept
+      </button>
+      <button class="btn-danger" (click)="openRejectModal(selectedApplication!)" *ngIf="selectedApplication && selectedApplication.status !== 'REJECTED'">
+        Reject
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Score Modal -->
+<div class="modal-overlay" *ngIf="showScoreModal" (click)="closeScoreModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Score Application</h2>
+      <button class="btn-close" (click)="closeScoreModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Qualification Score (0-100)</label>
+        <input type="number" [(ngModel)]="qualificationScore" min="0" max="100">
+      </div>
+      
+      <div class="form-group">
+        <label>Presentation Score (0-100)</label>
+        <input type="number" [(ngModel)]="presentationScore" min="0" max="100">
+      </div>
+      
+      <div class="form-group">
+        <label>Overall Score (0-100)</label>
+        <input type="number" [(ngModel)]="overallScore" min="0" max="100">
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeScoreModal()">Cancel</button>
+      <button class="btn-primary" (click)="submitScore()" [disabled]="isLoading">
+        {{ isLoading ? 'Saving...' : 'Save Scores' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Interview Modal -->
+<div class="modal-overlay" *ngIf="showInterviewModal" (click)="closeInterviewModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Schedule Interview</h2>
+      <button class="btn-close" (click)="closeInterviewModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Interview Date *</label>
+        <input type="date" [(ngModel)]="interviewDate">
+      </div>
+      
+      <div class="form-group">
+        <label>Interview Time *</label>
+        <input type="time" [(ngModel)]="interviewTime">
+      </div>
+      
+      <div class="form-group">
+        <label>Meeting Link</label>
+        <input type="url" [(ngModel)]="meetingLink" placeholder="https://meet.google.com/...">
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="interviewNotes" rows="3" placeholder="Additional notes..."></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeInterviewModal()">Cancel</button>
+      <button class="btn-primary" (click)="scheduleInterview()" [disabled]="isLoading || !interviewDate || !interviewTime">
+        {{ isLoading ? 'Scheduling...' : 'Schedule Interview' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-overlay" *ngIf="showRejectModal" (click)="closeRejectModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Reject Application</h2>
+      <button class="btn-close" (click)="closeRejectModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Rejection Reason * (min 20 characters)</label>
+        <textarea [(ngModel)]="rejectionReason" rows="5" 
+          placeholder="Please provide a detailed reason for rejection..."></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeRejectModal()">Cancel</button>
+      <button class="btn-danger" (click)="rejectApplication()" 
+        [disabled]="isLoading || rejectionReason.length < 20">
+        {{ isLoading ? 'Rejecting...' : 'Reject Application' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Note Modal -->
+<div class="modal-overlay" *ngIf="showNoteModal" (click)="closeNoteModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add Internal Note</h2>
+      <button class="btn-close" (click)="closeNoteModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Note Content * (min 10 characters)</label>
+        <textarea [(ngModel)]="noteContent" rows="5" 
+          placeholder="Add your observations or comments..."></textarea>
+      </div>
+    </div>
+    
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeNoteModal()">Cancel</button>
+      <button class="btn-primary" (click)="addNote()" 
+        [disabled]="isLoading || noteContent.length < 10">
+        {{ isLoading ? 'Adding...' : 'Add Note' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Document Viewer Modal - Improved -->
+<div class="modal-overlay document-modal" *ngIf="showDocumentModal" (click)="closeDocumentModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>
+        <span class="doc-icon">{{ getDocumentIcon(selectedDocument) }}</span>
+        <div class="doc-info">
+          <span class="doc-name">{{ selectedDocument?.fileName }}</span>
+          <span class="doc-meta">
+            {{ getDocumentTypeName(selectedDocument?.type) }} • 
+            {{ formatFileSize(selectedDocument?.fileSize) }}
+          </span>
+        </div>
+      </h2>
+      <button class="btn-close" (click)="closeDocumentModal()">×</button>
+    </div>
+    
+    <div class="modal-body">
+      <!-- Video Player -->
+      <div *ngIf="isVideoDocument(selectedDocument)" class="video-container">
+        <video controls class="video-player" autoplay>
+          <source [src]="documentViewerUrl" [type]="selectedDocument?.fileType">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+      
+      <!-- PDF Viewer -->
+      <div *ngIf="isPdfDocument(selectedDocument)" class="pdf-container">
+        <iframe [src]="getSafeUrl(documentViewerUrl)" class="pdf-viewer"></iframe>
+      </div>
+      
+      <!-- Image Viewer -->
+      <div *ngIf="isImageDocument(selectedDocument)" class="image-container">
+        <img [src]="documentViewerUrl" [alt]="selectedDocument?.fileName" class="image-viewer">
+      </div>
+      
+      <!-- Other Documents -->
+      <div *ngIf="!isVideoDocument(selectedDocument) && !isPdfDocument(selectedDocument) && !isImageDocument(selectedDocument)" 
+           class="document-download-prompt">
+        <div class="download-icon">📥</div>
+        <h3>Preview not available</h3>
+        <p>This file type cannot be previewed in the browser. Click below to download.</p>
+        <button class="btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>📥</span>
+          Download {{ selectedDocument?.fileName }}
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <div class="document-info">
+        <div class="info-item">
+          <span class="icon">📅</span>
+          <span>Uploaded: {{ formatDate(selectedDocument?.uploadedAt) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📦</span>
+          <span>Size: {{ formatFileSize(selectedDocument?.fileSize) }}</span>
+        </div>
+        <div class="info-item">
+          <span class="icon">📄</span>
+          <span>Type: {{ getDocumentTypeName(selectedDocument?.type) }}</span>
+        </div>
+      </div>
+      <div class="document-actions">
+        <button class="btn-action btn-download" (click)="downloadDocument(selectedDocument)">
+          <span>⬇️</span>
+          Download
+        </button>
+        <button class="btn-action btn-close-footer" (click)="closeDocumentModal()">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

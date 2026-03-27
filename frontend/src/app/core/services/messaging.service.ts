@@ -1,0 +1,124 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
+import { Conversation, CreateConversationRequest } from '../models/conversation.model';
+import { Message, SendMessageRequest, Page, ReactionSummary, AddReactionRequest } from '../models/message.model';
+import { User } from '../models/user.model';
+import { environment } from '../../../environments/environment';
+
+@Injectable({
+  providedIn: 'root'
+})
+export class MessagingService {
+  private apiUrl = `${environment.apiUrl}/messaging`; // Via API Gateway
+
+  constructor(private http: HttpClient) {}
+
+  // Conversations
+  getConversations(): Observable<Conversation[]> {
+    return this.http.get<Conversation[]>(`${this.apiUrl}/conversations`);
+  }
+
+  getConversation(id: number): Observable<Conversation> {
+    return this.http.get<Conversation>(`${this.apiUrl}/conversations/${id}`);
+  }
+
+  createConversation(request: CreateConversationRequest): Observable<Conversation> {
+    return this.http.post<Conversation>(`${this.apiUrl}/conversations`, request);
+  }
+
+  // Messages
+  getMessages(conversationId: number, page: number = 0, size: number = 50): Observable<Page<Message>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    
+    return this.http.get<Page<Message>>(
+      `${this.apiUrl}/conversations/${conversationId}/messages`,
+      { params }
+    );
+  }
+
+  sendMessage(conversationId: number, request: SendMessageRequest): Observable<Message> {
+    return this.http.post<Message>(
+      `${this.apiUrl}/conversations/${conversationId}/messages`,
+      request
+    );
+  }
+
+  markAsRead(conversationId: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/conversations/${conversationId}/mark-read`,
+      {}
+    );
+  }
+
+  // Unread count
+  getUnreadCount(): Observable<{ count: number }> {
+    return this.http.get<{ count: number }>(`${this.apiUrl}/unread-count`);
+  }
+
+  // Reactions
+  toggleReaction(messageId: number, emoji: string): Observable<any> {
+    const request: AddReactionRequest = { emoji };
+    return this.http.post(`${this.apiUrl}/messages/${messageId}/reactions`, request);
+  }
+
+  getReactions(messageId: number): Observable<ReactionSummary[]> {
+    return this.http.get<ReactionSummary[]>(`${this.apiUrl}/messages/${messageId}/reactions`);
+  }
+  
+  // File upload
+  uploadFile(formData: FormData): Observable<any> {
+    return this.http.post(`${this.apiUrl}/upload`, formData);
+  }
+  
+  // File download
+  downloadFile(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
+  
+  // Upload group photo
+  uploadGroupPhoto(formData: FormData): Observable<{groupPhoto: string}> {
+    return this.http.post<{groupPhoto: string}>(`${this.apiUrl}/upload-group-photo`, formData);
+  }
+  
+  // Get users by role (for tutor-to-tutor messaging)
+  getUsersByRole(role: string): Observable<any[]> {
+    const url = `${this.apiUrl}/users/by-role/${role}`;
+    console.log('🌐 Calling API:', url);
+    return this.http.get<any[]>(url).pipe(
+      tap(response => console.log('📥 API Response:', response)),
+      catchError(error => {
+        console.error('❌ API Error:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  // Group management
+  leaveGroup(conversationId: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/conversations/${conversationId}/leave`, {});
+  }
+  
+  addParticipants(conversationId: number, participantIds: number[]): Observable<Conversation> {
+    return this.http.post<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}/participants`,
+      { participantIds }
+    );
+  }
+  
+  removeParticipant(conversationId: number, participantId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/conversations/${conversationId}/participants/${participantId}`
+    );
+  }
+  
+  updateGroup(conversationId: number, title: string, description: string): Observable<Conversation> {
+    return this.http.put<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}`,
+      { title, description }
+    );
+  }
+}

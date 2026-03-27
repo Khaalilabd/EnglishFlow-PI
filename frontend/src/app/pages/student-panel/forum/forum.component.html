@@ -1,0 +1,66 @@
+<div class="min-h-screen bg-gray-50 p-6 animate-fade-in">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D6767] flex items-center justify-center shadow-md">
+          <i class="fas fa-comments text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900 mb-2">Community Forum</h1>
+          <p class="text-gray-600">Exchange, learn and progress together</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-20">
+    <div class="text-center">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F59E0B] mx-auto mb-4"></div>
+      <p class="text-gray-600">Loading categories...</p>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-xl p-4 mb-6">
+    <p class="text-red-700">{{ error }}</p>
+    <button (click)="loadCategories()" class="mt-2 text-red-600 hover:text-red-700 font-medium">
+      Retry
+    </button>
+  </div>
+
+  <!-- Categories -->
+  <div *ngIf="!loading && !error" class="space-y-6">
+    <div *ngFor="let category of categories" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all">
+      <!-- Category Header -->
+      <div class="p-6 border-b border-gray-100 bg-gradient-to-r from-[#F7EDE2] to-[#F7EDE2]/50">
+        <div class="flex items-center gap-4">
+          <div class="w-14 h-14 rounded-xl flex items-center justify-center shadow-sm bg-white text-[#2D5757]">
+            <i class="fas text-2xl" [ngClass]="category.icon"></i>
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-900 mb-1">{{ category.name }}</h2>
+            <p class="text-sm text-gray-600">{{ category.description }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Subcategories -->
+      <div class="divide-y divide-gray-100">
+        <div 
+          *ngFor="let sub of category.subCategories" 
+          [routerLink]="[routePrefix + '/forum', getRoutePrefix(sub.name), sub.id, createSlug(sub.name)]"
+          class="p-6 hover:bg-gray-50 transition-colors cursor-pointer group">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-2">
+                <i class="fas fa-folder text-gray-400 group-hover:text-[#F59E0B] transition-colors"></i>
+                <h3 class="font-semibold text-gray-900 group-hover:text-[#2D5757] transition-colors">{{ sub.name }}</h3>
+              </div>
+              <p class="text-sm text-gray-600">{{ sub.description }}</p>
+            </div>
+            <i class="fas fa-chevron-right text-gray-400 group-hover:text-[#F59E0B] transition-colors"></i>
+          </div>
+        </div>
+      </div>

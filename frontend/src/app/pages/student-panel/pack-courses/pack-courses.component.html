@@ -1,0 +1,124 @@
+<div class="pack-courses-container">
+  <!-- Header -->
+  <div class="page-header">
+    <button class="back-btn" (click)="goBack()">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Back to My Packs
+    </button>
+
+    <div class="header-content">
+      @if (pack) {
+        <h1 class="page-title">{{ pack.name }}</h1>
+        <div class="pack-meta">
+          <span class="meta-badge">{{ pack.category }}</span>
+          <span class="meta-badge">{{ pack.level }}</span>
+          <span class="meta-badge">{{ pack.tutorName }}</span>
+        </div>
+      }
+    </div>
+
+    <!-- Pack Progress Card -->
+    @if (enrollment) {
+      <div class="progress-card">
+        <div class="progress-header">
+          <span class="progress-title">Your Progress</span>
+          <span class="progress-value">{{ enrollment.progressPercentage }}%</span>
+        </div>
+        <div class="progress-bar-large">
+          <div class="progress-fill-large" [style.width.%]="enrollment.progressPercentage"></div>
+        </div>
+        <div class="progress-stats">
+          <span>{{ enrollment.completedCourses }} / {{ enrollment.totalCourses }} courses completed</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading your courses...</p>
+    </div>
+  }
+
+  <!-- Courses Grid -->
+  @if (!loading && courses.length > 0) {
+    <div class="courses-grid">
+      @for (course of courses; track course.id) {
+        <div class="course-card">
+          <!-- Course Thumbnail -->
+          <div class="course-thumbnail" [style.background]="getCategoryColor(course.category)">
+            <span class="category-icon">{{ getCategoryIcon(course.category) }}</span>
+          </div>
+
+          <!-- Course Info -->
+          <div class="course-content">
+            <div class="course-header">
+              <span class="course-level">{{ course.level }}</span>
+              <span class="course-category">{{ course.category }}</span>
+            </div>
+
+            <h3 class="course-title">{{ course.title }}</h3>
+            
+            @if (course.description) {
+              <p class="course-description">{{ course.description }}</p>
+            }
+
+            <div class="course-meta">
+              <div class="meta-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+                <span>{{ course.chapterCount || 0 }} chapters</span>
+              </div>
+              <div class="meta-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span>{{ course.duration || 0 }}h</span>
+              </div>
+            </div>
+
+            <!-- New Progress Display -->
+            <div class="course-progress-wrapper">
+              <div class="progress-stats-row">
+                <span class="progress-text">{{ getProgressText(course.id!) }}</span>
+                <span class="progress-percent">{{ getProgressValue(course.id!) }}%</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-indicator" [style.width.%]="getProgressValue(course.id!)">
+                  <div class="progress-glow"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Action Button -->
+            <button class="start-btn" (click)="startCourse(course)">
+              @if (getCourseProgress(course.id!) > 0) {
+                <span>Continue Learning</span>
+              } @else {
+                <span>Start Course</span>
+              }
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Empty State -->
+  @if (!loading && courses.length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">📚</div>
+      <h3>No Courses Available</h3>
+      <p>This pack doesn't have any courses yet</p>
+      <button class="btn-primary" (click)="goBack()">Back to My Packs</button>
+    </div>
+  }
+</div>

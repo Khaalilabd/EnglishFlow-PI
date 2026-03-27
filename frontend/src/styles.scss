@@ -1,0 +1,45 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Quill Editor Styles */
+@import 'quill/dist/quill.core.css';
+@import 'quill/dist/quill.snow.css';
+
+/* ===== FOND GLOBAL ===== */
+html, body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb; /* gray-50 */
+  min-height: 100vh;
+}
+
+/* ===== CACHER LES SCROLLBARS PARTOUT ===== */
+/* Garder le scroll fonctionnel mais cacher la barre visible */
+
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE et Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+/* Style spécifique pour le main content */
+main {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+main::-webkit-scrollbar {
+  display: none;
+}
+
+/* Style pour les divs avec overflow */
+div {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+div::-webkit-scrollbar {
+  display: none;
+}

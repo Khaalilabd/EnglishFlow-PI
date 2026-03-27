@@ -1,0 +1,25 @@
+<div class="flex h-screen bg-gradient-to-br from-[#F7EDE2] via-white to-[#F7EDE2] overflow-hidden">
+  <!-- Sidebar -->
+  <app-student-sidebar></app-student-sidebar>
+  <app-backdrop></app-backdrop>
+  
+  <!-- Main Content -->
+  <div 
+    class="flex-1 flex flex-col overflow-hidden transition-all duration-300"
+    [ngClass]="{
+      'xl:ml-[280px]': (isExpanded$ | async) || (isHovered$ | async),
+      'xl:ml-[80px]': !(isExpanded$ | async) && !(isHovered$ | async)
+    }"
+  >
+    <!-- Header -->
+    <app-student-header/>
+    
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto bg-gradient-to-br from-[#F7EDE2]/30 to-white/50">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+  
+  <!-- Toast Notifications -->
+  <app-toast></app-toast>
+</div>

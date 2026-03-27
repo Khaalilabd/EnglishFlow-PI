@@ -1,0 +1,77 @@
+// Document Viewer Modal Styles
+
+.document-card-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-view {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #3D3D60 0%, #2D5757 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(61, 61, 96, 0.3);
+  }
+
+  svg {
+    stroke: white;
+  }
+}
+
+.btn-download-small {
+  padding: 0.5rem;
+  background: #F6BD60;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background: #C84630;
+    transform: translateY(-2px);
+  }
+
+  svg {
+    stroke: white;
+  }
+}
+
+// Document Viewer Modal
+.document-viewer-overlay {
+  z-index: 2000;
+}
+
+.document-viewer-modal {
+  max-width: 90vw;
+  max-height: 90vh;
+  width: 1200px;
+  display: flex;
+  flex-direction: column;
+
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 2px solid #F7EDE2;
+  }
+
+  .document-header-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+  }
+}

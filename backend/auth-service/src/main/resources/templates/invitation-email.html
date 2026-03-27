@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+    <table role="presentation" style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table role="presentation" style="width: 600px; border-collapse: collapse; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); border-radius: 12px; overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #F7EDE2; font-size: 32px; font-weight: bold;">🌴 Jungle in English</h1>
+                            <p style="margin: 10px 0 0 0; color: #F7EDE2; font-size: 16px; opacity: 0.9;">جنقل بال ANGLAIS</p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #2D5757; font-size: 24px; margin: 0 0 20px 0;">You're Invited! 🎉</h2>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                Hello,
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                You have been invited to join <strong>Jungle in English</strong> as a <strong th:text="${role}">TUTOR</strong>.
+                            </p>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 20px 0;">
+                                To accept this invitation and create your account, please click the button below. You'll be able to set your own password and complete your profile.
+                            </p>
+                            
+                            <!-- Invitation Button -->
+                            <table role="presentation" style="width: 100%; border-collapse: collapse; margin: 30px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <a th:href="${invitationLink}" 
+                                           style="display: inline-block; background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); color: #F7EDE2; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(45, 87, 87, 0.3);">
+                                            ✨ Accept Invitation
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Important Notice -->
+                            <div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 15px; margin: 20px 0; border-radius: 4px;">
+                                <p style="margin: 0; color: #0d47a1; font-size: 14px; line-height: 1.6;">
+                                    <strong>📌 Note:</strong> This invitation will expire in 7 days. If you don't accept it within this time, you'll need to request a new invitation.
+                                </p>
+                            </div>
+                            
+                            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 20px 0 0 0;">
+                                If you have any questions or didn't expect this invitation, please contact our support team.
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #dee2e6;">
+                            <p style="color: #999999; font-size: 12px; margin: 0 0 10px 0;">
+                                If the button doesn't work, copy and paste this link into your browser:<br>
+                                <a th:href="${invitationLink}" style="color: #2D5757; word-break: break-all;" th:text="${invitationLink}">invitation link</a>
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 10px 0 0 0;">
+                                © 2026 Jungle in English. All rights reserved.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

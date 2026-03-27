@@ -1,0 +1,45 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] -------------------< com.englishflow:config-server >--------------------
+[INFO] Building config-server 1.0.0
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.2.0:run (default-cli) > test-compile @ config-server >>>
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ config-server ---
+[INFO] Copying 2 resources from src/main/resources to target/classes
+[INFO] Copying 0 resource from src/main/resources to target/classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ config-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ config-server ---
+[INFO] skip non existing resourceDirectory /Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server/src/test/resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ config-server ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.2.0:run (default-cli) < test-compile @ config-server <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.2.0:run (default-cli) @ config-server ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2026-02-13T15:02:25.563-08:00  INFO 18631 --- [default] [           main] c.e.c.ConfigServerApplication            : Starting ConfigServerApplication using Java 17.0.12 with PID 18631 (/Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server/target/classes started by apple in /Users/apple/Desktop/KHALIL/Developpement codage/PI-ENGLISH/EnglishFlow-PI/backend/config-server)
+2026-02-13T15:02:25.582-08:00  INFO 18631 --- [default] [           main] c.e.c.ConfigServerApplication            : No active profile set, falling back to 1 default profile: "default"
+2026-02-13T15:02:57.066-08:00  INFO 18631 --- [default] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=50d737dd-a9c6-3627-b846-50474b982601
+2026-02-13T15:03:07.007-08:00  INFO 18631 --- [default] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8888 (http)
+2026-02-13T15:03:07.630-08:00  INFO 18631 --- [default] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-02-13T15:03:07.631-08:00  INFO 18631 --- [default] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.16]
+2026-02-13T15:03:10.160-08:00  INFO 18631 --- [default] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-02-13T15:03:10.167-08:00  INFO 18631 --- [default] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 43600 ms
+2026-02-13T15:03:20.938-08:00  WARN 18631 --- [default] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'healthContributorRegistry' defined in class path resource [org/springframework/boot/actuate/autoconfigure/health/HealthEndpointConfiguration.class]: Unsatisfied dependency expressed through method 'healthContributorRegistry' parameter 2: Error creating bean with name 'configServerHealthIndicator' defined in class path resource [org/springframework/cloud/config/server/config/EnvironmentRepositoryConfiguration$ConfigServerActuatorConfiguration.class]: Unsatisfied dependency expressed through method 'configServerHealthIndicator' parameter 0: Error creating bean with name 'searchPathCompositeEnvironmentRepository' defined in class path resource [org/springframework/cloud/config/server/config/CompositeConfiguration.class]: Unsatisfied dependency expressed through method 'searchPathCompositeEnvironmentRepository' parameter 0: Error creating bean with name 'defaultEnvironmentRepository' defined in class path resource [org/springframework/cloud/config/server/config/DefaultRepositoryConfiguration.class]: Failed to instantiate [org.springframework.cloud.config.server.environment.MultipleJGitEnvironmentRepository]: Factory method 'defaultEnvironmentRepository' threw exception with message: Shutdown in progress
