@@ -1,4 +1,4 @@
-package com.englishflow.club.config;
+package com.englishflow.courses.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,6 +67,7 @@ public class DatabaseInitializer implements BeanFactoryPostProcessor, Environmen
             
         } catch (Exception e) {
             logger.error("❌ Erreur lors de l'initialisation de la base de données: {}", e.getMessage());
+            logger.error("L'application va continuer mais pourrait rencontrer des erreurs de connexion");
         }
     }
 

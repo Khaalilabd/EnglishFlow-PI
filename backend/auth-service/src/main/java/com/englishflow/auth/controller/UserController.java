@@ -207,7 +207,7 @@ public class UserController {
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
         
         log.info("Found user: {} {}", user.getFirstName(), user.getLastName());
-        return ResponseEntity.ok(UserDTO::fromEntity);
+        return ResponseEntity.ok(UserDTO.fromEntity(user));
     }
 
     @PostMapping("/batch")

@@ -1,38 +1,45 @@
-package com.englishflow.club.config;
+package com.englishflow.learning.config;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+
+import javax.sql.DataSource;
+import com.zaxxer.hikari.HikariDataSource;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-@Component
-public class DatabaseInitializer implements BeanFactoryPostProcessor, EnvironmentAware {
+@Configuration
+public class DatabaseInitializer {
 
     private static final Logger logger = LoggerFactory.getLogger(DatabaseInitializer.class);
 
-    private Environment environment;
-
-    @Override
-    public void setEnvironment(Environment environment) {
-        this.environment = environment;
+    @Bean
+    @Primary
+    @ConfigurationProperties("spring.datasource.hikari")
+    public DataSource dataSource(DataSourceProperties properties) {
+        // Créer la base de données si elle n'existe pas
+        createDatabaseIfNotExists(properties);
+        
+        // Créer et retourner le DataSource
+        return properties.initializeDataSourceBuilder()
+                .type(HikariDataSource.class)
+                .build();
     }
 
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        String datasourceUrl = environment.getProperty("spring.datasource.url");
-        String username = environment.getProperty("spring.datasource.username");
-        String password = environment.getProperty("spring.datasource.password");
+    private void createDatabaseIfNotExists(DataSourceProperties properties) {
+        String datasourceUrl = properties.getUrl();
+        String username = properties.getUsername();
+        String password = properties.getPassword();
         
-        if (datasourceUrl == null || username == null) {
+        if (datasourceUrl == null) {
             return;
         }
         
