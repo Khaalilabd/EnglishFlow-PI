@@ -52,6 +52,11 @@ jobs:
           - messaging-service
           - community-service
           - club-service
+          - event-service
+          - complaints-service
+          - gamification-service
+          - learning-service
+          - config-server
     
     steps:
       - name: Checkout code
@@ -116,6 +121,11 @@ jobs:
           - messaging-service
           - community-service
           - club-service
+          - event-service
+          - complaints-service
+          - gamification-service
+          - learning-service
+          - config-server
     
     steps:
       - name: Checkout code
