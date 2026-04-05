@@ -813,8 +813,14 @@ export const routes: Routes = [
       },
       {
         path: 'gamification',
-        loadComponent: () => import('./pages/blank/blank.component').then(m => m.BlankComponent),
+        loadComponent: () => import('./pages/dashboard/gamification/gamification.component').then(m => m.GamificationComponent),
         title: 'Gamification | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses',
+        loadComponent: () => import('./pages/courses/courses-list/courses-list.component').then(m => m.CoursesListComponent),
+        canActivate: [roleGuard(['ACADEMIC_OFFICE_AFFAIR', 'ADMIN'])],
+        title: 'Courses Management | Jungle in English Dashboard'
       }
     ]
   },

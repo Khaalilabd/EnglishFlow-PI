@@ -118,22 +118,15 @@ class JwtUtilTest {
         // Given - Create a token with very short expiration
         JwtUtil shortExpirationJwtUtil = new JwtUtil();
         ReflectionTestUtils.setField(shortExpirationJwtUtil, "secret", TEST_SECRET);
-        ReflectionTestUtils.setField(shortExpirationJwtUtil, "expiration", 1L); // 1ms
+        ReflectionTestUtils.setField(shortExpirationJwtUtil, "expiration", -1000L); // Negative = already expired
         
         String token = shortExpirationJwtUtil.generateToken("test@example.com", "STUDENT", 1L);
-        
-        // Wait for token to expire
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
 
         // When
         boolean isExpired = shortExpirationJwtUtil.isTokenExpired(token);
 
         // Then
-        assertTrue(isExpired);
+        assertTrue(isExpired, "Token should be expired with negative expiration time");
     }
 
     @Test
@@ -191,10 +184,18 @@ class JwtUtilTest {
 
         // When
         String token1 = jwtUtil.generateToken(email, role, userId);
+        
+        // Wait 1 second to ensure different timestamp
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+        
         String token2 = jwtUtil.generateToken(email, role, userId);
 
         // Then - Tokens should be different (due to timestamp)
-        assertNotEquals(token1, token2);
+        assertNotEquals(token1, token2, "Tokens generated at different times should be different");
         
         // But should contain same data
         assertEquals(jwtUtil.extractEmail(token1), jwtUtil.extractEmail(token2));

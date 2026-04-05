@@ -29,6 +29,9 @@ class UserSessionServiceTest {
     private AuditLogService auditLogService;
 
     @Mock
+    private GeoIpService geoIpService;
+
+    @Mock
     private HttpServletRequest httpServletRequest;
 
     @InjectMocks
@@ -65,6 +68,8 @@ class UserSessionServiceTest {
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0");
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.1");
         when(userSessionRepository.save(any(UserSession.class))).thenReturn(testSession);
+        // Mock GeoIpService - return null to skip location info
+        when(geoIpService.getLocationInfo(anyString())).thenReturn(null);
 
         // When
         UserSession session = userSessionService.createSession(userId, httpServletRequest);
@@ -93,6 +98,8 @@ class UserSessionServiceTest {
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.1");
         when(userSessionRepository.save(any(UserSession.class))).thenReturn(testSession);
+        // Mock GeoIpService - return null to skip location info
+        when(geoIpService.getLocationInfo(anyString())).thenReturn(null);
 
         // When
         UserSession session = userSessionService.createSession(userId, httpServletRequest);
