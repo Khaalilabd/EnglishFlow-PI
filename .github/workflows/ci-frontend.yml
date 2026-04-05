@@ -97,6 +97,7 @@ jobs:
     name: Lighthouse Performance
     runs-on: ubuntu-latest
     needs: build
+    if: false  # Temporarily disabled due to artifact upload issues
     
     steps:
       - name: Checkout code
