@@ -42,6 +42,7 @@ jobs:
           --health-retries 5
     
     strategy:
+      fail-fast: false
       matrix:
         service:
           - eureka-server
@@ -89,7 +90,7 @@ jobs:
           SPRING_CLOUD_CONFIG_ENABLED: false
       
       - name: Generate test report
-        if: always()
+        if: false  # Disabled due to permission issues with check runs
         uses: dorny/test-reporter@v1
         with:
           name: Test Results - ${{ matrix.service }}
@@ -112,6 +113,7 @@ jobs:
     needs: test
     
     strategy:
+      fail-fast: false
       matrix:
         service:
           - eureka-server
