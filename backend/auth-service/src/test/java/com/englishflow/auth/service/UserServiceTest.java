@@ -129,8 +129,8 @@ class UserServiceTest {
         testUser.setActive(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        // Mock gamification service - void method
-        doNothing().when(gamificationIntegrationService).initializeUserLevel(anyLong(), anyString());
+        // Mock gamification service - returns UserLevelDTO
+        when(gamificationIntegrationService.initializeUserLevel(anyLong(), anyString())).thenReturn(null);
         doNothing().when(emailService).sendWelcomeEmail(anyString(), anyString());
 
         // When
