@@ -64,7 +64,7 @@ class UserSessionServiceTest {
     void testCreateSession_Success() {
         // Given
         Long userId = 100L;
-        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "48.8566", "2.3522");
+        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "Orange");
         
         when(userSessionRepository.countActiveSessionsByUserId(userId)).thenReturn(2L);
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0");
@@ -85,7 +85,7 @@ class UserSessionServiceTest {
     void testCreateSession_ExceedsMaxConcurrentSessions() {
         // Given
         Long userId = 100L;
-        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "48.8566", "2.3522");
+        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "Orange");
         
         when(userSessionRepository.countActiveSessionsByUserId(userId)).thenReturn(5L);
         
