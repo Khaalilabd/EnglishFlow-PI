@@ -38,6 +38,10 @@ jwt:
   temp:
     expiration: 300000
 
+recaptcha:
+  secret: test-recaptcha-secret-key
+  verify-url: https://www.google.com/recaptcha/api/siteverify
+
 file:
   upload-dir: ./test-uploads
 

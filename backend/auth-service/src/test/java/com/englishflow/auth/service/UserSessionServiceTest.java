@@ -64,12 +64,13 @@ class UserSessionServiceTest {
     void testCreateSession_Success() {
         // Given
         Long userId = 100L;
+        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "48.8566", "2.3522");
+        
         when(userSessionRepository.countActiveSessionsByUserId(userId)).thenReturn(2L);
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0");
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.1");
         when(userSessionRepository.save(any(UserSession.class))).thenReturn(testSession);
-        // Mock GeoIpService - return null to skip location info
-        when(geoIpService.getLocationInfo(anyString())).thenReturn(null);
+        when(geoIpService.getLocationInfo(anyString())).thenReturn(locationInfo);
 
         // When
         UserSession session = userSessionService.createSession(userId, httpServletRequest);
@@ -84,6 +85,8 @@ class UserSessionServiceTest {
     void testCreateSession_ExceedsMaxConcurrentSessions() {
         // Given
         Long userId = 100L;
+        GeoIpService.LocationInfo locationInfo = new GeoIpService.LocationInfo("France", "Paris", "48.8566", "2.3522");
+        
         when(userSessionRepository.countActiveSessionsByUserId(userId)).thenReturn(5L);
         
         UserSession oldestSession = UserSession.builder()
@@ -98,8 +101,7 @@ class UserSessionServiceTest {
         when(httpServletRequest.getHeader("User-Agent")).thenReturn("Mozilla/5.0");
         when(httpServletRequest.getRemoteAddr()).thenReturn("192.168.1.1");
         when(userSessionRepository.save(any(UserSession.class))).thenReturn(testSession);
-        // Mock GeoIpService - return null to skip location info
-        when(geoIpService.getLocationInfo(anyString())).thenReturn(null);
+        when(geoIpService.getLocationInfo(anyString())).thenReturn(locationInfo);
 
         // When
         UserSession session = userSessionService.createSession(userId, httpServletRequest);

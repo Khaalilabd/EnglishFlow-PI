@@ -129,9 +129,8 @@ class UserServiceTest {
         testUser.setActive(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        // Mock gamification service - it returns void, so we don't use doNothing
-        when(gamificationIntegrationService.initializeUserLevel(anyLong(), anyString()))
-                .thenReturn(null); // Returns void, so return null
+        // Mock gamification service - void method
+        doNothing().when(gamificationIntegrationService).initializeUserLevel(anyLong(), anyString());
         doNothing().when(emailService).sendWelcomeEmail(anyString(), anyString());
 
         // When

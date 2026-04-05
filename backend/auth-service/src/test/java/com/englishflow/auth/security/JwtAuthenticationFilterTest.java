@@ -79,13 +79,14 @@ class JwtAuthenticationFilterTest {
         // Given
         String token = "invalid.jwt.token";
         when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
-        when(jwtUtil.validateToken(token)).thenReturn(false);
+        when(jwtUtil.extractEmail(token)).thenReturn(null);
+        when(jwtUtil.extractUserId(token)).thenReturn(null);
+        when(jwtUtil.extractRole(token)).thenReturn(null);
 
         // When
         jwtAuthenticationFilter.doFilterInternal(request, response, filterChain);
 
         // Then
         verify(filterChain, times(1)).doFilter(request, response);
-        verify(jwtUtil, times(1)).validateToken(token);
     }
 }
