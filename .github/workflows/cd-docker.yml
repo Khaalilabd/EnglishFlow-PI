@@ -182,7 +182,8 @@ jobs:
           status: ${{ job.status }}
           text: 'Staging deployment completed'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always()
+        continue-on-error: true
 
   deploy-production:
     name: Deploy to Production
@@ -238,7 +239,8 @@ jobs:
           status: ${{ job.status }}
           text: 'Production deployment completed'
           webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always() && secrets.SLACK_WEBHOOK_URL != ''
+        if: always()
+        continue-on-error: true
       
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
