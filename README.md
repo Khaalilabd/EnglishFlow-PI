@@ -1,5 +1,8 @@
 # Jungle in English - English Learning Platform
 
+[![CI Status](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-backend.yml?branch=main&label=Backend%20CI)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
+[![Frontend CI](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-frontend.yml?branch=main&label=Frontend%20CI)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
+
 ## Overview
 
 **Developed at Esprit School of Engineering – Tunisia**
