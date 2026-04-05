@@ -2,7 +2,7 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches: [ main, User-Authentication-Management ]
+    branches: [ main, User-Authentication-Management, deployment ]
     tags:
       - 'v*'
   workflow_dispatch:
@@ -148,7 +148,7 @@ jobs:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: [build-backend, build-frontend]
-    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/User-Authentication-Management' || github.ref == 'refs/heads/deployment' || github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
     environment:
       name: staging
       url: https://staging.englishflow.com
