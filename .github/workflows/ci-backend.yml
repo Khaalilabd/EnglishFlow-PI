@@ -96,6 +96,7 @@ jobs:
           path: backend/${{ matrix.service }}/target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: false
+        continue-on-error: true
       
       - name: Upload coverage to Codecov
         if: matrix.service == 'auth-service'
