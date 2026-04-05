@@ -52,6 +52,11 @@ jobs:
           - messaging-service
           - community-service
           - club-service
+          - event-service
+          - complaints-service
+          - gamification-service
+          - learning-service
+          - config-server
     
     steps:
       - name: Checkout code
@@ -80,6 +85,8 @@ jobs:
           DB_PASSWORD: postgres
           REDIS_HOST: localhost
           REDIS_PORT: 6379
+          EUREKA_CLIENT_ENABLED: false
+          SPRING_CLOUD_CONFIG_ENABLED: false
       
       - name: Generate test report
         if: always()
@@ -114,6 +121,11 @@ jobs:
           - messaging-service
           - community-service
           - club-service
+          - event-service
+          - complaints-service
+          - gamification-service
+          - learning-service
+          - config-server
     
     steps:
       - name: Checkout code

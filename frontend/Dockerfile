@@ -24,8 +24,8 @@ FROM nginx:alpine
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built app from builder
-COPY --from=builder /app/dist/frontend /usr/share/nginx/html
+# Copy built app from builder (Angular 18 outputs to dist/englishflow-pi/browser)
+COPY --from=builder /app/dist/englishflow-pi/browser /usr/share/nginx/html
 
 # Expose port
 EXPOSE 80
