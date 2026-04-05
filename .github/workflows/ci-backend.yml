@@ -56,7 +56,7 @@ jobs:
           - event-service
           - complaints-service
           - gamification-service
-          - learning-service
+          # - learning-service  # Temporarily disabled
           - config-server
     
     steps:
@@ -127,7 +127,7 @@ jobs:
           - event-service
           - complaints-service
           - gamification-service
-          - learning-service
+          # - learning-service  # Temporarily disabled
           - config-server
     
     steps:
