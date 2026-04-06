@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ==================== Infrastructure ====================
   
@@ -15,7 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+      - ../../devops/database/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
     networks:
       - englishflow-network
     healthcheck:
@@ -48,7 +46,7 @@ services:
   # Eureka Server
   eureka-server:
     build:
-      context: ./backend/eureka-server
+      context: ../../backend/eureka-server
       dockerfile: Dockerfile
     container_name: englishflow-eureka
     ports:
@@ -69,7 +67,7 @@ services:
   
   api-gateway:
     build:
-      context: ./backend/api-gateway
+      context: ../../backend/api-gateway
       dockerfile: Dockerfile
     container_name: englishflow-gateway
     ports:
@@ -96,7 +94,7 @@ services:
   # Auth Service
   auth-service:
     build:
-      context: ./backend/auth-service
+      context: ../../backend/auth-service
       dockerfile: Dockerfile
     container_name: englishflow-auth
     ports:
@@ -139,7 +137,7 @@ services:
   # Courses Service
   courses-service:
     build:
-      context: ./backend/courses-service
+      context: ../../backend/courses-service
       dockerfile: Dockerfile
     container_name: englishflow-courses
     ports:
@@ -174,7 +172,7 @@ services:
   # Exam Service
   exam-service:
     build:
-      context: ./backend/exam-service
+      context: ../../backend/exam-service
       dockerfile: Dockerfile
     container_name: englishflow-exam
     ports:
@@ -207,7 +205,7 @@ services:
   # Messaging Service
   messaging-service:
     build:
-      context: ./backend/messaging-service
+      context: ../../backend/messaging-service
       dockerfile: Dockerfile
     container_name: englishflow-messaging
     ports:
@@ -245,7 +243,7 @@ services:
   # Community Service
   community-service:
     build:
-      context: ./backend/community-service
+      context: ../../backend/community-service
       dockerfile: Dockerfile
     container_name: englishflow-community
     ports:
@@ -276,7 +274,7 @@ services:
   # Club Service
   club-service:
     build:
-      context: ./backend/club-service
+      context: ../../backend/club-service
       dockerfile: Dockerfile
     container_name: englishflow-club
     ports:
@@ -308,7 +306,7 @@ services:
   
   frontend:
     build:
-      context: ./frontend
+      context: ../../frontend
       dockerfile: Dockerfile
     container_name: englishflow-frontend
     ports:

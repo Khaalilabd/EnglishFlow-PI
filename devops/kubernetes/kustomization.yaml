@@ -1,0 +1,105 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: englishflow
+
+resources:
+  # Namespace
+  - 00-namespace.yaml
+  
+  # ConfigMaps
+  - 01-configmaps/app-config.yaml
+  
+  # Secrets (template - replace in production)
+  - 02-secrets/app-secrets.yaml
+  
+  # Storage
+  - 03-storage/postgres-pvc.yaml
+  - 03-storage/redis-pvc.yaml
+  
+  # Databases
+  - 04-databases/postgres-init-configmap.yaml
+  - 04-databases/postgres-deployment.yaml
+  - 04-databases/postgres-service.yaml
+  - 04-databases/redis-deployment.yaml
+  - 04-databases/redis-service.yaml
+  
+  # Infrastructure
+  - 05-infrastructure/config-server-deployment.yaml
+  - 05-infrastructure/config-server-service.yaml
+  - 05-infrastructure/eureka-deployment.yaml
+  - 05-infrastructure/eureka-service.yaml
+  - 05-infrastructure/api-gateway-deployment.yaml
+  - 05-infrastructure/api-gateway-service.yaml
+  
+  # Microservices
+  - 06-microservices/auth-service.yaml
+  - 06-microservices/courses-service.yaml
+  - 06-microservices/exam-service.yaml
+  - 06-microservices/messaging-service.yaml
+  - 06-microservices/community-service.yaml
+  - 06-microservices/club-service.yaml
+  - 06-microservices/event-service.yaml
+  - 06-microservices/complaints-service.yaml
+  - 06-microservices/gamification-service.yaml
+  - 06-microservices/learning-service.yaml
+  
+  # Frontend
+  - 07-frontend/frontend-deployment.yaml
+  - 07-frontend/frontend-service.yaml
+  
+  # Ingress
+  - 08-ingress/ingress.yaml
+  
+  # Monitoring
+  - 09-monitoring/prometheus-config.yaml
+  - 09-monitoring/prometheus-deployment.yaml
+  - 09-monitoring/prometheus-service.yaml
+  - 09-monitoring/grafana-deployment.yaml
+  - 09-monitoring/grafana-service.yaml
+  
+  # Autoscaling
+  - 10-autoscaling/hpa.yaml
+
+# Common labels for all resources
+commonLabels:
+  app.kubernetes.io/name: englishflow
+  app.kubernetes.io/version: "1.0.0"
+  app.kubernetes.io/managed-by: kustomize
+
+# Images to use (can be overridden per environment)
+images:
+  - name: ghcr.io/your-org/englishflow-config-server
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-eureka-server
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-api-gateway
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-auth-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-courses-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-exam-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-messaging-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-community-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-club-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-event-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-complaints-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-gamification-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-learning-service
+    newTag: latest
+  - name: ghcr.io/your-org/englishflow-frontend
+    newTag: latest
+
+# Deployment with kustomize:
+# kubectl apply -k devops/kubernetes/
+#
+# Or with specific overlay:
+# kubectl apply -k devops/kubernetes/overlays/production/

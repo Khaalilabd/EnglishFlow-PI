@@ -1,27 +1,36 @@
 -- Initialize all databases for EnglishFlow microservices
 
--- Create databases
-CREATE DATABASE IF NOT EXISTS englishflow_identity;
-CREATE DATABASE IF NOT EXISTS englishflow_courses;
-CREATE DATABASE IF NOT EXISTS englishflow_exams;
-CREATE DATABASE IF NOT EXISTS englishflow_messaging_db;
-CREATE DATABASE IF NOT EXISTS englishflow_community;
-CREATE DATABASE IF NOT EXISTS englishflow_jungle_club_db;
-CREATE DATABASE IF NOT EXISTS englishflow_events;
-CREATE DATABASE IF NOT EXISTS englishflow_gamification;
-CREATE DATABASE IF NOT EXISTS englishflow_learning;
-CREATE DATABASE IF NOT EXISTS englishflow_notifications;
-CREATE DATABASE IF NOT EXISTS englishflow_complaints;
+-- Create databases (PostgreSQL doesn't support IF NOT EXISTS for CREATE DATABASE)
+-- This script should only run once during initial setup
 
--- Grant privileges
-GRANT ALL PRIVILEGES ON DATABASE englishflow_identity TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_courses TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_exams TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_messaging_db TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_community TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_jungle_club_db TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_events TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_gamification TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_learning TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_notifications TO postgres;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_complaints TO postgres;
+SELECT 'CREATE DATABASE englishflow_identity'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_identity')\gexec
+
+SELECT 'CREATE DATABASE englishflow_courses'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_courses')\gexec
+
+SELECT 'CREATE DATABASE englishflow_exams'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_exams')\gexec
+
+SELECT 'CREATE DATABASE englishflow_messaging_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_messaging_db')\gexec
+
+SELECT 'CREATE DATABASE englishflow_community'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_community')\gexec
+
+SELECT 'CREATE DATABASE englishflow_jungle_club_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_jungle_club_db')\gexec
+
+SELECT 'CREATE DATABASE englishflow_event_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_event_db')\gexec
+
+SELECT 'CREATE DATABASE englishflow_gamification'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_gamification')\gexec
+
+SELECT 'CREATE DATABASE englishflow_learning_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_learning_db')\gexec
+
+SELECT 'CREATE DATABASE englishflow_complaints'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_complaints')\gexec
+
+-- Note: GRANT ALL PRIVILEGES is automatically applied to the database owner (postgres)

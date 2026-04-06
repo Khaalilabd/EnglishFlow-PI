@@ -1,0 +1,46 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: englishflow
+data:
+  # Database Configuration
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_USERNAME: "postgres"
+  
+  # Redis Configuration
+  REDIS_HOST: "redis-service"
+  REDIS_PORT: "6379"
+  
+  # Eureka Configuration
+  EUREKA_SERVER_URL: "http://eureka-service:8761/eureka/"
+  
+  # Frontend & Backend URLs
+  FRONTEND_URL: "http://englishflow.com"
+  BACKEND_URL: "http://api.englishflow.com"
+  
+  # Environment
+  ENVIRONMENT: "production"
+  SPRING_PROFILES_ACTIVE: "kubernetes"
+  
+  # JPA Configuration
+  JPA_DDL_AUTO: "update"
+  JPA_SHOW_SQL: "false"
+  JPA_FORMAT_SQL: "false"
+  
+  # Logging Configuration
+  LOG_LEVEL_ROOT: "INFO"
+  LOG_LEVEL_APP: "INFO"
+  LOG_LEVEL_SQL: "WARN"
+  
+  # WebSocket Configuration
+  WEBSOCKET_ALLOWED_ORIGINS: "http://englishflow.com,https://englishflow.com"
+  
+  # File Upload Configuration
+  MAX_FILE_SIZE: "10MB"
+  MAX_REQUEST_SIZE: "10MB"
+  
+  # Rate Limiting
+  RATE_LIMIT_MESSAGES_PER_MINUTE: "60"
+  RATE_LIMIT_CONVERSATIONS_PER_HOUR: "10"

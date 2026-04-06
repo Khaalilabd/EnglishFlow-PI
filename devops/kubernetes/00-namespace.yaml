@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: englishflow
+  labels:
+    name: englishflow
+    environment: production
+    app: englishflow-platform
