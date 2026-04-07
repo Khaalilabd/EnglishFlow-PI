@@ -7,6 +7,8 @@ export interface Event {
   id?: number;
   title: string;
   type: 'WORKSHOP' | 'SEMINAR' | 'SOCIAL';
+  format?: 'ONLINE' | 'IN_PERSON';
+  meetingLink?: string;
   startDate: string;
   endDate: string;
   location: string;
@@ -24,8 +26,20 @@ export interface Event {
   createdAt?: string;
   updatedAt?: string;
   
+  // Sponsor information
+  sponsorIds?: number[]; // Array of sponsor IDs
+  sponsors?: EventSponsor[]; // Array of sponsor details
+  
   // Backward compatibility (deprecated)
   eventDate?: string;
+}
+
+export interface EventSponsor {
+  id: number;
+  name: string;
+  logo?: string;
+  level?: 'GOLD' | 'SILVER' | 'BRONZE' | 'PARTNER';
+  contributionAmount?: number;
 }
 
 export interface Participant {
@@ -74,6 +88,14 @@ export class EventService {
 
   getUpcomingEvents(): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.apiUrl}/upcoming`);
+  }
+
+  getOngoingEvents(): Observable<Event[]> {
+    return this.http.get<Event[]>(`${this.apiUrl}/ongoing`);
+  }
+
+  getPastEvents(): Observable<Event[]> {
+    return this.http.get<Event[]>(`${this.apiUrl}/past`);
   }
 
   getEventsByCreator(creatorId: number): Observable<Event[]> {

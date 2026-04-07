@@ -6,11 +6,13 @@ import { MemberService } from '../../../core/services/member.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { Club, Member } from '../../../core/models/club.model';
+import { ClubExpensesComponent } from '../club-expenses/club-expenses.component';
+import { ClubMembershipRequestsComponent } from '../club-membership-requests/club-membership-requests.component';
 
 @Component({
   selector: 'app-club-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ClubExpensesComponent, ClubMembershipRequestsComponent],
   templateUrl: './club-detail.component.html',
   styleUrls: ['./club-detail.component.scss']
 })

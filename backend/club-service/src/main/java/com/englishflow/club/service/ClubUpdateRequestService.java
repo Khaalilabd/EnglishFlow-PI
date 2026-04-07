@@ -27,6 +27,7 @@ public class ClubUpdateRequestService {
     private final ClubRepository clubRepository;
     private final MemberRepository memberRepository;
     private final MemberService memberService;
+    private final WebSocketNotificationService wsNotificationService;
     
     /**
      * Créer une demande de modification de club (par le président)
@@ -168,6 +169,9 @@ public class ClubUpdateRequestService {
         
         request.setStatus(UpdateRequestStatus.APPROVED);
         request.setAppliedAt(LocalDateTime.now());
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyClubUpdated(club.getId().longValue(), club.getName());
         
         log.info("Update request {} applied successfully", request.getId());
     }

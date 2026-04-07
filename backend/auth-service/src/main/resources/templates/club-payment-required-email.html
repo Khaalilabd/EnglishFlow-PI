@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Payment Required</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f7f7f7;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2D5757 0%, #F6BD60 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="color: #F7EDE2; margin: 0; font-size: 32px; font-weight: bold;">
+                                🎉 Request Approved!
+                            </h1>
+                            <p style="color: #F7EDE2; margin: 15px 0 0 0; font-size: 16px; opacity: 0.95;">
+                                Jungle in English - Club Community
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #2D5757; margin: 0 0 20px 0; font-size: 24px;">
+                                Hello, <span th:text="${firstName}">Student</span>! 👋
+                            </h2>
+
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                Great news! Your request to join <strong th:text="${clubName}">Club Name</strong> has been <strong style="color: #2D5757;">approved</strong>.
+                                To complete your registration, please proceed with the membership fee payment.
+                            </p>
+
+                            <!-- Club + Amount Card -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #F6BD60 0%, #e5ac4f 100%); border-radius: 12px; margin: 0 0 30px 0;">
+                                <tr>
+                                    <td style="padding: 25px; text-align: center;">
+                                        <div style="font-size: 48px; margin-bottom: 10px;">🏆</div>
+                                        <h3 style="color: #2D5757; margin: 0 0 10px 0; font-size: 24px; font-weight: bold;" th:text="${clubName}">Club Name</h3>
+                                        <p style="color: #2D5757; margin: 0; font-size: 14px;">Registration Fee</p>
+                                        <p style="color: #2D5757; margin: 5px 0 0 0; font-size: 36px; font-weight: bold;">
+                                            <span th:text="${registrationFee}">50</span> TND
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 10px 0 30px 0;">
+                                        <a th:href="${paymentLink}"
+                                           style="display: inline-block; background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); color: #F7EDE2; text-decoration: none; padding: 18px 50px; border-radius: 12px; font-size: 18px; font-weight: bold; box-shadow: 0 4px 6px rgba(45, 87, 87, 0.3);">
+                                            💳 Pay Now
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Info box -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F7EDE2; border-radius: 12px; padding: 20px; margin: 0 0 25px 0;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #2D5757; margin: 0 0 12px 0; font-size: 18px;">📋 How to pay?</h3>
+                                        <p style="margin: 0 0 8px 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                            ✓ Click the "Pay Now" button above
+                                        </p>
+                                        <p style="margin: 0 0 8px 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                            ✓ Choose bank transfer via Konnect (card, e-DINAR)
+                                        </p>
+                                        <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                            ✓ Once payment is confirmed, you will be automatically added to the club
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 0; text-align: center;">
+                                Need help? Contact us at <a href="mailto:support@jungleinenglish.com" style="color: #2D5757; text-decoration: none; font-weight: bold;">support@jungleinenglish.com</a>
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #F7EDE2; padding: 30px; text-align: center;">
+                            <p style="color: #2D5757; font-size: 16px; margin: 0 0 5px 0; font-weight: bold;">Jungle in English</p>
+                            <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">Empowering English learners through community and practice</p>
+                            <p style="color: #666666; font-size: 13px; margin: 0;">
+                                <a th:href="${frontendUrl}" style="color: #2D5757; text-decoration: none; margin: 0 10px;">Visit Website</a> |
+                                <a href="mailto:support@jungleinenglish.com" style="color: #2D5757; text-decoration: none; margin: 0 10px;">Contact Support</a>
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 15px 0 0 0;">© 2026 Jungle in English. All rights reserved.</p>
+                            <p style="color: #999999; font-size: 11px; margin: 10px 0 0 0;">This is an automated email. Please do not reply to this message.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

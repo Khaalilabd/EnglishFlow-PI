@@ -46,6 +46,16 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/public-clubs/public-clubs.component').then(m => m.PublicClubsComponent),
     title: 'Clubs | Jungle in English'
   },
+  {
+    path: 'clubs/:id',
+    loadComponent: () => import('./pages/public-clubs/public-clubs.component').then(m => m.PublicClubsComponent),
+    title: 'Club Details | Jungle in English'
+  },
+  {
+    path: 'become-sponsor',
+    loadComponent: () => import('./pages/become-sponsor/become-sponsor.component').then(m => m.BecomeSponsorComponent),
+    title: 'Become a Sponsor | Jungle in English'
+  },
   
   // Page publique des événements
   {
@@ -196,6 +206,16 @@ export const routes: Routes = [
         title: 'My Clubs | Jungle in English'
       },
       {
+        path: 'clubs/create',
+        loadComponent: () => import('./pages/clubs/club-create/club-create.component').then(m => m.ClubCreateComponent),
+        title: 'Create Club | Jungle in English'
+      },
+      {
+        path: 'clubs/:id/edit',
+        loadComponent: () => import('./pages/clubs/club-edit/club-edit.component').then(m => m.ClubEditComponent),
+        title: 'Edit Club | Jungle in English'
+      },
+      {
         path: 'clubs/:id',
         loadComponent: () => import('./pages/student-panel/clubs/clubs.component').then(m => m.ClubsComponent),
         title: 'Club Details | Jungle in English'
@@ -206,6 +226,21 @@ export const routes: Routes = [
         title: 'Events | Jungle in English'
       },
       {
+        path: 'events/create',
+        loadComponent: () => import('./pages/student-panel/event-create/event-create.component').then(m => m.EventCreateComponent),
+        title: 'Create Event | Jungle in English'
+      },
+      {
+        path: 'events/edit/:id',
+        loadComponent: () => import('./pages/student-panel/event-edit/event-edit.component').then(m => m.EventEditComponent),
+        title: 'Edit Event | Jungle in English'
+      },
+      {
+        path: 'events/:id/live',
+        loadComponent: () => import('./pages/student-panel/live-session/live-session.component').then(m => m.LiveSessionComponent),
+        title: 'Live Session | Jungle in English'
+      },
+      {
         path: 'events/:id',
         loadComponent: () => import('./pages/student-panel/events/events.component').then(m => m.EventsComponent),
         title: 'Event Details | Jungle in English'
@@ -214,6 +249,11 @@ export const routes: Routes = [
         path: 'club-requests',
         loadComponent: () => import('./pages/student-panel/club-requests/club-requests.component').then(m => m.ClubRequestsComponent),
         title: 'Club Requests | Jungle in English'
+      },
+      {
+        path: 'club-payment/:requestId',
+        loadComponent: () => import('./pages/student-panel/club-payment/club-payment.component').then(m => m.ClubPaymentComponent),
+        title: 'Club Payment | Jungle in English'
       },
       {
         path: 'progress',
@@ -614,6 +654,31 @@ export const routes: Routes = [
         path: 'events/requests',
         loadComponent: () => import('./pages/dashboard/events-requests/events-requests.component').then(m => m.EventsRequestsComponent),
         title: 'Event Requests | Jungle in English Dashboard'
+      },
+      {
+        path: 'sponsors',
+        loadComponent: () => import('./pages/sponsors/sponsors-list/sponsors-list.component').then(m => m.SponsorsListComponent),
+        title: 'Manage Sponsors | Jungle in English Dashboard'
+      },
+      {
+        path: 'sponsors/create',
+        loadComponent: () => import('./pages/sponsors/sponsor-create/sponsor-create.component').then(m => m.SponsorCreateComponent),
+        title: 'Create Sponsor | Jungle in English Dashboard'
+      },
+      {
+        path: 'sponsors/edit/:id',
+        loadComponent: () => import('./pages/sponsors/sponsor-edit/sponsor-edit.component').then(m => m.SponsorEditComponent),
+        title: 'Edit Sponsor | Jungle in English Dashboard'
+      },
+      {
+        path: 'sponsors/detail/:id',
+        loadComponent: () => import('./pages/sponsors/sponsor-detail/sponsor-detail.component').then(m => m.SponsorDetailComponent),
+        title: 'Sponsor Details | Jungle in English Dashboard'
+      },
+      {
+        path: 'sponsors/requests',
+        loadComponent: () => import('./pages/dashboard/sponsor-requests/sponsor-requests.component').then(m => m.SponsorRequestsComponent),
+        title: 'Sponsor Requests | Jungle in English Dashboard'
       },
       {
         path: 'complaints',

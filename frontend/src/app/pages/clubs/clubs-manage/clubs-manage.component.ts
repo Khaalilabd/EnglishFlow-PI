@@ -1,21 +1,25 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 import { ClubService } from '../../../core/services/club.service';
 import { UserService } from '../../../core/services/user.service';
 import { Club, Member } from '../../../core/models/club.model';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ClubWebSocketService } from '../../../services/club-websocket.service';
+import { DataSyncService } from '../../../services/data-sync.service';
+import { ClubMembershipRequestsComponent } from '../club-membership-requests/club-membership-requests.component';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-clubs-manage',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ClubMembershipRequestsComponent],
   templateUrl: './clubs-manage.component.html',
   styleUrl: './clubs-manage.component.scss'
 })
-export class ClubsManageComponent implements OnInit {
+export class ClubsManageComponent implements OnInit, OnDestroy {
   clubs: Club[] = [];
   selectedClub: Club | null = null;
   clubMembers: Member[] = [];
@@ -28,15 +32,46 @@ export class ClubsManageComponent implements OnInit {
   clubToSuspend: Club | null = null;
   suspensionReason = '';
   currentUserId = 1; // TODO: Récupérer l'ID de l'utilisateur connecté
+  
+  private wsSubscriptions = new Subscription();
 
   constructor(
     private clubService: ClubService,
     private userService: UserService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private clubWsService: ClubWebSocketService,
+    private dataSyncService: DataSyncService
   ) {}
 
   ngOnInit() {
+    this.initializeWebSocket();
+    this.setupAutoSync();
     this.loadClubs();
+  }
+  
+  ngOnDestroy() {
+    this.wsSubscriptions.unsubscribe();
+    this.clubWsService.disconnect();
+  }
+  
+  private async initializeWebSocket() {
+    try {
+      await this.clubWsService.connect();
+      this.clubWsService.subscribeToGlobalClubs();
+      console.log('✅ Club WebSocket initialized for clubs-manage');
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
+    }
+  }
+  
+  private setupAutoSync() {
+    const syncSub = this.dataSyncService.onClubDataChanged().subscribe(change => {
+      if (change.action !== 'none') {
+        console.log('🔄 Club data changed in clubs-manage:', change.action);
+        this.loadClubs();
+      }
+    });
+    this.wsSubscriptions.add(syncSub);
   }
 
   loadClubs() {

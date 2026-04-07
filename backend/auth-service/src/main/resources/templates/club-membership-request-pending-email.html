@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Club Membership Request Pending</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f7f7f7;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 40px 0;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    <!-- Header with Platform Branding -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2D5757 0%, #F6BD60 100%); padding: 40px 30px; text-align: center;">
+                            <h1 style="color: #F7EDE2; margin: 0; font-size: 32px; font-weight: bold;">
+                                🎯 Membership Request Submitted
+                            </h1>
+                            <p style="color: #F7EDE2; margin: 15px 0 0 0; font-size: 16px; opacity: 0.95;">
+                                Jungle in English - Club Community
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 30px;">
+                            <h2 style="color: #2D5757; margin: 0 0 20px 0; font-size: 24px;">
+                                Hello, <span th:text="${firstName}">Student</span>! 👋
+                            </h2>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 0 0 30px 0;">
+                                Thank you for your interest in joining our club community! Your membership request has been successfully submitted and is now pending review.
+                            </p>
+                            
+                            <!-- Club Card with Image -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #F6BD60 0%, #e5ac4f 100%); border-radius: 12px; overflow: hidden; margin: 30px 0;">
+                                <tr>
+                                    <td style="padding: 25px; text-align: center;">
+                                        <!-- Club Icon -->
+                                        <div style="margin-bottom: 15px;">
+                                            <div style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); display: inline-flex; align-items: center; justify-content: center; font-size: 48px; border: 4px solid #ffffff; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+                                                🎯
+                                            </div>
+                                        </div>
+                                        
+                                        <h3 style="color: #2D5757; margin: 15px 0 10px 0; font-size: 26px; font-weight: bold;" th:text="${clubName}">Club Name</h3>
+                                        
+                                        <div style="display: inline-block; padding: 8px 20px; background-color: #FFA500; color: white; border-radius: 20px; font-size: 14px; font-weight: bold; margin-top: 10px;">
+                                            ⏳ PENDING REVIEW
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- What Happens Next -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F7EDE2; border-radius: 12px; padding: 25px; margin: 30px 0;">
+                                <tr>
+                                    <td>
+                                        <h3 style="color: #2D5757; margin: 0 0 15px 0; font-size: 20px;">
+                                            📋 What Happens Next?
+                                        </h3>
+                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                                        ✓ Your request will be reviewed by club managers
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                                        ✓ They will evaluate your application and motivation
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                                        ✓ You'll receive an email once a decision is made
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0;">
+                                                    <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
+                                                        ✓ Review typically takes 1-3 business days
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Your Message (if provided) -->
+                            <div th:if="${message != null and !#strings.isEmpty(message)}">
+                                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                                    <tr>
+                                        <td>
+                                            <p style="margin: 0 0 10px 0; color: #2D5757; font-size: 16px; font-weight: bold;">
+                                                💬 Your Message:
+                                            </p>
+                                            <p style="margin: 0; color: #555555; font-size: 15px; line-height: 1.6; font-style: italic;" th:text="${message}">
+                                                Your motivation message
+                                            </p>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            
+                            <p style="color: #333333; font-size: 16px; line-height: 1.6; margin: 30px 0 20px 0; text-align: center;">
+                                While you wait, feel free to explore other clubs and activities!
+                            </p>
+                            
+                            <!-- CTA Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 10px 0 20px 0;">
+                                        <a th:href="${clubsLink}" 
+                                           style="display: inline-block; background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); color: #F7EDE2; text-decoration: none; padding: 16px 40px; border-radius: 12px; font-size: 16px; font-weight: bold; box-shadow: 0 4px 6px rgba(45, 87, 87, 0.3);">
+                                            🔍 Browse All Clubs
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <!-- Tip -->
+                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F4F8; border-left: 4px solid #2D5757; border-radius: 4px; padding: 15px; margin: 25px 0;">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0; color: #2D5757; font-size: 14px; line-height: 1.6;">
+                                            <strong>💡 Tip:</strong> Make sure to check your email regularly for updates on your membership request.
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                            
+                            <p style="color: #666666; font-size: 14px; line-height: 1.6; margin: 30px 0 0 0; text-align: center;">
+                                Need help? Contact us at <a href="mailto:support@jungleinenglish.com" style="color: #2D5757; text-decoration: none; font-weight: bold;">support@jungleinenglish.com</a>
+                            </p>
+                        </td>
+                    </tr>
+                    
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #F7EDE2; padding: 30px; text-align: center;">
+                            <p style="color: #2D5757; font-size: 16px; margin: 0 0 5px 0; font-weight: bold;">
+                                Jungle in English
+                            </p>
+                            <p style="color: #666666; font-size: 14px; margin: 0 0 15px 0;">
+                                Empowering English learners through community and practice
+                            </p>
+                            <p style="color: #666666; font-size: 13px; margin: 0;">
+                                <a th:href="${frontendUrl}" style="color: #2D5757; text-decoration: none; margin: 0 10px;">Visit Website</a> | 
+                                <a href="mailto:support@jungleinenglish.com" style="color: #2D5757; text-decoration: none; margin: 0 10px;">Contact Support</a>
+                            </p>
+                            <p style="color: #999999; font-size: 12px; margin: 15px 0 0 0;">
+                                © 2026 Jungle in English. All rights reserved.
+                            </p>
+                            <p style="color: #999999; font-size: 11px; margin: 10px 0 0 0;">
+                                This is an automated email. Please do not reply to this message.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

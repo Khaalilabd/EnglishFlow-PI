@@ -33,6 +33,15 @@ public class MemberController {
     }
 
     
+    @GetMapping("/club/{clubId}/user/{userId}")
+    public ResponseEntity<MemberDTO> getMemberByClubAndUser(
+            @PathVariable Integer clubId,
+            @PathVariable Long userId) {
+        return memberService.getMemberByClubAndUser(clubId, userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/club/{clubId}/user/{userId}")
     public ResponseEntity<MemberDTO> addMemberToClub(
             @PathVariable Integer clubId,

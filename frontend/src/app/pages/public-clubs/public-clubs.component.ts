@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { ClubService } from '../../core/services/club.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Club, ClubCategory } from '../../core/models/club.model';
@@ -31,7 +31,8 @@ export class PublicClubsComponent implements OnInit {
 
   constructor(
     private clubService: ClubService,
-    public authService: AuthService
+    public authService: AuthService,
+    private route: ActivatedRoute
   ) {}
 
   toggleMobileMenu() {
@@ -59,10 +60,16 @@ export class PublicClubsComponent implements OnInit {
 
     this.clubService.getAllClubs().subscribe({
       next: (clubs) => {
-        // Ne pas filtrer les clubs suspendus, les afficher tous
         this.allClubs = clubs;
         this.filteredClubs = clubs;
         this.loading = false;
+
+        // Auto-open modal if :id param is present
+        const clubId = this.route.snapshot.paramMap.get('id');
+        if (clubId) {
+          const club = clubs.find(c => c.id === Number(clubId));
+          if (club) this.showClubDetails(club);
+        }
       },
       error: (err) => {
         console.error('Error loading clubs:', err);

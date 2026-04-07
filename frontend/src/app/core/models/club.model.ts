@@ -5,6 +5,7 @@ export interface Club {
   objective?: string;
   category: ClubCategory;
   maxMembers: number;
+  registrationFee?: number; // Frais d'inscription
   image?: string; // Base64 encoded image
   status?: ClubStatus;
   createdBy?: number;
@@ -16,6 +17,7 @@ export interface Club {
   suspensionReason?: string; // Raison de la suspension
   suspendedAt?: string; // Date de suspension
   members?: Member[];
+  skills?: Skill[]; // Compétences associées au club
   createdAt?: string;
   updatedAt?: string;
   isFull?: boolean;
@@ -48,6 +50,8 @@ export interface Member {
   rank: RankType;
   userId: number;
   userName?: string; // Nom de l'utilisateur
+  userEmail?: string; // Email de l'utilisateur
+  userPhoto?: string; // Photo de profil de l'utilisateur
   clubId?: number;
   joinedAt?: string;
   updatedAt?: string;
@@ -64,13 +68,23 @@ export enum RankType {
   MEMBER = 'MEMBER'                             // Membre
 }
 
+export interface Skill {
+  id?: number;
+  name: string;
+  description?: string;
+  clubId?: number;
+  createdAt?: string;
+}
+
 export interface CreateClubRequest {
   name: string;
   description: string;
   objective?: string;
   category: ClubCategory;
   maxMembers: number;
+  registrationFee?: number;
   image?: string;
+  skills?: Skill[];
   createdBy?: number;
 }
 
@@ -80,7 +94,9 @@ export interface UpdateClubRequest {
   objective?: string;
   category?: ClubCategory;
   maxMembers?: number;
+  registrationFee?: number;
   image?: string;
+  skills?: Skill[];
 }
 
 export interface ApproveClubRequest {
@@ -90,4 +106,35 @@ export interface ApproveClubRequest {
 
 export interface JoinClubRequest {
   userId: number;
+}
+
+export interface MembershipRequest {
+  id?: number;
+  clubId: number;
+  clubName?: string;
+  userId: number;
+  userName?: string;
+  userEmail?: string;
+  status: MembershipRequestStatus;
+  message?: string;
+  motivationLetter?: string; // Lettre de motivation
+  studentSkills?: string; // Compétences de l'étudiant
+  requestedAt?: string;
+  reviewedAt?: string;
+  reviewedBy?: number;
+  reviewComment?: string;
+}
+
+export enum MembershipRequestStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED'
+}
+
+export interface CreateMembershipRequest {
+  clubId: number;
+  userId: number;
+  message?: string;
+  motivationLetter?: string; // Lettre de motivation
+  studentSkills?: string; // Compétences de l'étudiant
 }

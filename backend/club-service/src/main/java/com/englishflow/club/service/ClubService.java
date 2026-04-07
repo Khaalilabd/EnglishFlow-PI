@@ -5,6 +5,7 @@ import com.englishflow.club.dto.ClubWithRoleDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Member;
 import com.englishflow.club.enums.ClubCategory;
+import com.englishflow.club.enums.ClubStatus;
 import com.englishflow.club.exception.ClubNotFoundException;
 import com.englishflow.club.exception.UnauthorizedException;
 import com.englishflow.club.mapper.ClubMapper;
@@ -31,6 +32,8 @@ public class ClubService {
     private final MemberRepository memberRepository;
     private final ClubUpdateRequestService updateRequestService;
     private final ClubMapper clubMapper;
+    private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
+    private final SkillService skillService;
     
     @Cacheable(value = "clubs", key = "'all'")
     @Transactional(readOnly = true)
@@ -77,10 +80,18 @@ public class ClubService {
         Club club = clubMapper.toEntity(clubDTO);
         Club savedClub = clubRepository.save(club);
         
+        // Ajouter les skills si présentes
+        if (clubDTO.getSkills() != null && !clubDTO.getSkills().isEmpty()) {
+            skillService.updateClubSkills(savedClub.getId(), clubDTO.getSkills());
+        }
+        
         // Automatically add the creator as PRESIDENT
         if (clubDTO.getCreatedBy() != null) {
             memberService.addPresidentToClub(savedClub.getId(), clubDTO.getCreatedBy().longValue());
         }
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyClubCreated(savedClub.getId().longValue(), savedClub.getName());
         
         log.info("Club created successfully with id: {}", savedClub.getId());
         return clubMapper.toDTO(savedClub);
@@ -116,10 +127,23 @@ public class ClubService {
     @Transactional
     public void deleteClub(Integer id) {
         log.info("Deleting club id: {}", id);
-        if (!clubRepository.existsById(id)) {
-            throw new ClubNotFoundException(id);
-        }
+        Club club = clubRepository.findById(id)
+                .orElseThrow(() -> new ClubNotFoundException(id));
+        
+        String clubName = club.getName();
         clubRepository.deleteById(id);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.sendGlobalClubNotification(
+            com.englishflow.club.dto.ClubNotificationDTO.builder()
+                .type("CLUB_DELETED")
+                .clubId(id.longValue())
+                .clubName(clubName)
+                .message("Club '" + clubName + "' has been deleted")
+                .timestamp(java.time.LocalDateTime.now())
+                .build()
+        );
+        
         log.info("Club deleted successfully: {}", id);
     }
     
@@ -134,18 +158,11 @@ public class ClubService {
     @Transactional(readOnly = true)
     public List<ClubDTO> getApprovedClubs() {
         log.debug("Fetching approved and suspended clubs");
-        // Récupérer les clubs approuvés ET suspendus pour la gestion
-        List<Club> clubs = clubRepository.findAll().stream()
-                .filter(club -> club.getStatus() == com.englishflow.club.enums.ClubStatus.APPROVED 
-                             || club.getStatus() == com.englishflow.club.enums.ClubStatus.SUSPENDED)
-                .collect(Collectors.toList());
-        
-        return clubs.stream()
+        List<ClubStatus> statuses = List.of(ClubStatus.APPROVED, ClubStatus.SUSPENDED);
+        return clubRepository.findByStatusIn(statuses).stream()
                 .map(club -> {
                     ClubDTO dto = clubMapper.toDTO(club);
-                    // Ajouter le nombre de membres
-                    Long memberCount = memberRepository.countByClubId(club.getId());
-                    dto.setCurrentMembersCount(memberCount != null ? memberCount.intValue() : 0);
+                    dto.setCurrentMembersCount((int) memberRepository.countByClubId(club.getId()));
                     return dto;
                 })
                 .collect(Collectors.toList());
@@ -184,6 +201,19 @@ public class ClubService {
         club.setReviewComment(comment);
         
         Club updatedClub = clubRepository.save(club);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.sendClubNotification(
+            id.longValue(),
+            com.englishflow.club.dto.ClubNotificationDTO.builder()
+                .type("CLUB_APPROVED")
+                .clubId(id.longValue())
+                .clubName(club.getName())
+                .message("Club '" + club.getName() + "' has been approved")
+                .timestamp(java.time.LocalDateTime.now())
+                .build()
+        );
+        
         log.info("Club approved successfully: {}", id);
         return clubMapper.toDTO(updatedClub);
     }

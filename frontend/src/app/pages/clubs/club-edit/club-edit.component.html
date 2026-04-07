@@ -1,137 +1,429 @@
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex items-center gap-4">
-    <button
-      [routerLink]="['/dashboard/clubs', clubId]"
-      class="p-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-    >
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
-      </svg>
-    </button>
-    <div>
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Edit Club</h1>
-      <p class="text-gray-600 dark:text-gray-400 mt-1">Update club information</p>
-    </div>
-  </div>
-
-  <!-- Form Card -->
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-    @if (loading) {
-      <div class="flex items-center justify-center py-12">
-        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 -m-6 p-6">
+  <div class="max-w-4xl mx-auto">
+    <!-- Header -->
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        (click)="cancel()"
+        class="p-2.5 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-white shadow-sm transition-all"
+      >
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-3xl font-black text-[#2D5757] tracking-tight">Edit Club</h1>
+        <p class="text-gray-600 mt-1">Update your club information</p>
       </div>
-    } @else if (error) {
-      <div class="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+      <div class="flex items-center justify-between mb-4">
+        @for (step of [1, 2]; track step) {
+          <div class="flex items-center" [class.flex-1]="step < totalSteps">
+            <div class="flex items-center gap-3">
+              <div 
+                class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all"
+                [class.bg-gradient-to-r]="currentStep >= step"
+                [class.from-[#2D5757]]="currentStep >= step"
+                [class.to-[#3D3D60]]="currentStep >= step"
+                [class.text-white]="currentStep >= step"
+                [class.bg-gray-200]="currentStep < step"
+                [class.text-gray-500]="currentStep < step"
+              >
+                @if (currentStep > step) {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                } @else {
+                  {{ step }}
+                }
+              </div>
+              <div class="text-left">
+                <p class="text-xs font-medium text-gray-500">Step {{ step }}</p>
+                <p class="text-sm font-bold" [class.text-[#2D5757]]="currentStep >= step" [class.text-gray-400]="currentStep < step">
+                  {{ step === 1 ? 'Basic Info' : 'Details & Skills' }}
+                </p>
+              </div>
+            </div>
+            @if (step < totalSteps) {
+              <div class="flex-1 h-1 mx-4 rounded-full bg-gray-200">
+                <div 
+                  class="h-full rounded-full bg-gradient-to-r from-[#2D5757] to-[#3D3D60] transition-all duration-500"
+                  [style.width.%]="currentStep > step ? 100 : 0"
+                ></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Error Message -->
+    @if (error) {
+      <div class="mb-6 bg-red-50 border-l-4 border-red-500 rounded-xl p-4 shadow-sm animate-fadeIn">
         <div class="flex items-center">
           <svg class="w-5 h-5 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+          <p class="text-red-800 font-medium">{{ error }}</p>
         </div>
       </div>
-    } @else {
-      <form [formGroup]="clubForm" (ngSubmit)="onSubmit()" class="space-y-6">
-        <!-- Club Name -->
-        <div>
-          <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Club Name <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="name"
-            formControlName="name"
-            [class.border-red-500]="isFieldInvalid('name')"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          @if (isFieldInvalid('name')) {
-            <p class="mt-1 text-sm text-red-600">Club name is required (min 3 characters)</p>
-          }
-        </div>
+    }
 
-        <!-- Category -->
-        <div>
-          <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Category <span class="text-red-500">*</span>
-          </label>
-          <select
-            id="category"
-            formControlName="category"
-            [class.border-red-500]="isFieldInvalid('category')"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          >
-            @for (cat of categories; track cat) {
-              <option [value]="cat">{{ cat }}</option>
+    <!-- Form Card -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <form [formGroup]="clubForm" (ngSubmit)="onSubmit()">
+        
+        <!-- Step 1: Basic Information -->
+        @if (currentStep === 1) {
+          <div class="p-8 space-y-6 animate-fadeIn">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-[#2D5757] mb-2">Basic Information</h2>
+              <p class="text-gray-600">Let's start with the essentials of your club</p>
+            </div>
+
+            <!-- Club Name -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Club Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="e.g., English Speaking Club"
+                [class.border-red-500]="isFieldInvalid('name')"
+                [class.border-green-500]="clubForm.get('name')?.valid && clubForm.get('name')?.touched"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900 placeholder-gray-400"
+              />
+              @if (isFieldInvalid('name')) {
+                <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"></path>
+                  </svg>
+                  @if (clubForm.get('name')?.errors?.['required']) {
+                    Club name is required
+                  }
+                  @if (clubForm.get('name')?.errors?.['minlength']) {
+                    Club name must be at least 3 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Category -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Category <span class="text-red-500">*</span>
+              </label>
+              <select
+                formControlName="category"
+                [class.border-red-500]="isFieldInvalid('category')"
+                [class.border-green-500]="clubForm.get('category')?.valid && clubForm.get('category')?.touched"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900"
+              >
+                <option value="">Select a category</option>
+                @for (cat of categories; track cat) {
+                  <option [value]="cat">{{ cat }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('category')) {
+                <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"></path>
+                  </svg>
+                  Category is required
+                </p>
+              }
+            </div>
+
+            <!-- Description -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Description <span class="text-red-500">*</span>
+              </label>
+              <textarea
+                formControlName="description"
+                rows="5"
+                placeholder="Describe what your club is about, what activities you'll do, and what members can expect..."
+                [class.border-red-500]="isFieldInvalid('description')"
+                [class.border-green-500]="clubForm.get('description')?.valid && clubForm.get('description')?.touched"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900 placeholder-gray-400 resize-none"
+              ></textarea>
+              @if (isFieldInvalid('description')) {
+                <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"></path>
+                  </svg>
+                  @if (clubForm.get('description')?.errors?.['required']) {
+                    Description is required
+                  }
+                  @if (clubForm.get('description')?.errors?.['minlength']) {
+                    Description must be at least 10 characters
+                  }
+                </p>
+              }
+            </div>
+
+            <!-- Maximum Members -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Maximum Members <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="number"
+                formControlName="maxMembers"
+                min="5"
+                max="100"
+                [class.border-red-500]="isFieldInvalid('maxMembers')"
+                [class.border-green-500]="clubForm.get('maxMembers')?.valid && clubForm.get('maxMembers')?.touched"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900"
+              />
+              <p class="mt-2 text-xs text-gray-500">Choose between 5 and 100 members</p>
+              @if (isFieldInvalid('maxMembers')) {
+                <p class="mt-2 text-sm text-red-600 flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01"></path>
+                  </svg>
+                  Maximum members must be between 5 and 100
+                </p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Step 2: Details & Skills -->
+        @if (currentStep === 2) {
+          <div class="p-8 space-y-6 animate-fadeIn">
+            <div class="mb-6">
+              <h2 class="text-2xl font-bold text-[#2D5757] mb-2">Details & Skills</h2>
+              <p class="text-gray-600">Add more information and define what members will learn</p>
+            </div>
+
+            <!-- Objective -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Club Objective <span class="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <textarea
+                formControlName="objective"
+                rows="3"
+                placeholder="What is the main goal or mission of this club?"
+                class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900 placeholder-gray-400 resize-none"
+              ></textarea>
+            </div>
+
+            <!-- Registration Fee -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Registration Fee (TND) <span class="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <div class="relative">
+                <input
+                  type="number"
+                  formControlName="registrationFee"
+                  min="0"
+                  step="0.01"
+                  placeholder="0.00"
+                  class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-gray-900"
+                />
+                <div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">
+                  TND
+                </div>
+              </div>
+              <p class="mt-2 text-xs text-gray-500">Leave at 0 for free membership</p>
+            </div>
+
+            <!-- Skills Section -->
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-6 border-2 border-indigo-100">
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
+                  <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-indigo-900">Skills & Competencies</h3>
+                  <p class="text-sm text-indigo-700">What will members learn in this club?</p>
+                </div>
+              </div>
+
+              <!-- Add Skill Form -->
+              <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                <div class="space-y-3">
+                  <input
+                    type="text"
+                    [(ngModel)]="newSkillName"
+                    [ngModelOptions]="{standalone: true}"
+                    placeholder="Skill name (e.g., Public Speaking, Vocabulary Building)"
+                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                  />
+                  <input
+                    type="text"
+                    [(ngModel)]="newSkillDescription"
+                    [ngModelOptions]="{standalone: true}"
+                    placeholder="Description (optional)"
+                    class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all text-sm"
+                  />
+                  <button
+                    type="button"
+                    (click)="addSkill()"
+                    [disabled]="!newSkillName.trim()"
+                    class="w-full px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg hover:shadow-lg disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all text-sm font-semibold flex items-center justify-center gap-2"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Skill
+                  </button>
+                </div>
+              </div>
+
+              <!-- Skills List -->
+              @if (clubSkills.length > 0) {
+                <div class="space-y-2">
+                  <p class="text-sm font-semibold text-indigo-900 mb-3">Added Skills ({{ clubSkills.length }})</p>
+                  @for (skill of clubSkills; track $index) {
+                    <div class="flex items-start justify-between bg-white border-2 border-indigo-200 rounded-xl p-4 hover:shadow-md transition-all">
+                      <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-1">
+                          <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                          </svg>
+                          <p class="font-bold text-sm text-indigo-900">{{ skill.name }}</p>
+                        </div>
+                        @if (skill.description) {
+                          <p class="text-xs text-indigo-700 ml-6">{{ skill.description }}</p>
+                        }
+                      </div>
+                      <button
+                        type="button"
+                        (click)="removeSkill($index)"
+                        class="ml-3 p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                      </button>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-center py-6 bg-white rounded-xl border-2 border-dashed border-indigo-200">
+                  <svg class="w-12 h-12 mx-auto text-indigo-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                  </svg>
+                  <p class="text-sm text-indigo-600 font-medium">No skills added yet</p>
+                  <p class="text-xs text-indigo-500 mt-1">Add skills that members will develop</p>
+                </div>
+              }
+            </div>
+
+            <!-- Image Upload -->
+            <div>
+              <label class="block text-sm font-bold text-gray-700 mb-2">
+                Club Image <span class="text-gray-400 font-normal">(Optional)</span>
+              </label>
+              <div class="relative">
+                @if (imagePreview) {
+                  <div class="relative rounded-xl overflow-hidden border-2 border-gray-200 mb-3">
+                    <img [src]="imagePreview" alt="Preview" class="w-full h-48 object-cover" />
+                    <button
+                      type="button"
+                      (click)="imagePreview = null; selectedImageFile = null"
+                      class="absolute top-2 right-2 p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-lg"
+                    >
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                      </svg>
+                    </button>
+                  </div>
+                }
+                <label class="cursor-pointer block">
+                  <div class="w-full px-6 py-8 border-2 border-dashed border-gray-300 rounded-xl hover:border-[#2D5757] hover:bg-gray-50 transition-all text-center">
+                    <svg class="w-12 h-12 mx-auto mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <p class="text-sm font-medium text-gray-700 mb-1">
+                      {{ selectedImageFile ? selectedImageFile.name : 'Click to upload club image' }}
+                    </p>
+                    <p class="text-xs text-gray-500">PNG, JPG up to 5MB</p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    (change)="onImageSelected($event)"
+                    class="hidden"
+                  />
+                </label>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Navigation Buttons -->
+        <div class="bg-gray-50 px-8 py-6 border-t border-gray-200 flex justify-between items-center">
+          <div>
+            @if (currentStep > 1) {
+              <button
+                type="button"
+                (click)="previousStep()"
+                class="inline-flex items-center gap-2 px-6 py-3 text-gray-700 border-2 border-gray-300 rounded-xl hover:bg-white hover:shadow-md transition-all font-semibold"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+                Previous
+              </button>
+            } @else {
+              <button
+                type="button"
+                (click)="cancel()"
+                class="inline-flex items-center gap-2 px-6 py-3 text-gray-700 border-2 border-gray-300 rounded-xl hover:bg-white hover:shadow-md transition-all font-semibold"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Cancel
+              </button>
             }
-          </select>
-          @if (isFieldInvalid('category')) {
-            <p class="mt-1 text-sm text-red-600">Category is required</p>
-          }
-        </div>
+          </div>
 
-        <!-- Description -->
-        <div>
-          <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="description"
-            formControlName="description"
-            rows="4"
-            [class.border-red-500]="isFieldInvalid('description')"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          ></textarea>
-          @if (isFieldInvalid('description')) {
-            <p class="mt-1 text-sm text-red-600">Description is required (min 10 characters)</p>
-          }
-        </div>
-
-        <!-- Maximum Members -->
-        <div>
-          <label for="maxMembers" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Maximum Members <span class="text-red-500">*</span>
-          </label>
-          <input
-            type="number"
-            id="maxMembers"
-            formControlName="maxMembers"
-            min="5"
-            max="100"
-            [class.border-red-500]="isFieldInvalid('maxMembers')"
-            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
-          />
-          @if (isFieldInvalid('maxMembers')) {
-            <p class="mt-1 text-sm text-red-600">Maximum members must be between 5 and 100</p>
-          }
-        </div>
-
-        <!-- Actions -->
-        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            type="button"
-            [routerLink]="['/dashboard/clubs', clubId]"
-            class="px-4 py-2 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            [disabled]="saving"
-            class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            @if (saving) {
-              <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
+          <div class="flex items-center gap-3">
+            @if (currentStep < totalSteps) {
+              <button
+                type="button"
+                (click)="nextStep()"
+                class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-xl transition-all font-bold"
+              >
+                Next Step
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            } @else {
+              <button
+                type="submit"
+                [disabled]="loading"
+                class="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-gray-900 rounded-xl hover:shadow-xl transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                @if (loading) {
+                  <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Creating...
+                } @else {
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  Update Club
+                }
+              </button>
             }
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Save Changes
-          </button>
+          </div>
         </div>
       </form>
-    }
+    </div>
   </div>
 </div>

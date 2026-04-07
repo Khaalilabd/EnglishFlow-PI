@@ -1,0 +1,319 @@
+package com.englishflow.club.service;
+
+import com.englishflow.club.client.AuthServiceClient;
+import com.englishflow.club.dto.MembershipRequestDTO;
+import com.englishflow.club.dto.UserInfoDTO;
+import com.englishflow.club.entity.Club;
+import com.englishflow.club.entity.MembershipRequest;
+import com.englishflow.club.enums.ClubHistoryType;
+import com.englishflow.club.enums.MembershipRequestStatus;
+import com.englishflow.club.exception.ClubFullException;
+import com.englishflow.club.exception.ClubNotFoundException;
+import com.englishflow.club.exception.DuplicateMemberException;
+import com.englishflow.club.exception.UnauthorizedException;
+import com.englishflow.club.repository.ClubRepository;
+import com.englishflow.club.repository.MemberRepository;
+import com.englishflow.club.repository.MembershipRequestRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class MembershipRequestService {
+    
+    private final MembershipRequestRepository requestRepository;
+    private final ClubRepository clubRepository;
+    private final MemberRepository memberRepository;
+    private final MemberService memberService;
+    private final WebSocketNotificationService wsNotificationService;
+    private final AuthServiceClient authServiceClient;
+    private final ClubHistoryService clubHistoryService;
+    
+    @Transactional
+    public MembershipRequestDTO createRequest(Integer clubId, Long userId, String message, String motivationLetter, String studentSkills) {
+        log.info("Creating membership request for user {} to club {}", userId, clubId);
+        
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubNotFoundException(clubId));
+        
+        // Check if user is already a member
+        if (memberRepository.existsByClubIdAndUserId(clubId, userId)) {
+            throw new DuplicateMemberException("User is already a member of this club");
+        }
+        
+        // Check if there's already a request (any status)
+        Optional<MembershipRequest> existingRequest = requestRepository.findByClubIdAndUserId(clubId, userId);
+        if (existingRequest.isPresent()) {
+            MembershipRequest existing = existingRequest.get();
+            
+            if (existing.getStatus() == MembershipRequestStatus.PENDING) {
+                throw new DuplicateMemberException("A pending request already exists");
+            }
+
+            if (existing.getStatus() == MembershipRequestStatus.PAYMENT_PENDING) {
+                throw new DuplicateMemberException("Your request has been approved, please proceed with the payment");
+            }
+            
+            // If there's an old request (approved/rejected), delete it to allow a new one
+            log.info("Deleting old membership request (status: {}) for user {} to club {}", 
+                existing.getStatus(), userId, clubId);
+            requestRepository.delete(existing);
+        }
+        
+        MembershipRequest request = MembershipRequest.builder()
+                .club(club)
+                .userId(userId)
+                .message(message)
+                .motivationLetter(motivationLetter)
+                .studentSkills(studentSkills)
+                .status(MembershipRequestStatus.PENDING)
+                .build();
+        
+        MembershipRequest savedRequest = requestRepository.save(request);
+        
+        // Get user info for notification and email
+        UserInfoDTO userInfo = authServiceClient.getUserInfo(userId);
+        String userName = userInfo.getFirstName() + " " + userInfo.getLastName();
+        
+        // Send WebSocket notification to club president
+        wsNotificationService.notifyNewMembershipRequest(
+            clubId.longValue(),
+            club.getName(),
+            userId,
+            userName
+        );
+        
+        // Send email notification to the user
+        try {
+            authServiceClient.sendClubMembershipRequestPendingEmail(
+                userInfo.getEmail(),
+                userInfo.getFirstName(),
+                club.getName(),
+                message
+            );
+            log.info("Email notification sent to user {} for membership request", userId);
+        } catch (Exception e) {
+            log.error("Failed to send email notification to user {}: {}", userId, e.getMessage());
+            // Don't fail the request if email fails
+        }
+        
+        log.info("Membership request created with id {}", savedRequest.getId());
+        return toDTO(savedRequest);
+    }
+    
+    @Transactional(readOnly = true)
+    public Double getTotalConfirmedPayments(Integer clubId) {
+        return requestRepository.findByClubId(clubId).stream()
+                .filter(r -> r.getStatus() == MembershipRequestStatus.APPROVED && r.getPaymentConfirmedAt() != null)
+                .mapToDouble(r -> {
+                    Double fee = r.getClub().getRegistrationFee();
+                    return fee != null ? fee : 0.0;
+                })
+                .sum();
+    }
+
+    @Transactional(readOnly = true)
+    public List<MembershipRequestDTO> getAllRequestsForClub(Integer clubId) {
+        return requestRepository.findByClubId(clubId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<MembershipRequestDTO> getPendingRequestsForClub(Integer clubId) {
+        log.debug("Fetching pending requests for club {}", clubId);
+        List<MembershipRequest> requests = requestRepository.findByClubIdAndStatus(clubId, MembershipRequestStatus.PENDING);
+        
+        // Get all user IDs
+        List<Long> userIds = requests.stream()
+                .map(MembershipRequest::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+        
+        // Fetch user info in batch
+        Map<Long, UserInfoDTO> userInfoMap = authServiceClient.getUserInfoBatch(userIds);
+        
+        // Convert to DTOs with user info
+        return requests.stream()
+                .map(request -> toDTO(request, userInfoMap.get(request.getUserId())))
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
+    public List<MembershipRequestDTO> getUserRequests(Long userId) {
+        log.debug("Fetching requests for user {}", userId);
+        return requestRepository.findByUserId(userId)
+                .stream()
+                .map(this::toDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional
+    public MembershipRequestDTO approveRequest(Integer requestId, Long reviewerId) {
+        log.info("Approving membership request {} by user {}", requestId, reviewerId);
+        
+        MembershipRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        
+        // Check if reviewer has management role (President, Vice President, or Secretary)
+        if (!memberService.hasManagementRole(request.getClub().getId(), reviewerId)) {
+            throw new UnauthorizedException("Only President, Vice President, or Secretary can approve membership requests");
+        }
+        
+        if (request.getStatus() != MembershipRequestStatus.PENDING) {
+            throw new RuntimeException("Request has already been reviewed");
+        }
+        
+        // Check if club is full
+        if (request.getClub().isFull()) {
+            throw new ClubFullException(request.getClub().getMaxMembers());
+        }
+        
+        // Update request status
+        request.setStatus(MembershipRequestStatus.PAYMENT_PENDING);
+        request.setReviewedAt(LocalDateTime.now());
+        request.setReviewedBy(reviewerId);
+        
+        MembershipRequest updatedRequest = requestRepository.save(request);
+        
+        // Get user info to send payment email
+        UserInfoDTO userInfo = authServiceClient.getUserInfo(request.getUserId());
+        
+        // Send payment email with link to payment page
+        try {
+            String paymentLink = "http://localhost:4200/user-panel/club-payment/" + request.getId();
+            authServiceClient.sendClubPaymentRequiredEmail(
+                userInfo.getEmail(),
+                userInfo.getFirstName(),
+                request.getClub().getName(),
+                request.getClub().getRegistrationFee(),
+                paymentLink
+            );
+            log.info("Payment email sent to user {} for membership request {}", request.getUserId(), requestId);
+        } catch (Exception e) {
+            log.error("Failed to send payment email to user {}: {}", request.getUserId(), e.getMessage());
+        }
+        
+        log.info("Membership request {} set to PAYMENT_PENDING", requestId);
+        return toDTO(updatedRequest);
+    }
+    
+    @Transactional(readOnly = true)
+    public MembershipRequestDTO getRequestById(Integer requestId) {
+        MembershipRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        return toDTO(request);
+    }
+
+    @Transactional
+    public MembershipRequestDTO confirmPayment(Integer requestId, String paymentMethod, String paymentToken) {
+        log.info("Confirming payment for membership request {} via {}", requestId, paymentMethod);
+
+        MembershipRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (request.getStatus() != MembershipRequestStatus.PAYMENT_PENDING) {
+            throw new RuntimeException("Request is not awaiting payment");
+        }
+
+        request.setStatus(MembershipRequestStatus.APPROVED);
+        request.setPaymentMethod(paymentMethod);
+        request.setPaymentToken(paymentToken);
+        request.setPaymentConfirmedAt(LocalDateTime.now());
+
+        MembershipRequest updatedRequest = requestRepository.save(request);
+
+        // Add user as member after payment confirmed
+        memberService.addMemberToClub(request.getClub().getId(), request.getUserId());
+
+        // Log history
+        clubHistoryService.logHistory(
+            request.getClub().getId().longValue(),
+            request.getUserId(),
+            ClubHistoryType.PAYMENT_CONFIRMED,
+            "Payment Confirmed",
+            "Registration fee paid: " + request.getClub().getRegistrationFee() + " DT via " + paymentMethod,
+            null,
+            paymentToken,
+            request.getUserId()
+        );
+
+        log.info("Payment confirmed for membership request {}, user {} added to club {}", 
+            requestId, request.getUserId(), request.getClub().getId());
+        return toDTO(updatedRequest);
+    }
+
+    @Transactional
+    public MembershipRequestDTO rejectRequest(Integer requestId, Long reviewerId, String comment) {
+        log.info("Rejecting membership request {} by user {}", requestId, reviewerId);
+        
+        MembershipRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+        
+        // Check if reviewer has management role (President, Vice President, or Secretary)
+        if (!memberService.hasManagementRole(request.getClub().getId(), reviewerId)) {
+            throw new UnauthorizedException("Only President, Vice President, or Secretary can reject membership requests");
+        }
+        
+        if (request.getStatus() != MembershipRequestStatus.PENDING) {
+            throw new RuntimeException("Request has already been reviewed");
+        }
+        
+        request.setStatus(MembershipRequestStatus.REJECTED);
+        request.setReviewedAt(LocalDateTime.now());
+        request.setReviewedBy(reviewerId);
+        request.setReviewComment(comment);
+        
+        MembershipRequest updatedRequest = requestRepository.save(request);
+        
+        log.info("Membership request {} rejected", requestId);
+        return toDTO(updatedRequest);
+    }
+    
+    private MembershipRequestDTO toDTO(MembershipRequest request) {
+        // Fetch user info from auth service
+        UserInfoDTO userInfo = authServiceClient.getUserInfo(request.getUserId());
+        return toDTO(request, userInfo);
+    }
+    
+    private MembershipRequestDTO toDTO(MembershipRequest request, UserInfoDTO userInfo) {
+        String userName = "User " + request.getUserId();
+        String userEmail = "user" + request.getUserId() + "@example.com";
+        
+        if (userInfo != null) {
+            userName = userInfo.getFirstName() + " " + userInfo.getLastName();
+            userEmail = userInfo.getEmail();
+        }
+        
+        return MembershipRequestDTO.builder()
+                .id(request.getId())
+                .clubId(request.getClub().getId())
+                .clubName(request.getClub().getName())
+                .registrationFee(request.getClub().getRegistrationFee())
+                .userId(request.getUserId())
+                .userName(userName)
+                .userEmail(userEmail)
+                .status(request.getStatus())
+                .message(request.getMessage())
+                .motivationLetter(request.getMotivationLetter())
+                .studentSkills(request.getStudentSkills())
+                .requestedAt(request.getRequestedAt())
+                .reviewedAt(request.getReviewedAt())
+                .reviewedBy(request.getReviewedBy())
+                .reviewComment(request.getReviewComment())
+                .paymentMethod(request.getPaymentMethod())
+                .paymentToken(request.getPaymentToken())
+                .paymentConfirmedAt(request.getPaymentConfirmedAt())
+                .build();
+    }
+}

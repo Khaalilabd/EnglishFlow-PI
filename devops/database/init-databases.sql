@@ -12,6 +12,7 @@ CREATE DATABASE IF NOT EXISTS englishflow_gamification;
 CREATE DATABASE IF NOT EXISTS englishflow_learning;
 CREATE DATABASE IF NOT EXISTS englishflow_notifications;
 CREATE DATABASE IF NOT EXISTS englishflow_complaints;
+CREATE DATABASE IF NOT EXISTS englishflow_sponsors_db;
 
 -- Grant privileges
 GRANT ALL PRIVILEGES ON DATABASE englishflow_identity TO postgres;
@@ -25,3 +26,4 @@ GRANT ALL PRIVILEGES ON DATABASE englishflow_gamification TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_learning TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_notifications TO postgres;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_complaints TO postgres;
+GRANT ALL PRIVILEGES ON DATABASE englishflow_sponsors_db TO postgres;

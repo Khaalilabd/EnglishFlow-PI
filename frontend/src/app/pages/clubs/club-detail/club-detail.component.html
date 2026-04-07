@@ -120,6 +120,11 @@
 
       <!-- Right Column: Members and Pending Requests -->
       <div class="lg:col-span-1 space-y-6">
+        <!-- Membership Requests Card (for President) -->
+        @if (currentUserRank === 'PRESIDENT') {
+          <app-club-membership-requests [clubId]="clubId"></app-club-membership-requests>
+        }
+
         <!-- Pending Approval Requests Card -->
         @if (pendingRequests.length > 0 && canApproveRequests()) {
           <div class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-300 dark:border-yellow-700 rounded-xl shadow-sm p-6">
@@ -237,6 +242,15 @@
               <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">No members yet</p>
             </div>
           }
+        </div>
+
+        <!-- Expenses Section (for TREASURER) -->
+        <div *ngIf="currentUserRank === 'TREASURER'">
+          <app-club-expenses 
+            [clubId]="clubId" 
+            [currentUserId]="currentUserId!" 
+            [isTreasurer]="true">
+          </app-club-expenses>
         </div>
       </div>
     </div>

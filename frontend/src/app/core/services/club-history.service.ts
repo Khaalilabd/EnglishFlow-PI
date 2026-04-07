@@ -7,13 +7,15 @@ export interface ClubHistory {
   id?: number;
   clubId: number;
   userId: number;
+  userName?: string; // Nom de l'utilisateur concerné
+  userEmail?: string; // Email de l'utilisateur concerné
   type: ClubHistoryType;
   action: string;
   description?: string;
   oldValue?: string;
   newValue?: string;
   performedBy?: number;
-  performedByName?: string;
+  performedByName?: string; // Nom de l'utilisateur qui a effectué l'action
   createdAt?: string;
 }
 
@@ -29,6 +31,11 @@ export enum ClubHistoryType {
   EVENT_PARTICIPATED = 'EVENT_PARTICIPATED',
   ACHIEVEMENT_EARNED = 'ACHIEVEMENT_EARNED',
   CONTRIBUTION = 'CONTRIBUTION',
+  EXPENSE_ADDED = 'EXPENSE_ADDED',
+  PAYMENT_CONFIRMED = 'PAYMENT_CONFIRMED',
+  TASK_CREATED = 'TASK_CREATED',
+  TASK_UPDATED = 'TASK_UPDATED',
+  TASK_DELETED = 'TASK_DELETED',
   OTHER = 'OTHER'
 }
 

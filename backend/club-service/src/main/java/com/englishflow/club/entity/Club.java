@@ -44,6 +44,9 @@ public class Club {
     @Column(nullable = false)
     private Integer maxMembers;
     
+    @Column(name = "registration_fee")
+    private Double registrationFee; // Frais d'inscription au club
+    
     @Column(columnDefinition = "TEXT")
     private String image;
     
@@ -77,6 +80,10 @@ public class Club {
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Task> tasks = new ArrayList<>();
+    
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Skill> skills = new ArrayList<>();
     
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

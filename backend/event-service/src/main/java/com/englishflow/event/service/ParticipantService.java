@@ -27,6 +27,7 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
     private final ParticipantMapper participantMapper;
+    private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
     
     @CacheEvict(value = {"participants", "eventById"}, allEntries = true)
     @Transactional
@@ -52,8 +53,19 @@ public class ParticipantService {
         
         Participant savedParticipant = participantRepository.save(participant);
         
-        event.setCurrentParticipants((int) (currentCount + 1));
+        int newCount = (int) (currentCount + 1);
+        event.setCurrentParticipants(newCount);
         eventRepository.save(event);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyParticipantJoined(
+            eventId.longValue(),
+            event.getTitle(),
+            userId,
+            "User " + userId, // TODO: Récupérer le vrai nom de l'utilisateur
+            newCount,
+            event.getMaxParticipants()
+        );
         
         log.info("User {} successfully joined event {}", userId, eventId);
         return participantMapper.toDTO(savedParticipant);
@@ -71,9 +83,19 @@ public class ParticipantService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
         
-        long currentCount = participantRepository.countByEventId(eventId);
-        event.setCurrentParticipants((int) currentCount);
+        int newCount = (int) participantRepository.countByEventId(eventId);
+        event.setCurrentParticipants(newCount);
         eventRepository.save(event);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyParticipantLeft(
+            eventId.longValue(),
+            event.getTitle(),
+            userId,
+            "User " + userId, // TODO: Récupérer le vrai nom de l'utilisateur
+            newCount,
+            event.getMaxParticipants()
+        );
         
         log.info("User {} successfully left event {}", userId, eventId);
     }

@@ -60,8 +60,14 @@ public class SecurityConfig {
                         .requestMatchers("/auth/users/*/public", "/api/auth/users/*/public", "/users/*/public").permitAll()
                         // Endpoint public pour la liste des tuteurs (page d'accueil)
                         .requestMatchers("/auth/users/public/tutors", "/api/auth/users/public/tutors", "/users/public/tutors").permitAll()
+                        // Endpoint public pour récupérer les infos de plusieurs utilisateurs (batch)
+                        .requestMatchers("/auth/users/batch", "/api/auth/users/batch", "/users/batch", "/api/users/batch").permitAll()
+                        // Endpoint public pour récupérer les infos d'un utilisateur (pour inter-service communication)
+                        .requestMatchers("/users/*", "/auth/users/*", "/api/users/*", "/api/auth/users/*").permitAll()
                         // Endpoints pour communication inter-service (Feign clients)
                         .requestMatchers("/api/users/**").permitAll()
+                        // Endpoints email pour communication inter-service
+                        .requestMatchers("/email/**", "/api/email/**").permitAll()
                         // Endpoints password reset
                         .requestMatchers("/auth/password-reset/**", "/api/auth/password-reset/**").permitAll()
                         // Endpoints d'invitation

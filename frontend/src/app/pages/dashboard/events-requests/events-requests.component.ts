@@ -1,15 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Subscription } from 'rxjs';
 import { EventService, Event } from '../../../core/services/event.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { EventWebSocketService } from '../../../services/event-websocket.service';
+import { DataSyncService } from '../../../services/data-sync.service';
 
 @Component({
   selector: 'app-events-requests',
   standalone: true,
   imports: [CommonModule],
-  templateUrl: './events-requests.component.html'
+  templateUrl: './events-requests.component.html',
+  styleUrls: ['./events-requests.component.scss']
 })
-export class EventsRequestsComponent implements OnInit {
+export class EventsRequestsComponent implements OnInit, OnDestroy {
   allEvents: Event[] = [];
   pendingEvents: Event[] = [];
   approvedEvents: Event[] = [];
@@ -18,6 +22,8 @@ export class EventsRequestsComponent implements OnInit {
   selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
+  
+  private wsSubscriptions = new Subscription();
 
   eventTypeIcons: { [key: string]: string } = {
     'WORKSHOP': '🛠️',
@@ -27,11 +33,40 @@ export class EventsRequestsComponent implements OnInit {
 
   constructor(
     private eventService: EventService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private eventWsService: EventWebSocketService,
+    private dataSyncService: DataSyncService
   ) {}
 
   ngOnInit() {
+    this.initializeWebSocket();
+    this.setupAutoSync();
     this.loadEvents();
+  }
+  
+  ngOnDestroy() {
+    this.wsSubscriptions.unsubscribe();
+    this.eventWsService.disconnect();
+  }
+  
+  private async initializeWebSocket() {
+    try {
+      await this.eventWsService.connect();
+      this.eventWsService.subscribeToGlobalEvents();
+      console.log('✅ Event WebSocket initialized for events-requests');
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
+    }
+  }
+  
+  private setupAutoSync() {
+    const syncSub = this.dataSyncService.onEventDataChanged().subscribe(change => {
+      if (change.action !== 'none') {
+        console.log('🔄 Event data changed in events-requests:', change.action);
+        this.loadEvents();
+      }
+    });
+    this.wsSubscriptions.add(syncSub);
   }
 
   loadEvents() {

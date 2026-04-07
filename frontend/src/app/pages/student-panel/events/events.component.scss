@@ -489,3 +489,92 @@ button {
   background-size: 1000px 100%;
   animation: shimmerEffect 2s infinite;
 }
+
+// Sponsor Card Styles for Details View
+.sponsor-card-detail {
+  padding: 1rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%);
+  border: 2px solid #e5e7eb;
+  border-radius: 0.75rem;
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: 0 8px 16px -4px rgba(0, 0, 0, 0.15);
+    transform: translateY(-3px);
+    border-color: #F6BD60;
+  }
+}
+
+.sponsor-logo-detail {
+  width: 64px;
+  height: 64px;
+  border-radius: 0.75rem;
+  object-fit: cover;
+  border: 2px solid #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.sponsor-logo-placeholder-detail {
+  width: 64px;
+  height: 64px;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.sponsor-name-detail {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 0.5rem 0;
+}
+
+.sponsor-amount-detail {
+  font-size: 0.875rem;
+  color: #059669;
+  font-weight: 700;
+  margin: 0.5rem 0 0 0;
+}
+
+// Level Badge Styles for Details
+.level-badge-detail {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: 1px solid;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.level-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+  color: #854d0e;
+  border-color: #FFA500;
+}
+
+.level-silver {
+  background: linear-gradient(135deg, #E8E8E8 0%, #C0C0C0 100%);
+  color: #374151;
+  border-color: #9CA3AF;
+}
+
+.level-bronze {
+  background: linear-gradient(135deg, #CD7F32 0%, #8B4513 100%);
+  color: white;
+  border-color: #8B4513;
+}
+
+.level-partner {
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: white;
+  border-color: #1D4ED8;
+}

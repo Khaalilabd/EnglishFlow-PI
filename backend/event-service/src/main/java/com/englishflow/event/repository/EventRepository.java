@@ -19,6 +19,9 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     
     List<Event> findByEndDateBefore(LocalDateTime date);
     
+    // Événements en cours : startDate <= now AND (endDate >= now OR endDate is null)
+    List<Event> findByStartDateBeforeAndEndDateAfter(LocalDateTime startDate, LocalDateTime endDate);
+    
     List<Event> findByLocationContainingIgnoreCase(String location);
     
     List<Event> findByCreatorId(Long creatorId);

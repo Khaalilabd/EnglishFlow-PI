@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -35,6 +36,9 @@ public class ClubDTO {
     @Min(value = 1, message = "Max members must be at least 1")
     private Integer maxMembers;
     
+    @Min(value = 0, message = "Registration fee must be positive")
+    private Double registrationFee; // Frais d'inscription
+    
     private String image; // Base64 encoded image
     
     private ClubStatus status;
@@ -54,6 +58,8 @@ public class ClubDTO {
     private String suspensionReason; // Raison de la suspension
     
     private LocalDateTime suspendedAt; // Date de suspension
+    
+    private List<SkillDTO> skills; // Compétences associées au club
     
     private LocalDateTime createdAt;
     

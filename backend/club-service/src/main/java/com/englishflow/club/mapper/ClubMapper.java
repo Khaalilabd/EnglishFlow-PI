@@ -2,14 +2,15 @@ package com.englishflow.club.mapper;
 
 import com.englishflow.club.dto.ClubDTO;
 import com.englishflow.club.dto.ClubWithRoleDTO;
+import com.englishflow.club.dto.SkillDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Member;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.*;
 
-@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE, uses = SkillMapper.class)
 public interface ClubMapper {
     
     ClubDTO toDTO(Club club);
@@ -17,6 +18,7 @@ public interface ClubMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "skills", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "status", ignore = true)
@@ -25,6 +27,7 @@ public interface ClubMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "members", ignore = true)
     @Mapping(target = "tasks", ignore = true)
+    @Mapping(target = "skills", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntityFromDTO(ClubDTO clubDTO, @MappingTarget Club club);
@@ -35,6 +38,7 @@ public interface ClubMapper {
     @Mapping(source = "club.objective", target = "objective")
     @Mapping(source = "club.category", target = "category")
     @Mapping(source = "club.maxMembers", target = "maxMembers")
+    @Mapping(source = "club.registrationFee", target = "registrationFee")
     @Mapping(source = "club.image", target = "image")
     @Mapping(source = "club.status", target = "status")
     @Mapping(source = "club.createdBy", target = "createdBy")
@@ -42,6 +46,7 @@ public interface ClubMapper {
     @Mapping(source = "club.reviewComment", target = "reviewComment")
     @Mapping(source = "club.createdAt", target = "createdAt")
     @Mapping(source = "club.updatedAt", target = "updatedAt")
+    @Mapping(source = "club.skills", target = "skills")
     @Mapping(source = "member.rank", target = "userRole")
     @Mapping(source = "member.joinedAt", target = "joinedAt")
     ClubWithRoleDTO toClubWithRoleDTO(Club club, Member member);

@@ -1,0 +1,770 @@
+<div class="flex flex-col h-screen bg-gray-50 text-gray-900 overflow-hidden font-sans">
+
+  <!-- ── LOADING ── -->
+  @if (loading) {
+    <div class="flex-1 flex items-center justify-center bg-gradient-to-br from-[#2D5757]/5 to-[#F6BD60]/5">
+      <div class="text-center space-y-5 animate-fade-up">
+        <div class="relative w-16 h-16 mx-auto">
+          <div class="w-16 h-16 border-4 border-[#2D5757]/20 rounded-full"></div>
+          <div class="absolute inset-0 w-16 h-16 border-4 border-[#2D5757] border-t-transparent rounded-full animate-spin"></div>
+        </div>
+        <div>
+          <p class="text-[#2D5757] font-semibold text-sm">Connecting to live session...</p>
+          <p class="text-gray-400 text-xs mt-1">Please wait</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (!loading) {
+
+    <!-- ── TOP BAR ── -->
+    <header class="flex items-center justify-between px-5 py-2.5 bg-white border-b border-gray-200 shrink-0 z-20 shadow-sm">
+
+      <!-- Left: live badge + title + count -->
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="flex items-center gap-2 px-3 py-1.5 bg-red-50 rounded-full border border-red-100">
+          <span class="w-2 h-2 rounded-full bg-red-500 live-dot shrink-0"></span>
+          <span class="text-xs font-bold text-red-500 tracking-widest uppercase">Live</span>
+        </div>
+        <div class="w-px h-5 bg-gray-200"></div>
+        <span class="font-bold text-[#2D5757] truncate max-w-[180px] md:max-w-xs text-sm">{{ eventTitle }}</span>
+        <button (click)="showParticipants = !showParticipants"
+          class="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 hover:bg-[#2D5757]/10 rounded-full transition-colors text-xs text-gray-500 font-medium">
+          <svg class="w-3.5 h-3.5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          {{ connectedUsers.length + 1 }}
+        </button>
+      </div>
+
+      <!-- Center: reaction picker -->
+      <div class="hidden md:flex items-center relative">
+
+        <!-- Quick bar -->
+        <div class="flex items-center gap-0.5 bg-gray-100 rounded-2xl px-2 py-1">
+          @for (cat of reactionCategories; track cat.label) {
+            <button (click)="sendReaction(cat.emojis[0])"
+              class="reaction-btn w-8 h-8 rounded-xl flex items-center justify-center text-base hover:bg-white hover:shadow-sm transition-all"
+              [title]="cat.label">
+              {{ cat.emojis[0] }}
+            </button>
+          }
+          <button (click)="showReactionPicker = !showReactionPicker"
+            class="reaction-btn w-8 h-8 rounded-xl flex items-center justify-center text-sm font-bold text-gray-500 hover:bg-white hover:shadow-sm transition-all"
+            title="More reactions">
+            {{ showReactionPicker ? '✕' : '＋' }}
+          </button>
+        </div>
+
+        <!-- Expanded picker -->
+        @if (showReactionPicker) {
+          <div class="absolute top-12 left-1/2 -translate-x-1/2 z-50 bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden w-72 animate-scale-in">
+            <!-- Category tabs -->
+            <div class="flex border-b border-gray-100 bg-gray-50">
+              @for (cat of reactionCategories; track cat.label; let i = $index) {
+                <button (click)="activeReactionCategory = i"
+                  class="flex-1 py-2 text-lg transition-all hover:bg-white"
+                  [class]="activeReactionCategory === i ? 'bg-white shadow-sm border-b-2 border-[#2D5757]' : ''"
+                  [title]="cat.label">
+                  {{ cat.icon }}
+                </button>
+              }
+            </div>
+            <!-- Category label -->
+            <div class="px-3 pt-2 pb-1">
+              <span class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                {{ reactionCategories[activeReactionCategory].label }}
+              </span>
+            </div>
+            <!-- Emojis grid -->
+            <div class="grid grid-cols-6 gap-1 px-3 pb-3">
+              @for (emoji of reactionCategories[activeReactionCategory].emojis; track emoji) {
+                <button (click)="sendReaction(emoji)"
+                  class="reaction-btn w-10 h-10 rounded-xl flex items-center justify-center text-xl hover:bg-[#2D5757]/10 transition-all active:scale-95">
+                  {{ emoji }}
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Right: controls -->
+      <div class="flex items-center gap-2">
+        @if (isModerator) {
+          <button (click)="toggleScreenShare()"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border"
+            [class]="webrtc.screenSharing
+              ? 'bg-[#3D3D60] text-white border-[#3D3D60] shadow-md'
+              : 'bg-white text-gray-600 border-gray-200 hover:border-[#3D3D60] hover:text-[#3D3D60]'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+            </svg>
+            <span class="hidden sm:inline">{{ webrtc.screenSharing ? 'Stop Share' : 'Share Screen' }}</span>
+          </button>
+        }
+        <button (click)="toggleVideoPanel()"
+          class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border"
+          [class]="showVideo
+            ? 'bg-[#2D5757] text-white border-[#2D5757] shadow-md'
+            : 'bg-white text-gray-600 border-gray-200 hover:border-[#2D5757] hover:text-[#2D5757]'">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <span class="hidden sm:inline">Video</span>
+        </button>
+        <button (click)="leave()"
+          class="flex items-center gap-1.5 px-3 py-1.5 bg-[#C84630] hover:bg-[#a83820] text-white text-xs font-semibold rounded-xl transition-colors shadow-sm">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          <span class="hidden sm:inline">Leave</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── PARTICIPANTS DROPDOWN ── -->
+    @if (showParticipants) {
+      <div class="absolute top-14 left-1/2 -translate-x-1/2 z-50 w-72 bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden animate-scale-in">
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-[#2D5757]/5 to-transparent">
+          <span class="text-sm font-bold text-[#2D5757]">Participants ({{ connectedUsers.length + 1 }})</span>
+          <button (click)="showParticipants = false" class="text-gray-400 hover:text-gray-600 transition-colors text-lg leading-none">✕</button>
+        </div>
+        <div class="max-h-64 overflow-y-auto p-2 space-y-1">
+          <div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-[#2D5757]/8 border border-[#2D5757]/15">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center text-sm font-bold text-white shrink-0">
+              {{ currentUserName.charAt(0).toUpperCase() }}
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-800 truncate">{{ currentUserName }}</p>
+              <p class="text-xs text-[#2D5757] font-medium">You {{ isModerator ? '· Moderator' : '' }}</p>
+            </div>
+            <span class="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
+          </div>
+          @for (user of connectedUsers; track user.userId) {
+            <div class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#3D3D60] to-[#C84630] flex items-center justify-center text-sm font-bold text-white shrink-0">
+                {{ user.userName.charAt(0).toUpperCase() }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 truncate">{{ user.userName }}</p>
+                <p class="text-xs text-gray-400">Participant</p>
+              </div>
+              <span class="w-2 h-2 rounded-full bg-green-400 shrink-0"></span>
+            </div>
+          }
+          @if (connectedUsers.length === 0) {
+            <p class="text-center text-gray-400 text-xs py-4">No other participants yet</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── MAIN LAYOUT ── -->
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- ── LEFT: Video area ── -->
+      <div class="flex-1 flex flex-col overflow-hidden bg-gray-900 min-w-0">
+
+        <div class="flex-1 overflow-hidden p-3 flex flex-col gap-2">
+
+          <!-- ── SCREEN SHARE MODE ── -->
+          @if ((screenStream || remoteScreenSharerId) && activeTab !== 'whiteboard') {
+            @if (screenStream) {
+              <div class="flex-1 relative bg-black rounded-2xl overflow-hidden min-h-0 shadow-2xl">
+                <video #screenVideo autoplay playsinline class="w-full h-full object-contain"></video>
+                <div class="absolute top-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                  <span class="w-2 h-2 rounded-full bg-[#F6BD60] animate-pulse"></span>
+                  <span class="text-xs text-white font-semibold">{{ currentUserName }} is sharing screen</span>
+                </div>
+              </div>
+            } @else {
+              <div class="flex-1 relative bg-black rounded-2xl overflow-hidden min-h-0 shadow-2xl">
+                <video id="screen-share-video" autoplay playsinline class="w-full h-full object-contain"></video>
+                <div class="absolute top-3 left-3 flex items-center gap-2 bg-black/70 backdrop-blur-sm px-3 py-1.5 rounded-full border border-white/10">
+                  <span class="w-2 h-2 rounded-full bg-[#F6BD60] animate-pulse"></span>
+                  <span class="text-xs text-white font-semibold">{{ getSharerName() }} is sharing screen</span>
+                </div>
+              </div>
+            }
+            <!-- Participants strip -->
+            <div class="flex gap-2 overflow-x-auto shrink-0 pb-1">
+              <div class="relative shrink-0 w-36 h-24 bg-gray-800 rounded-xl overflow-hidden ring-2 ring-[#2D5757] video-tile">
+                @if (cameraStream) {
+                  <video #localVideo autoplay muted playsinline class="w-full h-full object-cover"></video>
+                } @else {
+                  <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#2D5757] to-[#3D3D60]">
+                    <span class="text-2xl font-black text-white">{{ currentUserName.charAt(0).toUpperCase() }}</span>
+                  </div>
+                }
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1">
+                  <span class="text-xs text-white font-medium">You</span>
+                </div>
+              </div>
+              @for (p of participants; track p.userId) {
+                <div class="relative shrink-0 w-36 h-24 bg-gray-800 rounded-xl overflow-hidden ring-1 ring-white/20 video-tile">
+                  @if (p.stream) {
+                    <video [id]="'video-' + p.userId" autoplay playsinline class="w-full h-full object-cover"></video>
+                  } @else {
+                    <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#3D3D60] to-[#C84630]">
+                      <span class="text-2xl font-black text-white">{{ p.userName.charAt(0).toUpperCase() }}</span>
+                    </div>
+                  }
+                  <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-2 py-1">
+                    <span class="text-xs text-white font-medium truncate">{{ p.userName }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── NORMAL GRID MODE ── -->
+          @if (!screenStream && !remoteScreenSharerId && activeTab !== 'whiteboard') {
+            <div class="h-full grid gap-2 relative" [class]="gridClass">
+
+              <!-- Local tile -->
+              <div class="relative bg-gray-800 rounded-2xl overflow-hidden ring-2 ring-[#2D5757] video-tile glow-ring group">
+                @if (showVideo) {
+                  <video #localVideo autoplay muted playsinline class="w-full h-full object-cover"></video>
+                }
+                @if (!showVideo || !webrtc.videoEnabled) {
+                  <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#2D5757] to-[#3D3D60]">
+                    <span class="text-4xl font-black text-white">{{ currentUserName.charAt(0).toUpperCase() }}</span>
+                  </div>
+                }
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 flex items-center justify-between">
+                  <span class="text-xs text-white font-semibold truncate">{{ currentUserName }} (You)</span>
+                  <div class="flex gap-1">
+                    @if (showVideo) {
+                      <button (click)="webrtc.toggleAudio()"
+                        class="w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all"
+                        [class]="webrtc.audioEnabled ? 'bg-white/20 hover:bg-white/30' : 'bg-[#C84630]'">
+                        {{ webrtc.audioEnabled ? '🎤' : '🔇' }}
+                      </button>
+                      <button (click)="webrtc.toggleVideo()"
+                        class="w-6 h-6 rounded-full flex items-center justify-center text-xs transition-all"
+                        [class]="webrtc.videoEnabled ? 'bg-white/20 hover:bg-white/30' : 'bg-[#C84630]'">
+                        {{ webrtc.videoEnabled ? '📷' : '🚫' }}
+                      </button>
+                    }
+                  </div>
+                </div>
+              </div>
+
+              <!-- Remote participants -->
+              @for (p of participants; track p.userId) {
+                <div class="relative bg-gray-800 rounded-2xl overflow-hidden ring-1 ring-white/10 video-tile">
+                  @if (p.stream) {
+                    <video [id]="'video-' + p.userId" autoplay playsinline
+                      class="w-full h-full object-cover" [class.hidden]="!p.videoEnabled"></video>
+                  }
+                  @if (!p.stream || !p.videoEnabled) {
+                    <div class="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-[#3D3D60] to-[#C84630]">
+                      <span class="text-4xl font-black text-white">{{ p.userName.charAt(0).toUpperCase() }}</span>
+                    </div>
+                  }
+                  <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent px-3 py-2 flex items-center justify-between">
+                    <span class="text-xs text-white font-semibold truncate">{{ p.userName }}</span>
+                    @if (!p.audioEnabled) { <span class="text-xs">🔇</span> }
+                  </div>
+                </div>
+              }
+
+              <!-- Connected users without video -->
+              @for (u of connectedUsers; track u.userId) {
+                @if (!isInParticipants(u.userId)) {
+                  <div class="relative bg-gray-800 rounded-2xl overflow-hidden ring-1 ring-white/10 flex items-center justify-center video-tile">
+                    <div class="flex flex-col items-center gap-2">
+                      <div class="w-16 h-16 rounded-full bg-gradient-to-br from-[#F6BD60] to-[#C84630] flex items-center justify-center text-2xl font-black text-white">
+                        {{ u.userName.charAt(0).toUpperCase() }}
+                      </div>
+                      <span class="text-xs text-gray-300 font-medium">{{ u.userName }}</span>
+                    </div>
+                  </div>
+                }
+              }
+
+              @if (participants.length === 0 && connectedUsers.length === 0) {
+                <div class="col-span-full absolute inset-0 flex flex-col items-center justify-center text-center gap-4 pointer-events-none">
+                  <div class="w-20 h-20 rounded-2xl bg-white/5 flex items-center justify-center text-4xl">👥</div>
+                  <div>
+                    <p class="text-gray-400 text-sm font-semibold">Waiting for others to join...</p>
+                    <p class="text-gray-600 text-xs mt-1">Share the session link to invite participants</p>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ── WHITEBOARD ── -->
+          @if (activeTab === 'whiteboard') {
+            <div class="h-full flex flex-col rounded-2xl overflow-hidden shadow-lg animate-scale-in">
+              <div class="flex items-center gap-3 px-4 py-2.5 bg-white border-b border-gray-200">
+                @if (isModerator) {
+                  <input type="color" [(ngModel)]="wbColor"
+                    class="w-7 h-7 rounded-lg cursor-pointer border border-gray-200 shadow-sm">
+                  <input type="range" [(ngModel)]="wbStroke" min="1" max="20"
+                    class="w-20 accent-[#2D5757]">
+                  <div class="flex gap-1">
+                    <button (click)="wbTool = 'draw'"
+                      class="px-2.5 py-1 text-xs rounded-lg transition-all font-semibold border"
+                      [class]="wbTool === 'draw' ? 'bg-[#2D5757] text-white border-[#2D5757]' : 'bg-white text-gray-500 border-gray-200 hover:border-[#2D5757]'">
+                      ✏️ Draw
+                    </button>
+                    <button (click)="wbTool = 'erase'"
+                      class="px-2.5 py-1 text-xs rounded-lg transition-all font-semibold border"
+                      [class]="wbTool === 'erase' ? 'bg-[#2D5757] text-white border-[#2D5757]' : 'bg-white text-gray-500 border-gray-200 hover:border-[#2D5757]'">
+                      🧹 Erase
+                    </button>
+                  </div>
+                  <button (click)="clearWhiteboard()"
+                    class="ml-auto px-2.5 py-1 text-xs bg-red-50 hover:bg-red-100 text-[#C84630] border border-red-200 rounded-lg transition-colors font-semibold">
+                    Clear
+                  </button>
+                } @else {
+                  <span class="text-xs text-gray-500 italic">🎨 Whiteboard — view only</span>
+                }
+              </div>
+              <canvas #whiteboardCanvas class="flex-1 bg-white w-full"
+                width="800" height="600"
+                [class.cursor-crosshair]="isModerator"
+                [class.cursor-not-allowed]="!isModerator"
+                (mousedown)="isModerator && onCanvasMouseDown($event)"
+                (mousemove)="isModerator && onCanvasMouseMove($event)"
+                (mouseup)="isModerator && onCanvasMouseUp()"
+                (mouseleave)="isModerator && onCanvasMouseUp()">
+              </canvas>
+            </div>
+          }
+        </div>
+
+        <!-- ── BOTTOM TAB BAR ── -->
+        <div class="shrink-0 px-4 py-2 bg-white border-t border-gray-200 flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-1">
+            @for (tab of tabs; track tab.id) {
+              <button (click)="switchTab(tab.id)" [title]="tab.label"
+                class="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
+                [class]="activeTab === tab.id
+                  ? 'bg-[#2D5757] text-white shadow-sm'
+                  : 'text-gray-500 hover:bg-gray-100 hover:text-[#2D5757]'">
+                {{ tab.icon }}
+                <span class="hidden sm:inline">{{ tab.label }}</span>
+                @if (tab.id === 'hands' && handQueue.length > 0) {
+                  <span class="absolute -top-1 -right-1 w-4 h-4 bg-[#C84630] rounded-full text-[10px] text-white flex items-center justify-center font-bold shadow-sm">
+                    {{ handQueue.length }}
+                  </span>
+                }
+              </button>
+            }
+          </div>
+          <button (click)="toggleVideoPanel()"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all border"
+            [class]="showVideo ? 'bg-[#2D5757] text-white border-[#2D5757]' : 'bg-white text-gray-500 border-gray-200 hover:border-[#2D5757] hover:text-[#2D5757]'">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 10l4.553-2.069A1 1 0 0121 8.82v6.36a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span class="hidden sm:inline">{{ showVideo ? 'Cam On' : 'Cam Off' }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── RIGHT PANEL ── -->
+      <div class="w-80 shrink-0 flex flex-col overflow-hidden bg-white border-l border-gray-200 shadow-sm">
+
+        <!-- ── CHAT ── -->
+        @if (activeTab === 'chat') {
+          <div class="flex flex-col h-full animate-slide-in bg-white">
+
+            <!-- Chat Header -->
+            <div class="px-4 py-3 shrink-0 relative overflow-hidden bg-white border-b border-gray-100">
+              <!-- Animated top border -->
+              <div class="absolute top-0 left-0 right-0 h-0.5"
+                style="background: linear-gradient(90deg, #2D5757, #F6BD60, #C84630, #F6BD60, #2D5757); background-size: 200% auto; animation: header-shimmer 3s linear infinite;"></div>
+              <div class="flex items-center gap-3">
+                <!-- Icon -->
+                <div class="relative">
+                  <div class="w-8 h-8 rounded-xl flex items-center justify-center text-base"
+                    style="background: rgba(45,87,87,0.08); border: 1px solid rgba(45,87,87,0.15);">
+                    💬
+                  </div>
+                  <span class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-white animate-pulse"></span>
+                </div>
+                <div>
+                  <p class="text-sm font-black text-[#2D5757] tracking-wide">Live Chat</p>
+                  <p class="text-gray-400 text-[10px]">{{ messages.length }} messages</p>
+                </div>
+                <!-- Live indicator -->
+                <div class="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 border border-red-100">
+                  <span class="w-1.5 h-1.5 rounded-full bg-[#C84630] live-dot"></span>
+                  <span class="text-[10px] font-bold text-[#C84630] tracking-widest uppercase">Live</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Messages area -->
+            <div #chatContainer class="flex-1 overflow-y-auto px-3 py-4 space-y-4 bg-gray-50/60"
+              style="scrollbar-width: thin; scrollbar-color: rgba(45,87,87,0.2) transparent;">
+
+              @for (msg of messages; track msg.id) {
+                <div class="flex gap-2.5 group msg-bubble items-end"
+                  [class.flex-row-reverse]="msg.senderId === currentUserId">
+
+                  <!-- Avatar -->
+                  @if (msg.senderId !== currentUserId) {
+                    <div class="avatar-glow w-8 h-8 rounded-full shrink-0 flex items-center justify-center text-xs font-black text-white shadow-md"
+                      style="background: linear-gradient(135deg, #F6BD60, #C84630);">
+                      {{ msg.senderName.charAt(0).toUpperCase() }}
+                    </div>
+                  }
+
+                  <div class="max-w-[78%] space-y-1">
+                    <!-- Sender name -->
+                    @if (msg.senderId !== currentUserId) {
+                      <p class="text-[11px] font-bold px-1 text-[#2D5757]">{{ msg.senderName }}</p>
+                    }
+
+                    <!-- Bubble -->
+                    <div class="px-4 py-2.5 text-sm leading-relaxed"
+                      [class]="msg.senderId === currentUserId
+                        ? 'bubble-own text-white rounded-2xl rounded-br-sm'
+                        : 'bg-white text-gray-800 rounded-2xl rounded-bl-sm shadow-sm border border-gray-100'">
+                      {{ msg.content }}
+                      @if (msg.translatedContent) {
+                        <p class="text-xs mt-1.5 pt-1.5 italic text-[#2D5757]/60"
+                          style="border-top: 1px solid rgba(45,87,87,0.15);">
+                          🌐 {{ msg.translatedContent }}
+                        </p>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Moderate button -->
+                  @if (isModerator && msg.senderId !== currentUserId) {
+                    <button (click)="moderateMessage(msg)"
+                      class="opacity-0 group-hover:opacity-100 self-center text-[#C84630] hover:text-red-600 transition-all text-xs shrink-0 mb-1">🚫</button>
+                  }
+                </div>
+              }
+
+              @if (messages.length === 0) {
+                <div class="flex flex-col items-center justify-center h-full text-center py-16 gap-4">
+                  <div class="relative">
+                    <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl bg-[#2D5757]/8 border border-[#2D5757]/15"
+                      style="box-shadow: 0 0 20px rgba(45,87,87,0.1);">
+                      💬
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 flex gap-0.5">
+                      <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#2D5757]"></span>
+                      <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#2D5757]"></span>
+                      <span class="typing-dot w-1.5 h-1.5 rounded-full bg-[#2D5757]"></span>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-gray-500 text-sm font-semibold">No messages yet</p>
+                    <p class="text-gray-400 text-xs mt-1">Start the conversation 👋</p>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Input area -->
+            <div class="shrink-0 p-3 space-y-2 bg-white border-t border-gray-100">
+
+              <!-- Translation select -->
+              <select [(ngModel)]="targetLang"
+                class="w-full text-xs rounded-lg px-3 py-1.5 outline-none transition-all bg-gray-50 text-gray-500 border border-gray-200 focus:border-[#2D5757]">
+                <option value="">🌐 No translation</option>
+                <option value="en">🇬🇧 English</option>
+                <option value="fr">🇫🇷 French</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="es">🇪🇸 Spanish</option>
+              </select>
+
+              <!-- Input row -->
+              <div class="flex gap-2 items-center">
+                <input [(ngModel)]="chatInput" (keyup.enter)="sendMessage()"
+                  placeholder="Say something..."
+                  class="chat-input flex-1 text-gray-800 text-sm px-4 py-2.5 rounded-xl outline-none bg-gray-50 border border-gray-200 placeholder-gray-400">
+                <button (click)="sendMessage()" class="send-btn w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style="background: linear-gradient(135deg, #2D5757, #3a6b6b); box-shadow: 0 4px 12px rgba(45,87,87,0.35);">
+                  <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- ── Q&A ── -->
+        @if (activeTab === 'qa') {
+          <div class="flex flex-col h-full animate-slide-in">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0 bg-gradient-to-r from-[#F6BD60]/10 to-transparent">
+              <div class="w-7 h-7 rounded-lg bg-[#F6BD60]/20 flex items-center justify-center">
+                <span class="text-sm">❓</span>
+              </div>
+              <span class="text-sm font-bold text-gray-800">Q&A</span>
+              @if (pendingQuestions.length > 0) {
+                <span class="ml-1 px-2 py-0.5 bg-[#F6BD60]/20 text-[#e5ac4f] text-xs font-bold rounded-full border border-[#F6BD60]/30">
+                  {{ pendingQuestions.length }}
+                </span>
+              }
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50/50">
+              @for (q of pendingQuestions; track q.id) {
+                <div class="rounded-xl border border-[#2D5757]/20 bg-white shadow-sm overflow-hidden animate-fade-up">
+                  <div class="flex items-start gap-2.5 p-3 border-b border-gray-50">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center text-xs font-bold text-white shrink-0 mt-0.5">
+                      {{ q.authorName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center gap-2 mb-1">
+                        <span class="text-xs font-bold text-[#2D5757]">{{ q.authorName }}</span>
+                        <span class="text-[10px] px-1.5 py-0.5 bg-[#2D5757]/10 text-[#2D5757] rounded-full font-bold">Question</span>
+                      </div>
+                      <p class="text-sm text-gray-800 leading-relaxed">{{ q.text }}</p>
+                    </div>
+                    @if (isModerator) {
+                      <button (click)="markAnswered(q)"
+                        class="shrink-0 px-2 py-1 rounded-lg bg-green-50 hover:bg-green-100 text-green-600 border border-green-200 text-xs font-bold transition-all">
+                        Close
+                      </button>
+                    }
+                  </div>
+                  @if (getRepliesFor(q.id).length > 0) {
+                    <div class="bg-gray-50 px-3 py-2 space-y-2">
+                      @for (r of getRepliesFor(q.id); track r.id) {
+                        <div class="flex items-start gap-2 animate-fade-up">
+                          <div class="w-5 h-5 rounded-full bg-gradient-to-br from-[#F6BD60] to-[#C84630] flex items-center justify-center text-[10px] font-bold text-white shrink-0 mt-0.5">
+                            {{ r.authorName.charAt(0).toUpperCase() }}
+                          </div>
+                          <div class="flex-1 min-w-0">
+                            <span class="text-[10px] text-gray-500 font-semibold">{{ r.authorName }}</span>
+                            <p class="text-xs text-gray-700 leading-relaxed mt-0.5">{{ getReplyText(r) }}</p>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                  @if (!isModerator) {
+                    @if (qaActiveQuestionId === q.id) {
+                      <div class="border-t border-gray-100 p-2 flex gap-2 bg-white">
+                        <input [(ngModel)]="qaReplyInput" (keyup.enter)="submitReply(q.id)"
+                          placeholder="Your answer..." maxlength="200"
+                          class="flex-1 bg-gray-50 text-gray-800 text-xs px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-[#2D5757] placeholder-gray-400 transition-colors">
+                        <button (click)="submitReply(q.id)" [disabled]="!qaReplyInput.trim()"
+                          class="px-3 py-2 text-xs font-bold rounded-lg transition-all"
+                          [class]="qaReplyInput.trim() ? 'bg-[#2D5757] text-white hover:bg-[#244646]' : 'bg-gray-100 text-gray-400 cursor-not-allowed'">
+                          Send
+                        </button>
+                        <button (click)="qaActiveQuestionId = null"
+                          class="px-2 py-2 text-xs text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">✕</button>
+                      </div>
+                    } @else {
+                      <div class="border-t border-gray-100 px-3 py-2 bg-white">
+                        <button (click)="qaActiveQuestionId = q.id; qaReplyInput = ''"
+                          class="text-xs text-[#2D5757] hover:text-[#244646] font-semibold transition-colors flex items-center gap-1">
+                          <span>↩</span> Reply
+                        </button>
+                      </div>
+                    }
+                  }
+                </div>
+              }
+
+              @if (answeredQuestions.length > 0) {
+                <div class="pt-1">
+                  <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1 pb-2">
+                    Closed · {{ answeredQuestions.length }}
+                  </p>
+                  @for (q of answeredQuestions; track q.id) {
+                    <div class="rounded-xl border border-gray-100 bg-white/60 mb-2 opacity-60">
+                      <div class="flex items-start gap-2.5 p-3">
+                        <div class="flex-1 min-w-0">
+                          <p class="text-xs text-gray-500 leading-relaxed">{{ q.text }}</p>
+                          <div class="flex items-center gap-2 mt-1">
+                            <span class="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-600 border border-green-100 rounded-full font-semibold">✓ Closed</span>
+                            <span class="text-[10px] text-gray-400">{{ getRepliesFor(q.id).length }} replies</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              @if (rootQuestions.length === 0) {
+                <div class="flex flex-col items-center justify-center h-full py-16 text-center gap-3">
+                  <div class="w-14 h-14 rounded-2xl bg-[#F6BD60]/10 border border-[#F6BD60]/20 flex items-center justify-center text-3xl">❓</div>
+                  <div>
+                    @if (isModerator) {
+                      <p class="text-gray-600 text-sm font-semibold">No questions yet</p>
+                      <p class="text-gray-400 text-xs mt-1">Post a question for participants</p>
+                    } @else {
+                      <p class="text-gray-600 text-sm font-semibold">Waiting for a question...</p>
+                      <p class="text-gray-400 text-xs mt-1">The moderator will post one soon</p>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            @if (isModerator) {
+              <div class="p-3 border-t border-gray-100 space-y-2 shrink-0 bg-white">
+                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Post a question</p>
+                <div class="flex gap-2">
+                  <input [(ngModel)]="qaNewQuestion" (keyup.enter)="submitModeratorQuestion()"
+                    placeholder="Ask participants something..." maxlength="300"
+                    class="flex-1 bg-gray-50 text-gray-800 text-sm px-3 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#2D5757] placeholder-gray-400 transition-colors">
+                  <button (click)="submitModeratorQuestion()" [disabled]="!qaNewQuestion.trim()"
+                    class="px-3 py-2.5 text-xs font-bold rounded-xl transition-all shrink-0 shadow-sm"
+                    [class]="qaNewQuestion.trim() ? 'bg-[#2D5757] hover:bg-[#244646] text-white' : 'bg-gray-100 text-gray-400 cursor-not-allowed'">
+                    Ask
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── POLL ── -->
+        @if (activeTab === 'poll') {
+          <div class="flex flex-col h-full animate-slide-in">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0 bg-gradient-to-r from-[#3D3D60]/5 to-transparent">
+              <div class="w-7 h-7 rounded-lg bg-[#3D3D60]/10 flex items-center justify-center">
+                <span class="text-sm">📊</span>
+              </div>
+              <span class="text-sm font-bold text-gray-800">Poll</span>
+            </div>
+            <div class="flex-1 overflow-y-auto p-3 space-y-3 bg-gray-50/50">
+              @if (poll) {
+                <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm animate-fade-up">
+                  <p class="font-bold text-gray-800 text-sm mb-4 leading-relaxed">{{ poll.question }}</p>
+                  <div class="space-y-2.5">
+                    @for (opt of poll.options; track opt.id) {
+                      <button (click)="vote(opt.id)"
+                        class="w-full text-left rounded-xl overflow-hidden border transition-all hover:shadow-sm active:scale-[0.99]"
+                        [class]="opt.votedByCurrentUser ? 'border-[#2D5757] shadow-sm' : 'border-gray-200 hover:border-[#2D5757]/40'">
+                        <div class="relative px-4 py-3">
+                          <div class="absolute inset-0 rounded-xl transition-all duration-700 poll-bar shimmer-bar"
+                            [class]="opt.votedByCurrentUser ? 'bg-[#2D5757]/15' : 'bg-gray-50'"
+                            [style.width.%]="getPollPercent(opt)"></div>
+                          <div class="relative flex justify-between items-center">
+                            <span class="text-sm text-gray-700 font-medium">{{ opt.text }}</span>
+                            <span class="text-sm font-black ml-2 shrink-0"
+                              [class]="opt.votedByCurrentUser ? 'text-[#2D5757]' : 'text-[#F6BD60]'">
+                              {{ getPollPercent(opt) }}%
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+                    }
+                  </div>
+                  <p class="text-xs text-gray-400 mt-3 text-right font-medium">{{ getTotalVotes() }} votes</p>
+                </div>
+              } @else {
+                <div class="flex flex-col items-center justify-center py-12 text-center gap-3">
+                  <div class="w-12 h-12 rounded-2xl bg-[#3D3D60]/10 flex items-center justify-center text-2xl">📊</div>
+                  <p class="text-gray-400 text-sm">No active poll</p>
+                </div>
+              }
+              @if (isModerator) {
+                <button (click)="showCreatePoll = !showCreatePoll"
+                  class="w-full py-2.5 border-2 border-dashed border-gray-200 hover:border-[#2D5757]/40 text-gray-400 hover:text-[#2D5757] text-xs font-semibold rounded-xl transition-all">
+                  + Create Poll
+                </button>
+                @if (showCreatePoll) {
+                  <div class="bg-white rounded-2xl p-4 border border-gray-100 shadow-sm space-y-3 animate-fade-up">
+                    <input [(ngModel)]="newPollQuestion" placeholder="Poll question..."
+                      class="w-full bg-gray-50 text-gray-800 text-sm px-3 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#2D5757] placeholder-gray-400 transition-colors">
+                    @for (opt of newPollOptions; track $index; let i = $index) {
+                      <div class="flex gap-2">
+                        <input [(ngModel)]="newPollOptions[i]" [placeholder]="'Option ' + (i + 1)"
+                          class="flex-1 bg-gray-50 text-gray-800 text-sm px-3 py-2 rounded-xl border border-gray-200 outline-none focus:border-[#2D5757] placeholder-gray-400 transition-colors">
+                        @if (newPollOptions.length > 2) {
+                          <button (click)="removePollOption(i)" class="text-[#C84630] hover:text-red-700 text-lg w-8 shrink-0 transition-colors">×</button>
+                        }
+                      </div>
+                    }
+                    <button (click)="addPollOption()" class="text-xs text-[#2D5757] hover:text-[#244646] font-semibold transition-colors">+ Add option</button>
+                    <label class="flex items-center gap-2 text-xs text-gray-500 cursor-pointer">
+                      <input type="checkbox" [(ngModel)]="newPollMultiple" class="rounded accent-[#2D5757]">
+                      Multiple choice
+                    </label>
+                    <button (click)="submitCreatePoll()"
+                      class="w-full py-2.5 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] hover:from-[#244646] hover:to-[#31314d] text-white text-sm font-bold rounded-xl shadow-sm transition-all hover:shadow-md active:scale-[0.99]">
+                      Launch Poll
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ── HAND RAISE ── -->
+        @if (activeTab === 'hands') {
+          <div class="flex flex-col h-full animate-slide-in">
+            <div class="px-4 py-3 border-b border-gray-100 flex items-center gap-2 shrink-0 bg-gradient-to-r from-[#C84630]/5 to-transparent">
+              <div class="w-7 h-7 rounded-lg bg-[#C84630]/10 flex items-center justify-center">
+                <span class="text-sm">✋</span>
+              </div>
+              <span class="text-sm font-bold text-gray-800">Hand Raise</span>
+              @if (handQueue.length > 0) {
+                <span class="ml-auto text-xs px-2 py-0.5 bg-[#C84630]/10 text-[#C84630] border border-[#C84630]/20 rounded-full font-bold">{{ handQueue.length }}</span>
+              }
+            </div>
+            <div class="p-3 space-y-3 flex-1 overflow-y-auto bg-gray-50/50">
+              <button (click)="toggleHand()"
+                class="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2 shadow-sm active:scale-[0.98]"
+                [class]="myHandRaised
+                  ? 'bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-gray-900 shadow-md hand-raised'
+                  : 'bg-white text-gray-700 border-2 border-gray-200 hover:border-[#F6BD60] hover:text-[#e5ac4f]'">
+                <span class="text-xl" [class.hand-raised]="myHandRaised">✋</span>
+                {{ myHandRaised ? 'Lower Hand' : 'Raise Hand' }}
+              </button>
+              @if (handQueue.length > 0) {
+                <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-1">Queue</p>
+                @for (h of handQueue; track h.id; let i = $index) {
+                  <div class="flex items-center gap-3 bg-white rounded-xl px-3 py-2.5 border border-gray-100 shadow-sm animate-fade-up">
+                    <span class="text-xs font-black text-gray-300 w-4 shrink-0">{{ i + 1 }}</span>
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-[#F6BD60] to-[#C84630] flex items-center justify-center text-sm font-bold text-white shrink-0">
+                      {{ h.userName.charAt(0).toUpperCase() }}
+                    </div>
+                    <span class="flex-1 text-sm text-gray-700 font-medium truncate">{{ h.userName }}</span>
+                    @if (isModerator) {
+                      <button (click)="dismissHand(h.userId)"
+                        class="w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 text-[#C84630] border border-red-100 flex items-center justify-center text-xs shrink-0 transition-colors">✕</button>
+                    }
+                  </div>
+                }
+              } @else {
+                <div class="flex flex-col items-center justify-center py-8 text-center gap-2">
+                  <span class="text-3xl">🤫</span>
+                  <p class="text-gray-400 text-xs">No hands raised</p>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+      </div>
+    </div>
+
+    <!-- ── FLOATING REACTIONS ── -->
+    <div class="fixed inset-0 pointer-events-none overflow-hidden z-50">
+      @for (r of floatingReactions; track r.id) {
+        <div class="absolute bottom-20 text-3xl animate-float-up select-none drop-shadow-lg"
+          [style.left.%]="r.x">{{ r.emoji }}</div>
+      }
+    </div>
+
+  }
+</div>

@@ -1,23 +1,28 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { switchMap, map } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { of, Subscription } from 'rxjs';
 import { EventService, Event } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { MemberService } from '../../../core/services/member.service';
+import { SponsorService } from '../../../core/services/sponsor.service';
+import { Sponsor } from '../../../core/models/sponsor.model';
 import { EventFeedbackService, EventFeedback, EventFeedbackStats } from '../../../core/services/event-feedback.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { StarRatingComponent } from '../../../shared/components/star-rating/star-rating.component';
 import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
 import { LocationMapComponent } from '../../../shared/components/location-map/location-map.component';
+import { EventWebSocketService } from '../../../services/event-websocket.service';
+import { DataSyncService } from '../../../services/data-sync.service';
+import { SponsorWebSocketService } from '../../../services/sponsor-websocket.service';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
+  imports: [CommonModule, FormsModule, RouterLink, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
   templateUrl: './events.component.html',
   styleUrls: ['./events.component.scss']
 })
@@ -28,10 +33,13 @@ export class EventsComponent implements OnInit, OnDestroy {
   myEvents: Event[] = [];
   loading = false;
   currentUserId: number | null = null;
-  selectedTab: 'all' | 'upcoming' | 'past' = 'upcoming'; // Updated to include 'past'
+  selectedTab: 'all' | 'upcoming' | 'past' = 'all'; // Updated to include 'past'
   isAdmin = false;
   canCreateEvent = false; // Nouvelle propriété pour vérifier les permissions
+  canViewSponsors = false; // Nouvelle propriété pour vérifier si l'utilisateur peut voir les sponsors
   searchQuery: string = ''; // Dynamic search
+  dateFilter: string = ''; // Date filter
+  viewMode: 'grid' | 'list' = 'grid'; // View mode toggle
   filteredEvents: Event[] = [];
   filteredUpcomingEvents: Event[] = [];
   filteredPastEvents: Event[] = []; // New: Filtered past events
@@ -71,6 +79,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     seconds: number;
   } = { days: 0, hours: 0, minutes: 0, seconds: 0 };
   countdownInterval: any;
+  
+  private wsSubscriptions = new Subscription();
 
   // Form data
   eventForm: Event = {
@@ -82,6 +92,10 @@ export class EventsComponent implements OnInit, OnDestroy {
     maxParticipants: 10,
     description: ''
   };
+
+  // Sponsors
+  availableSponsors: Sponsor[] = [];
+  selectedSponsorIds: number[] = [];
 
   eventTypeIcons: { [key: string]: string } = {
     'WORKSHOP': '🛠️',
@@ -102,8 +116,12 @@ export class EventsComponent implements OnInit, OnDestroy {
     private router: Router,
     private userService: UserService,
     private memberService: MemberService,
+    private sponsorService: SponsorService,
     private feedbackService: EventFeedbackService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private eventWsService: EventWebSocketService,
+    private sponsorWsService: SponsorWebSocketService,
+    private dataSyncService: DataSyncService
   ) {}
 
   ngOnInit() {
@@ -114,12 +132,17 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.isAdmin = currentUser.role === 'ADMIN';
       // Vérifier les permissions de création d'événements
       this.checkEventCreationPermission();
+      // Vérifier les permissions de visualisation des sponsors
+      this.checkSponsorViewPermission();
     }
     
     // Reset all data on init
     this.myEvents = [];
     this.events = [];
     this.upcomingEvents = [];
+    
+    // Initialize WebSocket
+    this.initializeWebSocket();
     
     // Subscribe to auth changes to update currentUserId when user changes
     this.authService.currentUser$.subscribe((user: any) => {
@@ -130,6 +153,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         
         // Vérifier les permissions de création d'événements
         this.checkEventCreationPermission();
+        // Vérifier les permissions de visualisation des sponsors
+        this.checkSponsorViewPermission();
         
         // Reload events if user changed
         if (previousUserId !== null && previousUserId !== this.currentUserId) {
@@ -149,6 +174,23 @@ export class EventsComponent implements OnInit, OnDestroy {
       console.log('🔄 Event participation changed, reloading events...');
       this.loadEvents();
     });
+    
+    // Setup auto-sync for events and sponsors
+    const eventSyncSub = this.dataSyncService.onEventDataChanged().subscribe(change => {
+      if (change.action !== 'none') {
+        console.log('🔄 Event data changed:', change.action);
+        this.loadEvents();
+      }
+    });
+    this.wsSubscriptions.add(eventSyncSub);
+    
+    const sponsorSyncSub = this.dataSyncService.onSponsorDataChanged().subscribe(change => {
+      if (change.action !== 'none') {
+        console.log('🔄 Sponsor data changed:', change.action);
+        this.loadAvailableSponsors(); // Reload sponsors when they change
+      }
+    });
+    this.wsSubscriptions.add(sponsorSyncSub);
     
     // Check if there's an event ID in the route
     this.route.paramMap.subscribe(params => {
@@ -229,6 +271,26 @@ export class EventsComponent implements OnInit, OnDestroy {
     // Clear countdown interval when component is destroyed
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
+    }
+    // Cleanup WebSocket subscriptions
+    this.wsSubscriptions.unsubscribe();
+    this.eventWsService.disconnect();
+    this.sponsorWsService.disconnect();
+  }
+  
+  private async initializeWebSocket() {
+    try {
+      // Connect to Event WebSocket
+      await this.eventWsService.connect();
+      this.eventWsService.subscribeToGlobalEvents();
+      
+      // Connect to Sponsor WebSocket
+      await this.sponsorWsService.connect();
+      this.sponsorWsService.subscribeToSponsors();
+      
+      console.log('✅ Event & Sponsor WebSocket initialized for student-panel');
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
     }
   }
 
@@ -406,31 +468,30 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Filter events that are within 3 days or already started (but not ended)
+  // "All Events" tab: events happening today (ongoing right now)
   filterAvailableEvents(events: Event[]): Event[] {
     const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
     return events.filter(event => {
       const eventStartDate = new Date(event.startDate);
       const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
-      
-      // Event must start within 3 days AND not be ended yet
-      return eventStartDate <= threeDaysFromNow && eventEndDate >= now;
+
+      // Event is ongoing today: started before end of day AND ends after start of day
+      return eventStartDate <= endOfDay && eventEndDate >= startOfDay;
     });
   }
 
-  // Filter events that are more than 3 days away (coming soon) and not ended
+  // "Upcoming" tab: events starting strictly in the future (after today)
   filterUpcomingEvents(events: Event[]): Event[] {
     const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
     return events.filter(event => {
       const eventStartDate = new Date(event.startDate);
-      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
-      
-      // Event must start more than 3 days away AND not be ended yet
-      return eventStartDate > threeDaysFromNow && eventEndDate >= now;
+      // Event starts after today
+      return eventStartDate > endOfDay;
     });
   }
 
@@ -449,12 +510,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // Check if event is coming soon (more than 3 days away)
+  // Check if event is coming soon (starts after today)
   isComingSoon(event: Event): boolean {
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const eventStartDate = new Date(event.startDate);
-    return eventStartDate > threeDaysFromNow;
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    return new Date(event.startDate) > endOfDay;
   }
 
   // Check if user is the creator of the event
@@ -463,33 +523,11 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   openCreateModal() {
-    this.isEditMode = false;
-    this.eventForm = {
-      title: '',
-      type: 'WORKSHOP',
-      startDate: '',
-      endDate: '',
-      location: '',
-      maxParticipants: 10,
-      description: '',
-      gallery: [] // Initialize empty gallery
-    };
-    this.showModal = true;
+    this.router.navigate(['/user-panel/events/create']);
   }
 
   openEditModal(event: Event) {
-    this.isEditMode = true;
-    this.eventForm = { ...event };
-    // Convert date format for datetime-local input
-    if (this.eventForm.startDate) {
-      const startDate = new Date(this.eventForm.startDate);
-      this.eventForm.startDate = startDate.toISOString().slice(0, 16);
-    }
-    if (this.eventForm.endDate) {
-      const endDate = new Date(this.eventForm.endDate);
-      this.eventForm.endDate = endDate.toISOString().slice(0, 16);
-    }
-    this.showModal = true;
+    this.router.navigate(['/user-panel/events/edit', event.id]);
   }
 
   closeModal() {
@@ -596,6 +634,31 @@ export class EventsComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  loadAvailableSponsors() {
+    this.sponsorService.getAllSponsors().subscribe({
+      next: (sponsors) => {
+        // Tous les sponsors sont disponibles
+        this.availableSponsors = sponsors;
+      },
+      error: (err) => {
+        console.error('Error loading sponsors:', err);
+      }
+    });
+  }
+
+  toggleSponsorSelection(sponsorId: number) {
+    const index = this.selectedSponsorIds.indexOf(sponsorId);
+    if (index > -1) {
+      this.selectedSponsorIds.splice(index, 1);
+    } else {
+      this.selectedSponsorIds.push(sponsorId);
+    }
+  }
+
+  isSponsorSelected(sponsorId: number): boolean {
+    return this.selectedSponsorIds.includes(sponsorId);
   }
 
   deleteEvent(eventId: number) {
@@ -719,26 +782,56 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   applyEventFilter() {
-    // Filter events based on search query (by club name)
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase().trim();
-      this.filteredEvents = this.events.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-      this.filteredUpcomingEvents = this.upcomingEvents.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-      this.filteredPastEvents = this.pastEvents.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-    } else {
-      this.filteredEvents = [...this.events];
-      this.filteredUpcomingEvents = [...this.upcomingEvents];
-      this.filteredPastEvents = [...this.pastEvents];
-    }
+    // Filter events based on search query (by club name) and date  
+    const query = this.searchQuery.toLowerCase().trim();
+    const filterDate = this.dateFilter ? new Date(this.dateFilter) : null;
+    
+    // Helper function to filter by search and date
+    const filterEvents = (events: Event[]) => {
+      return events.filter(event => {
+        // Search filter (by club name only)
+        const clubName = event.clubName?.toLowerCase() || '';
+        const matchesSearch = !query || clubName.includes(query);
+        
+        // Date filter
+        let matchesDate = true;
+        if (filterDate) {
+          const eventStartDate = new Date(event.startDate);
+          const eventEndDate = event.endDate ? new Date(event.endDate) : eventStartDate;
+          
+          // Check if the filter date falls within the event's date range
+          matchesDate = eventStartDate.toDateString() === filterDate.toDateString() ||
+                       eventEndDate.toDateString() === filterDate.toDateString() ||
+                       (eventStartDate <= filterDate && eventEndDate >= filterDate);
+        }
+        
+        return matchesSearch && matchesDate;
+      });
+    };
+    
+    this.filteredEvents = filterEvents(this.events);
+    this.filteredUpcomingEvents = filterEvents(this.upcomingEvents);
+    this.filteredPastEvents = filterEvents(this.pastEvents);
     
     // Add PENDING events to filtered lists
     this.addPendingEventsToFilteredLists();
+  }
+
+  onSearchChange() {
+    this.applyEventFilter();
+  }
+  
+  onDateFilterChange() {
+    this.applyEventFilter();
+  }
+  
+  clearDateFilter() {
+    this.dateFilter = '';
+    this.applyEventFilter();
+  }
+  
+  toggleViewMode() {
+    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
   }
 
   private addPendingEventsToFilteredLists() {
@@ -775,10 +868,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       default:
         return this.filteredEvents;
     }
-  }
-
-  onSearchChange() {
-    this.applyEventFilter();
   }
 
   // Image handling methods
@@ -989,6 +1078,47 @@ export class EventsComponent implements OnInit, OnDestroy {
       error: (err: any) => {
         console.error('❌ Error checking event creation permission:', err);
         this.canCreateEvent = false;
+      }
+    });
+  }
+
+  /**
+   * Vérifie si l'utilisateur peut voir les informations des sponsors
+   * Seuls les membres avec des rôles de responsabilité peuvent voir les sponsors
+   */
+  checkSponsorViewPermission() {
+    if (!this.currentUserId) {
+      this.canViewSponsors = false;
+      return;
+    }
+
+    // Admin peut toujours voir
+    if (this.isAdmin) {
+      this.canViewSponsors = true;
+      return;
+    }
+
+    const ALLOWED_RANKS = [
+      'PRESIDENT',
+      'VICE_PRESIDENT',
+      'SECRETARY',
+      'TREASURER',
+      'COMMUNICATION_MANAGER',
+      'EVENT_MANAGER',
+      'PARTNERSHIP_MANAGER'
+    ];
+
+    this.memberService.getMembersByUser(this.currentUserId).subscribe({
+      next: (memberships: any[]) => {
+        // Vérifier si l'utilisateur a au moins un rôle autorisé dans un club
+        this.canViewSponsors = memberships.some((member: any) =>
+          ALLOWED_RANKS.includes(member.rank)
+        );
+        console.log('🔐 Can view sponsors:', this.canViewSponsors);
+      },
+      error: (err: any) => {
+        console.error('❌ Error checking sponsor view permission:', err);
+        this.canViewSponsors = false;
       }
     });
   }

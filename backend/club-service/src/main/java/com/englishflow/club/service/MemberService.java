@@ -5,6 +5,7 @@ import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Member;
 import com.englishflow.club.enums.RankType;
 import com.englishflow.club.exception.*;
+import com.englishflow.club.mapper.ClubMapper;
 import com.englishflow.club.mapper.MemberMapper;
 import com.englishflow.club.repository.ClubRepository;
 import com.englishflow.club.repository.MemberRepository;
@@ -26,7 +27,9 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final ClubRepository clubRepository;
     private final MemberMapper memberMapper;
+    private final ClubMapper clubMapper;
     private final ClubHistoryService clubHistoryService;
+    private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
     
     @Cacheable(value = "members", key = "'club-' + #clubId")
     @Transactional(readOnly = true)
@@ -76,6 +79,16 @@ public class MemberService {
                 .build();
         
         Member savedMember = memberRepository.save(member);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyMemberJoined(
+            clubId.longValue(),
+            club.getName(),
+            userId,
+            "User " + userId, // TODO: Récupérer le vrai nom de l'utilisateur
+            RankType.MEMBER.name()
+        );
+        
         log.info("User {} successfully added to club {}", userId, clubId);
         return memberMapper.toDTO(savedMember);
     }
@@ -156,9 +169,24 @@ public class MemberService {
     }
     
     @Transactional(readOnly = true)
+    public java.util.Optional<MemberDTO> getMemberByClubAndUser(Integer clubId, Long userId) {
+        return memberRepository.findByClubIdAndUserId(clubId, userId)
+                .map(memberMapper::toDTO);
+    }
+
+    @Transactional(readOnly = true)
     public boolean isPresident(Integer clubId, Long userId) {
         return memberRepository.findByClubIdAndUserId(clubId, userId)
                 .map(member -> member.getRank() == RankType.PRESIDENT)
+                .orElse(false);
+    }
+    
+    @Transactional(readOnly = true)
+    public boolean hasManagementRole(Integer clubId, Long userId) {
+        return memberRepository.findByClubIdAndUserId(clubId, userId)
+                .map(member -> member.getRank() == RankType.PRESIDENT 
+                            || member.getRank() == RankType.VICE_PRESIDENT 
+                            || member.getRank() == RankType.SECRETARY)
                 .orElse(false);
     }
     
@@ -193,9 +221,22 @@ public class MemberService {
     @Transactional
     public void removeMemberByUserAndClub(Integer clubId, Long userId) {
         log.info("Removing user {} from club {}", userId, clubId);
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubNotFoundException(clubId));
+        
         Member member = memberRepository.findByClubIdAndUserId(clubId, userId)
                 .orElseThrow(() -> new MemberNotFoundException("Member not found"));
+        
         memberRepository.delete(member);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyMemberLeft(
+            clubId.longValue(),
+            club.getName(),
+            userId,
+            "User " + userId // TODO: Récupérer le vrai nom de l'utilisateur
+        );
+        
         log.info("User {} removed from club {}", userId, clubId);
     }
     
@@ -207,28 +248,8 @@ public class MemberService {
     @Transactional(readOnly = true)
     public List<com.englishflow.club.dto.ClubWithRoleDTO> getUserClubsWithStatus(Long userId) {
         log.debug("Fetching clubs with status for user: {}", userId);
-        List<Member> members = memberRepository.findByUserId(userId);
-        return members.stream()
-                .map(member -> {
-                    Club club = member.getClub();
-                    return com.englishflow.club.dto.ClubWithRoleDTO.builder()
-                            .id(club.getId())
-                            .name(club.getName())
-                            .description(club.getDescription())
-                            .objective(club.getObjective())
-                            .category(club.getCategory())
-                            .maxMembers(club.getMaxMembers())
-                            .image(club.getImage())
-                            .status(club.getStatus())
-                            .createdBy(club.getCreatedBy())
-                            .reviewedBy(club.getReviewedBy())
-                            .reviewComment(club.getReviewComment())
-                            .createdAt(club.getCreatedAt())
-                            .updatedAt(club.getUpdatedAt())
-                            .userRole(member.getRank())
-                            .joinedAt(member.getJoinedAt())
-                            .build();
-                })
+        return memberRepository.findByUserId(userId).stream()
+                .map(member -> clubMapper.toClubWithRoleDTO(member.getClub(), member))
                 .collect(Collectors.toList());
     }
 }

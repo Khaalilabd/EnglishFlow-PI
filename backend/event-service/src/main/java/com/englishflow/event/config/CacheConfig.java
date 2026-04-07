@@ -20,6 +20,8 @@ public class CacheConfig {
                 "eventsByType", 
                 "eventById", 
                 "upcomingEvents",
+                "ongoingEvents",
+                "pastEvents",
                 "participants"
         );
         cacheManager.setCaffeine(caffeineCacheBuilder());
