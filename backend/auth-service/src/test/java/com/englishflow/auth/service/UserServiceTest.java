@@ -129,9 +129,6 @@ class UserServiceTest {
         testUser.setActive(false);
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
         when(userRepository.save(any(User.class))).thenReturn(testUser);
-        // Mock gamification service - returns UserLevelDTO
-        when(gamificationIntegrationService.initializeUserLevel(anyLong(), anyString())).thenReturn(null);
-        doNothing().when(emailService).sendWelcomeEmail(anyString(), anyString());
 
         // When
         UserDTO result = userService.activateUser(1L);
@@ -140,5 +137,7 @@ class UserServiceTest {
         assertNotNull(result);
         assertTrue(testUser.isActive());
         verify(userRepository, times(1)).save(testUser);
+        // Verify welcome email was attempted (it's in a try-catch so it won't fail the test)
+        verify(emailService, times(1)).sendWelcomeEmail(eq(testUser.getEmail()), eq(testUser.getFirstName()));
     }
 }
