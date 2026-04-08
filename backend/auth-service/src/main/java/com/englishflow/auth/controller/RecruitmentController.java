@@ -115,6 +115,22 @@ public class RecruitmentController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/generate-meeting-link")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<MeetingLinkResponse> generateMeetingLink(
+            @Valid @RequestBody GenerateMeetingLinkRequest request) {
+        
+        MeetingLinkResponse response = recruitmentService.generateMeetingLink(request);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/available-platforms")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<Map<String, Boolean>> getAvailablePlatforms() {
+        Map<String, Boolean> platforms = recruitmentService.getAvailablePlatforms();
+        return ResponseEntity.ok(platforms);
+    }
+
     @PostMapping("/{applicationId}/notes")
     @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
     public ResponseEntity<NoteResponse> addNote(

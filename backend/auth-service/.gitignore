@@ -1,1 +1,8 @@
 logs/
+
+# Credentials - Ne jamais commit les fichiers de credentials
+credentials/
+*.json
+!pom.json
+!package.json
+!tsconfig.json

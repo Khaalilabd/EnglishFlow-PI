@@ -90,6 +90,22 @@ app:
 file:
   upload-dir: uploads/profile-photos
 
+# Meeting platforms configuration
+meeting:
+  google:
+    enabled: ${GOOGLE_MEET_ENABLED:false}
+    credentials-file: ${GOOGLE_CALENDAR_CREDENTIALS_FILE:#{null}}
+  zoom:
+    enabled: ${ZOOM_ENABLED:false}
+    account-id: ${ZOOM_ACCOUNT_ID:#{null}}
+    client-id: ${ZOOM_CLIENT_ID:#{null}}
+    client-secret: ${ZOOM_CLIENT_SECRET:#{null}}
+  teams:
+    enabled: ${TEAMS_ENABLED:false}
+    tenant-id: ${TEAMS_TENANT_ID:#{null}}
+    client-id: ${TEAMS_CLIENT_ID:#{null}}
+    client-secret: ${TEAMS_CLIENT_SECRET:#{null}}
+
 recaptcha:
   secret: ${RECAPTCHA_SECRET}
 
@@ -190,3 +206,21 @@ logging:
     name: logs/auth-service.log
     max-size: 10MB
     max-history: 30
+
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/englishflow_identity
+  data:
+    redis:
+      host: redis
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

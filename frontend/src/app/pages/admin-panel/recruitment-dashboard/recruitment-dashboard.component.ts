@@ -2,7 +2,13 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { RecruitmentService, ApplicationResponse, ApplicationStatistics } from '../../../core/services/recruitment.service';
+import { 
+  RecruitmentService, 
+  ApplicationResponse, 
+  ApplicationStatistics,
+  MeetingPlatform,
+  MeetingLinkResponse
+} from '../../../core/services/recruitment.service';
 
 @Component({
   selector: 'app-recruitment-dashboard',
@@ -35,10 +41,18 @@ export class RecruitmentDashboardComponent implements OnInit {
   presentationScore = 0;
   overallScore = 0;
   
-  interviewDate = '';
-  interviewTime = '';
+  interviewDateTime = '';
   meetingLink = '';
   interviewNotes = '';
+  selectedPlatform: MeetingPlatform = MeetingPlatform.GOOGLE_MEET;
+  meetingTitle = '';
+  durationMinutes = 60;
+  availablePlatforms: { [key: string]: boolean } = {};
+  generatingLink = false;
+  generatedMeetingInfo: MeetingLinkResponse | null = null;
+  
+  // Enum pour le template
+  MeetingPlatform = MeetingPlatform;
   
   rejectionReason = '';
   noteContent = '';
@@ -64,6 +78,19 @@ export class RecruitmentDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadApplications();
     this.loadStatistics();
+    this.loadAvailablePlatforms();
+  }
+
+  loadAvailablePlatforms(): void {
+    this.recruitmentService.getAvailablePlatforms().subscribe({
+      next: (platforms) => {
+        this.availablePlatforms = platforms;
+        console.log('Available platforms:', platforms);
+      },
+      error: (error) => {
+        console.error('Failed to load available platforms', error);
+      }
+    });
   }
 
   loadApplications(): void {
@@ -158,42 +185,120 @@ export class RecruitmentDashboardComponent implements OnInit {
 
   openInterviewModal(application: ApplicationResponse): void {
     this.selectedApplication = application;
-    this.interviewDate = '';
-    this.interviewTime = '';
+    this.interviewDateTime = '';
     this.meetingLink = '';
     this.interviewNotes = '';
+    this.selectedPlatform = MeetingPlatform.GOOGLE_MEET;
+    this.meetingTitle = `Interview - ${application.firstName} ${application.lastName}`;
+    this.durationMinutes = 60;
+    this.generatedMeetingInfo = null;
     this.showInterviewModal = true;
   }
 
   closeInterviewModal(): void {
     this.showInterviewModal = false;
     this.selectedApplication = null;
+    this.generatedMeetingInfo = null;
+  }
+
+  getMinDateTime(): string {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  }
+
+  generateMeetingLink(): void {
+    if (!this.interviewDateTime) {
+      this.errorMessage = "Veuillez sélectionner la date et l'heure d'abord";
+      setTimeout(() => this.errorMessage = '', 3000);
+      return;
+    }
+
+    this.generatingLink = true;
+    
+    const request = {
+      platform: this.selectedPlatform,
+      interviewScheduledAt: this.interviewDateTime + ':00',
+      title: this.meetingTitle,
+      description: 'Entretien de recrutement pour le poste de tuteur',
+      durationMinutes: this.durationMinutes
+    };
+
+    this.recruitmentService.generateMeetingLink(request).subscribe({
+      next: (response) => {
+        this.generatedMeetingInfo = response;
+        this.meetingLink = response.meetingLink;
+        this.generatingLink = false;
+        this.successMessage = 'Lien de réunion généré avec succès!';
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        this.errorMessage = 'Échec de la génération du lien de réunion';
+        this.generatingLink = false;
+        setTimeout(() => this.errorMessage = '', 3000);
+      }
+    });
   }
 
   scheduleInterview(): void {
-    if (!this.selectedApplication || !this.interviewDate || !this.interviewTime) return;
+    if (!this.selectedApplication || !this.interviewDateTime) {
+      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+      setTimeout(() => this.errorMessage = '', 3000);
+      return;
+    }
+
+    // Validation: Si plateforme n'est pas MANUAL, on doit avoir un lien généré ou le générer
+    if (this.selectedPlatform !== MeetingPlatform.MANUAL && !this.meetingLink) {
+      this.errorMessage = 'Veuillez générer un lien de réunion ou en saisir un manuellement';
+      setTimeout(() => this.errorMessage = '', 3000);
+      return;
+    }
 
     this.isLoading = true;
-    const dateTime = `${this.interviewDate}T${this.interviewTime}:00`;
     
-    const data = {
-      interviewScheduledAt: dateTime,
-      meetingLink: this.meetingLink,
+    const data: any = {
+      interviewScheduledAt: this.interviewDateTime + ':00',
       notes: this.interviewNotes
     };
 
+    // Si une plateforme est sélectionnée et ce n'est pas MANUAL
+    if (this.selectedPlatform !== MeetingPlatform.MANUAL) {
+      data.platform = this.selectedPlatform;
+      data.meetingTitle = this.meetingTitle;
+      data.durationMinutes = this.durationMinutes;
+    } else {
+      // Mode manuel
+      data.platform = MeetingPlatform.MANUAL;
+      data.meetingLink = this.meetingLink;
+    }
+
     this.recruitmentService.scheduleInterview(this.selectedApplication.id, data).subscribe({
       next: () => {
-        this.successMessage = 'Interview scheduled successfully!';
+        this.successMessage = "Entretien planifié avec succès!";
         this.closeInterviewModal();
         this.loadApplications();
         setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
-        this.errorMessage = 'Failed to schedule interview';
+        this.errorMessage = error.error?.message || "Échec de la planification de l'entretien";
         this.isLoading = false;
+        setTimeout(() => this.errorMessage = '', 3000);
       }
     });
+  }
+
+  isPlatformAvailable(platform: MeetingPlatform): boolean {
+    return this.availablePlatforms[platform] === true;
+  }
+
+  getPlatformDisplayName(platform: MeetingPlatform): string {
+    const names: { [key: string]: string } = {
+      [MeetingPlatform.GOOGLE_MEET]: 'Google Meet',
+      [MeetingPlatform.ZOOM]: 'Zoom',
+      [MeetingPlatform.MICROSOFT_TEAMS]: 'Microsoft Teams',
+      [MeetingPlatform.MANUAL]: 'Manual Link'
+    };
+    return names[platform] || platform;
   }
 
   openRejectModal(application: ApplicationResponse): void {

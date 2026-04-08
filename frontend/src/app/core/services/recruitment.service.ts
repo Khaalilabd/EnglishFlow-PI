@@ -98,8 +98,36 @@ export interface ScoreApplicationRequest {
 
 export interface ScheduleInterviewRequest {
   interviewScheduledAt: string;
+  platform?: MeetingPlatform;
   meetingLink?: string;
+  meetingTitle?: string;
+  durationMinutes?: number;
   notes?: string;
+}
+
+export enum MeetingPlatform {
+  GOOGLE_MEET = 'GOOGLE_MEET',
+  ZOOM = 'ZOOM',
+  MICROSOFT_TEAMS = 'MICROSOFT_TEAMS',
+  MANUAL = 'MANUAL'
+}
+
+export interface GenerateMeetingLinkRequest {
+  platform: MeetingPlatform;
+  interviewScheduledAt: string;
+  title?: string;
+  description?: string;
+  durationMinutes?: number;
+}
+
+export interface MeetingLinkResponse {
+  meetingLink: string;
+  platform: MeetingPlatform;
+  meetingId: string;
+  password?: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  additionalInfo?: string;
 }
 
 export interface AddNoteRequest {
@@ -200,5 +228,14 @@ export class RecruitmentService {
   // Get application details by user ID
   getApplicationByUserId(userId: number): Observable<ApplicationResponse> {
     return this.http.get<ApplicationResponse>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  // Meeting link generation
+  generateMeetingLink(data: GenerateMeetingLinkRequest): Observable<MeetingLinkResponse> {
+    return this.http.post<MeetingLinkResponse>(`${this.apiUrl}/generate-meeting-link`, data);
+  }
+
+  getAvailablePlatforms(): Observable<{ [key: string]: boolean }> {
+    return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/available-platforms`);
   }
 }

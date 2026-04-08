@@ -49,7 +49,7 @@ server:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     fetch-registry: true
     register-with-eureka: true
     # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
@@ -86,3 +86,21 @@ logging:
     com.englishflow.exam: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
+
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/englishflow_exams
+  data:
+    redis:
+      host: redis
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/

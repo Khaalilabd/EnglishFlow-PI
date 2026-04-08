@@ -16,6 +16,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ public class RecruitmentService {
     private final UserRepository userRepository;
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
+    private final MeetingLinkService meetingLinkService;
 
     private static final String UPLOAD_DIR = "uploads/applications/";
 
@@ -263,9 +265,52 @@ public class RecruitmentService {
         TutorApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
+        String meetingLink = request.getMeetingLink();
+
+        // Génération automatique du lien si une plateforme est spécifiée
+        if (request.getPlatform() != null && request.getPlatform() != com.englishflow.auth.enums.MeetingPlatform.MANUAL) {
+            try {
+                GenerateMeetingLinkRequest meetingRequest = new GenerateMeetingLinkRequest();
+                meetingRequest.setPlatform(request.getPlatform());
+                meetingRequest.setInterviewScheduledAt(request.getInterviewScheduledAt());
+                meetingRequest.setTitle(request.getMeetingTitle() != null ? 
+                    request.getMeetingTitle() : 
+                    "Interview - " + application.getFirstName() + " " + application.getLastName());
+                meetingRequest.setDescription("Entretien de recrutement pour le poste de tuteur");
+                meetingRequest.setDurationMinutes(request.getDurationMinutes() != null ? 
+                    request.getDurationMinutes() : 60);
+
+                MeetingLinkResponse meetingResponse = meetingLinkService.generateMeetingLink(meetingRequest);
+                meetingLink = meetingResponse.getMeetingLink();
+                
+                // Ajouter les infos supplémentaires dans les notes
+                String additionalNotes = String.format(
+                    "Plateforme: %s\nID de réunion: %s\n%s",
+                    meetingResponse.getPlatform().getDisplayName(),
+                    meetingResponse.getMeetingId(),
+                    meetingResponse.getPassword() != null ? "Mot de passe: " + meetingResponse.getPassword() : ""
+                );
+                
+                String combinedNotes = request.getNotes() != null ? 
+                    request.getNotes() + "\n\n" + additionalNotes : additionalNotes;
+                application.setInterviewNotes(combinedNotes);
+                
+                log.info("Meeting link generated automatically for application {} using {}", 
+                    applicationId, request.getPlatform());
+            } catch (Exception e) {
+                log.error("Failed to generate meeting link automatically", e);
+                throw new RuntimeException("Failed to generate meeting link: " + e.getMessage());
+            }
+        } else {
+            // Lien manuel
+            if (meetingLink == null || meetingLink.trim().isEmpty()) {
+                throw new IllegalArgumentException("Meeting link is required when platform is not specified or is MANUAL");
+            }
+            application.setInterviewNotes(request.getNotes());
+        }
+
         application.setInterviewScheduledAt(request.getInterviewScheduledAt());
-        application.setInterviewMeetingLink(request.getMeetingLink());
-        application.setInterviewNotes(request.getNotes());
+        application.setInterviewMeetingLink(meetingLink);
 
         // Update status if not already scheduled
         if (application.getStatus() != TutorApplication.ApplicationStatus.INTERVIEW_SCHEDULED) {
@@ -283,7 +328,7 @@ public class RecruitmentService {
                     application.getEmail(),
                     application.getFirstName(),
                     request.getInterviewScheduledAt(),
-                    request.getMeetingLink()
+                    meetingLink
             );
             log.info("Interview scheduled email sent to: {}", application.getEmail());
         } catch (Exception e) {
@@ -476,6 +521,20 @@ public class RecruitmentService {
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
         
         return ApplicationResponse.fromEntity(application);
+    }
+
+    // Generate meeting link
+    public MeetingLinkResponse generateMeetingLink(GenerateMeetingLinkRequest request) {
+        return meetingLinkService.generateMeetingLink(request);
+    }
+
+    // Get available meeting platforms
+    public Map<String, Boolean> getAvailablePlatforms() {
+        Map<String, Boolean> platforms = new java.util.HashMap<>();
+        for (com.englishflow.auth.enums.MeetingPlatform platform : com.englishflow.auth.enums.MeetingPlatform.values()) {
+            platforms.put(platform.name(), meetingLinkService.isPlatformAvailable(platform));
+        }
+        return platforms;
     }
 
     // Inner class for statistics

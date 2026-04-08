@@ -46,7 +46,7 @@ eureka:
   client:
     enabled: true
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_SERVER_URL:http://localhost:8761/eureka/}
     register-with-eureka: true
     fetch-registry: true
     # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
@@ -82,3 +82,19 @@ management:
 auth:
   service:
     url: ${AUTH_SERVICE_URL:http://localhost:8080/api/auth}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+  datasource:
+    url: jdbc:postgresql://postgres:5432/englishflow_complaints
+  
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFER_IP_ADDRESS:true}
+    hostname: ${EUREKA_INSTANCE_HOSTNAME:complaints-service}
