@@ -434,6 +434,34 @@
             </div>
           </div>
 
+<<<<<<< HEAD
+=======
+          <!-- Sponsors Section -->
+          <div *ngIf="selectedEvent!.sponsors && selectedEvent!.sponsors.length > 0" class="bg-white rounded-xl p-6 shadow-lg border-l-4 border-[#F6BD60]">
+            <p class="text-xs font-bold text-gray-500 uppercase mb-4">🤝 Event Sponsors</p>
+            <div class="space-y-3">
+              <div *ngFor="let sponsor of selectedEvent!.sponsors" class="sponsor-card-detail">
+                <div class="flex items-center gap-3">
+                  <img *ngIf="sponsor.logo" [src]="sponsor.logo" [alt]="sponsor.name" class="sponsor-logo-detail">
+                  <div *ngIf="!sponsor.logo" class="sponsor-logo-placeholder-detail">
+                    {{ sponsor.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="flex-1">
+                    <p class="sponsor-name-detail">{{ sponsor.name }}</p>
+                    <!-- Level and Amount only visible to authorized roles -->
+                    <span *ngIf="canViewSponsors" class="level-badge-detail" [ngClass]="'level-' + (sponsor.level || 'BRONZE').toLowerCase()">
+                      {{ sponsor.level || 'BRONZE' }}
+                    </span>
+                    <p *ngIf="canViewSponsors && sponsor.contributionAmount" class="sponsor-amount-detail">
+                      💰 {{ sponsor.contributionAmount }} DT
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+>>>>>>> origin/club/event-service
           <!-- Gallery Card -->
           <div *ngIf="selectedEvent!.gallery && selectedEvent!.gallery.length > 0" class="bg-white rounded-xl p-6 shadow-lg">
             <p class="text-xs font-bold text-gray-500 uppercase mb-4">Galerie Photos</p>
@@ -455,6 +483,7 @@
           </div>
         </div>
 
+<<<<<<< HEAD
         <!-- Right Column: Location -->
         <div class="lg:col-span-1">
           <div class="bg-white rounded-xl shadow-lg flex flex-col overflow-hidden" style="max-height: 650px;">
@@ -469,6 +498,38 @@
                 [height]="400"
                 [zoom]="15">
               </app-location-map>
+=======
+        <!-- Right Column: Location / Online -->
+        <div class="lg:col-span-1">
+          <div class="bg-white rounded-xl shadow-lg flex flex-col overflow-hidden" style="max-height: 650px;">
+
+            <!-- Online Event -->
+            <div *ngIf="selectedEvent!.format === 'ONLINE'" class="p-6">
+              <p class="text-xs font-bold text-gray-500 uppercase mb-4">💻 Online Event</p>
+              <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                <div class="text-3xl mb-3">🎥</div>
+                <p class="text-sm font-semibold text-blue-800 mb-3">This event takes place online</p>
+                <a [routerLink]="['/user-panel/events', selectedEvent!.id, 'live']"
+                  class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#2D5757] text-white rounded-xl font-semibold text-sm hover:bg-[#3a6b6b] transition-colors">
+                  <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+                  Join Live Session
+                </a>
+              </div>
+            </div>
+
+            <!-- In-Person Event -->
+            <div *ngIf="!selectedEvent!.format || selectedEvent!.format === 'IN_PERSON'">
+              <p class="text-xs font-bold text-gray-500 uppercase px-6 pt-6 pb-4">📍 Location</p>
+              <div class="relative" style="height: 400px;">
+                <app-location-map
+                  [latitude]="selectedEvent!.latitude"
+                  [longitude]="selectedEvent!.longitude"
+                  [address]="selectedEvent!.location"
+                  [height]="400"
+                  [zoom]="15">
+                </app-location-map>
+              </div>
+>>>>>>> origin/club/event-service
             </div>
 
             <!-- Action Buttons -->
@@ -506,6 +567,7 @@
 
   <!-- Events List View -->
   <div *ngIf="!showDetailsView" class="max-w-7xl mx-auto px-4">
+<<<<<<< HEAD
   <!-- Welcome Header -->
   <div class="bg-gradient-to-r from-[#2D5757] via-[#356666] to-[#3D3D60] rounded-2xl p-6 mb-6 text-white shadow-xl relative overflow-hidden">
     <!-- Decorative elements -->
@@ -526,6 +588,35 @@
         class="inline-flex items-center px-5 py-2.5 bg-[#F6BD60] text-gray-900 rounded-xl hover:bg-[#e5ac4f] transition-all duration-300 font-semibold shadow-lg hover:shadow-xl hover:scale-105 transform tracking-tight text-sm"
       >
         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+=======
+  
+  <!-- Modern Header Bar -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <!-- Left: Title with Icon and Counter -->
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center shadow-md">
+          <span class="text-2xl">🎉</span>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+            Events & Activities
+            <span class="px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs font-semibold">
+              {{ filteredEvents.length }}
+            </span>
+          </h1>
+          <p class="text-xs text-gray-500">Discover and join exciting events</p>
+        </div>
+      </div>
+
+      <!-- Right: Create Button -->
+      <button
+        *ngIf="canCreateEvent"
+        (click)="openCreateModal()"
+        class="inline-flex items-center px-4 py-2 bg-[#F6BD60] text-gray-900 rounded-xl hover:bg-[#e5ac4f] transition-all font-semibold text-sm shadow-sm hover:shadow-md"
+      >
+        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+>>>>>>> origin/club/event-service
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
         </svg>
         Create Event
@@ -533,6 +624,7 @@
     </div>
   </div>
 
+<<<<<<< HEAD
   <!-- Tabs and Search -->
   <div class="mb-6 flex items-center justify-between gap-4">
     <!-- Tabs -->
@@ -597,11 +689,132 @@
           *ngIf="searchQuery"
           (click)="searchQuery = ''; onSearchChange()"
           class="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600"
+=======
+  <!-- Controls Bar -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      
+      <!-- Left: Tabs -->
+      <div class="flex items-center gap-2 bg-gray-50 rounded-xl p-1.5">
+        <button 
+          (click)="selectTab('upcoming')"
+          [class.bg-white]="selectedTab === 'upcoming'"
+          [class.text-[#2D5757]]="selectedTab === 'upcoming'"
+          [class.shadow-sm]="selectedTab === 'upcoming'"
+          [class.text-gray-600]="selectedTab !== 'upcoming'"
+          class="px-4 py-2 font-semibold rounded-lg transition-all text-sm flex items-center gap-2">
+          <span>📅</span>
+          <span>Upcoming</span>
+        </button>
+        <button 
+          (click)="selectTab('all')"
+          [class.bg-white]="selectedTab === 'all'"
+          [class.text-[#2D5757]]="selectedTab === 'all'"
+          [class.shadow-sm]="selectedTab === 'all'"
+          [class.text-gray-600]="selectedTab !== 'all'"
+          class="px-4 py-2 font-semibold rounded-lg transition-all text-sm flex items-center gap-2">
+          <span>📋</span>
+          <span>All Events</span>
+        </button>
+        <button 
+          (click)="selectTab('past')"
+          [class.bg-white]="selectedTab === 'past'"
+          [class.text-[#2D5757]]="selectedTab === 'past'"
+          [class.shadow-sm]="selectedTab === 'past'"
+          [class.text-gray-600]="selectedTab !== 'past'"
+          class="px-4 py-2 font-semibold rounded-lg transition-all text-sm flex items-center gap-2">
+          <span>🕐</span>
+          <span>Past Events</span>
+        </button>
+      </div>
+
+      <!-- Center: Search -->
+      <div class="flex-1 min-w-[280px] max-w-md">
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchChange()"
+            placeholder="Search by club name..."
+            class="w-full pl-10 pr-10 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-sm"
+          />
+          <button
+            *ngIf="searchQuery"
+            (click)="searchQuery = ''; onSearchChange()"
+            class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Date Filter + View Toggle -->
+      <div class="flex items-center gap-2">
+        <!-- Date Filter -->
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <input
+            type="date"
+            [(ngModel)]="dateFilter"
+            (ngModelChange)="onDateFilterChange()"
+            class="pl-10 pr-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-sm"
+          />
+        </div>
+        
+        <!-- Clear Date Button -->
+        <button
+          *ngIf="dateFilter"
+          (click)="clearDateFilter()"
+          class="p-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-all"
+          title="Clear date filter"
+>>>>>>> origin/club/event-service
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
+<<<<<<< HEAD
+=======
+
+        <!-- View Mode Toggle -->
+        <div class="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+          <button 
+            (click)="viewMode = 'grid'"
+            [class.bg-white]="viewMode === 'grid'"
+            [class.text-[#2D5757]]="viewMode === 'grid'"
+            [class.shadow-sm]="viewMode === 'grid'"
+            [class.text-gray-500]="viewMode !== 'grid'"
+            class="p-2 rounded-md transition-all"
+            title="Grid view">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+            </svg>
+          </button>
+          <button 
+            (click)="viewMode = 'list'"
+            [class.bg-white]="viewMode === 'list'"
+            [class.text-[#2D5757]]="viewMode === 'list'"
+            [class.shadow-sm]="viewMode === 'list'"
+            [class.text-gray-500]="viewMode !== 'list'"
+            class="p-2 rounded-md transition-all"
+            title="List view">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+>>>>>>> origin/club/event-service
       </div>
     </div>
   </div>
@@ -611,8 +824,13 @@
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
   </div>
 
+<<<<<<< HEAD
   <!-- Events Grid - Minimaliste -->
   <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 max-w-7xl mx-auto">
+=======
+  <!-- Events Grid View -->
+  <div *ngIf="!loading && viewMode === 'grid'" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 max-w-7xl mx-auto">
+>>>>>>> origin/club/event-service
     <!-- Event Card -->
     <div 
       *ngFor="let event of getDisplayEvents(); let i = index"
@@ -753,6 +971,101 @@
     </div>
   </div>
 
+<<<<<<< HEAD
+=======
+  <!-- Events List View -->
+  <div *ngIf="!loading && viewMode === 'list'" class="space-y-4 max-w-7xl mx-auto">
+    <!-- Event Row -->
+    <div 
+      *ngFor="let event of getDisplayEvents(); let i = index"
+      class="group bg-white rounded-xl shadow-md transition-all duration-300 overflow-hidden border flex"
+      [class.hover:shadow-2xl]="event.status !== 'PENDING'"
+      [class.hover:border-[#F6BD60]]="event.status !== 'PENDING'"
+      [class.border-gray-100]="event.status !== 'PENDING'"
+      [class.border-yellow-400]="event.status === 'PENDING'"
+      [class.opacity-75]="event.status === 'PENDING'"
+      [class.cursor-not-allowed]="event.status === 'PENDING'"
+      [style.animation-delay]="i * 50 + 'ms'">
+      
+      <!-- PENDING Status Badge -->
+      <div *ngIf="event.status === 'PENDING'" class="absolute top-3 right-3 z-10 px-3 py-1.5 bg-yellow-500 text-white rounded-full text-xs font-bold shadow-lg flex items-center gap-1 animate-pulse">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>PENDING</span>
+      </div>
+      
+      <!-- Image -->
+      <div class="relative w-48 h-32 bg-gradient-to-br from-[#2D5757] to-[#3D3D60] overflow-hidden flex-shrink-0">
+        <img 
+          *ngIf="event.image" 
+          [src]="event.image" 
+          [alt]="event.title" 
+          class="w-full h-full object-cover transition-transform duration-500"
+          [class.group-hover:scale-110]="event.status !== 'PENDING'">
+        
+        <div 
+          *ngIf="!event.image" 
+          class="w-full h-full flex items-center justify-center text-5xl">
+          {{ getEventIcon(event.type) }}
+        </div>
+        
+        <!-- Pending Overlay -->
+        <div *ngIf="event.status === 'PENDING'" class="absolute inset-0 bg-yellow-500/20 backdrop-blur-[1px]"></div>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 p-4 flex items-center justify-between">
+        <div class="flex-1">
+          <!-- Title and Club -->
+          <div class="mb-2">
+            <h3 class="text-lg font-bold text-gray-900 mb-1 transition-colors"
+                [class.group-hover:text-[#2D5757]]="event.status !== 'PENDING'"
+                [class.text-gray-600]="event.status === 'PENDING'">
+              {{ event.title }}
+            </h3>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-gray-500">{{ event.clubName || 'English Flow Club' }}</span>
+              <span class="px-2 py-0.5 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-full text-xs font-bold">
+                {{ event.type }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Date and Participants -->
+          <div class="flex items-center gap-4 text-sm text-gray-600">
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span>{{ formatDate(event.startDate) }}</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              <span>{{ event.currentParticipants || 0 }}/{{ event.maxParticipants }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Action Button -->
+        <div class="flex items-center gap-3">
+          <button
+            *ngIf="event.status !== 'PENDING'"
+            (click)="viewEventDetails(event)"
+            class="px-6 py-2 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm">
+            View Details
+          </button>
+          <div *ngIf="event.status === 'PENDING'" class="px-6 py-2 bg-yellow-100 text-yellow-700 rounded-lg font-semibold text-sm">
+            Awaiting Approval
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+>>>>>>> origin/club/event-service
   <!-- Empty State -->
   <div *ngIf="!loading && getDisplayEvents().length === 0" class="text-center py-20 bg-white rounded-2xl shadow-sm">
     <div class="text-6xl mb-4">📅</div>
@@ -858,6 +1171,39 @@
           </select>
         </div>
 
+<<<<<<< HEAD
+=======
+        <!-- Format -->
+        <div>
+          <label class="block text-sm font-bold text-[#2D5757] mb-2">Format <span class="text-[#C84630]">*</span></label>
+          @if (eventForm.type === 'SOCIAL') {
+            <div class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-gray-50 text-gray-600 flex items-center gap-2">
+              🏢 <span>In Person (Présentiel uniquement)</span>
+            </div>
+          } @else {
+            <select
+              [(ngModel)]="eventForm.format"
+              name="format"
+              required
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#F6BD60] focus:border-[#F6BD60] transition-all bg-white">
+              <option value="IN_PERSON">🏢 In Person (Présentiel)</option>
+              <option value="ONLINE">💻 Online (En ligne)</option>
+            </select>
+          }
+        </div>
+
+        <!-- Online event info (no meeting link needed) -->
+        <div class="md:col-span-2" *ngIf="eventForm.format === 'ONLINE'">
+          <div class="flex items-center gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <span class="text-2xl">💻</span>
+            <div>
+              <p class="text-sm font-semibold text-blue-800">Online Event</p>
+              <p class="text-xs text-blue-600 mt-0.5">Participants will join via the integrated Live Session when the event starts.</p>
+            </div>
+          </div>
+        </div>
+
+>>>>>>> origin/club/event-service
         <!-- Start Date & Time -->
         <div>
           <label class="block text-sm font-bold text-[#2D5757] mb-2">
@@ -920,6 +1266,80 @@
           placeholder="Décrivez l'événement..."></textarea>
       </div>
 
+<<<<<<< HEAD
+=======
+      <!-- Sponsors Selection -->
+      <div *ngIf="canViewSponsors">
+        <label class="block text-sm font-bold text-[#2D5757] mb-3">
+          Sponsors (Optionnel)
+          <span class="text-xs font-normal text-gray-500 ml-2">Sélectionnez les sponsors pour cet événement</span>
+        </label>
+        
+        <div *ngIf="availableSponsors.length === 0" class="text-center py-6 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+          </svg>
+          <p class="text-sm text-gray-600">Aucun sponsor disponible</p>
+          <p class="text-xs text-gray-500 mt-1">Créez d'abord des sponsors dans la section Sponsors</p>
+        </div>
+
+        <div *ngIf="availableSponsors.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-64 overflow-y-auto p-2 bg-gray-50 rounded-xl border-2 border-gray-200">
+          <div *ngFor="let sponsor of availableSponsors" 
+               (click)="toggleSponsorSelection(sponsor.id!)"
+               class="flex items-center gap-3 p-3 bg-white rounded-lg border-2 cursor-pointer transition-all hover:shadow-md"
+               [class.border-[#F6BD60]]="isSponsorSelected(sponsor.id!)"
+               [class.bg-[#FFF9E6]]="isSponsorSelected(sponsor.id!)"
+               [class.border-gray-200]="!isSponsorSelected(sponsor.id!)">
+            
+            <!-- Checkbox -->
+            <div class="flex-shrink-0">
+              <div class="w-5 h-5 rounded border-2 flex items-center justify-center transition-all"
+                   [class.border-[#F6BD60]]="isSponsorSelected(sponsor.id!)"
+                   [class.bg-[#F6BD60]]="isSponsorSelected(sponsor.id!)"
+                   [class.border-gray-300]="!isSponsorSelected(sponsor.id!)">
+                <svg *ngIf="isSponsorSelected(sponsor.id!)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Sponsor Logo -->
+            <div class="flex-shrink-0">
+              <div *ngIf="sponsor.logo" class="w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
+                <img [src]="sponsor.logo" [alt]="sponsor.name" class="w-full h-full object-cover">
+              </div>
+              <div *ngIf="!sponsor.logo" class="w-12 h-12 rounded-lg bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] flex items-center justify-center text-white font-bold text-lg">
+                {{ sponsor.name.charAt(0).toUpperCase() }}
+              </div>
+            </div>
+
+            <!-- Sponsor Info -->
+            <div class="flex-1 min-w-0">
+              <h4 class="font-semibold text-[#2D5757] truncate">{{ sponsor.name }}</h4>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="inline-block px-2 py-0.5 text-xs font-semibold rounded-full"
+                      [class.bg-yellow-100]="sponsor.level === 'GOLD'"
+                      [class.text-yellow-800]="sponsor.level === 'GOLD'"
+                      [class.bg-gray-100]="sponsor.level === 'SILVER'"
+                      [class.text-gray-800]="sponsor.level === 'SILVER'"
+                      [class.bg-orange-100]="sponsor.level === 'BRONZE'"
+                      [class.text-orange-800]="sponsor.level === 'BRONZE'">
+                  {{ sponsor.level }}
+                </span>
+                <span *ngIf="sponsor.contributionAmount" class="text-xs text-gray-600">
+                  ${{ sponsor.contributionAmount }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="selectedSponsorIds.length > 0" class="text-sm text-[#2D5757] mt-2 font-medium">
+          ✓ {{ selectedSponsorIds.length }} sponsor(s) sélectionné(s)
+        </p>
+      </div>
+
+>>>>>>> origin/club/event-service
       <!-- Gallery Upload -->
       <div>
         <label class="block text-sm font-bold text-[#2D5757] mb-3">Galerie Photos (Optionnel)</label>
@@ -1029,12 +1449,18 @@
           class="group flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 rounded-xl transition-all duration-300 border border-gray-200 hover:border-[#F6BD60] hover:shadow-md">
           
           <div class="flex items-center gap-4 flex-1">
+<<<<<<< HEAD
             <!-- Avatar -->
             <div class="relative">
               <div *ngIf="participant.image" class="w-14 h-14 rounded-full overflow-hidden border-2 border-[#F6BD60] shadow-md">
                 <img [src]="participant.image" [alt]="participant.firstName + ' ' + participant.lastName" class="w-full h-full object-cover">
               </div>
               <div *ngIf="!participant.image" class="w-14 h-14 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center border-2 border-[#F6BD60] shadow-md">
+=======
+            <!-- Avatar with Initials Only -->
+            <div class="relative">
+              <div class="w-14 h-14 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center border-2 border-[#F6BD60] shadow-md">
+>>>>>>> origin/club/event-service
                 <span class="text-white text-xl font-bold">{{ (participant.firstName || 'U')[0] }}{{ (participant.lastName || 'U')[0] }}</span>
               </div>
               <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-[#F6BD60] rounded-full flex items-center justify-center text-xs font-bold text-gray-900 shadow-md">

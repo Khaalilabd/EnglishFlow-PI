@@ -11,6 +11,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+<<<<<<< HEAD
+=======
+import java.util.List;
+>>>>>>> origin/club/event-service
 
 @Data
 @Builder
@@ -35,6 +39,12 @@ public class ClubDTO {
     @Min(value = 1, message = "Max members must be at least 1")
     private Integer maxMembers;
     
+<<<<<<< HEAD
+=======
+    @Min(value = 0, message = "Registration fee must be positive")
+    private Double registrationFee; // Frais d'inscription
+    
+>>>>>>> origin/club/event-service
     private String image; // Base64 encoded image
     
     private ClubStatus status;
@@ -55,6 +65,11 @@ public class ClubDTO {
     
     private LocalDateTime suspendedAt; // Date de suspension
     
+<<<<<<< HEAD
+=======
+    private List<SkillDTO> skills; // Compétences associées au club
+    
+>>>>>>> origin/club/event-service
     private LocalDateTime createdAt;
     
     private LocalDateTime updatedAt;

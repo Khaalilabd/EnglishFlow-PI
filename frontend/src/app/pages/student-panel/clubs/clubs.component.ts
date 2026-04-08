@@ -1,27 +1,57 @@
+<<<<<<< HEAD
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
+=======
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
+import { ActivatedRoute, Router, NavigationEnd, RouterLink } from '@angular/router';
+>>>>>>> origin/club/event-service
 import { ClubService } from '../../../core/services/club.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { TaskService } from '../../../core/services/task.service';
 import { MemberService } from '../../../core/services/member.service';
+<<<<<<< HEAD
+=======
+import { MembershipRequestService } from '../../../core/services/membership-request.service';
+>>>>>>> origin/club/event-service
 import { UserService } from '../../../core/services/user.service';
 import { EventService, Event as ClubEvent } from '../../../core/services/event.service';
 import { EventFeedbackService } from '../../../core/services/event-feedback.service';
 import { ClubUpdateRequestService, ClubUpdateRequest } from '../../../core/services/club-update-request.service';
 import { ClubHistoryService, ClubHistory } from '../../../core/services/club-history.service';
+<<<<<<< HEAD
 import { NotificationService } from '../../../core/services/notification.service';
 import { Club, ClubCategory, ClubStatus } from '../../../core/models/club.model';
 import { Task, TaskStatus } from '../../../core/models/task.model';
 import { filter, forkJoin, of } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { CdkDragDrop, moveItemInArray, transferArrayItem, DragDropModule } from '@angular/cdk/drag-drop';
+=======
+import { ExpenseService } from '../../../core/services/expense.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { Club, ClubCategory, ClubStatus, MembershipRequest } from '../../../core/models/club.model';
+import { Task, TaskStatus } from '../../../core/models/task.model';
+import { filter, forkJoin, of, switchMap, map } from 'rxjs';
+import { Subscription } from 'rxjs';
+import { CdkDragDrop, moveItemInArray, transferArrayItem, DragDropModule } from '@angular/cdk/drag-drop';
+import { ClubExpensesComponent } from '../../clubs/club-expenses/club-expenses.component';
+import { ClubTasksComponent } from '../../clubs/club-tasks/club-tasks.component';
+import { ClubMembershipRequestsComponent } from '../../clubs/club-membership-requests/club-membership-requests.component';
+import { ClubWebSocketService } from '../../../services/club-websocket.service';
+import { DataSyncService } from '../../../services/data-sync.service';
+>>>>>>> origin/club/event-service
 
 @Component({
   selector: 'app-student-clubs',
   standalone: true,
+<<<<<<< HEAD
   imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule],
+=======
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, RouterLink, ClubExpensesComponent, ClubTasksComponent, ClubMembershipRequestsComponent],
+>>>>>>> origin/club/event-service
   templateUrl: './clubs.component.html',
   styleUrls: ['./clubs.component.scss']
 })
@@ -35,6 +65,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
   selectedCategory: ClubCategory | null = null;
   currentUserId: number | null = null;
   searchQuery: string = ''; // Dynamic search
+<<<<<<< HEAD
+=======
+  viewMode: 'grid' | 'list' = 'grid'; // View mode toggle
+>>>>>>> origin/club/event-service
   
   // Store user roles for each club
   clubRoles: { [clubId: number]: 'PRESIDENT' | 'VICE_PRESIDENT' | 'SECRETARY' | 'TREASURER' | 'COMMUNICATION_MANAGER' | 'EVENT_MANAGER' | 'PARTNERSHIP_MANAGER' | 'MEMBER' } = {};
@@ -62,11 +96,22 @@ export class ClubsComponent implements OnInit, OnDestroy {
   showDetailsView = false;
   selectedClub: Club | null = null;
   showDescription = true;  // Section description ouverte par défaut
+<<<<<<< HEAD
   showObjective = true;    // Section objectif ouverte par défaut
+=======
+  showObjective = false;    // Section objectif fermée par défaut
+  showMembershipRequests = false; // Section membership requests fermée par défaut
+  showSkills = false;       // Section skills fermée par défaut
+  showTasks = false;        // Section tasks fermée par défaut
+>>>>>>> origin/club/event-service
   actualMemberCount = 0;   // Nombre réel de membres
 
   // Task management
   clubTasks: { [clubId: number]: Task[] } = {};
+<<<<<<< HEAD
+=======
+  clubTasksByStatus: { [clubId: number]: { [status: string]: Task[] } } = {};
+>>>>>>> origin/club/event-service
   newTaskText: string = '';
   TaskStatus = TaskStatus; // Expose enum to template
   ClubStatus = ClubStatus; // Expose enum to template
@@ -85,6 +130,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // Members management modal
   showMembersModal = false;
   clubMembers: any[] = [];
+<<<<<<< HEAD
+=======
+  paymentPendingRequests: any[] = [];
+>>>>>>> origin/club/event-service
   
   // Pending update requests
   pendingRequests: ClubUpdateRequest[] = [];
@@ -98,6 +147,12 @@ export class ClubsComponent implements OnInit, OnDestroy {
   clubEvents: ClubEvent[] = [];
   loadingEvents = false;
   
+<<<<<<< HEAD
+=======
+  // Membership requests count
+  clubMembershipRequestsCount: { [clubId: number]: number } = {};
+  
+>>>>>>> origin/club/event-service
   // Event feedback stats
   eventFeedbackStats: { [eventId: number]: { averageRating: number; totalFeedbacks: number } } = {};
 
@@ -107,6 +162,25 @@ export class ClubsComponent implements OnInit, OnDestroy {
   clubHistory: any[] = [];
   loadingHistory = false;
 
+<<<<<<< HEAD
+=======
+  // Club Expenses
+  showExpensesModal = false;
+  totalExpenses = 0;
+
+  // Join Club Modal
+  showJoinClubModal = false;
+  joiningClubId: number | null = null;
+  joiningClubName: string = '';
+  joinMessage: string = '';
+  joinMotivationLetter: string = ''; // Lettre de motivation
+  joinSkillsList: string[] = []; // Liste des compétences
+  newJoinSkill: string = ''; // Nouvelle compétence à ajouter
+
+  // User's pending membership requests
+  userPendingRequests: Set<number> = new Set(); // Set of club IDs with pending requests
+
+>>>>>>> origin/club/event-service
   // Helper method to filter pending requests by club ID
   getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
     return this.pendingRequests.filter(r => r.clubId === clubId);
@@ -117,15 +191,30 @@ export class ClubsComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private taskService: TaskService,
     private memberService: MemberService,
+<<<<<<< HEAD
+=======
+    private membershipRequestService: MembershipRequestService,
+>>>>>>> origin/club/event-service
     private userService: UserService,
     private eventService: EventService,
     private eventFeedbackService: EventFeedbackService,
     private updateRequestService: ClubUpdateRequestService,
     private clubHistoryService: ClubHistoryService,
+<<<<<<< HEAD
     private notificationService: NotificationService,
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router
+=======
+    private expenseService: ExpenseService,
+    private notificationService: NotificationService,
+    private fb: FormBuilder,
+    private route: ActivatedRoute,
+    private router: Router,
+    private clubWsService: ClubWebSocketService,
+    private dataSyncService: DataSyncService,
+    private cdr: ChangeDetectorRef
+>>>>>>> origin/club/event-service
   ) {
     this.clubForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
@@ -149,6 +238,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.getCurrentUser();
     this.checkRouteAndLoadClub();
+<<<<<<< HEAD
+=======
+    this.initializeWebSocket(); // Initialize WebSocket
+>>>>>>> origin/club/event-service
     
     // Listen to route parameter changes
     const paramSub = this.route.paramMap.subscribe(params => {
@@ -191,10 +284,37 @@ export class ClubsComponent implements OnInit, OnDestroy {
       }
     });
     this.subscriptions.add(authSub);
+<<<<<<< HEAD
+=======
+    
+    // Setup auto-sync for clubs
+    const syncSub = this.dataSyncService.onClubDataChanged().subscribe(change => {
+      if (change.action !== 'none') {
+        console.log('🔄 Club data changed:', change.action);
+        this.loadClubs(); // Reload clubs on any change
+      }
+    });
+    this.subscriptions.add(syncSub);
+>>>>>>> origin/club/event-service
   }
 
   ngOnDestroy() {
     this.subscriptions.unsubscribe();
+<<<<<<< HEAD
+=======
+    this.clubWsService.disconnect();
+  }
+  
+  private async initializeWebSocket() {
+    try {
+      await this.clubWsService.connect();
+      this.clubWsService.subscribeToGlobalClubs();
+      
+      console.log('✅ Club WebSocket initialized for student-panel');
+    } catch (error) {
+      console.error('❌ Failed to initialize WebSocket:', error);
+    }
+>>>>>>> origin/club/event-service
   }
 
   private checkRouteAndLoadClub() {
@@ -244,6 +364,15 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.loadActualMemberCount(club.id!);
         this.loadClubEventsForClub(club.id!);
         this.loadPendingRequests();
+<<<<<<< HEAD
+=======
+        this.loadMembershipRequestsCount(club.id!);
+        
+        // Load total expenses if user is TREASURER
+        if (this.getUserRole(club.id!) === 'TREASURER') {
+          this.loadTotalExpenses(club.id!);
+        }
+>>>>>>> origin/club/event-service
       },
       error: (err) => {
         console.error('Error loading club:', err);
@@ -268,6 +397,26 @@ export class ClubsComponent implements OnInit, OnDestroy {
     });
   }
 
+<<<<<<< HEAD
+=======
+  loadMembershipRequestsCount(clubId: number) {
+    this.membershipRequestService.getPendingRequestsForClub(clubId).subscribe({
+      next: (requests: MembershipRequest[]) => {
+        this.clubMembershipRequestsCount[clubId] = requests.length;
+        console.log(`✅ Membership requests count for club ${clubId}: ${requests.length}`);
+      },
+      error: (err: any) => {
+        console.error('❌ Error loading membership requests count:', err);
+        this.clubMembershipRequestsCount[clubId] = 0;
+      }
+    });
+  }
+
+  getMembershipRequestsCount(clubId: number): number {
+    return this.clubMembershipRequestsCount[clubId] || 0;
+  }
+
+>>>>>>> origin/club/event-service
   getCurrentUser() {
     const user = this.authService.currentUserValue;
     if (user && user.id !== undefined && user.id !== null) {
@@ -282,6 +431,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.error = null;
 
+<<<<<<< HEAD
     // Load clubs and user roles in parallel
     forkJoin({
       clubs: this.clubService.getApprovedClubs(),
@@ -290,6 +440,26 @@ export class ClubsComponent implements OnInit, OnDestroy {
       next: ({ clubs, members }) => {
         // Ne pas filtrer les clubs suspendus, les afficher tous
         this.allClubs = clubs;
+=======
+    // Load approved clubs, pending clubs created by user, and user roles in parallel
+    forkJoin({
+      approvedClubs: this.clubService.getApprovedClubs(),
+      pendingClubs: this.currentUserId ? this.clubService.getClubsByUser(this.currentUserId) : of([]),
+      members: this.currentUserId ? this.memberService.getMembersByUser(this.currentUserId) : of([])
+    }).subscribe({
+      next: ({ approvedClubs, pendingClubs, members }) => {
+        // Combiner les clubs approuvés et les clubs en attente de l'utilisateur
+        const pendingUserClubs = pendingClubs.filter(club => club.status === 'PENDING');
+        
+        // Créer un Set des IDs de clubs approuvés pour éviter les doublons
+        const approvedClubIds = new Set(approvedClubs.map(club => club.id));
+        
+        // Ajouter les clubs en attente qui ne sont pas déjà dans les clubs approuvés
+        const uniquePendingClubs = pendingUserClubs.filter(club => !approvedClubIds.has(club.id));
+        
+        // Combiner les deux listes
+        this.allClubs = [...approvedClubs, ...uniquePendingClubs];
+>>>>>>> origin/club/event-service
         
         // Process member roles
         if (Array.isArray(members)) {
@@ -304,8 +474,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.categorizeClubs();
         this.loading = false;
         
+<<<<<<< HEAD
         // Load pending requests after clubs are loaded
         this.loadPendingRequests();
+=======
+        // Load pending requests and user's pending membership requests after clubs are loaded
+        this.loadPendingRequests();
+        this.loadUserPendingMembershipRequests();
+>>>>>>> origin/club/event-service
       },
       error: (err) => {
         console.error('Error loading clubs:', err);
@@ -315,6 +491,32 @@ export class ClubsComponent implements OnInit, OnDestroy {
     });
   }
 
+<<<<<<< HEAD
+=======
+  loadUserPendingMembershipRequests() {
+    if (!this.currentUserId) return;
+
+    this.membershipRequestService.getUserRequests(this.currentUserId).subscribe({
+      next: (requests) => {
+        // Store club IDs with PENDING status
+        this.userPendingRequests.clear();
+        requests
+          .filter(req => req.status === 'PENDING')
+          .forEach(req => this.userPendingRequests.add(req.clubId));
+        
+        console.log('📋 User pending membership requests:', Array.from(this.userPendingRequests));
+      },
+      error: (err) => {
+        console.error('❌ Error loading user pending requests:', err);
+      }
+    });
+  }
+
+  hasPendingRequest(clubId: number): boolean {
+    return this.userPendingRequests.has(clubId);
+  }
+
+>>>>>>> origin/club/event-service
   loadUserRoles() {
     if (!this.currentUserId) return;
 
@@ -338,7 +540,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   getUserRole(clubId: number): string {
     const role = this.clubRoles[clubId] || 'MEMBER';
+<<<<<<< HEAD
     console.log(`🎭 getUserRole(${clubId}) = ${role}`);
+=======
+>>>>>>> origin/club/event-service
     return role;
   }
 
@@ -441,6 +646,13 @@ export class ClubsComponent implements OnInit, OnDestroy {
     return this.getCategoryLabel(this.selectedCategory);
   }
 
+<<<<<<< HEAD
+=======
+  toggleViewMode() {
+    this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
+  }
+
+>>>>>>> origin/club/event-service
   openCreateModal() {
     this.showCreateModal = true;
     this.clubForm.reset({ maxMembers: 20 });
@@ -755,10 +967,28 @@ export class ClubsComponent implements OnInit, OnDestroy {
   closeMembersModal() {
     this.showMembersModal = false;
     this.clubMembers = [];
+<<<<<<< HEAD
+=======
+    this.paymentPendingRequests = [];
+>>>>>>> origin/club/event-service
   }
 
   loadClubMembers(clubId: number) {
     this.loadingMembers = true;
+<<<<<<< HEAD
+=======
+    this.paymentPendingRequests = [];
+
+    // Load payment pending requests in parallel
+    this.membershipRequestService.getRequestsByClub(clubId).subscribe({
+      next: (requests: any[]) => {
+        const pending = requests.filter((r: any) => r.status === 'PAYMENT_PENDING');
+        this.paymentPendingRequests = pending;
+      },
+      error: () => { this.paymentPendingRequests = []; }
+    });
+
+>>>>>>> origin/club/event-service
     this.memberService.getMembersByClub(clubId).subscribe({
       next: (members) => {
         console.log('📋 Raw members from API:', members);
@@ -1053,7 +1283,10 @@ export class ClubsComponent implements OnInit, OnDestroy {
   isClubPresident(club: Club): boolean {
     if (!club.id) return false;
     const role = this.clubRoles[club.id];
+<<<<<<< HEAD
     console.log(`🎭 isClubPresident(${club.id}) = ${role === 'PRESIDENT'}, role = ${role}`);
+=======
+>>>>>>> origin/club/event-service
     return role === 'PRESIDENT';
   }
 
@@ -1073,13 +1306,18 @@ export class ClubsComponent implements OnInit, OnDestroy {
     return role === 'PRESIDENT' || role === 'VICE_PRESIDENT' || role === 'SECRETARY';
   }
 
+<<<<<<< HEAD
   // Join a club
+=======
+  // Join a club - Create membership request
+>>>>>>> origin/club/event-service
   joinClub(clubId: number) {
     if (!this.currentUserId) {
       this.notificationService.warning('Login Required', 'Please log in to join a club.');
       return;
     }
 
+<<<<<<< HEAD
     if (confirm('Do you want to join this club?')) {
       this.memberService.addMemberToClub(clubId, this.currentUserId).subscribe({
         next: (member) => {
@@ -1101,29 +1339,161 @@ export class ClubsComponent implements OnInit, OnDestroy {
         }
       });
     }
+=======
+    // Find club name
+    const club = this.allClubs.find(c => c.id === clubId);
+    this.joiningClubName = club?.name || 'this club';
+    this.joiningClubId = clubId;
+    this.joinMessage = '';
+    this.showJoinClubModal = true;
+  }
+
+  confirmJoinClub() {
+    if (!this.currentUserId || !this.joiningClubId) return;
+
+    // Validation
+    if (!this.joinMotivationLetter || this.joinSkillsList.length === 0) {
+      this.notificationService.warning('Missing Information', 'Please fill in the motivation letter and add at least one skill.');
+      return;
+    }
+
+    // Convert skills list to comma-separated string
+    const skillsString = this.joinSkillsList.join(', ');
+
+    this.membershipRequestService.createRequest({
+      clubId: this.joiningClubId,
+      userId: this.currentUserId,
+      message: this.joinMessage || undefined,
+      motivationLetter: this.joinMotivationLetter,
+      studentSkills: skillsString
+    }).subscribe({
+      next: () => {
+        this.notificationService.success('Request Sent', 'Your membership request has been sent to the club managers!');
+        this.closeJoinClubModal();
+        // Reload user's pending requests to update the UI
+        this.loadUserPendingMembershipRequests();
+      },
+      error: (err) => {
+        const errorMessage = err.error?.message || err.error || 'Failed to send request. You may already have a pending request or be a member.';
+        this.notificationService.error('Failed to Send Request', errorMessage);
+      }
+    });
+  }
+
+  closeJoinClubModal() {
+    this.showJoinClubModal = false;
+    this.joiningClubId = null;
+    this.joiningClubName = '';
+    this.joinMessage = '';
+    this.joinMotivationLetter = '';
+    this.joinSkillsList = [];
+    this.newJoinSkill = '';
+  }
+
+  addJoinSkill() {
+    if (this.newJoinSkill.trim()) {
+      this.joinSkillsList.push(this.newJoinSkill.trim());
+      this.newJoinSkill = '';
+    }
+  }
+
+  removeJoinSkill(index: number) {
+    this.joinSkillsList.splice(index, 1);
+>>>>>>> origin/club/event-service
   }
 
   // Task management methods
   loadTasksForClub(clubId: number) {
+<<<<<<< HEAD
     this.loadingTasks = true;
     console.log('🔍 Loading tasks for club:', clubId, 'with userId:', this.currentUserId);
     this.taskService.getTasksByClubId(clubId, this.currentUserId || undefined).subscribe({
       next: (tasks) => {
         console.log('✅ Tasks loaded successfully:', tasks);
         this.clubTasks[clubId] = tasks;
+=======
+    if (!this.currentUserId) {
+      console.warn('⚠️ Cannot load tasks: user not authenticated');
+      this.clubTasks[clubId] = [];
+      this.initializeTasksByStatus(clubId);
+      return;
+    }
+    
+    this.loadingTasks = true;
+    console.log('🔍 Loading tasks for club:', clubId, 'with userId:', this.currentUserId);
+    this.taskService.getTasksByClubId(clubId, this.currentUserId).subscribe({
+      next: (tasks) => {
+        console.log('✅ Tasks loaded successfully:', tasks);
+        this.clubTasks[clubId] = tasks;
+        this.organizeTasksByStatus(clubId);
+>>>>>>> origin/club/event-service
         this.loadingTasks = false;
       },
       error: (err) => {
         console.error('❌ Error loading tasks:', err);
         console.error('❌ Error status:', err.status);
         console.error('❌ Error message:', err.error);
+<<<<<<< HEAD
         // Silently handle error - just show empty task list
         this.clubTasks[clubId] = [];
+=======
+        this.clubTasks[clubId] = [];
+        this.initializeTasksByStatus(clubId);
+>>>>>>> origin/club/event-service
         this.loadingTasks = false;
       }
     });
   }
 
+<<<<<<< HEAD
+=======
+  private initializeTasksByStatus(clubId: number) {
+    this.clubTasksByStatus[clubId] = {
+      [TaskStatus.TODO]: [],
+      [TaskStatus.IN_PROGRESS]: [],
+      [TaskStatus.DONE]: []
+    };
+  }
+
+  private organizeTasksByStatus(clubId: number) {
+    const tasks = this.clubTasks[clubId] || [];
+    
+    console.log('🔧 Organizing tasks for club', clubId, '- Total tasks:', tasks.length);
+    
+    // Initialize if not exists
+    if (!this.clubTasksByStatus[clubId]) {
+      this.clubTasksByStatus[clubId] = {
+        [TaskStatus.TODO]: [],
+        [TaskStatus.IN_PROGRESS]: [],
+        [TaskStatus.DONE]: []
+      };
+    }
+    
+    // Clear existing arrays but keep references
+    this.clubTasksByStatus[clubId][TaskStatus.TODO].length = 0;
+    this.clubTasksByStatus[clubId][TaskStatus.IN_PROGRESS].length = 0;
+    this.clubTasksByStatus[clubId][TaskStatus.DONE].length = 0;
+    
+    // Populate arrays
+    tasks.forEach(task => {
+      console.log('  - Task:', task.id, task.text, 'Status:', task.status);
+      if (task.status === TaskStatus.TODO) {
+        this.clubTasksByStatus[clubId][TaskStatus.TODO].push(task);
+      } else if (task.status === TaskStatus.IN_PROGRESS) {
+        this.clubTasksByStatus[clubId][TaskStatus.IN_PROGRESS].push(task);
+      } else if (task.status === TaskStatus.DONE) {
+        this.clubTasksByStatus[clubId][TaskStatus.DONE].push(task);
+      }
+    });
+    
+    console.log('📊 Tasks organized by status:', {
+      TODO: this.clubTasksByStatus[clubId][TaskStatus.TODO].length,
+      IN_PROGRESS: this.clubTasksByStatus[clubId][TaskStatus.IN_PROGRESS].length,
+      DONE: this.clubTasksByStatus[clubId][TaskStatus.DONE].length
+    });
+  }
+
+>>>>>>> origin/club/event-service
   getTasksForClub(clubId: number): Task[] {
     return this.clubTasks[clubId] || [];
   }
@@ -1131,11 +1501,23 @@ export class ClubsComponent implements OnInit, OnDestroy {
   addTask(clubId: number) {
     if (!this.newTaskText.trim()) return;
 
+<<<<<<< HEAD
+=======
+    if (!this.currentUserId) {
+      this.notificationService.error('Error', 'User not authenticated');
+      return;
+    }
+
+>>>>>>> origin/club/event-service
     const newTask = {
       text: this.newTaskText.trim(),
       status: TaskStatus.TODO,
       clubId: clubId,
+<<<<<<< HEAD
       createdBy: this.currentUserId || undefined
+=======
+      createdBy: this.currentUserId
+>>>>>>> origin/club/event-service
     };
 
     console.log('📤 Creating task:', newTask);
@@ -1147,39 +1529,92 @@ export class ClubsComponent implements OnInit, OnDestroy {
           this.clubTasks[clubId] = [];
         }
         this.clubTasks[clubId].push(task);
+<<<<<<< HEAD
         this.newTaskText = '';
       },
       error: (err) => {
         this.notificationService.error('Task Creation Failed', 'Failed to create task. Please try again.');
+=======
+        this.organizeTasksByStatus(clubId);
+        this.newTaskText = '';
+        this.cdr.detectChanges();
+        this.notificationService.success('Success', 'Task created successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error creating task:', err);
+        this.notificationService.error('Task Creation Failed', err.error?.message || 'Failed to create task. Please try again.');
+>>>>>>> origin/club/event-service
       }
     });
   }
 
   updateTaskStatus(clubId: number, taskId: number, newStatus: TaskStatus) {
+<<<<<<< HEAD
     // Mettre à jour le statut normalement (ne plus supprimer automatiquement les tâches DONE)
     this.taskService.updateTask(taskId, { status: newStatus }, this.currentUserId || undefined).subscribe({
       next: (updatedTask) => {
+=======
+    if (!this.currentUserId) {
+      this.notificationService.error('Error', 'User not authenticated');
+      return;
+    }
+    
+    this.taskService.updateTask(taskId, { status: newStatus }, this.currentUserId).subscribe({
+      next: (updatedTask) => {
+        // Update in main tasks array
+>>>>>>> origin/club/event-service
         const tasks = this.clubTasks[clubId];
         const index = tasks.findIndex(t => t.id === taskId);
         if (index !== -1) {
           tasks[index] = updatedTask;
         }
+<<<<<<< HEAD
       },
       error: (err) => {
         this.notificationService.error('Update Failed', 'Failed to update task. Please try again.');
+=======
+        // Don't reorganize here - drag and drop already moved the item
+        console.log('✅ Task status updated in backend');
+      },
+      error: (err) => {
+        console.error('❌ Error updating task:', err);
+        this.notificationService.error('Update Failed', err.error?.message || 'Failed to update task. Please try again.');
+        // Reload tasks to revert UI changes
+        this.loadTasksForClub(clubId);
+>>>>>>> origin/club/event-service
       }
     });
   }
 
   // Drag and Drop handler
   onTaskDrop(event: CdkDragDrop<Task[]>, clubId: number, newStatus: TaskStatus) {
+<<<<<<< HEAD
+=======
+    console.log('🎯 Drag and drop event:', {
+      previousContainer: event.previousContainer.id,
+      currentContainer: event.container.id,
+      previousIndex: event.previousIndex,
+      currentIndex: event.currentIndex,
+      task: event.item.data,
+      newStatus: newStatus
+    });
+    
+>>>>>>> origin/club/event-service
     const task = event.item.data;
     
     if (event.previousContainer === event.container) {
       // Same column - just reorder
+<<<<<<< HEAD
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
     } else {
       // Different column - transfer and update status
+=======
+      console.log('↕️ Reordering within same column');
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      // Different column - transfer and update status
+      console.log('➡️ Moving to different column, updating status to:', newStatus);
+>>>>>>> origin/club/event-service
       transferArrayItem(
         event.previousContainer.data,
         event.container.data,
@@ -1187,9 +1622,26 @@ export class ClubsComponent implements OnInit, OnDestroy {
         event.currentIndex
       );
       
+<<<<<<< HEAD
       // Update task status in backend
       if (task.id) {
         this.updateTaskStatus(clubId, task.id, newStatus);
+=======
+      // Update task object with new status
+      task.status = newStatus;
+      
+      // Sync with main clubTasks array
+      const mainTaskIndex = this.clubTasks[clubId].findIndex(t => t.id === task.id);
+      if (mainTaskIndex !== -1) {
+        this.clubTasks[clubId][mainTaskIndex].status = newStatus;
+      }
+      
+      // Update task status in backend
+      if (task.id) {
+        this.updateTaskStatus(clubId, task.id, newStatus);
+      } else {
+        console.error('❌ Task has no ID, cannot update status');
+>>>>>>> origin/club/event-service
       }
     }
   }
@@ -1197,12 +1649,29 @@ export class ClubsComponent implements OnInit, OnDestroy {
   deleteTask(clubId: number, taskId: number) {
     if (!confirm('Are you sure you want to delete this task?')) return;
 
+<<<<<<< HEAD
     this.taskService.deleteTask(taskId, this.currentUserId || undefined).subscribe({
       next: () => {
         this.clubTasks[clubId] = this.clubTasks[clubId].filter(t => t.id !== taskId);
       },
       error: (err) => {
         this.notificationService.error('Delete Failed', 'Failed to delete task. Please try again.');
+=======
+    if (!this.currentUserId) {
+      this.notificationService.error('Error', 'User not authenticated');
+      return;
+    }
+
+    this.taskService.deleteTask(taskId, this.currentUserId).subscribe({
+      next: () => {
+        this.clubTasks[clubId] = this.clubTasks[clubId].filter(t => t.id !== taskId);
+        this.organizeTasksByStatus(clubId);
+        this.notificationService.success('Success', 'Task deleted successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error deleting task:', err);
+        this.notificationService.error('Delete Failed', err.error?.message || 'Failed to delete task. Please try again.');
+>>>>>>> origin/club/event-service
       }
     });
   }
@@ -1226,17 +1695,36 @@ export class ClubsComponent implements OnInit, OnDestroy {
       return;
     }
 
+<<<<<<< HEAD
     this.taskService.updateTask(taskId, { text: this.editingTaskText.trim() }, this.currentUserId || undefined).subscribe({
+=======
+    if (!this.currentUserId) {
+      this.notificationService.error('Error', 'User not authenticated');
+      return;
+    }
+
+    this.taskService.updateTask(taskId, { text: this.editingTaskText.trim() }, this.currentUserId).subscribe({
+>>>>>>> origin/club/event-service
       next: (updatedTask) => {
         const tasks = this.clubTasks[clubId];
         const index = tasks.findIndex(t => t.id === taskId);
         if (index !== -1) {
           tasks[index] = updatedTask;
         }
+<<<<<<< HEAD
         this.cancelEditingTask();
       },
       error: (err) => {
         this.notificationService.error('Update Failed', 'Failed to update task. Please try again.');
+=======
+        this.organizeTasksByStatus(clubId);
+        this.cancelEditingTask();
+        this.notificationService.success('Success', 'Task updated successfully');
+      },
+      error: (err) => {
+        console.error('❌ Error updating task:', err);
+        this.notificationService.error('Update Failed', err.error?.message || 'Failed to update task. Please try again.');
+>>>>>>> origin/club/event-service
       }
     });
   }
@@ -1247,7 +1735,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
   }
 
   getTasksByStatus(clubId: number, status: TaskStatus): Task[] {
+<<<<<<< HEAD
     return this.getTasksForClub(clubId).filter(t => t.status === status);
+=======
+    if (!this.clubTasksByStatus[clubId]) {
+      this.initializeTasksByStatus(clubId);
+    }
+    return this.clubTasksByStatus[clubId][status] || [];
+>>>>>>> origin/club/event-service
   }
 
   getTaskCountByStatus(clubId: number, status: TaskStatus): number {
@@ -1596,6 +2091,31 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.clubHistory = [];
   }
 
+<<<<<<< HEAD
+=======
+  openExpensesModal() {
+    if (!this.selectedClub) return;
+    this.showExpensesModal = true;
+    this.loadTotalExpenses(this.selectedClub.id!);
+  }
+
+  closeExpensesModal() {
+    this.showExpensesModal = false;
+  }
+
+  loadTotalExpenses(clubId: number) {
+    this.expenseService.getTotalExpenses(clubId).subscribe({
+      next: (total) => {
+        this.totalExpenses = total;
+      },
+      error: (err) => {
+        console.error('Error loading total expenses:', err);
+        this.totalExpenses = 0;
+      }
+    });
+  }
+
+>>>>>>> origin/club/event-service
   loadClubHistory(clubId: number) {
     if (!this.currentUserId) {
       console.error('❌ No current user ID');
@@ -1606,6 +2126,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     console.log('🔍 Loading club history for club:', clubId);
     
     // Load complete club history (for President, VP, and Secretary)
+<<<<<<< HEAD
     this.clubHistoryService.getClubHistory(clubId).subscribe({
       next: (history: ClubHistory[]) => {
         this.clubHistory = history;
@@ -1614,6 +2135,48 @@ export class ClubsComponent implements OnInit, OnDestroy {
         console.log('📋 History data:', history);
       },
       error: (error) => {
+=======
+    this.clubHistoryService.getClubHistory(clubId).pipe(
+      switchMap((history: ClubHistory[]) => {
+        // Extraire tous les IDs des utilisateurs (userId et performedBy)
+        const userIds = [...new Set([
+          ...history.map((h: ClubHistory) => h.userId),
+          ...history.map((h: ClubHistory) => h.performedBy).filter((id: number | undefined) => id !== undefined && id !== null)
+        ])].filter((id: number | undefined) => id !== undefined) as number[];
+        
+        if (userIds.length === 0) {
+          return of({ history, users: [] });
+        }
+
+        // Charger les informations des utilisateurs
+        return this.userService.getUsersByIds(userIds).pipe(
+          map((users: any[]) => ({ history, users }))
+        );
+      })
+    ).subscribe({
+      next: ({ history, users }: { history: ClubHistory[], users: any[] }) => {
+        // Créer une map des utilisateurs
+        const userMap = new Map(users.map((u: any) => [u.id, u]));
+        
+        // Enrichir l'historique avec les noms des utilisateurs
+        this.clubHistory = history.map((item: ClubHistory) => {
+          const user = userMap.get(item.userId);
+          const performedByUser = item.performedBy ? userMap.get(item.performedBy) : null;
+          
+          return {
+            ...item,
+            userName: user ? `${user.firstName} ${user.lastName}` : undefined,
+            userEmail: user?.email,
+            performedByName: performedByUser ? `${performedByUser.firstName} ${performedByUser.lastName}` : undefined
+          };
+        });
+        
+        this.loadingHistory = false;
+        console.log('✅ Club history loaded:', this.clubHistory.length, 'entries');
+        console.log('📋 History data:', this.clubHistory);
+      },
+      error: (error: any) => {
+>>>>>>> origin/club/event-service
         console.error('❌ Error loading club history:', error);
         console.error('❌ Error status:', error.status);
         console.error('❌ Error message:', error.message);
@@ -1705,6 +2268,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
       'EVENT_PARTICIPATED': '🎯',
       'ACHIEVEMENT_EARNED': '🏆',
       'CONTRIBUTION': '💡',
+<<<<<<< HEAD
+=======
+      'EXPENSE_ADDED': '💸',
+      'PAYMENT_CONFIRMED': '💳',
+      'TASK_CREATED': '✅',
+      'TASK_UPDATED': '🔄',
+      'TASK_DELETED': '🗑️',
+>>>>>>> origin/club/event-service
       'OTHER': '📝'
     };
     return icons[type] || '📝';
@@ -1723,6 +2294,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
       'EVENT_PARTICIPATED': 'bg-teal-100 text-teal-700',
       'ACHIEVEMENT_EARNED': 'bg-amber-100 text-amber-700',
       'CONTRIBUTION': 'bg-cyan-100 text-cyan-700',
+<<<<<<< HEAD
+=======
+      'EXPENSE_ADDED': 'bg-red-100 text-red-700',
+      'PAYMENT_CONFIRMED': 'bg-green-100 text-green-700',
+      'TASK_CREATED': 'bg-emerald-100 text-emerald-700',
+      'TASK_UPDATED': 'bg-sky-100 text-sky-700',
+      'TASK_DELETED': 'bg-rose-100 text-rose-700',
+>>>>>>> origin/club/event-service
       'OTHER': 'bg-gray-100 text-gray-700'
     };
     return classes[type] || 'bg-gray-100 text-gray-700';

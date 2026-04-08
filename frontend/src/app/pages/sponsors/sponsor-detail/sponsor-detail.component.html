@@ -1,0 +1,112 @@
+<div class="sponsor-detail-page">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading sponsor details...</p>
+  </div>
+
+  <!-- Sponsor Details -->
+  <div *ngIf="!loading && sponsor" class="detail-container">
+    <!-- Header -->
+    <div class="detail-header">
+      <button class="btn-back" (click)="goBack()">
+        ← Back to Sponsors
+      </button>
+      <div class="header-actions">
+        <button class="btn-edit" (click)="editSponsor()">
+          ✏️ Edit
+        </button>
+        <button class="btn-delete" (click)="deleteSponsor()">
+          🗑️ Delete
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="detail-content">
+      <!-- Logo and Basic Info -->
+      <div class="info-card main-info">
+        <div class="sponsor-header">
+          <div class="sponsor-logo">
+            <img *ngIf="sponsor.logo" [src]="sponsor.logo" [alt]="sponsor.name">
+            <div *ngIf="!sponsor.logo" class="logo-placeholder">
+              {{ sponsor.name.charAt(0).toUpperCase() }}
+            </div>
+          </div>
+          <div class="sponsor-title">
+            <h1>{{ sponsor.name }}</h1>
+            <span class="badge" [ngClass]="getLevelBadgeClass(sponsor.level)">
+              {{ sponsor.level || 'PARTNER' }}
+            </span>
+          </div>
+        </div>
+
+        <p *ngIf="sponsor.description" class="description">{{ sponsor.description }}</p>
+      </div>
+
+      <!-- Contact Information -->
+      <div class="info-card">
+        <h2>Contact Information</h2>
+        <div class="info-grid">
+          <div class="info-item" *ngIf="sponsor.website">
+            <span class="icon">🌐</span>
+            <div class="info-content">
+              <label>Website</label>
+              <a [href]="sponsor.website" target="_blank" class="link">{{ sponsor.website }}</a>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="sponsor.contactEmail">
+            <span class="icon">📧</span>
+            <div class="info-content">
+              <label>Email</label>
+              <a [href]="'mailto:' + sponsor.contactEmail" class="link">{{ sponsor.contactEmail }}</a>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="sponsor.contactPhone">
+            <span class="icon">📱</span>
+            <div class="info-content">
+              <label>Phone</label>
+              <a [href]="'tel:' + sponsor.contactPhone" class="link">{{ sponsor.contactPhone }}</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Financial Information -->
+      <div class="info-card">
+        <h2>Financial Information</h2>
+        <div class="contribution-display">
+          <span class="icon">💰</span>
+          <div class="contribution-content">
+            <label>Total Contribution</label>
+            <div class="amount">{{ sponsor.contributionAmount || 0 }} DT</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="info-card metadata">
+        <h2>Metadata</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="icon">📅</span>
+            <div class="info-content">
+              <label>Created At</label>
+              <span>{{ formatDate(sponsor.createdAt) }}</span>
+            </div>
+          </div>
+
+          <div class="info-item" *ngIf="sponsor.updatedAt">
+            <span class="icon">🔄</span>
+            <div class="info-content">
+              <label>Last Updated</label>
+              <span>{{ formatDate(sponsor.updatedAt) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

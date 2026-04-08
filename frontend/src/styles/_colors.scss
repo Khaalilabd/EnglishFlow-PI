@@ -27,9 +27,16 @@ $border-light: #e5e7eb;      /* Light borders */
 $border-medium: #d1d5db;     /* Medium borders */
 
 /* Status Colors */
+<<<<<<< HEAD
 $success: #4ade80;           /* Success green */
 $warning: #F6BD60;           /* Warning gold */
 $error: #C84630;             /* Error red */
+=======
+$success: #F6BD60;           /* Success gold (changed from green) */
+$warning: #F6BD60;           /* Warning gold */
+$error: #C84630;             /* Error red */
+$info: #2D5757;              /* Info teal */
+>>>>>>> origin/club/event-service
 $info: #2D5757;              /* Info dark green */
 
 /* Gradients */

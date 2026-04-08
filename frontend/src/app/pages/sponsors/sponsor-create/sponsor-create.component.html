@@ -1,0 +1,113 @@
+<div class="sponsor-form-page">
+  <div class="form-container">
+    <div class="form-header">
+      <h1>Create New Sponsor</h1>
+      <p>Add a new sponsor to your platform</p>
+    </div>
+
+    <form class="sponsor-form" (ngSubmit)="saveSponsor()">
+      <!-- Logo Upload -->
+      <div class="form-group">
+        <label>Logo</label>
+        <div class="logo-upload" *ngIf="!sponsor.logo">
+          <input 
+            type="file" 
+            id="logoInput" 
+            accept="image/*" 
+            (change)="onLogoSelected($event)"
+            style="display: none;">
+          <label for="logoInput" class="upload-area">
+            <div class="upload-icon">📷</div>
+            <p>Click to upload logo</p>
+            <span>PNG, JPG or JPEG (MAX. 5MB)</span>
+          </label>
+        </div>
+        <div class="logo-preview" *ngIf="sponsor.logo">
+          <img [src]="sponsor.logo" alt="Logo preview">
+          <button type="button" class="btn-remove" (click)="removeLogo()">✕</button>
+        </div>
+      </div>
+
+      <!-- Name -->
+      <div class="form-group">
+        <label>Name *</label>
+        <input 
+          type="text" 
+          [(ngModel)]="sponsor.name" 
+          name="name"
+          placeholder="Enter sponsor name"
+          required>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description</label>
+        <textarea 
+          [(ngModel)]="sponsor.description" 
+          name="description"
+          rows="4"
+          placeholder="Enter description"></textarea>
+      </div>
+
+      <!-- Contribution Amount -->
+      <div class="form-group">
+        <label>Contribution Amount (DT) *</label>
+        <input 
+          type="number" 
+          [(ngModel)]="sponsor.contributionAmount" 
+          name="contributionAmount"
+          min="0"
+          step="0.01"
+          placeholder="0"
+          required>
+        <small class="help-text">
+          💡 Level is calculated automatically: 
+          <span class="level-info bronze">0-499 DT = Bronze</span>
+          <span class="level-info silver">500-999 DT = Silver</span>
+          <span class="level-info gold">1000+ DT = Gold</span>
+        </small>
+      </div>
+
+      <!-- Website -->
+      <div class="form-group">
+        <label>Website</label>
+        <input 
+          type="url" 
+          [(ngModel)]="sponsor.website" 
+          name="website"
+          placeholder="https://example.com">
+      </div>
+
+      <!-- Contact Email -->
+      <div class="form-group">
+        <label>Contact Email</label>
+        <input 
+          type="email" 
+          [(ngModel)]="sponsor.contactEmail" 
+          name="contactEmail"
+          placeholder="contact@example.com">
+      </div>
+
+      <!-- Contact Phone -->
+      <div class="form-group">
+        <label>Contact Phone</label>
+        <input 
+          type="tel" 
+          [(ngModel)]="sponsor.contactPhone" 
+          name="contactPhone"
+          placeholder="+1 234 567 8900">
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="loading">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="loading">
+          <span *ngIf="!loading">Create Sponsor</span>
+          <span *ngIf="loading">Creating...</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

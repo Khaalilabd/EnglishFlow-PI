@@ -27,6 +27,10 @@ public class ParticipantService {
     private final ParticipantRepository participantRepository;
     private final EventRepository eventRepository;
     private final ParticipantMapper participantMapper;
+<<<<<<< HEAD
+=======
+    private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
+>>>>>>> origin/club/event-service
     
     @CacheEvict(value = {"participants", "eventById"}, allEntries = true)
     @Transactional
@@ -52,9 +56,26 @@ public class ParticipantService {
         
         Participant savedParticipant = participantRepository.save(participant);
         
+<<<<<<< HEAD
         event.setCurrentParticipants((int) (currentCount + 1));
         eventRepository.save(event);
         
+=======
+        int newCount = (int) (currentCount + 1);
+        event.setCurrentParticipants(newCount);
+        eventRepository.save(event);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyParticipantJoined(
+            eventId.longValue(),
+            event.getTitle(),
+            userId,
+            "User " + userId, // TODO: Récupérer le vrai nom de l'utilisateur
+            newCount,
+            event.getMaxParticipants()
+        );
+        
+>>>>>>> origin/club/event-service
         log.info("User {} successfully joined event {}", userId, eventId);
         return participantMapper.toDTO(savedParticipant);
     }
@@ -71,10 +92,27 @@ public class ParticipantService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
         
+<<<<<<< HEAD
         long currentCount = participantRepository.countByEventId(eventId);
         event.setCurrentParticipants((int) currentCount);
         eventRepository.save(event);
         
+=======
+        int newCount = (int) participantRepository.countByEventId(eventId);
+        event.setCurrentParticipants(newCount);
+        eventRepository.save(event);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyParticipantLeft(
+            eventId.longValue(),
+            event.getTitle(),
+            userId,
+            "User " + userId, // TODO: Récupérer le vrai nom de l'utilisateur
+            newCount,
+            event.getMaxParticipants()
+        );
+        
+>>>>>>> origin/club/event-service
         log.info("User {} successfully left event {}", userId, eventId);
     }
     

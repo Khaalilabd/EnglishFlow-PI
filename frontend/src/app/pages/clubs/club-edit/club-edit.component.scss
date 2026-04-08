@@ -1,1 +1,403 @@
+<<<<<<< HEAD
 // Club edit styles
+=======
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+// Classes d'animation
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+}
+
+.animate-slideInLeft {
+  animation: slideInFromLeft 0.6s ease-out forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInFromRight 0.6s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.4s ease-out forwards;
+}
+
+// Effets sur les inputs
+input, textarea, select {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:focus {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(45, 87, 87, 0.15);
+  }
+  
+  &:hover:not(:focus) {
+    border-color: #2D5757;
+  }
+}
+
+// Effet de validation
+input.ng-valid.ng-touched,
+textarea.ng-valid.ng-touched,
+select.ng-valid.ng-touched {
+  border-color: #10b981 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 20px;
+  padding-right: 40px;
+}
+
+input.ng-invalid.ng-touched,
+textarea.ng-invalid.ng-touched,
+select.ng-invalid.ng-touched {
+  border-color: #ef4444 !important;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+// Effet sur les boutons
+button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  &:active::before {
+    width: 300px;
+    height: 300px;
+  }
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Effet de chargement
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// Effet sur les cartes de skills
+.skill-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateX(5px);
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.2);
+  }
+}
+
+// Effet sur la barre de progression
+.progress-step {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &.active {
+    animation: pulse 2s infinite;
+  }
+}
+
+.progress-line {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Effet sur l'upload d'image
+.image-upload-zone {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: #2D5757;
+    background-color: rgba(45, 87, 87, 0.05);
+    transform: scale(1.02);
+  }
+}
+
+.image-preview {
+  animation: scaleIn 0.4s ease-out;
+}
+
+// Effet sur les messages d'erreur
+.error-message {
+  animation: slideInFromLeft 0.3s ease-out;
+}
+
+// Effet sur les labels
+label {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    color: #2D5757;
+  }
+}
+
+// Effet de focus sur les sections
+.form-section {
+  transition: all 0.3s ease;
+  
+  &:focus-within {
+    box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
+    border-radius: 12px;
+  }
+}
+
+// Effet sur le compteur de skills
+.skill-counter {
+  animation: bounce 1s ease-in-out;
+}
+
+// Effet de gradient animé
+.gradient-animated {
+  background: linear-gradient(
+    90deg,
+    #2D5757,
+    #3D3D60,
+    #2D5757
+  );
+  background-size: 200% 100%;
+  animation: gradientShift 3s ease infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+// Effet de brillance sur les boutons
+.shimmer-effect {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 2s infinite;
+  }
+}
+
+// Effet de survol sur les icônes
+.icon-hover {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: rotate(10deg) scale(1.1);
+  }
+}
+
+// Responsive animations
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+// Effet de particules (optionnel)
+.particle-effect {
+  position: relative;
+  
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: #F6BD60;
+    border-radius: 50%;
+    opacity: 0;
+  }
+  
+  &:hover::before {
+    animation: particle1 1s ease-out;
+  }
+  
+  &:hover::after {
+    animation: particle2 1s ease-out;
+  }
+}
+
+@keyframes particle1 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-20px, -20px);
+  }
+}
+
+@keyframes particle2 {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(20px, -20px);
+  }
+}
+
+// Effet de glow
+.glow-effect {
+  box-shadow: 0 0 20px rgba(246, 189, 96, 0.5);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(246, 189, 96, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(246, 189, 96, 0.8);
+  }
+}
+
+// Effet de typing pour les placeholders
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+// Transition fluide entre les pages du wizard
+.wizard-page-enter {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.wizard-page-exit {
+  animation: fadeOut 0.3s ease-out;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+>>>>>>> origin/club/event-service

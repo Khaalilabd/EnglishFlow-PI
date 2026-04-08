@@ -44,6 +44,12 @@ public class Club {
     @Column(nullable = false)
     private Integer maxMembers;
     
+<<<<<<< HEAD
+=======
+    @Column(name = "registration_fee")
+    private Double registrationFee; // Frais d'inscription au club
+    
+>>>>>>> origin/club/event-service
     @Column(columnDefinition = "TEXT")
     private String image;
     
@@ -78,6 +84,13 @@ public class Club {
     @Builder.Default
     private List<Task> tasks = new ArrayList<>();
     
+<<<<<<< HEAD
+=======
+    @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<Skill> skills = new ArrayList<>();
+    
+>>>>>>> origin/club/event-service
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
     

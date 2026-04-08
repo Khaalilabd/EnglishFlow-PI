@@ -1,0 +1,97 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="text-center py-10">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+      <p class="text-gray-500">Chargement...</p>
+    </div>
+
+    <!-- Erreur -->
+    <div *ngIf="error && !loading" class="text-center py-10">
+      <div class="text-red-500 text-5xl mb-4">✗</div>
+      <p class="text-red-600 font-medium">{{ error }}</p>
+      <button (click)="goToClubs()" class="mt-4 px-6 py-2 bg-gray-100 rounded-lg text-gray-700 hover:bg-gray-200 transition">
+        Retour aux clubs
+      </button>
+    </div>
+
+    <!-- Paiement déjà effectué -->
+    <div *ngIf="paymentStatus === 'already_paid' && !loading" class="text-center py-6">
+      <div class="text-green-500 text-5xl mb-4">✓</div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">Paiement déjà confirmé</h2>
+      <p class="text-gray-500 mb-6">Vous êtes déjà membre de ce club.</p>
+      <button (click)="goToClubs()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+        Voir mes clubs
+      </button>
+    </div>
+
+    <!-- Paiement confirmé avec succès -->
+    <div *ngIf="paymentStatus === 'confirmed' && !loading" class="text-center py-6">
+      <div class="text-green-500 text-5xl mb-4">✓</div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">Paiement confirmé !</h2>
+      <p class="text-gray-500 mb-6">Vous êtes maintenant membre du club. Bienvenue !</p>
+      <button (click)="goToClubs()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+        Voir mes clubs
+      </button>
+    </div>
+
+    <!-- Paiement échoué -->
+    <div *ngIf="paymentStatus === 'failed' && !loading" class="text-center py-6">
+      <div class="text-red-500 text-5xl mb-4">✗</div>
+      <h2 class="text-xl font-bold text-gray-800 mb-2">Paiement échoué</h2>
+      <p class="text-gray-500 mb-6">Le paiement n'a pas pu être traité. Veuillez réessayer.</p>
+      <button (click)="paymentStatus = null" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+        Réessayer
+      </button>
+    </div>
+
+    <!-- Formulaire de paiement -->
+    <div *ngIf="!loading && !error && !paymentStatus && request">
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">Finaliser l'inscription</h1>
+        <p class="text-gray-500 mt-1">Votre demande pour <span class="font-semibold text-green-600">{{ request.clubName }}</span> a été approuvée</p>
+      </div>
+
+      <!-- Montant -->
+      <div class="bg-gray-50 rounded-xl p-4 mb-6 text-center">
+        <p class="text-sm text-gray-500 mb-1">Frais d'inscription</p>
+        <p class="text-3xl font-bold text-gray-800">{{ request.registrationFee ?? 0 }} <span class="text-lg font-normal text-gray-500">TND</span></p>
+      </div>
+
+      <!-- Méthodes de paiement -->
+      <p class="text-sm font-medium text-gray-600 mb-3">Méthode de paiement</p>
+
+      <div class="space-y-3">
+        <!-- Konnect - Virement bancaire -->
+        <button
+          (click)="payWithKonnect()"
+          [disabled]="processing"
+          class="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-xl hover:border-blue-400 hover:bg-blue-50 transition disabled:opacity-50 disabled:cursor-not-allowed">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <p class="font-semibold text-gray-800">Virement bancaire</p>
+            <p class="text-sm text-gray-500">Via Konnect — Carte bancaire, e-DINAR</p>
+          </div>
+        </button>
+      </div>
+
+      <!-- Processing indicator -->
+      <div *ngIf="processing" class="mt-4 text-center text-sm text-gray-500">
+        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500 inline-block mr-2"></div>
+        Redirection vers la passerelle de paiement...
+      </div>
+    </div>
+
+  </div>
+</div>

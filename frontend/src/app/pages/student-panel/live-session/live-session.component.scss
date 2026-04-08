@@ -1,0 +1,203 @@
+// ── FLOATING REACTIONS ────────────────────────────────────────
+@keyframes float-up {
+  0%   { transform: translateY(0) scale(1); opacity: 1; }
+  100% { transform: translateY(-140px) scale(1.5); opacity: 0; }
+}
+.animate-float-up { animation: float-up 2.5s ease-out forwards; }
+
+// ── LIVE PULSE ────────────────────────────────────────────────
+@keyframes live-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.5); }
+  50%       { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+}
+.live-dot { animation: live-pulse 1.8s ease-in-out infinite; }
+
+// ── SLIDE IN FROM RIGHT ───────────────────────────────────────
+@keyframes slide-in-right {
+  from { transform: translateX(20px); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+.animate-slide-in { animation: slide-in-right 0.25s ease-out forwards; }
+
+// ── FADE IN UP ────────────────────────────────────────────────
+@keyframes fade-in-up {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.animate-fade-up { animation: fade-in-up 0.3s ease-out forwards; }
+
+// ── SCALE IN ──────────────────────────────────────────────────
+@keyframes scale-in {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.animate-scale-in { animation: scale-in 0.2s ease-out forwards; }
+
+// ── SHIMMER ───────────────────────────────────────────────────
+@keyframes shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.shimmer-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+  animation: shimmer 1.8s infinite;
+}
+
+// ── VIDEO TILE HOVER ──────────────────────────────────────────
+.video-tile {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover { transform: scale(1.02); }
+}
+
+// ── CHAT MESSAGE APPEAR ───────────────────────────────────────
+@keyframes msg-in {
+  from { transform: translateY(8px) scale(0.97); opacity: 0; }
+  to   { transform: translateY(0)   scale(1);    opacity: 1; }
+}
+.msg-bubble { animation: msg-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+
+// ── CHAT BACKGROUND GRADIENT ANIMATION ───────────────────────
+@keyframes chat-bg-shift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.chat-bg {
+  background: linear-gradient(135deg, #0f1e1e 0%, #1a2e2e 40%, #162828 70%, #1e3535 100%);
+  background-size: 300% 300%;
+  animation: chat-bg-shift 12s ease infinite;
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 20%, rgba(45,87,87,0.25) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(246,189,96,0.08) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(61,61,96,0.15) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+
+// ── CHAT BUBBLE GLOW ─────────────────────────────────────────
+.bubble-own {
+  background: linear-gradient(135deg, #2D5757 0%, #3a6b6b 100%);
+  box-shadow: 0 4px 15px rgba(45,87,87,0.4), 0 1px 3px rgba(0,0,0,0.3);
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+}
+.bubble-other {
+  background: rgba(255,255,255,0.07);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.08);
+}
+
+// ── AVATAR PULSE ─────────────────────────────────────────────
+@keyframes avatar-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(246,189,96,0.4); }
+  50%       { box-shadow: 0 0 0 4px rgba(246,189,96,0); }
+}
+.avatar-glow { animation: avatar-glow 2.5s ease-in-out infinite; }
+
+// ── INPUT FOCUS GLOW ─────────────────────────────────────────
+.chat-input {
+  transition: all 0.3s ease;
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(246,189,96,0.3), 0 4px 20px rgba(0,0,0,0.3);
+    border-color: rgba(246,189,96,0.5) !important;
+  }
+}
+
+// ── SEND BUTTON PULSE ────────────────────────────────────────
+@keyframes send-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(246,189,96,0.5); }
+  70%  { box-shadow: 0 0 0 8px rgba(246,189,96,0); }
+  100% { box-shadow: 0 0 0 0 rgba(246,189,96,0); }
+}
+.send-btn {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  &:hover { transform: scale(1.08); animation: send-pulse 1s ease-out; }
+  &:active { transform: scale(0.92); }
+}
+
+// ── TYPING DOTS ──────────────────────────────────────────────
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-4px); opacity: 1; }
+}
+.typing-dot:nth-child(1) { animation: typing-dot 1.2s ease-in-out infinite 0s; }
+.typing-dot:nth-child(2) { animation: typing-dot 1.2s ease-in-out infinite 0.2s; }
+.typing-dot:nth-child(3) { animation: typing-dot 1.2s ease-in-out infinite 0.4s; }
+
+// ── CHAT HEADER SHIMMER ──────────────────────────────────────
+@keyframes header-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.chat-header-shimmer {
+  background: linear-gradient(90deg,
+    #2D5757 0%,
+    #3a6b6b 30%,
+    #F6BD60 50%,
+    #3a6b6b 70%,
+    #2D5757 100%
+  );
+  background-size: 200% auto;
+  animation: header-shimmer 4s linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// ── REACTION BUTTON ───────────────────────────────────────────
+.reaction-btn {
+  transition: transform 0.15s ease;
+  &:hover  { transform: scale(1.25) rotate(-5deg); }
+  &:active { transform: scale(0.9); }
+}
+
+// ── TAB INDICATOR ─────────────────────────────────────────────
+.tab-active {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; left: 50%; right: 50%;
+    height: 2px;
+    background: #2D5757;
+    border-radius: 2px;
+    transition: left 0.2s ease, right 0.2s ease;
+  }
+}
+
+// ── POLL BAR ──────────────────────────────────────────────────
+.poll-bar {
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// ── GLOW RING ─────────────────────────────────────────────────
+@keyframes glow-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(45, 87, 87, 0.3); }
+  50%       { box-shadow: 0 0 0 4px rgba(45, 87, 87, 0.1); }
+}
+.glow-ring { animation: glow-ring 2.5s ease-in-out infinite; }
+
+// ── HAND RAISE BOUNCE ─────────────────────────────────────────
+@keyframes hand-bounce {
+  0%, 100% { transform: rotate(0deg); }
+  25%       { transform: rotate(-15deg); }
+  75%       { transform: rotate(15deg); }
+}
+.hand-raised { animation: hand-bounce 0.6s ease-in-out 2; }

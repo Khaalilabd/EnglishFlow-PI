@@ -9,6 +9,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+<<<<<<< HEAD
+=======
+import java.util.List;
+>>>>>>> origin/club/event-service
 
 @Data
 @Builder
@@ -22,6 +26,10 @@ public class ClubWithRoleDTO {
     private String objective;
     private ClubCategory category;
     private Integer maxMembers;
+<<<<<<< HEAD
+=======
+    private Double registrationFee;
+>>>>>>> origin/club/event-service
     private String image;
     private ClubStatus status;
     private Integer createdBy;
@@ -29,6 +37,10 @@ public class ClubWithRoleDTO {
     private String reviewComment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+<<<<<<< HEAD
+=======
+    private List<SkillDTO> skills;
+>>>>>>> origin/club/event-service
     
     // Member information
     private RankType userRole; // Role of the user in this club

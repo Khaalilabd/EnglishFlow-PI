@@ -1,6 +1,12 @@
 package com.englishflow.club.service;
 
+<<<<<<< HEAD
 import com.englishflow.club.dto.ClubHistoryDTO;
+=======
+import com.englishflow.club.client.AuthServiceClient;
+import com.englishflow.club.dto.ClubHistoryDTO;
+import com.englishflow.club.dto.UserInfoDTO;
+>>>>>>> origin/club/event-service
 import com.englishflow.club.entity.ClubHistory;
 import com.englishflow.club.enums.ClubHistoryType;
 import com.englishflow.club.mapper.ClubHistoryMapper;
@@ -21,6 +27,10 @@ public class ClubHistoryService {
     
     private final ClubHistoryRepository historyRepository;
     private final ClubHistoryMapper historyMapper;
+<<<<<<< HEAD
+=======
+    private final AuthServiceClient authServiceClient;
+>>>>>>> origin/club/event-service
     
     /**
      * Créer une entrée d'historique
@@ -77,7 +87,25 @@ public class ClubHistoryService {
         List<ClubHistoryDTO> dtos = historyEntities.stream()
                 .map(historyMapper::toDTO)
                 .collect(Collectors.toList());
+<<<<<<< HEAD
         
+=======
+
+        // Enrich with user names
+        dtos.forEach(dto -> {
+            if (dto.getPerformedBy() != null) {
+                try {
+                    UserInfoDTO user = authServiceClient.getUserInfo(dto.getPerformedBy());
+                    if (user != null) {
+                        dto.setPerformedByName(user.getFirstName() + " " + user.getLastName());
+                    }
+                } catch (Exception e) {
+                    dto.setPerformedByName("User #" + dto.getPerformedBy());
+                }
+            }
+        });
+
+>>>>>>> origin/club/event-service
         log.info("✅ Returning {} history DTOs", dtos.size());
         return dtos;
     }

@@ -48,6 +48,24 @@ server:
   http2:
     enabled: true
 
+<<<<<<< HEAD
+=======
+# Auth Service Configuration
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
+# Konnect Payment Configuration
+konnect:
+  api-url: https://api.preprod.konnect.network/api/v2/payments/init-payment
+  api-key: ${KONNECT_API_KEY:69d1070fcd2bd9f6adb45cd4:wHR0Qb4vprpg49tiiJ6zgSNrZb3d}
+  wallet-id: ${KONNECT_WALLET_ID:69d10712cd2bd9f6adb45cfe}
+
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
+
+>>>>>>> origin/club/event-service
 eureka:
   client:
     service-url:

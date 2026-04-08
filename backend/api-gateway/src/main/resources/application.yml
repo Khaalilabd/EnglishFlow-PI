@@ -152,6 +152,25 @@ spring:
             - StripPrefix=1
           order: 15
             
+<<<<<<< HEAD
+=======
+        - id: club-expenses-service
+          uri: lb://club-service
+          predicates:
+            - Path=/api/expenses/**
+          filters:
+            - StripPrefix=1
+          order: 15
+            
+        - id: club-membership-requests
+          uri: lb://club-service
+          predicates:
+            - Path=/api/membership-requests/**
+          filters:
+            - StripPrefix=1
+          order: 15
+            
+>>>>>>> origin/club/event-service
         - id: event-service
           uri: lb://event-service
           predicates:
@@ -168,6 +187,36 @@ spring:
             - StripPrefix=1
           order: 17
             
+<<<<<<< HEAD
+=======
+        - id: sponsors-service
+          uri: lb://sponsors-service
+          predicates:
+            - Path=/api/sponsors/**
+          filters:
+            - StripPrefix=1
+          order: 18
+        
+        # WebSocket routes
+        - id: sponsors-websocket
+          uri: lb:ws://sponsors-service
+          predicates:
+            - Path=/sponsors-service/ws/**
+          order: 19
+        
+        - id: club-websocket
+          uri: lb:ws://club-service
+          predicates:
+            - Path=/club-service/ws/**
+          order: 19
+        
+        - id: event-websocket
+          uri: lb:ws://event-service
+          predicates:
+            - Path=/event-service/ws/**
+          order: 19
+            
+>>>>>>> origin/club/event-service
         - id: public-users
           uri: http://localhost:8081
           predicates:
@@ -406,6 +455,7 @@ spring:
           filters:
             - StripPrefix=1
           order: 26
+<<<<<<< HEAD
       globalcors:
         cors-configurations:
           '[/**]':
@@ -420,6 +470,10 @@ spring:
             allowed-headers: "*"
             allow-credentials: true
             max-age: 3600
+=======
+      # CORS is handled by CorsConfig.java custom filter
+      # globalcors configuration removed to prevent duplicate headers
+>>>>>>> origin/club/event-service
 
 eureka:
   client:

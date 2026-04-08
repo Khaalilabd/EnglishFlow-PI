@@ -131,6 +131,7 @@ public class RecruitmentController {
         return ResponseEntity.ok(platforms);
     }
 
+
     @PostMapping("/{applicationId}/notes")
     @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
     public ResponseEntity<NoteResponse> addNote(

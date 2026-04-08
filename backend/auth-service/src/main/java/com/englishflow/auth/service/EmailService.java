@@ -260,6 +260,72 @@ public class EmailService {
         }
     }
 
+    @Async("emailTaskExecutor")
+    public CompletableFuture<Void> sendClubPaymentRequiredEmail(String to, String firstName, String clubName, Double registrationFee, String paymentLink) {
+        log.info("Sending club payment required email to: {}", to);
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("clubName", clubName);
+            context.setVariable("registrationFee", registrationFee);
+            context.setVariable("paymentLink", paymentLink);
+            context.setVariable("frontendUrl", frontendUrl);
+
+            String htmlContent = templateEngine.process("club-payment-required-email", context);
+            sendHtmlEmail(to, "Action Required: Payment to join " + clubName, htmlContent);
+            log.info("Club payment required email sent to: {}", to);
+            metricsService.recordEmailSent();
+            return CompletableFuture.completedFuture(null);
+        } catch (MessagingException e) {
+            log.error("Failed to send club payment required email to: {}", to, e);
+            metricsService.recordEmailFailed();
+            return CompletableFuture.failedFuture(
+                new com.englishflow.auth.exception.EmailSendException("Failed to send club payment required email to: " + to, e)
+            );
+        }
+    }
+
+    @Async("emailTaskExecutor")
+    public CompletableFuture<Void> sendClubMembershipRequestPendingEmail(String to, String firstName, String clubName, String message) {
+        log.info("🔵 Starting sendClubMembershipRequestPendingEmail");
+        log.info("🔵 Parameters - to: {}, firstName: {}, clubName: {}, message: {}", to, firstName, clubName, message);
+        
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("clubName", clubName);
+            context.setVariable("message", message);
+            context.setVariable("clubsLink", frontendUrl + "/user-panel/clubs");
+            context.setVariable("frontendUrl", frontendUrl);
+            
+            log.info("🔵 Processing template...");
+            String htmlContent = templateEngine.process("club-membership-request-pending-email", context);
+            log.info("🔵 Template processed successfully. HTML length: {}", htmlContent.length());
+            
+            log.info("🔵 Sending email from {} to {} with subject: Club Membership Request Pending - {}", fromEmail, to, clubName);
+            sendHtmlEmail(to, "Club Membership Request Pending - " + clubName, htmlContent);
+            log.info("✅ Club membership request pending email SUCCESSFULLY SENT to: {}", to);
+            
+            metricsService.recordEmailSent();
+            log.info("✅ Metrics recorded");
+            
+            return CompletableFuture.completedFuture(null);
+        } catch (MessagingException e) {
+            log.error("❌ MessagingException while sending club membership request pending email to: {}", to, e);
+            log.error("❌ Exception message: {}", e.getMessage());
+            log.error("❌ Exception cause: {}", e.getCause());
+            metricsService.recordEmailFailed();
+            return CompletableFuture.failedFuture(
+                new com.englishflow.auth.exception.EmailSendException("Failed to send club membership request pending email to: " + to, e)
+            );
+        } catch (Exception e) {
+            log.error("❌ Unexpected exception while sending club membership request pending email to: {}", to, e);
+            log.error("❌ Exception type: {}", e.getClass().getName());
+            log.error("❌ Exception message: {}", e.getMessage());
+            metricsService.recordEmailFailed();
+            return CompletableFuture.failedFuture(e);
+        }
+    }
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();

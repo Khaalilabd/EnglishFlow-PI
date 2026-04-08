@@ -320,13 +320,20 @@
 
 <!-- Interview Modal -->
 <div class="modal-overlay" *ngIf="showInterviewModal" (click)="closeInterviewModal()">
+<<<<<<< HEAD
   <div class="modal-content modal-large" (click)="$event.stopPropagation()">
     <div class="modal-header">
       <h2>📅 Schedule Interview</h2>
+=======
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Schedule Interview</h2>
+>>>>>>> origin/club/event-service
       <button class="btn-close" (click)="closeInterviewModal()">×</button>
     </div>
     
     <div class="modal-body">
+<<<<<<< HEAD
       <!-- Date & Time avec un vrai calendrier -->
       <div class="form-group">
         <label>📅 Date et Heure de l'entretien *</label>
@@ -447,16 +454,41 @@
           [(ngModel)]="interviewNotes" 
           rows="3" 
           placeholder="Any additional information for the candidate..."></textarea>
+=======
+      <div class="form-group">
+        <label>Interview Date *</label>
+        <input type="date" [(ngModel)]="interviewDate">
+      </div>
+      
+      <div class="form-group">
+        <label>Interview Time *</label>
+        <input type="time" [(ngModel)]="interviewTime">
+      </div>
+      
+      <div class="form-group">
+        <label>Meeting Link</label>
+        <input type="url" [(ngModel)]="meetingLink" placeholder="https://meet.google.com/...">
+      </div>
+      
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea [(ngModel)]="interviewNotes" rows="3" placeholder="Additional notes..."></textarea>
+>>>>>>> origin/club/event-service
       </div>
     </div>
     
     <div class="modal-footer">
       <button class="btn-secondary" (click)="closeInterviewModal()">Cancel</button>
+<<<<<<< HEAD
       <button 
         class="btn-primary" 
         (click)="scheduleInterview()" 
         [disabled]="isLoading || !interviewDateTime || (selectedPlatform === MeetingPlatform.MANUAL && !meetingLink)">
         {{ isLoading ? 'Planification...' : '📅 Planifier l\'entretien' }}
+=======
+      <button class="btn-primary" (click)="scheduleInterview()" [disabled]="isLoading || !interviewDate || !interviewTime">
+        {{ isLoading ? 'Scheduling...' : 'Schedule Interview' }}
+>>>>>>> origin/club/event-service
       </button>
     </div>
   </div>

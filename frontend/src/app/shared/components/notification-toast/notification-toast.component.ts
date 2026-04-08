@@ -49,13 +49,21 @@ export class NotificationToastComponent implements OnInit {
   getColorClasses(type: string): string {
     switch (type) {
       case 'success':
+<<<<<<< HEAD
         return 'bg-gradient-to-r from-green-50 to-green-100 border-green-500 text-green-900';
+=======
+        return 'bg-gradient-to-r from-amber-50 to-amber-100 border-[#F6BD60] text-amber-900';
+>>>>>>> origin/club/event-service
       case 'error':
         return 'bg-gradient-to-r from-red-50 to-red-100 border-red-500 text-red-900';
       case 'warning':
         return 'bg-gradient-to-r from-yellow-50 to-yellow-100 border-yellow-500 text-yellow-900';
       case 'info':
+<<<<<<< HEAD
         return 'bg-gradient-to-r from-blue-50 to-blue-100 border-blue-500 text-blue-900';
+=======
+        return 'bg-gradient-to-r from-teal-50 to-teal-100 border-[#2D5757] text-teal-900';
+>>>>>>> origin/club/event-service
       default:
         return 'bg-gradient-to-r from-gray-50 to-gray-100 border-gray-500 text-gray-900';
     }
@@ -64,13 +72,21 @@ export class NotificationToastComponent implements OnInit {
   getIconBgClasses(type: string): string {
     switch (type) {
       case 'success':
+<<<<<<< HEAD
         return 'bg-gradient-to-br from-green-500 to-green-600';
+=======
+        return 'bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f]';
+>>>>>>> origin/club/event-service
       case 'error':
         return 'bg-gradient-to-br from-red-500 to-red-600';
       case 'warning':
         return 'bg-gradient-to-br from-yellow-500 to-yellow-600';
       case 'info':
+<<<<<<< HEAD
         return 'bg-gradient-to-br from-blue-500 to-blue-600';
+=======
+        return 'bg-gradient-to-br from-[#2D5757] to-[#1e3a3a]';
+>>>>>>> origin/club/event-service
       default:
         return 'bg-gradient-to-br from-gray-500 to-gray-600';
     }

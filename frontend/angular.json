@@ -65,12 +65,21 @@
                 {
                   "type": "initial",
                   "maximumWarning": "2MB",
+<<<<<<< HEAD
                   "maximumError": "10MB"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "50kB",
                   "maximumError": "100kB"
+=======
+                  "maximumError": "5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "10kB",
+                  "maximumError": "20kB"
+>>>>>>> origin/club/event-service
                 }
               ],
               "outputHashing": "all"

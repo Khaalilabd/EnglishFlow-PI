@@ -27,6 +27,11 @@ public class EventService {
     private final PermissionService permissionService;
     private final EventMapper eventMapper;
     private final com.englishflow.event.client.ClubServiceClient clubServiceClient;
+<<<<<<< HEAD
+=======
+    private final com.englishflow.event.client.SponsorServiceClient sponsorServiceClient;
+    private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
+>>>>>>> origin/club/event-service
     
     @Cacheable(value = "events", key = "'all'")
     @Transactional(readOnly = true)
@@ -65,14 +70,26 @@ public class EventService {
     @Cacheable(value = "upcomingEvents")
     @Transactional(readOnly = true)
     public List<EventDTO> getUpcomingEvents() {
+<<<<<<< HEAD
         log.info("Fetching upcoming events");
         try {
             LocalDateTime now = LocalDateTime.now();
             log.debug("Current time: {}", now);
+=======
+        log.info("Fetching upcoming events (not started yet)");
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            log.debug("Current time: {}", now);
+            // Événements qui n'ont pas encore commencé
+>>>>>>> origin/club/event-service
             List<Event> events = eventRepository.findByStartDateAfter(now);
             log.info("Found {} upcoming events", events.size());
             return events.stream()
                     .map(event -> enrichEventWithClubName(eventMapper.toDTO(event)))
+<<<<<<< HEAD
+=======
+                    .sorted((e1, e2) -> e1.getStartDate().compareTo(e2.getStartDate())) // Tri par date de début la plus proche
+>>>>>>> origin/club/event-service
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching upcoming events", e);
@@ -80,6 +97,48 @@ public class EventService {
         }
     }
     
+<<<<<<< HEAD
+=======
+    @Cacheable(value = "ongoingEvents")
+    @Transactional(readOnly = true)
+    public List<EventDTO> getOngoingEvents() {
+        log.info("Fetching ongoing events (happening today)");
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            log.debug("Current time: {}", now);
+            // Événements en cours : startDate <= now AND endDate >= now
+            List<Event> events = eventRepository.findByStartDateBeforeAndEndDateAfter(now, now);
+            log.info("Found {} ongoing events", events.size());
+            return events.stream()
+                    .map(event -> enrichEventWithClubName(eventMapper.toDTO(event)))
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error fetching ongoing events", e);
+            throw e;
+        }
+    }
+    
+    @Cacheable(value = "pastEvents")
+    @Transactional(readOnly = true)
+    public List<EventDTO> getPastEvents() {
+        log.info("Fetching past events (ended)");
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            log.debug("Current time: {}", now);
+            // Événements terminés : endDate < now
+            List<Event> events = eventRepository.findByEndDateBefore(now);
+            log.info("Found {} past events", events.size());
+            return events.stream()
+                    .map(event -> enrichEventWithClubName(eventMapper.toDTO(event)))
+                    .sorted((e1, e2) -> e2.getEndDate().compareTo(e1.getEndDate())) // Tri par date de fin la plus récente
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error fetching past events", e);
+            throw e;
+        }
+    }
+    
+>>>>>>> origin/club/event-service
     @Transactional(readOnly = true)
     public List<EventDTO> getEventsByCreator(Long creatorId) {
         log.info("Fetching events created by user: {}", creatorId);
@@ -102,6 +161,7 @@ public class EventService {
                 eventDTO.setClubName("Unknown Club");
             }
         }
+<<<<<<< HEAD
         return eventDTO;
     }
     
@@ -109,6 +169,44 @@ public class EventService {
         @CacheEvict(value = "events", key = "'all'"),
         @CacheEvict(value = "eventsByType", allEntries = true),
         @CacheEvict(value = "upcomingEvents", allEntries = true)
+=======
+        
+        // Enrich with sponsor data
+        enrichEventWithSponsors(eventDTO);
+        
+        return eventDTO;
+    }
+    
+    /**
+     * Enriches an EventDTO with sponsor details from sponsor-service
+     */
+    private void enrichEventWithSponsors(EventDTO eventDTO) {
+        if (eventDTO.getSponsorIds() != null && !eventDTO.getSponsorIds().isEmpty()) {
+            try {
+                java.util.List<com.englishflow.event.dto.EventSponsorDTO> sponsors = new java.util.ArrayList<>();
+                for (Long sponsorId : eventDTO.getSponsorIds()) {
+                    try {
+                        var sponsor = sponsorServiceClient.getSponsorById(sponsorId);
+                        sponsors.add(sponsor);
+                    } catch (Exception e) {
+                        log.warn("Could not fetch sponsor {} for event {}", sponsorId, eventDTO.getId(), e);
+                    }
+                }
+                eventDTO.setSponsors(sponsors);
+                log.debug("Enriched event {} with {} sponsors", eventDTO.getId(), sponsors.size());
+            } catch (Exception e) {
+                log.warn("Error enriching event {} with sponsors", eventDTO.getId(), e);
+            }
+        }
+    }
+    
+    @Caching(evict = {
+        @CacheEvict(value = "events", key = "'all'"),
+        @CacheEvict(value = "eventsByType", allEntries = true),
+        @CacheEvict(value = "upcomingEvents", allEntries = true),
+        @CacheEvict(value = "ongoingEvents", allEntries = true),
+        @CacheEvict(value = "pastEvents", allEntries = true)
+>>>>>>> origin/club/event-service
     })
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
@@ -148,6 +246,16 @@ public class EventService {
         Event event = eventMapper.toEntity(eventDTO);
         event.setCurrentParticipants(0);
         Event savedEvent = eventRepository.save(event);
+<<<<<<< HEAD
+=======
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyEventCreated(
+            savedEvent.getId().longValue(),
+            savedEvent.getTitle()
+        );
+        
+>>>>>>> origin/club/event-service
         log.info("Event created successfully by user: {}", eventDTO.getCreatorId());
         return enrichEventWithClubName(eventMapper.toDTO(savedEvent));
     }
@@ -166,6 +274,16 @@ public class EventService {
         
         eventMapper.updateEntityFromDTO(eventDTO, event);
         Event updatedEvent = eventRepository.save(event);
+<<<<<<< HEAD
+=======
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyEventUpdated(
+            updatedEvent.getId().longValue(),
+            updatedEvent.getTitle()
+        );
+        
+>>>>>>> origin/club/event-service
         log.info("Event updated successfully: {}", id);
         return enrichEventWithClubName(eventMapper.toDTO(updatedEvent));
     }
@@ -174,15 +292,33 @@ public class EventService {
         @CacheEvict(value = "events", key = "'all'"),
         @CacheEvict(value = "eventById", key = "#id"),
         @CacheEvict(value = "eventsByType", allEntries = true),
+<<<<<<< HEAD
         @CacheEvict(value = "upcomingEvents", allEntries = true)
+=======
+        @CacheEvict(value = "upcomingEvents", allEntries = true),
+        @CacheEvict(value = "ongoingEvents", allEntries = true),
+        @CacheEvict(value = "pastEvents", allEntries = true)
+>>>>>>> origin/club/event-service
     })
     @Transactional
     public void deleteEvent(Integer id) {
         log.info("Deleting event id: {}", id);
+<<<<<<< HEAD
         if (!eventRepository.existsById(id)) {
             throw new ResourceNotFoundException("Event not found with id: " + id);
         }
         eventRepository.deleteById(id);
+=======
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
+        
+        String eventTitle = event.getTitle();
+        eventRepository.deleteById(id);
+        
+        // 🔔 Envoyer notification WebSocket
+        wsNotificationService.notifyEventCancelled(id.longValue(), eventTitle);
+        
+>>>>>>> origin/club/event-service
         log.info("Event deleted successfully: {}", id);
     }
     
@@ -212,7 +348,11 @@ public class EventService {
         return enrichEventWithClubName(eventMapper.toDTO(updatedEvent));
     }
     
+<<<<<<< HEAD
     @CacheEvict(value = {"events", "eventById", "eventsByType", "upcomingEvents"}, allEntries = true)
+=======
+    @CacheEvict(value = {"events", "eventById", "eventsByType", "upcomingEvents", "ongoingEvents", "pastEvents"}, allEntries = true)
+>>>>>>> origin/club/event-service
     @Transactional
     public int syncClubNamesForAllEvents() {
         log.info("Syncing club names for all events");

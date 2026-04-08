@@ -16,6 +16,11 @@ public interface ClubRepository extends JpaRepository<Club, Integer> {
     List<Club> findByNameContainingIgnoreCase(String name);
     
     List<Club> findByStatus(ClubStatus status);
+<<<<<<< HEAD
+=======
+
+    List<Club> findByStatusIn(List<ClubStatus> statuses);
+>>>>>>> origin/club/event-service
     
     List<Club> findByCreatedBy(Integer createdBy);
 }
