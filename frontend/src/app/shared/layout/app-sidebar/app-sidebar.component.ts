@@ -254,8 +254,6 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-<<<<<<< HEAD
-=======
   // 🤝 SPONSORS - Gestion des sponsors (ACADEMIC_OFFICE_AFFAIR only)
   academicSponsorsItems: NavItem[] = [
     {
@@ -272,7 +270,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
->>>>>>> origin/club/event-service
+
   // 📚 CONTENT - Gestion du contenu (ADMIN only)
   adminContentItems: NavItem[] = [
     {
