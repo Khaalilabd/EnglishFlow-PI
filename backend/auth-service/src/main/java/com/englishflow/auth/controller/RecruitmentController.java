@@ -182,4 +182,52 @@ public class RecruitmentController {
         ApplicationResponse response = recruitmentService.getApplicationByUserId(userId);
         return ResponseEntity.ok(response);
     }
+
+    // Calendar endpoints
+
+    @PostMapping("/calendar/availability")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<CalendarAvailabilityResponse> getCalendarAvailability(
+            @Valid @RequestBody CalendarAvailabilityRequest request) {
+        
+        Long userId = securityUtil.getCurrentUserId();
+        CalendarAvailabilityResponse response = recruitmentService.getCalendarAvailability(request, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/calendar/upcoming")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<List<CalendarEventResponse>> getUpcomingInterviews() {
+        Long userId = securityUtil.getCurrentUserId();
+        List<CalendarEventResponse> events = recruitmentService.getUpcomingInterviews(userId);
+        return ResponseEntity.ok(events);
+    }
+
+    @DeleteMapping("/calendar/{scheduleId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<Void> cancelInterview(
+            @PathVariable Long scheduleId,
+            @RequestParam(required = false) String reason) {
+        
+        recruitmentService.cancelInterviewSchedule(scheduleId, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{applicationId}/interview")
+    @PreAuthorize("hasAnyRole('ADMIN', 'ACADEMIC_OFFICE_AFFAIR')")
+    public ResponseEntity<Void> cancelInterviewByApplicationId(
+            @PathVariable Long applicationId,
+            @RequestParam(required = false) String reason) {
+        
+        recruitmentService.cancelInterviewByApplicationId(applicationId, reason);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Google Calendar OAuth Test Endpoint
+    @GetMapping("/test-google-calendar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Map<String, Object>> testGoogleCalendar() {
+        Map<String, Object> result = recruitmentService.testGoogleCalendarConnection();
+        return ResponseEntity.ok(result);
+    }
 }

@@ -199,6 +199,27 @@ public class EmailService {
     }
 
     @Async("emailTaskExecutor")
+    public CompletableFuture<Void> sendInterviewCancellationEmail(String to, String firstName, java.time.LocalDateTime interviewDate, String reason) {
+        Context context = new Context();
+        context.setVariable("firstName", firstName);
+        context.setVariable("interviewDate", interviewDate);
+        context.setVariable("reason", reason != null && !reason.isEmpty() ? reason : "Administrative reasons");
+
+        String htmlContent = templateEngine.process("interview-cancellation-email", context);
+
+        try {
+            sendHtmlEmail(to, "Interview Cancelled - Jungle in English", htmlContent);
+            log.info("Interview cancellation email sent to: {}", to);
+            return CompletableFuture.completedFuture(null);
+        } catch (MessagingException e) {
+            log.error("Failed to send interview cancellation email to: {}", to, e);
+            return CompletableFuture.failedFuture(
+                new com.englishflow.auth.exception.EmailSendException("Failed to send interview cancellation email to: " + to, e)
+            );
+        }
+    }
+
+    @Async("emailTaskExecutor")
     public CompletableFuture<Void> sendTestPendingEmail(String to, String firstName) {
         Context context = new Context();
         context.setVariable("firstName", firstName);

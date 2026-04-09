@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -33,6 +34,8 @@ public class RecruitmentService {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
     private final MeetingLinkService meetingLinkService;
+    private final InterviewScheduleService interviewScheduleService;
+    private final GoogleMeetService googleMeetService;
 
     private static final String UPLOAD_DIR = "uploads/applications/";
 
@@ -265,25 +268,70 @@ public class RecruitmentService {
         TutorApplication application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("Application not found"));
 
-        String meetingLink = request.getMeetingLink();
+        // Valider la durée
+        Integer durationMinutes = request.getDurationMinutes() != null ? request.getDurationMinutes() : 60;
+        
+        // Préparer le titre et la description
+        String title = request.getMeetingTitle() != null ? 
+                request.getMeetingTitle() : 
+                "Interview - " + application.getFirstName() + " " + application.getLastName();
+        String description = "Entretien de recrutement pour le poste de tuteur\n\n" +
+                "Candidat: " + application.getFirstName() + " " + application.getLastName() + "\n" +
+                "Email: " + application.getEmail();
+
+        String meetingLink;
+        InterviewSchedule schedule = null;
 
         // Génération automatique du lien si une plateforme est spécifiée
-        if (request.getPlatform() != null && request.getPlatform() != com.englishflow.auth.enums.MeetingPlatform.MANUAL) {
+        if (request.getPlatform() != null && request.getPlatform() == com.englishflow.auth.enums.MeetingPlatform.GOOGLE_MEET) {
+            try {
+                // Utiliser le nouveau système avec vérification de disponibilité
+                schedule = interviewScheduleService.createInterviewSchedule(
+                        application,
+                        scheduledBy,
+                        request.getInterviewScheduledAt(),
+                        durationMinutes,
+                        title,
+                        description
+                );
+                
+                meetingLink = schedule.getMeetingLink();
+                
+                // Ajouter les infos dans les notes
+                String additionalNotes = String.format(
+                    "Plateforme: Google Meet\nDurée: %d minutes\nGoogle Event ID: %s",
+                    durationMinutes,
+                    schedule.getGoogleEventId() != null ? schedule.getGoogleEventId() : "N/A"
+                );
+                
+                String combinedNotes = request.getNotes() != null ? 
+                    request.getNotes() + "\n\n" + additionalNotes : additionalNotes;
+                application.setInterviewNotes(combinedNotes);
+                
+                log.info("Interview scheduled with calendar integration for application {}", applicationId);
+                
+            } catch (IllegalStateException e) {
+                // Conflit d'horaire détecté
+                log.error("Schedule conflict detected for application {}: {}", applicationId, e.getMessage());
+                throw new IllegalStateException("Conflit d'horaire: Un entretien est déjà programmé à cette heure. " +
+                        "Veuillez consulter le calendrier et choisir un autre créneau.");
+            } catch (Exception e) {
+                log.error("Failed to create interview schedule", e);
+                throw new RuntimeException("Échec de la création du rendez-vous: " + e.getMessage());
+            }
+        } else if (request.getPlatform() != null && request.getPlatform() != com.englishflow.auth.enums.MeetingPlatform.MANUAL) {
+            // Autres plateformes (Zoom, etc.) - utiliser l'ancien système
             try {
                 GenerateMeetingLinkRequest meetingRequest = new GenerateMeetingLinkRequest();
                 meetingRequest.setPlatform(request.getPlatform());
                 meetingRequest.setInterviewScheduledAt(request.getInterviewScheduledAt());
-                meetingRequest.setTitle(request.getMeetingTitle() != null ? 
-                    request.getMeetingTitle() : 
-                    "Interview - " + application.getFirstName() + " " + application.getLastName());
-                meetingRequest.setDescription("Entretien de recrutement pour le poste de tuteur");
-                meetingRequest.setDurationMinutes(request.getDurationMinutes() != null ? 
-                    request.getDurationMinutes() : 60);
+                meetingRequest.setTitle(title);
+                meetingRequest.setDescription(description);
+                meetingRequest.setDurationMinutes(durationMinutes);
 
                 MeetingLinkResponse meetingResponse = meetingLinkService.generateMeetingLink(meetingRequest);
                 meetingLink = meetingResponse.getMeetingLink();
                 
-                // Ajouter les infos supplémentaires dans les notes
                 String additionalNotes = String.format(
                     "Plateforme: %s\nID de réunion: %s\n%s",
                     meetingResponse.getPlatform().getDisplayName(),
@@ -295,7 +343,7 @@ public class RecruitmentService {
                     request.getNotes() + "\n\n" + additionalNotes : additionalNotes;
                 application.setInterviewNotes(combinedNotes);
                 
-                log.info("Meeting link generated automatically for application {} using {}", 
+                log.info("Meeting link generated for application {} using {}", 
                     applicationId, request.getPlatform());
             } catch (Exception e) {
                 log.error("Failed to generate meeting link automatically", e);
@@ -303,9 +351,10 @@ public class RecruitmentService {
             }
         } else {
             // Lien manuel
-            if (meetingLink == null || meetingLink.trim().isEmpty()) {
+            if (request.getMeetingLink() == null || request.getMeetingLink().trim().isEmpty()) {
                 throw new IllegalArgumentException("Meeting link is required when platform is not specified or is MANUAL");
             }
+            meetingLink = request.getMeetingLink();
             application.setInterviewNotes(request.getNotes());
         }
 
@@ -535,6 +584,106 @@ public class RecruitmentService {
             platforms.put(platform.name(), meetingLinkService.isPlatformAvailable(platform));
         }
         return platforms;
+    }
+
+    // Calendar methods
+
+    /**
+     * Récupère la disponibilité du calendrier pour un interviewer
+     */
+    public CalendarAvailabilityResponse getCalendarAvailability(CalendarAvailabilityRequest request, Long currentUserId) {
+        return interviewScheduleService.getCalendarAvailability(request, currentUserId);
+    }
+
+    /**
+     * Récupère les rendez-vous à venir pour un interviewer
+     */
+    public List<CalendarEventResponse> getUpcomingInterviews(Long interviewerId) {
+        List<InterviewSchedule> schedules = interviewScheduleService.getUpcomingInterviews(interviewerId);
+        return schedules.stream()
+                .map(this::convertScheduleToEventResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Annule un rendez-vous d'entretien
+     */
+    @Transactional
+    public void cancelInterviewSchedule(Long scheduleId, String reason) {
+        interviewScheduleService.cancelInterviewSchedule(scheduleId, reason);
+    }
+
+    /**
+     * Annule un rendez-vous d'entretien par application ID
+     */
+    @Transactional
+    public void cancelInterviewByApplicationId(Long applicationId, String reason) {
+        interviewScheduleService.cancelInterviewByApplicationId(applicationId, reason);
+    }
+
+    /**
+     * Convertit InterviewSchedule en CalendarEventResponse
+     */
+    private CalendarEventResponse convertScheduleToEventResponse(InterviewSchedule schedule) {
+        return CalendarEventResponse.builder()
+                .scheduleId(schedule.getId())
+                .googleEventId(schedule.getGoogleEventId())
+                .title(schedule.getTitle())
+                .description(schedule.getDescription())
+                .start(schedule.getScheduledStart())
+                .end(schedule.getScheduledEnd())
+                .durationMinutes(schedule.getDurationMinutes())
+                .meetingLink(schedule.getMeetingLink())
+                .platform(schedule.getMeetingPlatform())
+                .status(schedule.getStatus().name())
+                .applicationId(schedule.getApplication().getId())
+                .candidateName(schedule.getApplication().getFirstName() + " " + schedule.getApplication().getLastName())
+                .candidateEmail(schedule.getApplication().getEmail())
+                .source(schedule.getGoogleEventId() != null ? 
+                        CalendarEventResponse.EventSource.BOTH : 
+                        CalendarEventResponse.EventSource.LOCAL_DB)
+                .build();
+    }
+
+    /**
+     * Teste la connexion Google Calendar et retourne l'état
+     */
+    public Map<String, Object> testGoogleCalendarConnection() {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            // Tester la création d'un événement de test
+            LocalDateTime testTime = LocalDateTime.now().plusDays(7);
+            String testTitle = "Test Meeting - EnglishFlow";
+            String testDescription = "This is a test meeting to verify Google Calendar integration";
+            
+            GoogleMeetService.MeetingCreationResult meetingResult = googleMeetService.createMeetingWithDetails(
+                    testTitle, testDescription, testTime, 30
+            );
+            
+            result.put("success", meetingResult.isSuccess());
+            result.put("meetingLink", meetingResult.getMeetingLink());
+            result.put("googleEventId", meetingResult.getGoogleEventId());
+            result.put("message", meetingResult.getMessage());
+            result.put("isRealMeetLink", !meetingResult.getMeetingLink().contains("/new"));
+            
+            if (meetingResult.isSuccess()) {
+                result.put("status", "✅ Google Calendar OAuth2 is working correctly!");
+                result.put("recommendation", "You can now schedule interviews with real Google Meet links.");
+            } else {
+                result.put("status", "⚠️ Google Calendar OAuth2 is not working");
+                result.put("recommendation", "Please follow the OAuth2 setup guide in docs/GOOGLE_OAUTH_SETUP.md");
+            }
+            
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("status", "❌ Error testing Google Calendar");
+            result.put("error", e.getMessage());
+            result.put("recommendation", "Check the logs and verify your OAuth2 configuration");
+            log.error("Error testing Google Calendar connection", e);
+        }
+        
+        return result;
     }
 
     // Inner class for statistics

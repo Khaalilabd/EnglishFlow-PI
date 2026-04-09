@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Cancelled</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #3D3D60; background-color: #F7EDE2; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div style="background: linear-gradient(135deg, #C84630 0%, #3D3D60 100%); color: #ffffff; padding: 40px 30px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 10px;">🔔</div>
+            <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Interview Cancelled</h1>
+        </div>
+        
+        <div style="padding: 40px 30px;">
+            <h2 style="color: #2D5757; font-size: 22px; margin-top: 0;">Hello <span th:text="${firstName}">Candidate</span>,</h2>
+            
+            <p style="margin: 15px 0; font-size: 16px;">We regret to inform you that your scheduled interview has been cancelled.</p>
+            
+            <div style="background-color: #F7EDE2; border-left: 4px solid #C84630; padding: 20px; margin: 25px 0; border-radius: 5px;">
+                <p style="margin: 0 0 15px 0; font-size: 18px; color: #C84630;"><strong>❌ Cancelled Interview Details:</strong></p>
+                <p style="margin: 10px 0;"><strong>Original Date & Time:</strong> <span th:text="${#temporals.format(interviewDate, 'EEEE, MMMM dd, yyyy')}">Date</span></p>
+                <p style="margin: 10px 0;"><strong>Time:</strong> <span th:text="${#temporals.format(interviewDate, 'HH:mm')}">Time</span></p>
+                <p style="margin: 10px 0;" th:if="${reason}"><strong>Reason:</strong> <span th:text="${reason}">Reason</span></p>
+            </div>
+            
+            <p style="margin: 15px 0; font-size: 16px;">We apologize for any inconvenience this may cause. We will contact you shortly to reschedule your interview at a more convenient time.</p>
+            
+            <p style="margin: 15px 0; font-size: 16px;">Your application remains active and we are still very interested in speaking with you about joining our team of tutors.</p>
+            
+            <div style="background-color: #F6BD60; border-radius: 5px; padding: 20px; margin: 25px 0;">
+                <p style="margin: 0; font-size: 16px; color: #2D5757;">
+                    <strong>📧 Questions?</strong><br>
+                    If you have any questions or concerns, please don't hesitate to reply to this email or contact our recruitment team.
+                </p>
+            </div>
+            
+            <p style="margin-top: 30px;">
+                Thank you for your understanding.<br>
+                <strong>The Jungle in English Recruitment Team</strong>
+            </p>
+        </div>
+        
+        <div style="background-color: #3D3D60; color: #F7EDE2; text-align: center; padding: 25px 30px; font-size: 14px;">
+            <p style="margin: 5px 0;"><strong>Jungle in English</strong></p>
+            <p style="margin: 5px 0;">Empowering English learners worldwide</p>
+        </div>
+    </div>
+</body>
+</html>

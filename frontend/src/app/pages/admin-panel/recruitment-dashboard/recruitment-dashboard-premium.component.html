@@ -1,0 +1,393 @@
+<div class="premium-dashboard">
+  <!-- Premium Header with Glassmorphism -->
+  <div class="premium-header">
+    <div class="header-glass">
+      <div class="header-content">
+        <div class="title-section">
+          <div class="title-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-width="2"/>
+              <circle cx="9" cy="7" r="4" stroke-width="2"/>
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" stroke-width="2"/>
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" stroke-width="2"/>
+            </svg>
+          </div>
+          <div class="title-text">
+            <h1>Recruitment Intelligence</h1>
+            <p>AI-Powered Talent Management System</p>
+          </div>
+        </div>
+        
+        <div class="header-actions">
+          <!-- AI Insights Button -->
+          <button class="btn-ai-insights" (click)="showAIInsights = !showAIInsights">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <circle cx="12" cy="12" r="10" stroke-width="2"/>
+              <path d="M12 6v6l4 2" stroke-width="2"/>
+            </svg>
+            <span>AI Insights</span>
+            <span class="pulse-dot"></span>
+          </button>
+          
+          <!-- Calendar View Button -->
+          <button class="btn-calendar-view" (click)="toggleCalendarView()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+              <line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/>
+              <line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/>
+              <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+            </svg>
+            <span>Interviews</span>
+            <span class="badge-count" *ngIf="upcomingInterviewsCount > 0">{{ upcomingInterviewsCount }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI Insights Panel (Collapsible) -->
+  <div class="ai-insights-panel" *ngIf="showAIInsights" [@slideDown]>
+    <div class="insights-grid">
+      <div class="insight-card" *ngFor="let insight of aiInsights">
+        <div class="insight-icon" [style.background]="insight.color">
+          <span>{{ insight.icon }}</span>
+        </div>
+        <div class="insight-content">
+          <h4>{{ insight.title }}</h4>
+          <p>{{ insight.description }}</p>
+          <div class="insight-value">{{ insight.value }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Smart Metrics Dashboard -->
+  <div class="metrics-dashboard">
+    <div class="metric-card" *ngFor="let metric of metrics" [@fadeInUp]>
+      <div class="metric-header">
+        <div class="metric-icon" [style.background]="metric.gradient">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path [attr.d]="metric.iconPath" stroke-width="2"/>
+          </svg>
+        </div>
+        <div class="metric-trend" [class.positive]="metric.trend > 0" [class.negative]="metric.trend < 0">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <polyline [attr.points]="metric.trend > 0 ? '18 15 12 9 6 15' : '6 9 12 15 18 9'" stroke-width="2"/>
+          </svg>
+          <span>{{ metric.trend > 0 ? '+' : '' }}{{ metric.trend }}%</span>
+        </div>
+      </div>
+      <div class="metric-body">
+        <div class="metric-value">{{ metric.value }}</div>
+        <div class="metric-label">{{ metric.label }}</div>
+      </div>
+      <div class="metric-footer">
+        <div class="metric-sparkline">
+          <svg width="100%" height="40" viewBox="0 0 100 40">
+            <path [attr.d]="metric.sparkline" fill="none" [attr.stroke]="metric.color" stroke-width="2"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Advanced Filters & Search -->
+  <div class="control-panel">
+    <div class="search-container">
+      <div class="search-box-premium">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <circle cx="11" cy="11" r="8" stroke-width="2"/>
+          <path d="m21 21-4.35-4.35" stroke-width="2"/>
+        </svg>
+        <input 
+          type="text" 
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search candidates by name, email, skills..."
+          class="search-input">
+        <button class="search-clear" *ngIf="searchTerm" (click)="clearSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/>
+            <line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="filter-chips">
+      <button 
+        class="filter-chip" 
+        [class.active]="selectedStatus === status.value"
+        *ngFor="let status of statusFilters"
+        (click)="selectStatus(status.value)">
+        <span class="chip-icon">{{ status.icon }}</span>
+        <span class="chip-label">{{ status.label }}</span>
+        <span class="chip-count">{{ status.count }}</span>
+      </button>
+    </div>
+
+    <div class="view-controls">
+      <div class="view-switcher">
+        <button 
+          class="view-btn"
+          [class.active]="currentView === view.id"
+          *ngFor="let view of viewModes"
+          (click)="switchView(view.id)"
+          [title]="view.label">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path [attr.d]="view.iconPath" stroke-width="2"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sort-dropdown">
+        <button class="sort-btn" (click)="toggleSortMenu()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <line x1="4" y1="6" x2="16" y2="6" stroke-width="2"/>
+            <line x1="4" y1="12" x2="12" y2="12" stroke-width="2"/>
+            <line x1="4" y1="18" x2="8" y2="18" stroke-width="2"/>
+          </svg>
+          <span>Sort</span>
+        </button>
+      </div>
+
+      <button class="btn-refresh" (click)="refreshData()" [class.spinning]="isRefreshing">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+          <polyline points="23 4 23 10 17 10" stroke-width="2"/>
+          <polyline points="1 20 1 14 7 14" stroke-width="2"/>
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" stroke-width="2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content Area with Virtual Scrolling -->
+  <div class="content-area" [ngSwitch]="currentView">
+    
+    <!-- Smart Grid View (Default) -->
+    <div *ngSwitchCase="'smart-grid'" class="smart-grid-view">
+      <cdk-virtual-scroll-viewport itemSize="280" class="virtual-scroll-container">
+        <div class="grid-container">
+          <div 
+            class="candidate-card-premium" 
+            *cdkVirtualFor="let app of virtualApplications"
+            [@cardAnimation]
+            (click)="openCandidateDetail(app)">
+            
+            <!-- Card Header with Avatar -->
+            <div class="card-header-premium">
+              <div class="avatar-container">
+                <div class="avatar-ring" [style.background]="getScoreGradient(app.overallScore)">
+                  <div class="avatar-inner">
+                    <span class="avatar-text">{{ getInitials(app.firstName, app.lastName) }}</span>
+                  </div>
+                </div>
+                <div class="status-indicator" [style.background]="getStatusColor(app.status)"></div>
+              </div>
+              
+              <div class="card-badges">
+                <span class="badge-premium" [style.background]="getStatusColor(app.status)">
+                  {{ getStatusIcon(app.status) }}
+                </span>
+                <span class="badge-score" *ngIf="app.overallScore" [style.background]="getScoreGradient(app.overallScore)">
+                  {{ app.overallScore }}
+                </span>
+              </div>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body-premium">
+              <h3 class="candidate-name">{{ app.firstName }} {{ app.lastName }}</h3>
+              
+              <div class="candidate-info">
+                <div class="info-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-width="2"/>
+                    <polyline points="22,6 12,13 2,6" stroke-width="2"/>
+                  </svg>
+                  <span>{{ app.email }}</span>
+                </div>
+                <div class="info-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/>
+                    <line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/>
+                    <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                  </svg>
+                  <span>{{ formatDate(app.createdAt) }}</span>
+                </div>
+              </div>
+
+              <!-- AI Score Breakdown -->
+              <div class="score-breakdown" *ngIf="app.overallScore">
+                <div class="score-bar">
+                  <div class="score-label">Qualification</div>
+                  <div class="score-track">
+                    <div class="score-fill" [style.width.%]="app.qualificationScore" [style.background]="getScoreColor(app.qualificationScore)"></div>
+                  </div>
+                  <div class="score-value">{{ app.qualificationScore }}</div>
+                </div>
+                <div class="score-bar">
+                  <div class="score-label">Presentation</div>
+                  <div class="score-track">
+                    <div class="score-fill" [style.width.%]="app.presentationScore" [style.background]="getScoreColor(app.presentationScore)"></div>
+                  </div>
+                  <div class="score-value">{{ app.presentationScore }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card Actions -->
+            <div class="card-actions-premium" (click)="$event.stopPropagation()">
+              <button class="action-btn" (click)="openScoreModal(app)" title="Score">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="20" x2="18" y2="10" stroke-width="2"/>
+                  <line x1="12" y1="20" x2="12" y2="4" stroke-width="2"/>
+                  <line x1="6" y1="20" x2="6" y2="14" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="action-btn" (click)="openInterviewModal(app)" title="Schedule">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/>
+                  <line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/>
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="action-btn" (click)="openNoteModal(app)" title="Notes">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke-width="2"/>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="action-btn success" (click)="acceptApplication(app)" *ngIf="canAccept(app)" title="Accept">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <polyline points="20 6 9 17 4 12" stroke-width="2"/>
+                </svg>
+              </button>
+              <button class="action-btn danger" (click)="openRejectModal(app)" *ngIf="canReject(app)" title="Reject">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <line x1="18" y1="6" x2="6" y2="18" stroke-width="2"/>
+                  <line x1="6" y1="6" x2="18" y2="18" stroke-width="2"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </cdk-virtual-scroll-viewport>
+    </div>
+
+    <!-- Interview Calendar View -->
+    <div *ngSwitchCase="'calendar'" class="calendar-view-premium">
+      <div class="calendar-container">
+        <!-- Calendar Header -->
+        <div class="calendar-header">
+          <div class="calendar-nav">
+            <button class="nav-btn" (click)="previousMonth()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="15 18 9 12 15 6" stroke-width="2"/>
+              </svg>
+            </button>
+            <h2 class="calendar-title">{{ currentMonth }} {{ currentYear }}</h2>
+            <button class="nav-btn" (click)="nextMonth()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="9 18 15 12 9 6" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+          
+          <div class="calendar-filters">
+            <button class="filter-btn" [class.active]="calendarFilter === 'all'" (click)="calendarFilter = 'all'">
+              All Interviews
+            </button>
+            <button class="filter-btn" [class.active]="calendarFilter === 'today'" (click)="calendarFilter = 'today'">
+              Today
+            </button>
+            <button class="filter-btn" [class.active]="calendarFilter === 'week'" (click)="calendarFilter = 'week'">
+              This Week
+            </button>
+          </div>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="calendar-grid">
+          <div class="calendar-weekdays">
+            <div class="weekday" *ngFor="let day of weekDays">{{ day }}</div>
+          </div>
+          
+          <div class="calendar-days">
+            <div 
+              class="calendar-day"
+              *ngFor="let day of calendarDays"
+              [class.today]="day.isToday"
+              [class.other-month]="day.isOtherMonth"
+              [class.has-interviews]="day.interviews.length > 0"
+              (click)="selectDay(day)">
+              <div class="day-number">{{ day.number }}</div>
+              <div class="day-interviews" *ngIf="day.interviews.length > 0">
+                <div class="interview-dot" *ngFor="let interview of day.interviews.slice(0, 3)"></div>
+                <span class="interview-count" *ngIf="day.interviews.length > 3">+{{ day.interviews.length - 3 }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Interviews List -->
+        <div class="upcoming-interviews">
+          <h3>Upcoming Interviews</h3>
+          <div class="interview-list">
+            <div class="interview-item" *ngFor="let interview of upcomingInterviews" [@slideIn]>
+              <div class="interview-time">
+                <div class="time-badge">{{ formatTime(interview.scheduledAt) }}</div>
+                <div class="date-badge">{{ formatShortDate(interview.scheduledAt) }}</div>
+              </div>
+              <div class="interview-details">
+                <h4>{{ interview.candidateName }}</h4>
+                <p>{{ interview.candidateEmail }}</p>
+                <div class="interview-meta">
+                  <span class="meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path d="M15.05 5A5 5 0 0 1 19 8.95M15.05 1A9 9 0 0 1 23 8.94m-1 7.98v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke-width="2"/>
+                    </svg>
+                    {{ interview.platform }}
+                  </span>
+                  <span class="meta-item">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                      <polyline points="12 6 12 12 16 14" stroke-width="2"/>
+                    </svg>
+                    {{ interview.duration }} min
+                  </span>
+                </div>
+              </div>
+              <div class="interview-actions">
+                <button class="btn-join" (click)="joinInterview(interview)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polygon points="5 3 19 12 5 21 5 3" stroke-width="2"/>
+                  </svg>
+                  Join
+                </button>
+                <button class="btn-reschedule" (click)="rescheduleInterview(interview)">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <polyline points="23 4 23 10 17 10" stroke-width="2"/>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" stroke-width="2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="loading-spinner">
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-ring"></div>
+      <p>Loading intelligence...</p>
+    </div>
+  </div>
+</div>

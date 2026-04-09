@@ -1,7 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { trigger, state, style, transition, animate } from '@angular/animations';
 
 import { 
   RecruitmentService, 
@@ -11,18 +13,70 @@ import {
   MeetingLinkResponse
 } from '../../../core/services/recruitment.service';
 
+interface TimeSlotOption {
+  time: string;
+  available: boolean;
+  conflictsWith?: string;
+}
+
+interface DayOption {
+  dateStr: string;
+  dayName: string;
+  dayNumber: string;
+  monthName: string;
+  isToday: boolean;
+  isWeekend: boolean;
+}
 
 @Component({
   selector: 'app-recruitment-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './recruitment-dashboard.component.html',
-  styleUrls: ['./recruitment-dashboard.component.scss']
+  styleUrls: [
+    './recruitment-dashboard.component.scss',
+    './recruitment-dashboard-interview-modal.scss'
+  ],
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ height: 0, opacity: 0, overflow: 'hidden' }),
+        animate('300ms ease-out', style({ height: '*', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ height: 0, opacity: 0, overflow: 'hidden' }))
+      ])
+    ]),
+    trigger('slideInRight', [
+      transition(':enter', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate('400ms cubic-bezier(0.25, 0.8, 0.25, 1)', style({ transform: 'translateX(0)', opacity: 1 }))
+      ]),
+      transition(':leave', [
+        animate('300ms ease-in', style({ transform: 'translateX(100%)', opacity: 0 }))
+      ])
+    ]),
+    trigger('fadeIn', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ])
+  ]
 })
 export class RecruitmentDashboardComponent implements OnInit {
   applications: ApplicationResponse[] = [];
   filteredApplications: ApplicationResponse[] = [];
   statistics: ApplicationStatistics | null = null;
+  
+  // View mode
+  currentView: 'kanban' | 'timeline' | 'grid' | 'analytics' = 'kanban';
+  
+  // Premium features
+  showAIInsights = false;
+  showInterviewsPanel = false;
+  upcomingInterviewsCount = 0;
+  interviewFilter: 'all' | 'today' | 'week' | 'month' = 'all';
   
   selectedApplication: ApplicationResponse | null = null;
   showDetailModal = false;
@@ -31,6 +85,9 @@ export class RecruitmentDashboardComponent implements OnInit {
   showRejectModal = false;
   showNoteModal = false;
   showDocumentModal = false;
+  showInterviewSuccessModal = false;
+  scheduledInterviewInfo: any = null;
+  isViewingExistingInterview = false;
   selectedDocument: any = null;
   documentViewerUrl: string = '';
 
@@ -53,6 +110,13 @@ export class RecruitmentDashboardComponent implements OnInit {
   availablePlatforms: { [key: string]: boolean } = {};
   generatingLink = false;
   generatedMeetingInfo: MeetingLinkResponse | null = null;
+  
+  // New properties for date/time selection
+  selectedInterviewDate = '';
+  selectedInterviewTimeSlot = '';
+  interviewTimeSlots: TimeSlotOption[] = [];
+  isCheckingAvailability = false;
+  availableDays: DayOption[] = [];
   
   // Enum pour le template
   MeetingPlatform = MeetingPlatform;
@@ -82,8 +146,8 @@ export class RecruitmentDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadApplications();
     this.loadStatistics();
-
     this.loadAvailablePlatforms();
+    this.loadUpcomingInterviews();
   }
 
   loadAvailablePlatforms(): void {
@@ -199,6 +263,16 @@ export class RecruitmentDashboardComponent implements OnInit {
     this.meetingTitle = `Interview - ${application.firstName} ${application.lastName}`;
     this.durationMinutes = 60;
     this.generatedMeetingInfo = null;
+    
+    // Reset new variables
+    this.selectedInterviewDate = '';
+    this.selectedInterviewTimeSlot = '';
+    this.interviewTimeSlots = [];
+    this.isCheckingAvailability = false;
+    
+    // Generate available days
+    this.availableDays = this.generateNextAvailableDays(14);
+    console.log('Available days generated:', this.availableDays);
 
     this.showInterviewModal = true;
   }
@@ -217,17 +291,19 @@ export class RecruitmentDashboardComponent implements OnInit {
   }
 
   generateMeetingLink(): void {
-    if (!this.interviewDateTime) {
-      this.errorMessage = "Veuillez sélectionner la date et l'heure d'abord";
+    if (!this.selectedInterviewDate || !this.selectedInterviewTimeSlot) {
+      this.errorMessage = "Please select date and time first";
       setTimeout(() => this.errorMessage = '', 3000);
       return;
     }
 
     this.generatingLink = true;
     
+    const interviewDateTime = `${this.selectedInterviewDate}T${this.selectedInterviewTimeSlot}:00`;
+    
     const request = {
       platform: this.selectedPlatform,
-      interviewScheduledAt: this.interviewDateTime + ':00',
+      interviewScheduledAt: interviewDateTime,
       title: this.meetingTitle,
       description: 'Entretien de recrutement pour le poste de tuteur',
       durationMinutes: this.durationMinutes
@@ -242,7 +318,7 @@ export class RecruitmentDashboardComponent implements OnInit {
         setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
-        this.errorMessage = 'Échec de la génération du lien de réunion';
+        this.errorMessage = 'Failed to generate meeting link';
         this.generatingLink = false;
         setTimeout(() => this.errorMessage = '', 3000);
       }
@@ -250,23 +326,26 @@ export class RecruitmentDashboardComponent implements OnInit {
   }
 
   scheduleInterview(): void {
-    if (!this.selectedApplication || !this.interviewDateTime) {
-      this.errorMessage = 'Veuillez remplir tous les champs obligatoires';
+    if (!this.selectedApplication || !this.selectedInterviewDate || !this.selectedInterviewTimeSlot) {
+      this.errorMessage = 'Please select a date and time slot';
       setTimeout(() => this.errorMessage = '', 3000);
       return;
     }
 
     // Validation: Si plateforme n'est pas MANUAL, on doit avoir un lien généré ou le générer
-    if (this.selectedPlatform !== MeetingPlatform.MANUAL && !this.meetingLink) {
-      this.errorMessage = 'Veuillez générer un lien de réunion ou en saisir un manuellement';
+    if (this.selectedPlatform !== MeetingPlatform.MANUAL && !this.meetingLink && !this.generatedMeetingInfo) {
+      this.errorMessage = 'Please generate a meeting link or enter one manually';
       setTimeout(() => this.errorMessage = '', 3000);
       return;
     }
 
     this.isLoading = true;
     
+    // Construct the datetime string
+    const interviewDateTime = `${this.selectedInterviewDate}T${this.selectedInterviewTimeSlot}:00`;
+    
     const data: any = {
-      interviewScheduledAt: this.interviewDateTime + ':00',
+      interviewScheduledAt: interviewDateTime,
       notes: this.interviewNotes
     };
 
@@ -282,21 +361,68 @@ export class RecruitmentDashboardComponent implements OnInit {
     }
 
     this.recruitmentService.scheduleInterview(this.selectedApplication.id, data).subscribe({
-      next: () => {
-        this.successMessage = "Entretien planifié avec succès!";
-
+      next: (response) => {
+        // Stocker les informations de l'entretien planifié
+        this.scheduledInterviewInfo = {
+          candidateName: `${this.selectedApplication!.firstName} ${this.selectedApplication!.lastName}`,
+          dateTime: this.formatSelectedDateTime(),
+          meetingLink: response.meetingLink || this.meetingLink,
+          platform: this.getPlatformDisplayName(this.selectedPlatform),
+          duration: this.durationMinutes
+        };
+        
+        this.isViewingExistingInterview = false;
         this.closeInterviewModal();
+        this.showInterviewSuccessModal = true;
         this.loadApplications();
-        setTimeout(() => this.successMessage = '', 3000);
+        this.loadUpcomingInterviews();
       },
       error: (error) => {
-
-        this.errorMessage = error.error?.message || "Échec de la planification de l'entretien";
+        this.errorMessage = error.error?.message || "Failed to schedule interview";
         this.isLoading = false;
         setTimeout(() => this.errorMessage = '', 3000);
-
       }
     });
+  }
+  
+  closeInterviewSuccessModal(): void {
+    this.showInterviewSuccessModal = false;
+    this.scheduledInterviewInfo = null;
+    this.isViewingExistingInterview = false;
+  }
+  
+  copyMeetingLink(): void {
+    if (this.scheduledInterviewInfo?.meetingLink) {
+      navigator.clipboard.writeText(this.scheduledInterviewInfo.meetingLink).then(() => {
+        this.successMessage = 'Meeting link copied to clipboard!';
+        setTimeout(() => this.successMessage = '', 2000);
+      });
+    }
+  }
+  
+  joinMeeting(): void {
+    if (this.scheduledInterviewInfo?.meetingLink) {
+      window.open(this.scheduledInterviewInfo.meetingLink, '_blank');
+    }
+  }
+  
+  joinInterviewMeeting(interview: ApplicationResponse): void {
+    if (interview.interviewMeetingLink) {
+      window.open(interview.interviewMeetingLink, '_blank');
+    }
+  }
+  
+  viewInterviewDetails(interview: ApplicationResponse): void {
+    this.selectedApplication = interview;
+    this.scheduledInterviewInfo = {
+      candidateName: `${interview.firstName} ${interview.lastName}`,
+      dateTime: this.formatDate(interview.interviewScheduledAt!) + ' at ' + this.formatInterviewTime(interview.interviewScheduledAt),
+      meetingLink: interview.interviewMeetingLink || '',
+      platform: 'Google Meet',
+      duration: 60
+    };
+    this.isViewingExistingInterview = true;
+    this.showInterviewSuccessModal = true;
   }
 
 
@@ -533,5 +659,368 @@ export class RecruitmentDashboardComponent implements OnInit {
       'OTHER': 'Other Document'
     };
     return names[type] || type;
+  }
+
+  // New methods for additional views
+  getStatusColor(status: string): string {
+    const colors: { [key: string]: string } = {
+      'SUBMITTED': '#F6BD60',
+      'UNDER_REVIEW': '#2D5757',
+      'INTERVIEW_SCHEDULED': '#3D3D60',
+      'TEST_PENDING': '#F6BD60',
+      'TEST_COMPLETED': '#2D5757',
+      'ACCEPTED': '#28a745',
+      'REJECTED': '#C84630'
+    };
+    return colors[status] || '#999';
+  }
+
+  getStatusIcon(status: string): string {
+    const icons: { [key: string]: string } = {
+      'SUBMITTED': '📝',
+      'UNDER_REVIEW': '🔍',
+      'INTERVIEW_SCHEDULED': '📅',
+      'TEST_PENDING': '📋',
+      'TEST_COMPLETED': '✅',
+      'ACCEPTED': '🎉',
+      'REJECTED': '❌'
+    };
+    return icons[status] || '📄';
+  }
+
+  getInitials(firstName: string, lastName: string): string {
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  }
+
+  getScoreGradient(score: number): string {
+    if (score >= 80) return 'linear-gradient(135deg, #2D5757 0%, #3D3D60 100%)';
+    if (score >= 60) return 'linear-gradient(135deg, #F6BD60 0%, #f5b04a 100%)';
+    return 'linear-gradient(135deg, #C84630 0%, #a83825 100%)';
+  }
+
+  getScoreRanges(): any[] {
+    const ranges = [
+      { label: '80-100 (Excellent)', min: 80, max: 100, color: '#2D5757', count: 0, percentage: 0 },
+      { label: '60-79 (Good)', min: 60, max: 79, color: '#F6BD60', count: 0, percentage: 0 },
+      { label: '40-59 (Average)', min: 40, max: 59, color: '#3D3D60', count: 0, percentage: 0 },
+      { label: '0-39 (Poor)', min: 0, max: 39, color: '#C84630', count: 0, percentage: 0 }
+    ];
+
+    const scoredApps = this.filteredApplications.filter(app => app.overallScore);
+    const total = scoredApps.length;
+
+    ranges.forEach(range => {
+      range.count = scoredApps.filter(app => 
+        app.overallScore! >= range.min && app.overallScore! <= range.max
+      ).length;
+      range.percentage = total > 0 ? (range.count / total) * 100 : 0;
+    });
+
+    return ranges;
+  }
+
+  getRecentApplications(): ApplicationResponse[] {
+    return [...this.filteredApplications]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+      .slice(0, 10);
+  }
+
+  getActivityDescription(app: ApplicationResponse): string {
+    const descriptions: { [key: string]: string } = {
+      'SUBMITTED': 'Submitted application',
+      'UNDER_REVIEW': 'Application under review',
+      'INTERVIEW_SCHEDULED': 'Interview scheduled',
+      'TEST_PENDING': 'Test pending',
+      'TEST_COMPLETED': 'Test completed',
+      'ACCEPTED': 'Application accepted',
+      'REJECTED': 'Application rejected'
+    };
+    return descriptions[app.status] || 'Status updated';
+  }
+
+  // Premium Features Methods
+  toggleAIInsights(): void {
+    this.showAIInsights = !this.showAIInsights;
+  }
+
+  toggleInterviewsPanel(): void {
+    this.showInterviewsPanel = !this.showInterviewsPanel;
+    if (this.showInterviewsPanel) {
+      this.loadUpcomingInterviews();
+    }
+  }
+
+  loadUpcomingInterviews(): void {
+    this.recruitmentService.getUpcomingInterviews().subscribe({
+      next: (interviews) => {
+        this.upcomingInterviewsCount = interviews.length;
+      },
+      error: (error) => {
+        console.error('Failed to load upcoming interviews', error);
+      }
+    });
+  }
+
+  getFilteredInterviews(): ApplicationResponse[] {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekFromNow = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const monthFromNow = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    return this.applications.filter(app => {
+      if (app.status !== 'INTERVIEW_SCHEDULED' || !app.interviewScheduledAt) {
+        return false;
+      }
+
+      const interviewDate = new Date(app.interviewScheduledAt);
+
+      switch (this.interviewFilter) {
+        case 'today':
+          return interviewDate >= today && interviewDate < new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        case 'week':
+          return interviewDate >= today && interviewDate < weekFromNow;
+        case 'month':
+          return interviewDate >= today && interviewDate < monthFromNow;
+        default:
+          return interviewDate >= today;
+      }
+    }).sort((a, b) => {
+      const dateA = new Date(a.interviewScheduledAt!).getTime();
+      const dateB = new Date(b.interviewScheduledAt!).getTime();
+      return dateA - dateB;
+    });
+  }
+
+  filterInterviewsByDate(filter: 'today' | 'week' | 'month'): void {
+    this.interviewFilter = filter;
+  }
+
+  formatInterviewTime(dateString: string | undefined): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  formatInterviewDate(dateString: string | undefined): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  rescheduleInterview(application: ApplicationResponse): void {
+    this.openInterviewModal(application);
+  }
+
+  cancelInterviewFromPanel(application: ApplicationResponse): void {
+    console.log('Cancel interview called for application:', application.id);
+    
+    if (!confirm(`Are you sure you want to cancel the interview with ${application.firstName} ${application.lastName}?`)) {
+      console.log('Cancel interview cancelled by user');
+      return;
+    }
+
+    const reason = prompt('Cancellation reason (optional):');
+    console.log('Cancel reason:', reason);
+    
+    this.isLoading = true;
+    
+    this.recruitmentService.cancelInterviewByApplicationId(application.id, reason || undefined).subscribe({
+      next: () => {
+        console.log('Interview cancelled successfully');
+        this.successMessage = 'Interview cancelled successfully. Notification email sent.';
+        this.loadApplications();
+        this.loadUpcomingInterviews();
+        this.isLoading = false;
+        setTimeout(() => this.successMessage = '', 3000);
+      },
+      error: (error) => {
+        console.error('Failed to cancel interview:', error);
+        console.error('Error details:', error.error);
+        
+        let errorMsg = 'Failed to cancel interview';
+        if (error.status === 400) {
+          errorMsg = 'No scheduled interview found for this application';
+        } else if (error.error?.message) {
+          errorMsg = error.error.message;
+        }
+        
+        this.errorMessage = errorMsg;
+        this.isLoading = false;
+        setTimeout(() => this.errorMessage = '', 5000);
+      }
+    });
+  }
+
+  // AI Insights Methods
+  getPendingReviewCount(): number {
+    return this.applications.filter(app => app.status === 'SUBMITTED' || app.status === 'UNDER_REVIEW').length;
+  }
+
+  getAverageScore(): number {
+    const scoredApps = this.applications.filter(app => app.overallScore);
+    if (scoredApps.length === 0) return 0;
+    const sum = scoredApps.reduce((acc, app) => acc + (app.overallScore || 0), 0);
+    return Math.round(sum / scoredApps.length);
+  }
+
+  getAvgProcessingTime(): number {
+    const processedApps = this.applications.filter(app => 
+      (app.status === 'ACCEPTED' || app.status === 'REJECTED') && app.submittedAt
+    );
+    
+    if (processedApps.length === 0) return 0;
+    
+    const totalDays = processedApps.reduce((acc, app) => {
+      const submitted = new Date(app.submittedAt!).getTime();
+      const reviewed = new Date(app.reviewedAt || app.createdAt).getTime();
+      const days = Math.floor((reviewed - submitted) / (1000 * 60 * 60 * 24));
+      return acc + days;
+    }, 0);
+    
+    return Math.round(totalDays / processedApps.length);
+  }
+
+  getAcceptanceRate(): number {
+    const decidedApps = this.applications.filter(app => 
+      app.status === 'ACCEPTED' || app.status === 'REJECTED'
+    );
+    
+    if (decidedApps.length === 0) return 0;
+    
+    const acceptedCount = decidedApps.filter(app => app.status === 'ACCEPTED').length;
+    return Math.round((acceptedCount / decidedApps.length) * 100);
+  }
+
+  // New methods for date/time selection
+  generateNextAvailableDays(count: number): DayOption[] {
+    const days: DayOption[] = [];
+    const today = new Date();
+    
+    for (let i = 0; i < count; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      
+      days.push({
+        dateStr: this.formatDateStr(date),
+        dayName: dayNames[date.getDay()],
+        dayNumber: date.getDate().toString(),
+        monthName: monthNames[date.getMonth()],
+        isToday: i === 0,
+        isWeekend: date.getDay() === 0 || date.getDay() === 6
+      });
+    }
+    
+    console.log('Days generated:', days);
+    return days;
+  }
+
+  formatDateStr(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  selectInterviewDate(dateStr: string): void {
+    console.log('🗓️ Date selected:', dateStr);
+    console.log('Previous selected date:', this.selectedInterviewDate);
+    this.selectedInterviewDate = dateStr;
+    this.selectedInterviewTimeSlot = '';
+    this.interviewTimeSlots = [];
+    console.log('Date selection updated, loading time slots...');
+    this.loadAvailableTimeSlots();
+  }
+
+  loadAvailableTimeSlots(): void {
+    if (!this.selectedInterviewDate) {
+      console.log('No date selected, skipping time slots load');
+      return;
+    }
+    
+    console.log('Loading time slots for date:', this.selectedInterviewDate);
+    this.isCheckingAvailability = true;
+    
+    const startDate = this.selectedInterviewDate;
+    const endDate = this.selectedInterviewDate;
+    
+    this.recruitmentService.getCalendarAvailability({ startDate, endDate }).subscribe({
+      next: (response) => {
+        console.log('Availability response:', response);
+        this.generateTimeSlots(response);
+        this.isCheckingAvailability = false;
+      },
+      error: (error) => {
+        console.error('Failed to check availability', error);
+        this.generateTimeSlots(null);
+        this.isCheckingAvailability = false;
+      }
+    });
+  }
+
+  generateTimeSlots(availability: any): void {
+    console.log('Generating time slots with availability:', availability);
+    const slots: TimeSlotOption[] = [];
+    const startHour = 9;
+    const endHour = 18;
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        
+        let conflict: string | undefined;
+        if (availability) {
+          const slotStart = new Date(`${this.selectedInterviewDate}T${timeStr}:00`);
+          const slotEnd = new Date(slotStart.getTime() + this.durationMinutes * 60000);
+          conflict = this.checkSlotConflict(slotStart, slotEnd, availability);
+        }
+        
+        slots.push({
+          time: timeStr,
+          available: !conflict,
+          conflictsWith: conflict
+        });
+      }
+    }
+    
+    console.log('Generated slots:', slots.length);
+    this.interviewTimeSlots = slots;
+  }
+
+  checkSlotConflict(start: Date, end: Date, availability: any): string | undefined {
+    if (!availability || !availability.scheduledEvents) return undefined;
+    
+    for (const event of availability.scheduledEvents) {
+      const eventStart = new Date(event.start);
+      const eventEnd = new Date(event.end);
+      
+      if ((start < eventEnd && end > eventStart)) {
+        return event.candidateName || event.title;
+      }
+    }
+    return undefined;
+  }
+
+  selectInterviewTimeSlot(slot: TimeSlotOption): void {
+    console.log('⏰ Time slot clicked:', slot);
+    if (!slot.available) {
+      console.log('❌ Slot not available, ignoring click');
+      return;
+    }
+    console.log('✅ Setting selected time slot to:', slot.time);
+    this.selectedInterviewTimeSlot = slot.time;
+    console.log('Selected time slot updated:', this.selectedInterviewTimeSlot);
+  }
+
+  formatSelectedDateTime(): string {
+    if (!this.selectedInterviewDate || !this.selectedInterviewTimeSlot) return '';
+    
+    const date = new Date(this.selectedInterviewDate);
+    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    return `${dayNames[date.getDay()]}, ${monthNames[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} at ${this.selectedInterviewTimeSlot}`;
   }
 }

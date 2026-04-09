@@ -59,6 +59,7 @@ export interface ApplicationResponse {
   createdAt: string;
   submittedAt?: string;
   interviewScheduledAt?: string;
+  interviewMeetingLink?: string;
   reviewedAt?: string;
   reviewedBy?: number;
   documents?: DocumentResponse[];
@@ -66,6 +67,7 @@ export interface ApplicationResponse {
   qualificationScore?: number;
   presentationScore?: number;
   overallScore?: number;
+  meetingLink?: string;
 }
 
 export interface DocumentResponse {
@@ -148,6 +150,48 @@ export interface ApplicationStatistics {
   interviewScheduled: number;
   accepted: number;
   rejected: number;
+}
+
+export interface CalendarAvailabilityRequest {
+  startDate: string;
+  endDate: string;
+  interviewerId?: number;
+}
+
+export interface CalendarAvailabilityResponse {
+  startDate: string;
+  endDate: string;
+  interviewerId: number;
+  interviewerName: string;
+  scheduledEvents: CalendarEventResponse[];
+  busySlots: TimeSlot[];
+  availableSlots?: TimeSlot[];
+  hasConflicts: boolean;
+  message: string;
+}
+
+export interface CalendarEventResponse {
+  scheduleId?: number;
+  googleEventId?: string;
+  title: string;
+  description?: string;
+  start: string;
+  end: string;
+  durationMinutes?: number;
+  meetingLink?: string;
+  platform?: string;
+  status?: string;
+  applicationId?: number;
+  candidateName?: string;
+  candidateEmail?: string;
+  source?: 'LOCAL_DB' | 'GOOGLE_CALENDAR' | 'BOTH';
+}
+
+export interface TimeSlot {
+  date: string;
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
 }
 
 @Injectable({
@@ -240,6 +284,31 @@ export class RecruitmentService {
 
   getAvailablePlatforms(): Observable<{ [key: string]: boolean }> {
     return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/available-platforms`);
+  }
+
+  // Calendar methods
+  getCalendarAvailability(data: CalendarAvailabilityRequest): Observable<CalendarAvailabilityResponse> {
+    return this.http.post<CalendarAvailabilityResponse>(`${this.apiUrl}/calendar/availability`, data);
+  }
+
+  getUpcomingInterviews(): Observable<CalendarEventResponse[]> {
+    return this.http.get<CalendarEventResponse[]>(`${this.apiUrl}/calendar/upcoming`);
+  }
+
+  cancelInterview(scheduleId: number, reason?: string): Observable<any> {
+    const params: any = {};
+    if (reason) {
+      params.reason = reason;
+    }
+    return this.http.delete(`${this.apiUrl}/calendar/${scheduleId}`, { params });
+  }
+
+  cancelInterviewByApplicationId(applicationId: number, reason?: string): Observable<any> {
+    const params: any = {};
+    if (reason) {
+      params.reason = reason;
+    }
+    return this.http.delete(`${this.apiUrl}/${applicationId}/interview`, { params });
   }
 
 }

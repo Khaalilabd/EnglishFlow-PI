@@ -606,6 +606,11 @@ export const routes: Routes = [
         title: 'Tutor Recruitment | Jungle in English Dashboard'
       },
       {
+        path: 'interview-calendar',
+        loadComponent: () => import('./pages/admin-panel/interview-calendar/interview-calendar.component').then(m => m.InterviewCalendarComponent),
+        title: 'Interview Calendar | Jungle in English Dashboard'
+      },
+      {
         path: 'sessions',
         loadComponent: () => import('./pages/admin-sessions/admin-sessions.component').then(m => m.AdminSessionsComponent),
         title: 'Session Management | Jungle in English Dashboard'

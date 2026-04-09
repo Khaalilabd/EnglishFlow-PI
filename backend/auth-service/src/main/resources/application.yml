@@ -95,6 +95,9 @@ meeting:
   google:
     enabled: ${GOOGLE_MEET_ENABLED:false}
     credentials-file: ${GOOGLE_CALENDAR_CREDENTIALS_FILE:#{null}}
+    oauth-credentials-file: ${GOOGLE_OAUTH_CREDENTIALS_FILE:credentials/google-oauth-credentials.json}
+    use-oauth: ${GOOGLE_USE_OAUTH:true}
+    tokens-directory: ${GOOGLE_TOKENS_DIRECTORY:tokens}
   zoom:
     enabled: ${ZOOM_ENABLED:false}
     account-id: ${ZOOM_ACCOUNT_ID:#{null}}
