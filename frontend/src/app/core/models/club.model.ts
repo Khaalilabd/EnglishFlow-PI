@@ -5,10 +5,7 @@ export interface Club {
   objective?: string;
   category: ClubCategory;
   maxMembers: number;
-<<<<<<< HEAD
-=======
   registrationFee?: number; // Frais d'inscription
->>>>>>> origin/club/event-service
   image?: string; // Base64 encoded image
   status?: ClubStatus;
   createdBy?: number;
@@ -20,10 +17,7 @@ export interface Club {
   suspensionReason?: string; // Raison de la suspension
   suspendedAt?: string; // Date de suspension
   members?: Member[];
-<<<<<<< HEAD
-=======
   skills?: Skill[]; // Compétences associées au club
->>>>>>> origin/club/event-service
   createdAt?: string;
   updatedAt?: string;
   isFull?: boolean;
@@ -56,11 +50,8 @@ export interface Member {
   rank: RankType;
   userId: number;
   userName?: string; // Nom de l'utilisateur
-<<<<<<< HEAD
-=======
   userEmail?: string; // Email de l'utilisateur
   userPhoto?: string; // Photo de profil de l'utilisateur
->>>>>>> origin/club/event-service
   clubId?: number;
   joinedAt?: string;
   updatedAt?: string;
@@ -77,8 +68,6 @@ export enum RankType {
   MEMBER = 'MEMBER'                             // Membre
 }
 
-<<<<<<< HEAD
-=======
 export interface Skill {
   id?: number;
   name: string;
@@ -87,20 +76,15 @@ export interface Skill {
   createdAt?: string;
 }
 
->>>>>>> origin/club/event-service
 export interface CreateClubRequest {
   name: string;
   description: string;
   objective?: string;
   category: ClubCategory;
   maxMembers: number;
-<<<<<<< HEAD
-  image?: string;
-=======
   registrationFee?: number;
   image?: string;
   skills?: Skill[];
->>>>>>> origin/club/event-service
   createdBy?: number;
 }
 
@@ -110,13 +94,9 @@ export interface UpdateClubRequest {
   objective?: string;
   category?: ClubCategory;
   maxMembers?: number;
-<<<<<<< HEAD
-  image?: string;
-=======
   registrationFee?: number;
   image?: string;
   skills?: Skill[];
->>>>>>> origin/club/event-service
 }
 
 export interface ApproveClubRequest {
@@ -127,8 +107,6 @@ export interface ApproveClubRequest {
 export interface JoinClubRequest {
   userId: number;
 }
-<<<<<<< HEAD
-=======
 
 export interface MembershipRequest {
   id?: number;
@@ -160,4 +138,3 @@ export interface CreateMembershipRequest {
   motivationLetter?: string; // Lettre de motivation
   studentSkills?: string; // Compétences de l'étudiant
 }
->>>>>>> origin/club/event-service

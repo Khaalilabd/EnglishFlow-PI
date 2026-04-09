@@ -3,10 +3,7 @@ package com.englishflow.club.service;
 import com.englishflow.club.dto.TaskDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Task;
-<<<<<<< HEAD
-=======
 import com.englishflow.club.enums.ClubHistoryType;
->>>>>>> origin/club/event-service
 import com.englishflow.club.enums.TaskStatus;
 import com.englishflow.club.repository.ClubRepository;
 import com.englishflow.club.repository.TaskRepository;
@@ -24,10 +21,7 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ClubRepository clubRepository;
     private final MemberService memberService;
-<<<<<<< HEAD
-=======
     private final ClubHistoryService clubHistoryService;
->>>>>>> origin/club/event-service
     
     @Transactional(readOnly = true)
     public List<TaskDTO> getTasksByClubId(Integer clubId, Long userId) {
@@ -60,27 +54,15 @@ public class TaskService {
         Club club = clubRepository.findById(taskDTO.getClubId())
                 .orElseThrow(() -> new RuntimeException("Club not found with id: " + taskDTO.getClubId()));
         
-<<<<<<< HEAD
-        // Check if user is the president of the club
-        if (!memberService.isPresident(taskDTO.getClubId(), userId)) {
-            throw new RuntimeException("Only the president can create tasks");
-=======
         // Check if user has management role (President, VP, or Secretary)
         if (!memberService.hasManagementRole(taskDTO.getClubId(), userId)) {
             throw new RuntimeException("Only club managers (President, VP, Secretary) can create tasks");
->>>>>>> origin/club/event-service
         }
         
         Task task = Task.builder()
                 .text(taskDTO.getText())
                 .status(taskDTO.getStatus() != null ? taskDTO.getStatus() : TaskStatus.TODO)
                 .club(club)
-<<<<<<< HEAD
-                .createdBy(taskDTO.getCreatedBy())
-                .build();
-        
-        Task savedTask = taskRepository.save(task);
-=======
                 .createdBy(userId != null ? userId.intValue() : null)
                 .build();
         
@@ -92,7 +74,6 @@ public class TaskService {
             "New task: " + taskDTO.getText(), null, taskDTO.getText(), userId
         );
 
->>>>>>> origin/club/event-service
         return convertToDTO(savedTask);
     }
     
@@ -101,13 +82,6 @@ public class TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
         
-<<<<<<< HEAD
-        // Check if user is the president of the club
-        if (!memberService.isPresident(task.getClub().getId(), userId)) {
-            throw new RuntimeException("Only the president can update tasks");
-        }
-        
-=======
         // Check if user has management role (President, VP, or Secretary)
         if (!memberService.hasManagementRole(task.getClub().getId(), userId)) {
             throw new RuntimeException("Only club managers (President, VP, Secretary) can update tasks");
@@ -117,7 +91,6 @@ public class TaskService {
         String oldStatus = task.getStatus() != null ? task.getStatus().toString() : null;
         String oldText = task.getText();
 
->>>>>>> origin/club/event-service
         // Update only non-null fields (partial update)
         if (taskDTO.getText() != null) {
             task.setText(taskDTO.getText());
@@ -127,8 +100,6 @@ public class TaskService {
         }
         
         Task updatedTask = taskRepository.save(task);
-<<<<<<< HEAD
-=======
 
         String description = taskDTO.getStatus() != null
             ? "Status changed to: " + taskDTO.getStatus()
@@ -142,7 +113,6 @@ public class TaskService {
             userId
         );
 
->>>>>>> origin/club/event-service
         return convertToDTO(updatedTask);
     }
     
@@ -151,13 +121,6 @@ public class TaskService {
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found with id: " + id));
         
-<<<<<<< HEAD
-        // Check if user is the president of the club
-        if (!memberService.isPresident(task.getClub().getId(), userId)) {
-            throw new RuntimeException("Only the president can delete tasks");
-        }
-        
-=======
         // Check if user has management role (President, VP, or Secretary)
         if (!memberService.hasManagementRole(task.getClub().getId(), userId)) {
             throw new RuntimeException("Only club managers (President, VP, Secretary) can delete tasks");
@@ -169,7 +132,6 @@ public class TaskService {
             "Deleted task: " + task.getText(), task.getText(), null, userId
         );
 
->>>>>>> origin/club/event-service
         taskRepository.deleteById(id);
     }
     

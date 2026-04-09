@@ -13,16 +13,11 @@ export class TaskService {
   constructor(private http: HttpClient) {}
 
   getTasksByClubId(clubId: number, userId?: number): Observable<Task[]> {
-<<<<<<< HEAD
-    const userIdParam = userId || 0;
-    return this.http.get<Task[]>(`${this.apiUrl}/club/${clubId}?userId=${userIdParam}`);
-=======
     if (!userId) {
       console.error('TaskService: userId is required for getTasksByClubId');
       throw new Error('User ID is required');
     }
     return this.http.get<Task[]>(`${this.apiUrl}/club/${clubId}?userId=${userId}`);
->>>>>>> origin/club/event-service
   }
 
   getTasksByClubIdAndStatus(clubId: number, status: TaskStatus): Observable<Task[]> {
@@ -34,21 +29,6 @@ export class TaskService {
   }
 
   createTask(task: CreateTaskRequest): Observable<Task> {
-<<<<<<< HEAD
-    // Add userId as query parameter
-    const userId = task.createdBy || 0;
-    return this.http.post<Task>(`${this.apiUrl}?userId=${userId}`, task);
-  }
-
-  updateTask(id: number, task: UpdateTaskRequest, userId?: number): Observable<Task> {
-    const userIdParam = userId || 0;
-    return this.http.put<Task>(`${this.apiUrl}/${id}?userId=${userIdParam}`, task);
-  }
-
-  deleteTask(id: number, userId?: number): Observable<void> {
-    const userIdParam = userId || 0;
-    return this.http.delete<void>(`${this.apiUrl}/${id}?userId=${userIdParam}`);
-=======
     if (!task.createdBy) {
       console.error('TaskService: createdBy is required for createTask');
       throw new Error('User ID is required');
@@ -70,7 +50,6 @@ export class TaskService {
       throw new Error('User ID is required');
     }
     return this.http.delete<void>(`${this.apiUrl}/${id}?userId=${userId}`);
->>>>>>> origin/club/event-service
   }
 
   countTasksByStatus(clubId: number, status: TaskStatus): Observable<number> {

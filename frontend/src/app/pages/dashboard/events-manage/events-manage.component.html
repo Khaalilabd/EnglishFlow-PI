@@ -7,11 +7,7 @@
 
   <!-- Loading State -->
   <div *ngIf="loading" class="flex justify-center items-center py-12">
-<<<<<<< HEAD
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-=======
     <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
->>>>>>> origin/club/event-service
   </div>
 
   <!-- Error State -->
@@ -32,11 +28,7 @@
     <div *ngIf="allEvents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       <div *ngFor="let event of allEvents" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
         <!-- Event Image -->
-<<<<<<< HEAD
-        <div class="h-48 relative" [ngClass]="event.status === 'APPROVED' ? 'bg-gradient-to-br from-green-500 to-green-700' : 'bg-gradient-to-br from-red-500 to-red-700'">
-=======
         <div class="h-48 relative" [ngClass]="event.status === 'APPROVED' ? 'bg-gradient-to-br from-[#124559] to-[#0d2d3a]' : 'bg-gradient-to-br from-[#C84630] to-[#a83820]'">
->>>>>>> origin/club/event-service
           <div *ngIf="event.image" class="w-full h-full">
             <img [src]="event.image" [alt]="event.title" class="w-full h-full object-cover">
           </div>
@@ -51,11 +43,7 @@
           </div>
           <!-- Status Badge -->
           <div class="absolute top-4 left-4">
-<<<<<<< HEAD
-            <span *ngIf="event.status === 'APPROVED'" class="px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-=======
             <span *ngIf="event.status === 'APPROVED'" class="px-3 py-1 rounded-full text-xs font-semibold bg-[#F6BD60] text-gray-900 dark:bg-[#F6BD60] dark:text-gray-900">
->>>>>>> origin/club/event-service
               APPROVED
             </span>
             <span *ngIf="event.status === 'REJECTED'" class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
@@ -96,12 +84,8 @@
           <!-- Creator Info -->
           <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
             <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Created by</p>
-<<<<<<< HEAD
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">User ID: {{ event.creatorId || 'Unknown' }}</p>
-=======
             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ event.creatorName || 'User ID: ' + event.creatorId }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" *ngIf="event.creatorEmail">{{ event.creatorEmail }}</p>
->>>>>>> origin/club/event-service
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ formatDate(event.createdAt!) }}</p>
           </div>
 
@@ -109,11 +93,7 @@
           <div class="space-y-2">
             <button
               (click)="viewEventDetails(event)"
-<<<<<<< HEAD
-              class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-=======
               class="w-full bg-gradient-to-r from-[#124559] to-[#0d2d3a] hover:from-[#0d2d3a] hover:to-[#01161e] text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
->>>>>>> origin/club/event-service
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
@@ -139,22 +119,14 @@
 <div *ngIf="showDetailsModal && selectedEvent" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeDetailsModal()">
   <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" (click)="$event.stopPropagation()">
     <!-- Modal Header -->
-<<<<<<< HEAD
-    <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
-=======
     <div class="bg-gradient-to-r from-[#124559] to-[#0d2d3a] p-6 text-white">
->>>>>>> origin/club/event-service
       <div class="flex justify-between items-start">
         <div class="flex-1">
           <div class="flex items-center gap-3 mb-2">
             <span class="text-4xl">{{ getEventIcon(selectedEvent.type) }}</span>
             <div>
               <h2 class="text-2xl font-bold">{{ selectedEvent.title }}</h2>
-<<<<<<< HEAD
-              <span *ngIf="selectedEvent.status === 'APPROVED'" class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-800">
-=======
               <span *ngIf="selectedEvent.status === 'APPROVED'" class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#F6BD60] text-gray-900">
->>>>>>> origin/club/event-service
                 APPROVED
               </span>
               <span *ngIf="selectedEvent.status === 'REJECTED'" class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
@@ -202,11 +174,7 @@
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Date & Time</p>
             <div class="space-y-2">
               <div class="flex items-center gap-2">
-<<<<<<< HEAD
-                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
                 <svg class="w-5 h-5 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> origin/club/event-service
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <div>
@@ -215,11 +183,7 @@
                 </div>
               </div>
               <div class="flex items-center gap-2">
-<<<<<<< HEAD
-                <svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-=======
                 <svg class="w-5 h-5 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
->>>>>>> origin/club/event-service
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <div>
@@ -259,12 +223,8 @@
           <!-- Creator -->
           <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
             <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Created by</p>
-<<<<<<< HEAD
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">User ID: {{ selectedEvent.creatorId || 'Unknown' }}</p>
-=======
             <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedEvent.creatorName || 'User ID: ' + selectedEvent.creatorId }}</p>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" *ngIf="selectedEvent.creatorEmail">{{ selectedEvent.creatorEmail }}</p>
->>>>>>> origin/club/event-service
           </div>
 
           <!-- Created At -->
@@ -281,8 +241,6 @@
         </div>
       </div>
 
-<<<<<<< HEAD
-=======
       <!-- Sponsors Section -->
       <div *ngIf="selectedEvent.sponsors && selectedEvent.sponsors.length > 0" class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Event Sponsors</h3>
@@ -307,7 +265,6 @@
         </div>
       </div>
 
->>>>>>> origin/club/event-service
       <!-- Gallery -->
       <div *ngIf="selectedEvent.gallery && selectedEvent.gallery.length > 0" class="mb-6">
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Gallery</h3>
@@ -337,8 +294,5 @@
     </div>
   </div>
 </div>
-<<<<<<< HEAD
-=======
 
 
->>>>>>> origin/club/event-service

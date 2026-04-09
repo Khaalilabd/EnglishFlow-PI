@@ -33,8 +33,6 @@ public class MemberController {
     }
 
     
-<<<<<<< HEAD
-=======
     @GetMapping("/club/{clubId}/user/{userId}")
     public ResponseEntity<MemberDTO> getMemberByClubAndUser(
             @PathVariable Integer clubId,
@@ -44,7 +42,6 @@ public class MemberController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
->>>>>>> origin/club/event-service
     @PostMapping("/club/{clubId}/user/{userId}")
     public ResponseEntity<MemberDTO> addMemberToClub(
             @PathVariable Integer clubId,

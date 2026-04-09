@@ -1,26 +1,15 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
-import { ClubService } from '../../../core/services/club.service';
-import { ClubCategory } from '../../../core/models/club.model';
-=======
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { ClubService } from '../../../core/services/club.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { ClubCategory, Skill } from '../../../core/models/club.model';
->>>>>>> origin/club/event-service
 
 @Component({
   selector: 'app-club-create',
   standalone: true,
-<<<<<<< HEAD
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-=======
   imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink],
->>>>>>> origin/club/event-service
   templateUrl: './club-create.component.html',
   styleUrls: ['./club-create.component.scss']
 })
@@ -29,8 +18,6 @@ export class ClubCreateComponent {
   loading = false;
   error: string | null = null;
   categories = Object.values(ClubCategory);
-<<<<<<< HEAD
-=======
   currentUserId: number | null = null;
   
   // Wizard
@@ -45,28 +32,16 @@ export class ClubCreateComponent {
   // Image upload
   selectedImageFile: File | null = null;
   imagePreview: string | null = null;
->>>>>>> origin/club/event-service
 
   constructor(
     private fb: FormBuilder,
     private clubService: ClubService,
-<<<<<<< HEAD
-=======
     private authService: AuthService,
->>>>>>> origin/club/event-service
     private router: Router
   ) {
     this.clubForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
-<<<<<<< HEAD
-      category: ['', Validators.required],
-      maxMembers: [20, [Validators.required, Validators.min(5), Validators.max(100)]]
-    });
-  }
-
-  onSubmit() {
-=======
       objective: [''],
       category: ['', Validators.required],
       maxMembers: [20, [Validators.required, Validators.min(5), Validators.max(100)]],
@@ -162,7 +137,6 @@ export class ClubCreateComponent {
   }
 
   async onSubmit() {
->>>>>>> origin/club/event-service
     if (this.clubForm.invalid) {
       this.clubForm.markAllAsTouched();
       return;
@@ -171,18 +145,6 @@ export class ClubCreateComponent {
     this.loading = true;
     this.error = null;
 
-<<<<<<< HEAD
-    this.clubService.createClub(this.clubForm.value).subscribe({
-      next: (club) => {
-        this.router.navigate(['/dashboard/clubs', club.id]);
-      },
-      error: (err) => {
-        console.error('Error creating club:', err);
-        this.error = 'Failed to create club. Please try again.';
-        this.loading = false;
-      }
-    });
-=======
     try {
       const clubData: any = { ...this.clubForm.value };
       
@@ -215,7 +177,6 @@ export class ClubCreateComponent {
       this.error = 'Failed to process image. Please try again.';
       this.loading = false;
     }
->>>>>>> origin/club/event-service
   }
 
   isFieldInvalid(fieldName: string): boolean {

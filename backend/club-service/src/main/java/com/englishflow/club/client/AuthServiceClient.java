@@ -23,7 +23,7 @@ public class AuthServiceClient {
     
     public UserInfoDTO getUserInfo(Long userId) {
         try {
-            String url = authServiceUrl + "/users/" + userId;
+            String url = authServiceUrl + "/api/users/" + userId;
             log.debug("Fetching user info from: {}", url);
             
             UserInfoDTO userInfo = restTemplate.getForObject(url, UserInfoDTO.class);
@@ -49,7 +49,7 @@ public class AuthServiceClient {
         }
         
         try {
-            String url = authServiceUrl + "/users/batch";
+            String url = authServiceUrl + "/api/users/batch";
             log.debug("Fetching batch user info from: {} for {} users", url, userIds.size());
             
             Map<String, List<Long>> requestBody = Map.of("userIds", userIds);
@@ -79,7 +79,7 @@ public class AuthServiceClient {
     
     public void sendClubPaymentRequiredEmail(String email, String firstName, String clubName, Double registrationFee, String paymentLink) {
         try {
-            String url = authServiceUrl + "/email/club-payment-required";
+            String url = authServiceUrl + "/api/email/club-payment-required";
             log.info("📧 Sending payment required email to: {}", email);
 
             Map<String, String> requestBody = new HashMap<>();
@@ -98,7 +98,7 @@ public class AuthServiceClient {
 
     public void sendClubMembershipRequestPendingEmail(String email, String firstName, String clubName, String message) {
         try {
-            String url = authServiceUrl + "/email/club-membership-request-pending";
+            String url = authServiceUrl + "/api/email/club-membership-request-pending";
             log.info("📧 Attempting to send club membership request pending email to: {}", email);
             log.info("📧 Email endpoint URL: {}", url);
             log.info("📧 Request details - firstName: {}, clubName: {}, message: {}", 

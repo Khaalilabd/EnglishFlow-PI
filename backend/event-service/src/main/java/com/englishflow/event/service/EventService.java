@@ -27,11 +27,8 @@ public class EventService {
     private final PermissionService permissionService;
     private final EventMapper eventMapper;
     private final com.englishflow.event.client.ClubServiceClient clubServiceClient;
-<<<<<<< HEAD
-=======
     private final com.englishflow.event.client.SponsorServiceClient sponsorServiceClient;
     private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
->>>>>>> origin/club/event-service
     
     @Cacheable(value = "events", key = "'all'")
     @Transactional(readOnly = true)
@@ -70,26 +67,16 @@ public class EventService {
     @Cacheable(value = "upcomingEvents")
     @Transactional(readOnly = true)
     public List<EventDTO> getUpcomingEvents() {
-<<<<<<< HEAD
-        log.info("Fetching upcoming events");
-        try {
-            LocalDateTime now = LocalDateTime.now();
-            log.debug("Current time: {}", now);
-=======
         log.info("Fetching upcoming events (not started yet)");
         try {
             LocalDateTime now = LocalDateTime.now();
             log.debug("Current time: {}", now);
             // Événements qui n'ont pas encore commencé
->>>>>>> origin/club/event-service
             List<Event> events = eventRepository.findByStartDateAfter(now);
             log.info("Found {} upcoming events", events.size());
             return events.stream()
                     .map(event -> enrichEventWithClubName(eventMapper.toDTO(event)))
-<<<<<<< HEAD
-=======
                     .sorted((e1, e2) -> e1.getStartDate().compareTo(e2.getStartDate())) // Tri par date de début la plus proche
->>>>>>> origin/club/event-service
                     .collect(Collectors.toList());
         } catch (Exception e) {
             log.error("Error fetching upcoming events", e);
@@ -97,8 +84,6 @@ public class EventService {
         }
     }
     
-<<<<<<< HEAD
-=======
     @Cacheable(value = "ongoingEvents")
     @Transactional(readOnly = true)
     public List<EventDTO> getOngoingEvents() {
@@ -138,7 +123,6 @@ public class EventService {
         }
     }
     
->>>>>>> origin/club/event-service
     @Transactional(readOnly = true)
     public List<EventDTO> getEventsByCreator(Long creatorId) {
         log.info("Fetching events created by user: {}", creatorId);
@@ -161,15 +145,6 @@ public class EventService {
                 eventDTO.setClubName("Unknown Club");
             }
         }
-<<<<<<< HEAD
-        return eventDTO;
-    }
-    
-    @Caching(evict = {
-        @CacheEvict(value = "events", key = "'all'"),
-        @CacheEvict(value = "eventsByType", allEntries = true),
-        @CacheEvict(value = "upcomingEvents", allEntries = true)
-=======
         
         // Enrich with sponsor data
         enrichEventWithSponsors(eventDTO);
@@ -206,7 +181,6 @@ public class EventService {
         @CacheEvict(value = "upcomingEvents", allEntries = true),
         @CacheEvict(value = "ongoingEvents", allEntries = true),
         @CacheEvict(value = "pastEvents", allEntries = true)
->>>>>>> origin/club/event-service
     })
     @Transactional
     public EventDTO createEvent(EventDTO eventDTO) {
@@ -246,8 +220,6 @@ public class EventService {
         Event event = eventMapper.toEntity(eventDTO);
         event.setCurrentParticipants(0);
         Event savedEvent = eventRepository.save(event);
-<<<<<<< HEAD
-=======
         
         // 🔔 Envoyer notification WebSocket
         wsNotificationService.notifyEventCreated(
@@ -255,7 +227,6 @@ public class EventService {
             savedEvent.getTitle()
         );
         
->>>>>>> origin/club/event-service
         log.info("Event created successfully by user: {}", eventDTO.getCreatorId());
         return enrichEventWithClubName(eventMapper.toDTO(savedEvent));
     }
@@ -274,8 +245,6 @@ public class EventService {
         
         eventMapper.updateEntityFromDTO(eventDTO, event);
         Event updatedEvent = eventRepository.save(event);
-<<<<<<< HEAD
-=======
         
         // 🔔 Envoyer notification WebSocket
         wsNotificationService.notifyEventUpdated(
@@ -283,7 +252,6 @@ public class EventService {
             updatedEvent.getTitle()
         );
         
->>>>>>> origin/club/event-service
         log.info("Event updated successfully: {}", id);
         return enrichEventWithClubName(eventMapper.toDTO(updatedEvent));
     }
@@ -292,23 +260,13 @@ public class EventService {
         @CacheEvict(value = "events", key = "'all'"),
         @CacheEvict(value = "eventById", key = "#id"),
         @CacheEvict(value = "eventsByType", allEntries = true),
-<<<<<<< HEAD
-        @CacheEvict(value = "upcomingEvents", allEntries = true)
-=======
         @CacheEvict(value = "upcomingEvents", allEntries = true),
         @CacheEvict(value = "ongoingEvents", allEntries = true),
         @CacheEvict(value = "pastEvents", allEntries = true)
->>>>>>> origin/club/event-service
     })
     @Transactional
     public void deleteEvent(Integer id) {
         log.info("Deleting event id: {}", id);
-<<<<<<< HEAD
-        if (!eventRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Event not found with id: " + id);
-        }
-        eventRepository.deleteById(id);
-=======
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
         
@@ -318,7 +276,6 @@ public class EventService {
         // 🔔 Envoyer notification WebSocket
         wsNotificationService.notifyEventCancelled(id.longValue(), eventTitle);
         
->>>>>>> origin/club/event-service
         log.info("Event deleted successfully: {}", id);
     }
     
@@ -348,11 +305,7 @@ public class EventService {
         return enrichEventWithClubName(eventMapper.toDTO(updatedEvent));
     }
     
-<<<<<<< HEAD
-    @CacheEvict(value = {"events", "eventById", "eventsByType", "upcomingEvents"}, allEntries = true)
-=======
     @CacheEvict(value = {"events", "eventById", "eventsByType", "upcomingEvents", "ongoingEvents", "pastEvents"}, allEntries = true)
->>>>>>> origin/club/event-service
     @Transactional
     public int syncClubNamesForAllEvents() {
         log.info("Syncing club names for all events");

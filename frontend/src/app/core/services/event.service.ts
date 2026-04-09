@@ -7,11 +7,8 @@ export interface Event {
   id?: number;
   title: string;
   type: 'WORKSHOP' | 'SEMINAR' | 'SOCIAL';
-<<<<<<< HEAD
-=======
   format?: 'ONLINE' | 'IN_PERSON';
   meetingLink?: string;
->>>>>>> origin/club/event-service
   startDate: string;
   endDate: string;
   location: string;
@@ -29,19 +26,14 @@ export interface Event {
   createdAt?: string;
   updatedAt?: string;
   
-<<<<<<< HEAD
-=======
   // Sponsor information
   sponsorIds?: number[]; // Array of sponsor IDs
   sponsors?: EventSponsor[]; // Array of sponsor details
   
->>>>>>> origin/club/event-service
   // Backward compatibility (deprecated)
   eventDate?: string;
 }
 
-<<<<<<< HEAD
-=======
 export interface EventSponsor {
   id: number;
   name: string;
@@ -50,7 +42,6 @@ export interface EventSponsor {
   contributionAmount?: number;
 }
 
->>>>>>> origin/club/event-service
 export interface Participant {
   id?: number;
   eventId: number;
@@ -99,8 +90,6 @@ export class EventService {
     return this.http.get<Event[]>(`${this.apiUrl}/upcoming`);
   }
 
-<<<<<<< HEAD
-=======
   getOngoingEvents(): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.apiUrl}/ongoing`);
   }
@@ -109,7 +98,6 @@ export class EventService {
     return this.http.get<Event[]>(`${this.apiUrl}/past`);
   }
 
->>>>>>> origin/club/event-service
   getEventsByCreator(creatorId: number): Observable<Event[]> {
     return this.http.get<Event[]>(`${this.apiUrl}/creator/${creatorId}`);
   }

@@ -42,24 +42,15 @@
 
           <div class="flex items-center gap-3">
             @if (isClubPresident(selectedClub)) {
-<<<<<<< HEAD
-              <button
-                (click)="openEditModal(selectedClub)"
-=======
               <a
                 [routerLink]="['/user-panel/clubs', selectedClub.id, 'edit']"
->>>>>>> origin/club/event-service
                 class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105"
               >
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                 </svg>
                 Edit Club
-<<<<<<< HEAD
-              </button>
-=======
               </a>
->>>>>>> origin/club/event-service
             }
             
             @if (canViewHistory(selectedClub.id!)) {
@@ -136,11 +127,7 @@
             </div>
 
             <!-- Quick Stats Grid -->
-<<<<<<< HEAD
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-=======
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
->>>>>>> origin/club/event-service
               <!-- Role -->
               <div class="bg-white rounded-2xl p-6 border-2 border-[#F6BD60] hover:border-[#F6BD60] hover:shadow-lg transition-all shadow-md">
                 <div class="flex items-center gap-3 mb-4">
@@ -194,8 +181,6 @@
                 <p class="text-xl font-bold text-[#2D5757]">{{ selectedClub.status }}</p>
               </div>
 
-<<<<<<< HEAD
-=======
               <!-- Club Expenses (President, VP, Secretary, Treasurer) -->
               @if (getUserRole(selectedClub.id!) === 'PRESIDENT' || getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY' || getUserRole(selectedClub.id!) === 'TREASURER') {
                 <div 
@@ -214,7 +199,6 @@
                 </div>
               }
 
->>>>>>> origin/club/event-service
               <!-- Update Requests (VP/Secretary) -->
               @if (getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY') {
                 <div 
@@ -234,8 +218,6 @@
           </div>
         </div>
 
-<<<<<<< HEAD
-=======
         <!-- Membership Requests Card (President, Vice President, Secretary) -->
         @if (getUserRole(selectedClub.id!) === 'PRESIDENT' || getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY') {
           <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -282,7 +264,6 @@
           </div>
         }
 
->>>>>>> origin/club/event-service
         <!-- Content Sections -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
@@ -291,329 +272,6 @@
             
             <!-- Objective -->
             @if (selectedClub.objective) {
-<<<<<<< HEAD
-              <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] flex items-center justify-center shadow-md">
-                    <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 class="text-xl font-bold text-[#2D5757]">Club Objective</h2>
-                    <p class="text-xs text-gray-500">Our mission and goals</p>
-                  </div>
-                </div>
-                <p class="text-gray-700 leading-relaxed">{{ selectedClub.objective }}</p>
-              </div>
-            }
-
-            <!-- Tasks Section (President/VP/Secretary) -->
-            @if (getUserRole(selectedClub.id!) === 'PRESIDENT' || getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY') {
-              <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-                <div class="flex items-center gap-3 mb-4">
-                  <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#C84630] to-[#a83820] flex items-center justify-center shadow-md">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 class="text-xl font-bold text-[#2D5757]">Club Tasks</h2>
-                    <p class="text-xs text-gray-500">Manage and track activities</p>
-                  </div>
-                </div>
-
-                <!-- Add Task Input -->
-                <div class="mb-4">
-                  <div class="flex gap-2">
-                    <input
-                      type="text"
-                      [(ngModel)]="newTaskText"
-                      (keyup.enter)="addTask(selectedClub.id!)"
-                      placeholder="Add a new task..."
-                      class="flex-1 px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] transition-all text-sm"
-                    />
-                    <button
-                      (click)="addTask(selectedClub.id!)"
-                      [disabled]="!newTaskText.trim()"
-                      class="px-5 py-2.5 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-lg transition-all font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Tasks Kanban Board -->
-                @if (loadingTasks) {
-                  <div class="flex items-center justify-center py-8">
-                    <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-[#2D5757]"></div>
-                  </div>
-                } @else {
-                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <!-- Column 1: TO DO -->
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-3 border border-gray-200">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-gray-500 flex items-center justify-center shadow-md">
-                      <span class="text-lg">📋</span>
-                    </div>
-                    <div>
-                      <h3 class="text-sm font-bold text-gray-800">To Do</h3>
-                      <p class="text-xs text-gray-600">{{ getTasksByStatus(selectedClub.id!, TaskStatus.TODO).length }} tasks</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  cdkDropList
-                  #todoList="cdkDropList"
-                  [cdkDropListData]="getTasksByStatus(selectedClub.id!, TaskStatus.TODO)"
-                  [cdkDropListConnectedTo]="[inProgressList, doneList]"
-                  (cdkDropListDropped)="onTaskDrop($event, selectedClub.id!, TaskStatus.TODO)"
-                  class="space-y-2 min-h-[150px]"
-                >
-                  @for (task of getTasksByStatus(selectedClub.id!, TaskStatus.TODO); track task.id) {
-                    <div 
-                      cdkDrag
-                      [cdkDragData]="task"
-                      class="group bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-gray-500 cursor-move"
-                    >
-                      <!-- Drag Handle & Task Content -->
-                      <div class="flex items-center gap-2">
-                        <div cdkDragHandle class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
-                          </svg>
-                        </div>
-                        
-                        <!-- Edit Mode -->
-                        @if (isEditingTask(task.id!)) {
-                          <input
-                            type="text"
-                            [(ngModel)]="editingTaskText"
-                            (keyup.enter)="saveEditedTask(selectedClub.id!, task.id!)"
-                            (keyup.escape)="cancelEditingTask()"
-                            class="flex-1 px-2 py-1 text-xs font-medium border-2 border-[#2D5757] rounded focus:ring-2 focus:ring-[#F6BD60] focus:outline-none"
-                            autofocus
-                          />
-                          <button
-                            (click)="saveEditedTask(selectedClub.id!, task.id!)"
-                            class="p-1 text-green-600 hover:bg-green-50 rounded transition-all"
-                            title="Save"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                          </button>
-                          <button
-                            (click)="cancelEditingTask()"
-                            class="p-1 text-gray-600 hover:bg-gray-50 rounded transition-all"
-                            title="Cancel"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        } @else {
-                          <!-- View Mode -->
-                          <p class="text-xs font-medium text-gray-800 flex-1">{{ task.text }}</p>
-                          <button
-                            (click)="startEditingTask(task)"
-                            class="p-0.5 text-blue-600 hover:bg-blue-50 rounded transition-all hover:scale-110"
-                            title="Edit task"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  } @empty {
-                    <div class="text-center py-6 text-gray-400">
-                      <span class="text-3xl block mb-1">📋</span>
-                      <p class="text-xs">No tasks</p>
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <!-- Column 2: IN PROGRESS -->
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center shadow-md">
-                      <span class="text-lg">🔄</span>
-                    </div>
-                    <div>
-                      <h3 class="text-sm font-bold text-blue-800">In Progress</h3>
-                      <p class="text-xs text-blue-600">{{ getTasksByStatus(selectedClub.id!, TaskStatus.IN_PROGRESS).length }} tasks</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  cdkDropList
-                  #inProgressList="cdkDropList"
-                  [cdkDropListData]="getTasksByStatus(selectedClub.id!, TaskStatus.IN_PROGRESS)"
-                  [cdkDropListConnectedTo]="[todoList, doneList]"
-                  (cdkDropListDropped)="onTaskDrop($event, selectedClub.id!, TaskStatus.IN_PROGRESS)"
-                  class="space-y-2 min-h-[150px]"
-                >
-                  @for (task of getTasksByStatus(selectedClub.id!, TaskStatus.IN_PROGRESS); track task.id) {
-                    <div 
-                      cdkDrag
-                      [cdkDragData]="task"
-                      class="group bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-blue-500 cursor-move"
-                    >
-                      <div class="flex items-center gap-2">
-                        <div cdkDragHandle class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
-                          </svg>
-                        </div>
-                        
-                        <!-- Edit Mode -->
-                        @if (isEditingTask(task.id!)) {
-                          <input
-                            type="text"
-                            [(ngModel)]="editingTaskText"
-                            (keyup.enter)="saveEditedTask(selectedClub.id!, task.id!)"
-                            (keyup.escape)="cancelEditingTask()"
-                            class="flex-1 px-2 py-1 text-xs font-medium border-2 border-[#2D5757] rounded focus:ring-2 focus:ring-[#F6BD60] focus:outline-none"
-                            autofocus
-                          />
-                          <button
-                            (click)="saveEditedTask(selectedClub.id!, task.id!)"
-                            class="p-1 text-green-600 hover:bg-green-50 rounded transition-all"
-                            title="Save"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                          </button>
-                          <button
-                            (click)="cancelEditingTask()"
-                            class="p-1 text-gray-600 hover:bg-gray-50 rounded transition-all"
-                            title="Cancel"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        } @else {
-                          <!-- View Mode -->
-                          <p class="text-xs font-medium text-gray-800 flex-1">{{ task.text }}</p>
-                          <button
-                            (click)="startEditingTask(task)"
-                            class="p-0.5 text-blue-600 hover:bg-blue-50 rounded transition-all hover:scale-110"
-                            title="Edit task"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  } @empty {
-                    <div class="text-center py-6 text-blue-300">
-                      <span class="text-3xl block mb-1">🔄</span>
-                      <p class="text-xs">No tasks</p>
-                    </div>
-                  }
-                </div>
-              </div>
-
-              <!-- Column 3: DONE -->
-              <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center shadow-md">
-                      <span class="text-lg">✅</span>
-                    </div>
-                    <div>
-                      <h3 class="text-sm font-bold text-green-800">Done</h3>
-                      <p class="text-xs text-green-600">{{ getTasksByStatus(selectedClub.id!, TaskStatus.DONE).length }} tasks</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div 
-                  cdkDropList
-                  #doneList="cdkDropList"
-                  [cdkDropListData]="getTasksByStatus(selectedClub.id!, TaskStatus.DONE)"
-                  [cdkDropListConnectedTo]="[todoList, inProgressList]"
-                  (cdkDropListDropped)="onTaskDrop($event, selectedClub.id!, TaskStatus.DONE)"
-                  class="space-y-2 min-h-[150px]"
-                >
-                  @for (task of getTasksByStatus(selectedClub.id!, TaskStatus.DONE); track task.id) {
-                    <div 
-                      cdkDrag
-                      [cdkDragData]="task"
-                      class="group bg-white rounded-lg p-3 shadow-sm hover:shadow-md transition-all duration-300 border-l-4 border-green-500 opacity-75 cursor-move"
-                    >
-                      <div class="flex items-center gap-2">
-                        <div cdkDragHandle class="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600">
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"></path>
-                          </svg>
-                        </div>
-                        
-                        <!-- Edit Mode -->
-                        @if (isEditingTask(task.id!)) {
-                          <input
-                            type="text"
-                            [(ngModel)]="editingTaskText"
-                            (keyup.enter)="saveEditedTask(selectedClub.id!, task.id!)"
-                            (keyup.escape)="cancelEditingTask()"
-                            class="flex-1 px-2 py-1 text-xs font-medium border-2 border-[#2D5757] rounded focus:ring-2 focus:ring-[#F6BD60] focus:outline-none"
-                            autofocus
-                          />
-                          <button
-                            (click)="saveEditedTask(selectedClub.id!, task.id!)"
-                            class="p-1 text-green-600 hover:bg-green-50 rounded transition-all"
-                            title="Save"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                            </svg>
-                          </button>
-                          <button
-                            (click)="cancelEditingTask()"
-                            class="p-1 text-gray-600 hover:bg-gray-50 rounded transition-all"
-                            title="Cancel"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        } @else {
-                          <!-- View Mode -->
-                          <p class="text-xs font-medium text-gray-600 line-through flex-1">{{ task.text }}</p>
-                          <button
-                            (click)="startEditingTask(task)"
-                            class="p-0.5 text-blue-600 hover:bg-blue-50 rounded transition-all hover:scale-110"
-                            title="Edit task"
-                          >
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                            </svg>
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  } @empty {
-                    <div class="text-center py-6 text-green-300">
-                      <span class="text-3xl block mb-1">✅</span>
-                      <p class="text-xs">No tasks</p>
-                    </div>
-                  }
-                </div>
-                    </div>
-=======
               <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <!-- Header with Toggle -->
                 <div 
@@ -765,7 +423,6 @@
                       [userId]="currentUserId!"
                       [canManage]="getUserRole(selectedClub.id!) === 'PRESIDENT' || getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY'">
                     </app-club-tasks>
->>>>>>> origin/club/event-service
                   </div>
                 }
               </div>
@@ -922,11 +579,7 @@
                 <div class="absolute inset-0 bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] rounded-2xl blur-lg opacity-30"></div>
                 <div class="relative bg-gradient-to-br from-[#2D5757] to-[#3D3D60] p-4 rounded-2xl shadow-xl">
                   <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-<<<<<<< HEAD
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-=======
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
->>>>>>> origin/club/event-service
                   </svg>
                 </div>
               </div>
@@ -971,13 +624,6 @@
               </div>
             </div>
             
-<<<<<<< HEAD
-            <!-- Right: Actions (Create Club + Category Filter) -->
-            <div class="flex items-center gap-3">
-              <!-- Create Club Button -->
-              <button
-                (click)="openCreateModal()"
-=======
             <!-- Right: Actions (View Toggle + Create Club + Category Filter) -->
             <div class="flex items-center gap-3">
               <!-- View Toggle -->
@@ -1013,7 +659,6 @@
               <!-- Create Club Button -->
               <button
                 routerLink="/user-panel/clubs/create"
->>>>>>> origin/club/event-service
                 class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-gray-900 rounded-xl hover:shadow-lg transition-all duration-300 transform hover:scale-105 font-bold shadow-md"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1135,13 +780,9 @@
       }
             
       @if (filteredClubs.length > 0) {
-<<<<<<< HEAD
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-=======
         <!-- Grid View -->
         @if (viewMode === 'grid') {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
->>>>>>> origin/club/event-service
           @for (club of filteredClubs; track club.id) {
             <div class="group relative bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100" [class.opacity-60]="club.status === ClubStatus.SUSPENDED" [class.pointer-events-none]="club.status === ClubStatus.SUSPENDED">
               
@@ -1241,22 +882,13 @@
                       View Details
                     </button>
                     @if (isClubPresident(club)) {
-<<<<<<< HEAD
-                      <button
-                        (click)="openEditModal(club)"
-=======
                       <a
                         [routerLink]="['/user-panel/clubs', club.id, 'edit']"
->>>>>>> origin/club/event-service
                         class="px-3 py-2.5 text-sm font-bold text-primary bg-accent-orange rounded-lg hover:bg-accent-orange-600 transition-all duration-200 shadow-md"
                         title="Edit Club (President only)"
                       >
                         ✏️
-<<<<<<< HEAD
-                      </button>
-=======
                       </a>
->>>>>>> origin/club/event-service
                     }
                     @if (isClubMember(club.id!) && !isClubPresident(club)) {
                       <button
@@ -1266,8 +898,6 @@
                       >
                         Leave
                       </button>
-<<<<<<< HEAD
-=======
                     } @else if (hasPendingRequest(club.id!)) {
                       <button
                         disabled
@@ -1276,7 +906,6 @@
                       >
                         ⏳ Pending
                       </button>
->>>>>>> origin/club/event-service
                     } @else if (!isClubMember(club.id!)) {
                       <button
                         (click)="joinClub(club.id!)"
@@ -1292,8 +921,6 @@
             </div>
           }
         </div>
-<<<<<<< HEAD
-=======
         }
 
         <!-- List View -->
@@ -1452,7 +1079,6 @@
             }
           </div>
         }
->>>>>>> origin/club/event-service
       } @else {
         <div class="bg-white rounded-xl p-12 text-center shadow-lg border-2 border-gray-100">
           @if (selectedCategory !== null) {
@@ -1936,15 +1562,6 @@
           <div class="flex items-center justify-center py-12">
             <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2D5757]"></div>
           </div>
-<<<<<<< HEAD
-        } @else if (clubMembers.length === 0) {
-          <div class="text-center py-12">
-            <span class="text-6xl block mb-4">👥</span>
-            <p class="text-gray-500 text-lg">No members in this club yet</p>
-          </div>
-        } @else {
-          <div class="space-y-4">
-=======
         } @else {
 
           <!-- Payment Pending Section -->
@@ -1986,7 +1603,6 @@
               Membres actifs ({{ clubMembers.length }})
             </h3>
             <div class="space-y-4">
->>>>>>> origin/club/event-service
             @for (member of clubMembers; track member.id) {
               <div class="bg-white border-2 border-gray-100 rounded-2xl p-5 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center gap-4">
@@ -2055,26 +1671,18 @@
               </div>
             }
           </div>
-<<<<<<< HEAD
-        }
-=======
           } <!-- end @else active members -->
         } <!-- end @else not loading -->
->>>>>>> origin/club/event-service
       </div>
 
       <!-- Modal Footer -->
       <div class="bg-gray-50 p-6 border-t border-gray-200">
         <div class="flex items-center justify-between">
           <p class="text-sm text-gray-600">
-<<<<<<< HEAD
-            Total members: <span class="font-bold text-[#2D5757]">{{ clubMembers.length }}</span>
-=======
             Membres actifs: <span class="font-bold text-[#2D5757]">{{ clubMembers.length }}</span>
             @if (paymentPendingRequests.length > 0) {
               &nbsp;· <span class="text-orange-600 font-bold">{{ paymentPendingRequests.length }} en attente de paiement</span>
             }
->>>>>>> origin/club/event-service
           </p>
           <button
             (click)="closeMembersModal()"
@@ -2297,128 +1905,6 @@
 
 <!-- Club History Modal -->
 @if (showHistoryModal && selectedClubForHistory) {
-<<<<<<< HEAD
-  <div class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm" (click)="closeHistoryModal()">
-    <div class="flex items-center justify-center min-h-screen p-4">
-      <div class="relative bg-gradient-to-br from-gray-50 to-gray-100 rounded-3xl shadow-2xl max-w-5xl w-full max-h-[90vh] overflow-hidden" (click)="$event.stopPropagation()">
-        
-        <!-- Top Navigation Bar -->
-        <div class="flex items-center justify-between bg-white rounded-t-3xl p-6 shadow-sm border-b border-gray-100">
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center shadow-md">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-2xl font-black text-[#2D5757]">Club History</h3>
-              <p class="text-sm text-gray-600">{{ selectedClubForHistory.name }} - All Activities</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            (click)="closeHistoryModal()"
-            class="w-10 h-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-all"
-          >
-            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-
-        <!-- Modal Body -->
-        <div class="p-6 max-h-[calc(90vh-180px)] overflow-y-auto">
-          @if (loadingHistory) {
-            <div class="flex flex-col items-center justify-center py-12">
-              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2D5757] mb-4"></div>
-              <p class="text-gray-600">Loading history...</p>
-            </div>
-          } @else if (clubHistory.length === 0) {
-            <div class="bg-white rounded-2xl p-12 text-center shadow-sm border border-gray-100">
-              <div class="text-6xl mb-4">📜</div>
-              <h3 class="text-xl font-bold text-gray-800 mb-2">No History Yet</h3>
-              <p class="text-gray-600">Your club activities will appear here</p>
-            </div>
-          } @else {
-            <!-- History Cards Grid -->
-            <div class="space-y-4">
-              @for (item of clubHistory; track item.id) {
-                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-                  <!-- Header -->
-                  <div class="flex items-start justify-between mb-4">
-                    <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center shadow-md">
-                        <span class="text-2xl">{{ getHistoryIcon(item.type) }}</span>
-                      </div>
-                      <div>
-                        <h4 class="text-lg font-bold text-[#2D5757]">{{ item.action }}</h4>
-                        <p class="text-xs text-gray-500">{{ formatHistoryDate(item.createdAt) }}</p>
-                      </div>
-                    </div>
-                    <span class="px-3 py-1.5 text-xs font-bold rounded-full shadow-sm" [ngClass]="getHistoryTypeBadgeClass(item.type)">
-                      {{ item.type }}
-                    </span>
-                  </div>
-                  
-                  <!-- Description -->
-                  @if (item.description) {
-                    <p class="text-sm text-gray-700 mb-4 pl-15">{{ item.description }}</p>
-                  }
-                  
-                  <!-- Value Changes -->
-                  @if (item.oldValue || item.newValue) {
-                    <div class="pl-15">
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        @if (item.oldValue) {
-                          <div class="bg-red-50 rounded-xl p-4 border-2 border-red-200">
-                            <div class="flex items-center gap-2 mb-2">
-                              <div class="w-6 h-6 rounded-lg bg-red-500 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                              </div>
-                              <p class="text-xs font-bold text-red-600 uppercase tracking-wide">Previous Value</p>
-                            </div>
-                            <p class="text-sm text-red-900 font-medium">{{ item.oldValue }}</p>
-                          </div>
-                        }
-                        @if (item.newValue) {
-                          <div class="bg-green-50 rounded-xl p-4 border-2 border-green-200">
-                            <div class="flex items-center gap-2 mb-2">
-                              <div class="w-6 h-6 rounded-lg bg-green-500 flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                              </div>
-                              <p class="text-xs font-bold text-green-600 uppercase tracking-wide">New Value</p>
-                            </div>
-                            <p class="text-sm text-green-900 font-medium">{{ item.newValue }}</p>
-                          </div>
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              }
-            </div>
-          }
-        </div>
-
-        <!-- Modal Footer -->
-        <div class="bg-white border-t border-gray-200 p-6 rounded-b-3xl">
-          <div class="flex items-center justify-between">
-            <p class="text-sm text-gray-600">
-              Total activities: <span class="font-bold text-[#2D5757]">{{ clubHistory.length }}</span>
-            </p>
-            <button
-              type="button"
-              (click)="closeHistoryModal()"
-              class="px-6 py-3 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-xl hover:shadow-lg transition-all font-semibold"
-            >
-              Close
-            </button>
-          </div>
-=======
   <div class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" (click)="closeHistoryModal()">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" (click)="$event.stopPropagation()">
 
@@ -2710,13 +2196,8 @@
               Send Request
             </span>
           </button>
->>>>>>> origin/club/event-service
         </div>
       </div>
     </div>
   </div>
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> origin/club/event-service

@@ -1,42 +1,25 @@
-<<<<<<< HEAD
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-=======
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
->>>>>>> origin/club/event-service
 import { ClubService } from '../../../core/services/club.service';
 import { UserService } from '../../../core/services/user.service';
 import { Club, Member } from '../../../core/models/club.model';
 import { NotificationService } from '../../../core/services/notification.service';
-<<<<<<< HEAD
-=======
 import { ClubWebSocketService } from '../../../services/club-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
 import { ClubMembershipRequestsComponent } from '../club-membership-requests/club-membership-requests.component';
->>>>>>> origin/club/event-service
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-clubs-manage',
   standalone: true,
-<<<<<<< HEAD
-  imports: [CommonModule, FormsModule],
-  templateUrl: './clubs-manage.component.html',
-  styleUrl: './clubs-manage.component.scss'
-})
-export class ClubsManageComponent implements OnInit {
-=======
   imports: [CommonModule, FormsModule, ClubMembershipRequestsComponent],
   templateUrl: './clubs-manage.component.html',
   styleUrl: './clubs-manage.component.scss'
 })
 export class ClubsManageComponent implements OnInit, OnDestroy {
->>>>>>> origin/club/event-service
   clubs: Club[] = [];
   selectedClub: Club | null = null;
   clubMembers: Member[] = [];
@@ -49,23 +32,12 @@ export class ClubsManageComponent implements OnInit, OnDestroy {
   clubToSuspend: Club | null = null;
   suspensionReason = '';
   currentUserId = 1; // TODO: Récupérer l'ID de l'utilisateur connecté
-<<<<<<< HEAD
-=======
   
   private wsSubscriptions = new Subscription();
->>>>>>> origin/club/event-service
 
   constructor(
     private clubService: ClubService,
     private userService: UserService,
-<<<<<<< HEAD
-    private notificationService: NotificationService
-  ) {}
-
-  ngOnInit() {
-    this.loadClubs();
-  }
-=======
     private notificationService: NotificationService,
     private clubWsService: ClubWebSocketService,
     private dataSyncService: DataSyncService
@@ -101,7 +73,6 @@ export class ClubsManageComponent implements OnInit, OnDestroy {
     });
     this.wsSubscriptions.add(syncSub);
   }
->>>>>>> origin/club/event-service
 
   loadClubs() {
     this.loading = true;

@@ -1,28 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-<<<<<<< HEAD
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { ClubService } from '../../../core/services/club.service';
-import { AuthService } from '../../../core/services/auth.service';
-import { ClubCategory } from '../../../core/models/club.model';
-=======
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClubService } from '../../../core/services/club.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SkillService } from '../../../core/services/skill.service';
 import { ClubCategory, Skill } from '../../../core/models/club.model';
->>>>>>> origin/club/event-service
 
 @Component({
   selector: 'app-club-edit',
   standalone: true,
-<<<<<<< HEAD
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
-=======
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
->>>>>>> origin/club/event-service
   templateUrl: './club-edit.component.html',
   styleUrls: ['./club-edit.component.scss']
 })
@@ -34,8 +22,6 @@ export class ClubEditComponent implements OnInit {
   error: string | null = null;
   categories = Object.values(ClubCategory);
   currentUserId: number | null = null;
-<<<<<<< HEAD
-=======
   
   // Wizard
   currentStep: number = 1;
@@ -50,33 +36,23 @@ export class ClubEditComponent implements OnInit {
   selectedImageFile: File | null = null;
   imagePreview: string | null = null;
   currentImage: string | null = null;
->>>>>>> origin/club/event-service
 
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
     private router: Router,
     private clubService: ClubService,
-<<<<<<< HEAD
-    private authService: AuthService
-=======
     private authService: AuthService,
     private skillService: SkillService
->>>>>>> origin/club/event-service
   ) {
     this.clubForm = this.fb.group({
       name: ['', [Validators.required, Validators.minLength(3)]],
       description: ['', [Validators.required, Validators.minLength(10)]],
-<<<<<<< HEAD
-      category: ['', Validators.required],
-      maxMembers: [20, [Validators.required, Validators.min(5), Validators.max(100)]]
-=======
       objective: [''],
       category: ['', Validators.required],
       maxMembers: [20, [Validators.required, Validators.min(5), Validators.max(100)]],
       registrationFee: [0, [Validators.min(0)]],
       image: ['']
->>>>>>> origin/club/event-service
     });
   }
 
@@ -85,10 +61,7 @@ export class ClubEditComponent implements OnInit {
     this.route.params.subscribe(params => {
       this.clubId = +params['id'];
       this.loadClub();
-<<<<<<< HEAD
-=======
       this.loadSkills();
->>>>>>> origin/club/event-service
     });
   }
 
@@ -111,11 +84,6 @@ export class ClubEditComponent implements OnInit {
         this.clubForm.patchValue({
           name: club.name,
           description: club.description,
-<<<<<<< HEAD
-          category: club.category,
-          maxMembers: club.maxMembers
-        });
-=======
           objective: club.objective,
           category: club.category,
           maxMembers: club.maxMembers,
@@ -123,7 +91,6 @@ export class ClubEditComponent implements OnInit {
         });
         this.currentImage = club.image || null;
         this.imagePreview = club.image || null;
->>>>>>> origin/club/event-service
         this.loading = false;
       },
       error: (err) => {
@@ -134,9 +101,6 @@ export class ClubEditComponent implements OnInit {
     });
   }
 
-<<<<<<< HEAD
-  onSubmit() {
-=======
   loadSkills() {
     this.skillService.getSkillsByClub(this.clubId).subscribe({
       next: (skills) => {
@@ -228,7 +192,6 @@ export class ClubEditComponent implements OnInit {
   }
 
   async onSubmit() {
->>>>>>> origin/club/event-service
     if (this.clubForm.invalid) {
       this.clubForm.markAllAsTouched();
       return;
@@ -242,25 +205,6 @@ export class ClubEditComponent implements OnInit {
     this.saving = true;
     this.error = null;
 
-<<<<<<< HEAD
-    this.clubService.updateClub(this.clubId, this.clubForm.value, this.currentUserId).subscribe({
-      next: () => {
-        alert('Demande de modification créée avec succès ! Elle doit être approuvée par le vice-président et le secrétaire.');
-        this.router.navigate(['/dashboard/clubs', this.clubId]);
-      },
-      error: (err) => {
-        console.error('Error creating update request:', err);
-        if (err.error && err.error.message) {
-          this.error = err.error.message;
-        } else if (err.error && typeof err.error === 'string') {
-          this.error = err.error;
-        } else {
-          this.error = 'Failed to create update request. Please try again.';
-        }
-        this.saving = false;
-      }
-    });
-=======
     try {
       const clubData: any = { ...this.clubForm.value };
       
@@ -297,19 +241,15 @@ export class ClubEditComponent implements OnInit {
       this.error = 'Failed to process image. Please try again.';
       this.saving = false;
     }
->>>>>>> origin/club/event-service
   }
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.clubForm.get(fieldName);
     return !!(field && field.invalid && (field.dirty || field.touched));
   }
-<<<<<<< HEAD
-=======
 
   cancel() {
     // Retourner à la page de détails du club
     this.router.navigate(['/user-panel/clubs', this.clubId], { replaceUrl: true });
   }
->>>>>>> origin/club/event-service
 }

@@ -152,15 +152,13 @@ spring:
             - StripPrefix=1
           order: 15
             
-<<<<<<< HEAD
-=======
         - id: club-expenses-service
           uri: lb://club-service
           predicates:
             - Path=/api/expenses/**
           filters:
             - StripPrefix=1
-          order: 15
+          order: 16
             
         - id: club-membership-requests
           uri: lb://club-service
@@ -168,16 +166,15 @@ spring:
             - Path=/api/membership-requests/**
           filters:
             - StripPrefix=1
-          order: 15
+          order: 17
             
->>>>>>> origin/club/event-service
         - id: event-service
           uri: lb://event-service
           predicates:
             - Path=/api/events/**
           filters:
             - StripPrefix=1
-          order: 16
+          order: 18
             
         - id: event-participants
           uri: lb://event-service
@@ -185,71 +182,68 @@ spring:
             - Path=/api/participants/**
           filters:
             - StripPrefix=1
-          order: 17
+          order: 19
             
-<<<<<<< HEAD
-=======
         - id: sponsors-service
           uri: lb://sponsors-service
           predicates:
             - Path=/api/sponsors/**
           filters:
             - StripPrefix=1
-          order: 18
+          order: 20
         
         # WebSocket routes
         - id: sponsors-websocket
           uri: lb:ws://sponsors-service
           predicates:
             - Path=/sponsors-service/ws/**
-          order: 19
+          order: 21
         
         - id: club-websocket
           uri: lb:ws://club-service
           predicates:
             - Path=/club-service/ws/**
-          order: 19
+          order: 22
         
         - id: event-websocket
           uri: lb:ws://event-service
           predicates:
             - Path=/event-service/ws/**
-          order: 19
+          order: 23
             
->>>>>>> origin/club/event-service
         - id: public-users
           uri: http://localhost:8081
           predicates:
             - Path=/public/**
-          order: 20
+          order: 24
         
         # Route pour les photos de groupe (plus spécifique, donc avant)
         - id: group-photos
           uri: lb://messaging-service
           predicates:
             - Path=/uploads/group-photos/**
-          order: 19
+          order: 25
         
         # Route pour les fichiers uploadés (photos de profil)
         - id: auth-uploads
           uri: lb://auth-service
           predicates:
             - Path=/uploads/**
-          order: 20
+          order: 26
         
         # Route pour la page HTML activation-pending
         - id: activation-pending
           uri: lb://auth-service
           predicates:
             - Path=/activation-pending
-          order: 21
+          order: 27
         
         # Routes pour les pages d'activation success/error
         - id: activation-pages
           uri: lb://auth-service
           predicates:
             - Path=/activation-success,/activation-error
-          order: 22
+          order: 28
             
         - id: messaging-service
           uri: lb://messaging-service
@@ -257,13 +251,13 @@ spring:
             - Path=/api/messaging/**
           filters:
             - StripPrefix=1
-          order: 21
+          order: 29
             
         - id: messaging-websocket
           uri: lb://messaging-service
           predicates:
             - Path=/ws/**
-          order: 22
+          order: 30
             
         - id: courses-categories
           uri: lb://courses-service
@@ -455,25 +449,8 @@ spring:
           filters:
             - StripPrefix=1
           order: 26
-<<<<<<< HEAD
-      globalcors:
-        cors-configurations:
-          '[/**]':
-            allowed-origins: "${FRONTEND_URL:http://localhost:4200}"
-            allowed-methods:
-              - GET
-              - POST
-              - PUT
-              - DELETE
-              - OPTIONS
-              - PATCH
-            allowed-headers: "*"
-            allow-credentials: true
-            max-age: 3600
-=======
       # CORS is handled by CorsConfig.java custom filter
       # globalcors configuration removed to prevent duplicate headers
->>>>>>> origin/club/event-service
 
 eureka:
   client:

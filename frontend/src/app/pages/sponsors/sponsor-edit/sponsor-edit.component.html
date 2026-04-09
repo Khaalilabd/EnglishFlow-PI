@@ -10,7 +10,7 @@
       <p>Loading sponsor data...</p>
     </div>
 
-    <form *ngIf="!loadingData" class="sponsor-form" (ngSubmit)="updateSponsor()">
+    <form *ngIf="!loadingData" #sponsorForm="ngForm" class="sponsor-form" (ngSubmit)="updateSponsor()">
       <!-- Logo Upload -->
       <div class="form-group">
         <label>Logo</label>
@@ -103,12 +103,17 @@
           placeholder="+1 234 567 8900">
       </div>
 
+      <!-- Debug info -->
+      <div *ngIf="!sponsorForm.valid" style="color: red; margin: 10px 0;">
+        ⚠️ Form is invalid. Please check all required fields.
+      </div>
+
       <!-- Form Actions -->
       <div class="form-actions">
         <button type="button" class="btn-secondary" (click)="cancel()" [disabled]="loading">
           Cancel
         </button>
-        <button type="submit" class="btn-primary" [disabled]="loading">
+        <button type="submit" class="btn-primary" [disabled]="loading || !sponsorForm.valid">
           <span *ngIf="!loading">Update Sponsor</span>
           <span *ngIf="loading">Updating...</span>
         </button>

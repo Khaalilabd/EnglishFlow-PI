@@ -134,13 +134,10 @@ export class EcommerceComponent implements OnInit {
   initializeQuickActions() {
     if (this.isAdmin) {
       this.quickActions = [
-<<<<<<< HEAD
-        { title: 'Students', icon: '👨‍🎓', color: 'bg-blue-100', route: '/dashboard/users/students', count: '1,234' },
-        { title: 'Tutors', icon: '👨‍🏫', color: 'bg-green-100', route: '/dashboard/users/tutors', count: '89' },
-=======
+
         { title: 'Students', icon: '👨‍🎓', color: 'bg-blue-100', route: '/dashboard/students', count: '1,234' },
         { title: 'Tutors', icon: '👨‍🏫', color: 'bg-green-100', route: '/dashboard/tutors', count: '89' },
->>>>>>> origin/club/event-service
+
         { title: 'Statistics', icon: '📊', color: 'bg-purple-100', route: '/dashboard/statistics' },
         { title: 'Gamification', icon: '🎮', color: 'bg-amber-100', route: '/dashboard/gamification' },
         { title: 'Ebooks', icon: '📚', color: 'bg-pink-100', route: '/dashboard/ebooks', count: '342' },
@@ -148,11 +145,9 @@ export class EcommerceComponent implements OnInit {
       ];
     } else if (this.isAcademic) {
       this.quickActions = [
-<<<<<<< HEAD
-        { title: 'Students', icon: '👨‍🎓', color: 'bg-blue-100', route: '/dashboard/users/students', count: '1,234' },
-=======
+
         { title: 'Students', icon: '👨‍🎓', color: 'bg-blue-100', route: '/dashboard/students', count: '1,234' },
->>>>>>> origin/club/event-service
+
         { title: 'Courses', icon: '📚', color: 'bg-green-100', route: '/dashboard/courses', count: '156' },
         { title: 'Clubs', icon: '🎯', color: 'bg-purple-100', route: '/dashboard/clubs/manage', count: '45' },
         { title: 'Events', icon: '📅', color: 'bg-amber-100', route: '/dashboard/events/manage', count: '28' },

@@ -92,7 +92,10 @@ export class SponsorEditComponent implements OnInit {
   }
 
   updateSponsor() {
-    if (!this.sponsor.name) {
+    console.log('updateSponsor() called');
+    console.log('Sponsor data:', this.sponsor);
+    
+    if (!this.sponsor.name || this.sponsor.name.trim() === '') {
       this.notificationService.warning('Missing Fields', 'Name is required');
       return;
     }
@@ -103,15 +106,18 @@ export class SponsorEditComponent implements OnInit {
     
     console.log('Updating sponsor with contribution amount:', this.sponsor.contributionAmount, 'Type:', typeof this.sponsor.contributionAmount);
     console.log('Raw amount was:', rawAmount);
+    console.log('Sponsor ID:', this.sponsorId);
 
     this.loading = true;
     this.sponsorService.updateSponsor(this.sponsorId, this.sponsor).subscribe({
-      next: () => {
+      next: (response) => {
+        console.log('Update successful:', response);
         this.notificationService.success('Success', 'Sponsor updated successfully');
         this.router.navigate(['/dashboard/sponsors']);
       },
       error: (err) => {
         console.error('Error updating sponsor:', err);
+        console.error('Error details:', err.error);
         this.notificationService.error('Error', 'Failed to update sponsor');
         this.loading = false;
       }

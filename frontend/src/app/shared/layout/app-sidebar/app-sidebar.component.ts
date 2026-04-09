@@ -270,7 +270,6 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   ];
 
-
   // 📚 CONTENT - Gestion du contenu (ADMIN only)
   adminContentItems: NavItem[] = [
     {
@@ -507,14 +506,11 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
     }
   }
 
-<<<<<<< HEAD
-=======
   isSubmenuOpen(section: string, index: number): boolean {
     const key = `${section}-${index}`;
     return this.openSubmenu === key;
   }
 
->>>>>>> origin/club/event-service
   onSidebarMouseEnter() {
     this.isExpanded$.subscribe(expanded => {
       if (!expanded) {

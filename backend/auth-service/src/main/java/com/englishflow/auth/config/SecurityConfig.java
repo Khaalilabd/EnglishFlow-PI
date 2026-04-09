@@ -62,6 +62,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/users/public/tutors", "/api/auth/users/public/tutors", "/users/public/tutors").permitAll()
                         // Endpoints pour communication inter-service (Feign clients)
                         .requestMatchers("/api/users/**").permitAll()
+                        // Endpoints email pour communication inter-service
+                        .requestMatchers("/api/email/**").permitAll()
                         // Endpoints password reset
                         .requestMatchers("/auth/password-reset/**", "/api/auth/password-reset/**").permitAll()
                         // Endpoints d'invitation

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-<<<<<<< HEAD
+
 import { 
   RecruitmentService, 
   ApplicationResponse, 
@@ -10,9 +10,7 @@ import {
   MeetingPlatform,
   MeetingLinkResponse
 } from '../../../core/services/recruitment.service';
-=======
-import { RecruitmentService, ApplicationResponse, ApplicationStatistics } from '../../../core/services/recruitment.service';
->>>>>>> origin/club/event-service
+
 
 @Component({
   selector: 'app-recruitment-dashboard',
@@ -45,7 +43,7 @@ export class RecruitmentDashboardComponent implements OnInit {
   presentationScore = 0;
   overallScore = 0;
   
-<<<<<<< HEAD
+
   interviewDateTime = '';
   meetingLink = '';
   interviewNotes = '';
@@ -58,12 +56,7 @@ export class RecruitmentDashboardComponent implements OnInit {
   
   // Enum pour le template
   MeetingPlatform = MeetingPlatform;
-=======
-  interviewDate = '';
-  interviewTime = '';
-  meetingLink = '';
-  interviewNotes = '';
->>>>>>> origin/club/event-service
+
   
   rejectionReason = '';
   noteContent = '';
@@ -89,7 +82,7 @@ export class RecruitmentDashboardComponent implements OnInit {
   ngOnInit(): void {
     this.loadApplications();
     this.loadStatistics();
-<<<<<<< HEAD
+
     this.loadAvailablePlatforms();
   }
 
@@ -103,8 +96,7 @@ export class RecruitmentDashboardComponent implements OnInit {
         console.error('Failed to load available platforms', error);
       }
     });
-=======
->>>>>>> origin/club/event-service
+
   }
 
   loadApplications(): void {
@@ -199,7 +191,7 @@ export class RecruitmentDashboardComponent implements OnInit {
 
   openInterviewModal(application: ApplicationResponse): void {
     this.selectedApplication = application;
-<<<<<<< HEAD
+
     this.interviewDateTime = '';
     this.meetingLink = '';
     this.interviewNotes = '';
@@ -207,19 +199,14 @@ export class RecruitmentDashboardComponent implements OnInit {
     this.meetingTitle = `Interview - ${application.firstName} ${application.lastName}`;
     this.durationMinutes = 60;
     this.generatedMeetingInfo = null;
-=======
-    this.interviewDate = '';
-    this.interviewTime = '';
-    this.meetingLink = '';
-    this.interviewNotes = '';
->>>>>>> origin/club/event-service
+
     this.showInterviewModal = true;
   }
 
   closeInterviewModal(): void {
     this.showInterviewModal = false;
     this.selectedApplication = null;
-<<<<<<< HEAD
+
     this.generatedMeetingInfo = null;
   }
 
@@ -297,43 +284,22 @@ export class RecruitmentDashboardComponent implements OnInit {
     this.recruitmentService.scheduleInterview(this.selectedApplication.id, data).subscribe({
       next: () => {
         this.successMessage = "Entretien planifié avec succès!";
-=======
-  }
 
-  scheduleInterview(): void {
-    if (!this.selectedApplication || !this.interviewDate || !this.interviewTime) return;
-
-    this.isLoading = true;
-    const dateTime = `${this.interviewDate}T${this.interviewTime}:00`;
-    
-    const data = {
-      interviewScheduledAt: dateTime,
-      meetingLink: this.meetingLink,
-      notes: this.interviewNotes
-    };
-
-    this.recruitmentService.scheduleInterview(this.selectedApplication.id, data).subscribe({
-      next: () => {
-        this.successMessage = 'Interview scheduled successfully!';
->>>>>>> origin/club/event-service
         this.closeInterviewModal();
         this.loadApplications();
         setTimeout(() => this.successMessage = '', 3000);
       },
       error: (error) => {
-<<<<<<< HEAD
+
         this.errorMessage = error.error?.message || "Échec de la planification de l'entretien";
         this.isLoading = false;
         setTimeout(() => this.errorMessage = '', 3000);
-=======
-        this.errorMessage = 'Failed to schedule interview';
-        this.isLoading = false;
->>>>>>> origin/club/event-service
+
       }
     });
   }
 
-<<<<<<< HEAD
+
   isPlatformAvailable(platform: MeetingPlatform): boolean {
     return this.availablePlatforms[platform] === true;
   }
@@ -348,8 +314,7 @@ export class RecruitmentDashboardComponent implements OnInit {
     return names[platform] || platform;
   }
 
-=======
->>>>>>> origin/club/event-service
+
   openRejectModal(application: ApplicationResponse): void {
     this.selectedApplication = application;
     this.rejectionReason = '';

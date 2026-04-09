@@ -18,7 +18,8 @@ public class CacheConfig {
         CaffeineCacheManager cacheManager = new CaffeineCacheManager(
                 "sponsors", 
                 "sponsorsByLevel", 
-                "sponsorById"
+                "sponsorById",
+                "sponsorsByStatus"
         );
         cacheManager.setCaffeine(caffeineCacheBuilder());
         return cacheManager;

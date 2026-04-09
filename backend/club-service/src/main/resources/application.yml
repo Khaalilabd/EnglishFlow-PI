@@ -48,8 +48,6 @@ server:
   http2:
     enabled: true
 
-<<<<<<< HEAD
-=======
 # Auth Service Configuration
 auth:
   service:
@@ -65,7 +63,6 @@ app:
   frontend:
     url: ${FRONTEND_URL:http://localhost:4200}
 
->>>>>>> origin/club/event-service
 eureka:
   client:
     service-url:

@@ -1,44 +1,28 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-<<<<<<< HEAD
-import { ActivatedRoute, Router } from '@angular/router';
-import { switchMap, map } from 'rxjs/operators';
-import { of } from 'rxjs';
-=======
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { switchMap, map } from 'rxjs/operators';
 import { of, Subscription } from 'rxjs';
->>>>>>> origin/club/event-service
 import { EventService, Event } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { MemberService } from '../../../core/services/member.service';
-<<<<<<< HEAD
-=======
 import { SponsorService } from '../../../core/services/sponsor.service';
 import { Sponsor } from '../../../core/models/sponsor.model';
->>>>>>> origin/club/event-service
 import { EventFeedbackService, EventFeedback, EventFeedbackStats } from '../../../core/services/event-feedback.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { StarRatingComponent } from '../../../shared/components/star-rating/star-rating.component';
 import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
 import { LocationMapComponent } from '../../../shared/components/location-map/location-map.component';
-<<<<<<< HEAD
-=======
 import { EventWebSocketService } from '../../../services/event-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
 import { SponsorWebSocketService } from '../../../services/sponsor-websocket.service';
->>>>>>> origin/club/event-service
 
 @Component({
   selector: 'app-events',
   standalone: true,
-<<<<<<< HEAD
-  imports: [CommonModule, FormsModule, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
-=======
   imports: [CommonModule, FormsModule, RouterLink, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
->>>>>>> origin/club/event-service
   templateUrl: './events.component.html',
   styleUrls: ['./events.component.scss']
 })
@@ -49,12 +33,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   myEvents: Event[] = [];
   loading = false;
   currentUserId: number | null = null;
-<<<<<<< HEAD
-  selectedTab: 'all' | 'upcoming' | 'past' = 'upcoming'; // Updated to include 'past'
-  isAdmin = false;
-  canCreateEvent = false; // Nouvelle propriété pour vérifier les permissions
-  searchQuery: string = ''; // Dynamic search
-=======
   selectedTab: 'all' | 'upcoming' | 'past' = 'all'; // Updated to include 'past'
   isAdmin = false;
   canCreateEvent = false; // Nouvelle propriété pour vérifier les permissions
@@ -62,7 +40,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   searchQuery: string = ''; // Dynamic search
   dateFilter: string = ''; // Date filter
   viewMode: 'grid' | 'list' = 'grid'; // View mode toggle
->>>>>>> origin/club/event-service
   filteredEvents: Event[] = [];
   filteredUpcomingEvents: Event[] = [];
   filteredPastEvents: Event[] = []; // New: Filtered past events
@@ -102,11 +79,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     seconds: number;
   } = { days: 0, hours: 0, minutes: 0, seconds: 0 };
   countdownInterval: any;
-<<<<<<< HEAD
-=======
   
   private wsSubscriptions = new Subscription();
->>>>>>> origin/club/event-service
 
   // Form data
   eventForm: Event = {
@@ -119,13 +93,10 @@ export class EventsComponent implements OnInit, OnDestroy {
     description: ''
   };
 
-<<<<<<< HEAD
-=======
   // Sponsors
   availableSponsors: Sponsor[] = [];
   selectedSponsorIds: number[] = [];
 
->>>>>>> origin/club/event-service
   eventTypeIcons: { [key: string]: string } = {
     'WORKSHOP': '🛠️',
     'SEMINAR': '📚',
@@ -145,17 +116,12 @@ export class EventsComponent implements OnInit, OnDestroy {
     private router: Router,
     private userService: UserService,
     private memberService: MemberService,
-<<<<<<< HEAD
-    private feedbackService: EventFeedbackService,
-    private notificationService: NotificationService
-=======
     private sponsorService: SponsorService,
     private feedbackService: EventFeedbackService,
     private notificationService: NotificationService,
     private eventWsService: EventWebSocketService,
     private sponsorWsService: SponsorWebSocketService,
     private dataSyncService: DataSyncService
->>>>>>> origin/club/event-service
   ) {}
 
   ngOnInit() {
@@ -166,11 +132,8 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.isAdmin = currentUser.role === 'ADMIN';
       // Vérifier les permissions de création d'événements
       this.checkEventCreationPermission();
-<<<<<<< HEAD
-=======
       // Vérifier les permissions de visualisation des sponsors
       this.checkSponsorViewPermission();
->>>>>>> origin/club/event-service
     }
     
     // Reset all data on init
@@ -178,12 +141,9 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.events = [];
     this.upcomingEvents = [];
     
-<<<<<<< HEAD
-=======
     // Initialize WebSocket
     this.initializeWebSocket();
     
->>>>>>> origin/club/event-service
     // Subscribe to auth changes to update currentUserId when user changes
     this.authService.currentUser$.subscribe((user: any) => {
       if (user && user.id) {
@@ -193,11 +153,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         
         // Vérifier les permissions de création d'événements
         this.checkEventCreationPermission();
-<<<<<<< HEAD
-=======
         // Vérifier les permissions de visualisation des sponsors
         this.checkSponsorViewPermission();
->>>>>>> origin/club/event-service
         
         // Reload events if user changed
         if (previousUserId !== null && previousUserId !== this.currentUserId) {
@@ -218,8 +175,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       this.loadEvents();
     });
     
-<<<<<<< HEAD
-=======
     // Setup auto-sync for events and sponsors
     const eventSyncSub = this.dataSyncService.onEventDataChanged().subscribe(change => {
       if (change.action !== 'none') {
@@ -237,7 +192,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
     this.wsSubscriptions.add(sponsorSyncSub);
     
->>>>>>> origin/club/event-service
     // Check if there's an event ID in the route
     this.route.paramMap.subscribe(params => {
       const eventId = params.get('id');
@@ -318,8 +272,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
-<<<<<<< HEAD
-=======
     // Cleanup WebSocket subscriptions
     this.wsSubscriptions.unsubscribe();
     this.eventWsService.disconnect();
@@ -340,7 +292,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     } catch (error) {
       console.error('❌ Failed to initialize WebSocket:', error);
     }
->>>>>>> origin/club/event-service
   }
 
   startCountdown() {
@@ -517,41 +468,15 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-<<<<<<< HEAD
-  // Filter events that are within 3 days or already started (but not ended)
-  filterAvailableEvents(events: Event[]): Event[] {
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-=======
   // "All Events" tab: events happening today (ongoing right now)
   filterAvailableEvents(events: Event[]): Event[] {
     const now = new Date();
     const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
->>>>>>> origin/club/event-service
 
     return events.filter(event => {
       const eventStartDate = new Date(event.startDate);
       const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
-<<<<<<< HEAD
-      
-      // Event must start within 3 days AND not be ended yet
-      return eventStartDate <= threeDaysFromNow && eventEndDate >= now;
-    });
-  }
-
-  // Filter events that are more than 3 days away (coming soon) and not ended
-  filterUpcomingEvents(events: Event[]): Event[] {
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-
-    return events.filter(event => {
-      const eventStartDate = new Date(event.startDate);
-      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
-      
-      // Event must start more than 3 days away AND not be ended yet
-      return eventStartDate > threeDaysFromNow && eventEndDate >= now;
-=======
 
       // Event is ongoing today: started before end of day AND ends after start of day
       return eventStartDate <= endOfDay && eventEndDate >= startOfDay;
@@ -567,7 +492,6 @@ export class EventsComponent implements OnInit, OnDestroy {
       const eventStartDate = new Date(event.startDate);
       // Event starts after today
       return eventStartDate > endOfDay;
->>>>>>> origin/club/event-service
     });
   }
 
@@ -586,20 +510,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
-<<<<<<< HEAD
-  // Check if event is coming soon (more than 3 days away)
-  isComingSoon(event: Event): boolean {
-    const now = new Date();
-    const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const eventStartDate = new Date(event.startDate);
-    return eventStartDate > threeDaysFromNow;
-=======
   // Check if event is coming soon (starts after today)
   isComingSoon(event: Event): boolean {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
     return new Date(event.startDate) > endOfDay;
->>>>>>> origin/club/event-service
   }
 
   // Check if user is the creator of the event
@@ -608,41 +523,11 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   openCreateModal() {
-<<<<<<< HEAD
-    this.isEditMode = false;
-    this.eventForm = {
-      title: '',
-      type: 'WORKSHOP',
-      startDate: '',
-      endDate: '',
-      location: '',
-      maxParticipants: 10,
-      description: '',
-      gallery: [] // Initialize empty gallery
-    };
-    this.showModal = true;
-  }
-
-  openEditModal(event: Event) {
-    this.isEditMode = true;
-    this.eventForm = { ...event };
-    // Convert date format for datetime-local input
-    if (this.eventForm.startDate) {
-      const startDate = new Date(this.eventForm.startDate);
-      this.eventForm.startDate = startDate.toISOString().slice(0, 16);
-    }
-    if (this.eventForm.endDate) {
-      const endDate = new Date(this.eventForm.endDate);
-      this.eventForm.endDate = endDate.toISOString().slice(0, 16);
-    }
-    this.showModal = true;
-=======
     this.router.navigate(['/user-panel/events/create']);
   }
 
   openEditModal(event: Event) {
     this.router.navigate(['/user-panel/events/edit', event.id]);
->>>>>>> origin/club/event-service
   }
 
   closeModal() {
@@ -751,8 +636,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-<<<<<<< HEAD
-=======
   loadAvailableSponsors() {
     this.sponsorService.getAllSponsors().subscribe({
       next: (sponsors) => {
@@ -778,7 +661,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     return this.selectedSponsorIds.includes(sponsorId);
   }
 
->>>>>>> origin/club/event-service
   deleteEvent(eventId: number) {
     if (!this.selectedEvent) return;
     
@@ -900,25 +782,6 @@ export class EventsComponent implements OnInit, OnDestroy {
   }
 
   applyEventFilter() {
-<<<<<<< HEAD
-    // Filter events based on search query (by club name)
-    if (this.searchQuery.trim()) {
-      const query = this.searchQuery.toLowerCase().trim();
-      this.filteredEvents = this.events.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-      this.filteredUpcomingEvents = this.upcomingEvents.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-      this.filteredPastEvents = this.pastEvents.filter(event =>
-        event.clubName?.toLowerCase().includes(query)
-      );
-    } else {
-      this.filteredEvents = [...this.events];
-      this.filteredUpcomingEvents = [...this.upcomingEvents];
-      this.filteredPastEvents = [...this.pastEvents];
-    }
-=======
     // Filter events based on search query (by club name) and date  
     const query = this.searchQuery.toLowerCase().trim();
     const filterDate = this.dateFilter ? new Date(this.dateFilter) : null;
@@ -949,14 +812,11 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.filteredEvents = filterEvents(this.events);
     this.filteredUpcomingEvents = filterEvents(this.upcomingEvents);
     this.filteredPastEvents = filterEvents(this.pastEvents);
->>>>>>> origin/club/event-service
     
     // Add PENDING events to filtered lists
     this.addPendingEventsToFilteredLists();
   }
 
-<<<<<<< HEAD
-=======
   onSearchChange() {
     this.applyEventFilter();
   }
@@ -974,7 +834,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.viewMode = this.viewMode === 'grid' ? 'list' : 'grid';
   }
 
->>>>>>> origin/club/event-service
   private addPendingEventsToFilteredLists() {
     if (this.currentUserId && this.myEvents.length > 0) {
       const pendingEvents = this.myEvents.filter(event => 
@@ -1011,13 +870,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-<<<<<<< HEAD
-  onSearchChange() {
-    this.applyEventFilter();
-  }
-
-=======
->>>>>>> origin/club/event-service
   // Image handling methods
   onImageSelected(event: any) {
     const file = event.target.files[0];
@@ -1230,8 +1082,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
-<<<<<<< HEAD
-=======
   /**
    * Vérifie si l'utilisateur peut voir les informations des sponsors
    * Seuls les membres avec des rôles de responsabilité peuvent voir les sponsors
@@ -1273,7 +1123,6 @@ export class EventsComponent implements OnInit, OnDestroy {
     });
   }
 
->>>>>>> origin/club/event-service
   // ==================== FEEDBACK METHODS ====================
 
   /**

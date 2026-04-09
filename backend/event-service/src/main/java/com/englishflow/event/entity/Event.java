@@ -1,9 +1,6 @@
 package com.englishflow.event.entity;
 
-<<<<<<< HEAD
-=======
 import com.englishflow.event.enums.EventFormat;
->>>>>>> origin/club/event-service
 import com.englishflow.event.enums.EventStatus;
 import com.englishflow.event.enums.EventType;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -39,8 +36,6 @@ public class Event {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EventType type;
-<<<<<<< HEAD
-=======
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -48,7 +43,6 @@ public class Event {
 
     @Column
     private String meetingLink; // Deprecated — online events use the integrated Live Session
->>>>>>> origin/club/event-service
     
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -100,14 +94,11 @@ public class Event {
     @JsonManagedReference
     private List<Participant> participants = new ArrayList<>();
     
-<<<<<<< HEAD
-=======
     @ElementCollection
     @CollectionTable(name = "event_sponsors", joinColumns = @JoinColumn(name = "event_id"))
     @Column(name = "sponsor_id")
     private List<Long> sponsorIds = new ArrayList<>();
     
->>>>>>> origin/club/event-service
     @Column(nullable = false)
     private LocalDateTime createdAt;
     

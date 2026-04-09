@@ -46,8 +46,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/public-clubs/public-clubs.component').then(m => m.PublicClubsComponent),
     title: 'Clubs | Jungle in English'
   },
-<<<<<<< HEAD
-=======
   {
     path: 'clubs/:id',
     loadComponent: () => import('./pages/public-clubs/public-clubs.component').then(m => m.PublicClubsComponent),
@@ -58,7 +56,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/become-sponsor/become-sponsor.component').then(m => m.BecomeSponsorComponent),
     title: 'Become a Sponsor | Jungle in English'
   },
->>>>>>> origin/club/event-service
   
   // Page publique des événements
   {
@@ -209,8 +206,6 @@ export const routes: Routes = [
         title: 'My Clubs | Jungle in English'
       },
       {
-<<<<<<< HEAD
-=======
         path: 'clubs/create',
         loadComponent: () => import('./pages/clubs/club-create/club-create.component').then(m => m.ClubCreateComponent),
         title: 'Create Club | Jungle in English'
@@ -221,7 +216,6 @@ export const routes: Routes = [
         title: 'Edit Club | Jungle in English'
       },
       {
->>>>>>> origin/club/event-service
         path: 'clubs/:id',
         loadComponent: () => import('./pages/student-panel/clubs/clubs.component').then(m => m.ClubsComponent),
         title: 'Club Details | Jungle in English'
@@ -232,8 +226,6 @@ export const routes: Routes = [
         title: 'Events | Jungle in English'
       },
       {
-<<<<<<< HEAD
-=======
         path: 'events/create',
         loadComponent: () => import('./pages/student-panel/event-create/event-create.component').then(m => m.EventCreateComponent),
         title: 'Create Event | Jungle in English'
@@ -249,7 +241,6 @@ export const routes: Routes = [
         title: 'Live Session | Jungle in English'
       },
       {
->>>>>>> origin/club/event-service
         path: 'events/:id',
         loadComponent: () => import('./pages/student-panel/events/events.component').then(m => m.EventsComponent),
         title: 'Event Details | Jungle in English'
@@ -260,14 +251,11 @@ export const routes: Routes = [
         title: 'Club Requests | Jungle in English'
       },
       {
-<<<<<<< HEAD
-=======
         path: 'club-payment/:requestId',
         loadComponent: () => import('./pages/student-panel/club-payment/club-payment.component').then(m => m.ClubPaymentComponent),
         title: 'Club Payment | Jungle in English'
       },
       {
->>>>>>> origin/club/event-service
         path: 'progress',
         loadComponent: () => import('./pages/student-panel/progress/progress.component').then(m => m.ProgressComponent),
         title: 'My Progress | Jungle in English'
@@ -668,8 +656,6 @@ export const routes: Routes = [
         title: 'Event Requests | Jungle in English Dashboard'
       },
       {
-<<<<<<< HEAD
-=======
         path: 'sponsors',
         loadComponent: () => import('./pages/sponsors/sponsors-list/sponsors-list.component').then(m => m.SponsorsListComponent),
         title: 'Manage Sponsors | Jungle in English Dashboard'
@@ -695,7 +681,6 @@ export const routes: Routes = [
         title: 'Sponsor Requests | Jungle in English Dashboard'
       },
       {
->>>>>>> origin/club/event-service
         path: 'complaints',
         loadComponent: () => import('./pages/dashboard/complaints/complaints.component').then(m => m.ComplaintsComponent),
         title: 'Manage Complaints | Jungle in English Dashboard'
@@ -893,19 +878,8 @@ export const routes: Routes = [
       },
       {
         path: 'gamification',
-<<<<<<< HEAD
-        loadComponent: () => import('./pages/dashboard/gamification/gamification.component').then(m => m.GamificationComponent),
-        title: 'Gamification | Jungle in English Dashboard'
-      },
-      {
-        path: 'courses',
-        loadComponent: () => import('./pages/courses/courses-list/courses-list.component').then(m => m.CoursesListComponent),
-        canActivate: [roleGuard(['ACADEMIC_OFFICE_AFFAIR', 'ADMIN'])],
-        title: 'Courses Management | Jungle in English Dashboard'
-=======
         loadComponent: () => import('./pages/blank/blank.component').then(m => m.BlankComponent),
         title: 'Gamification | Jungle in English Dashboard'
->>>>>>> origin/club/event-service
       }
     ]
   },

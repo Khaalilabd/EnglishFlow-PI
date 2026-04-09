@@ -7,13 +7,8 @@
 
   <!-- Loading State -->
   @if (loading) {
-<<<<<<< HEAD
-    <div class="flex justify-center items-center py-12">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
-=======
       <div class="flex justify-center items-center py-12">
       <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
->>>>>>> origin/club/event-service
     </div>
   }
 
@@ -39,11 +34,7 @@
         @for (club of clubs; track club.id) {
           <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
             <!-- Club Image -->
-<<<<<<< HEAD
-            <div class="h-48 bg-gradient-to-br from-primary-500 to-primary-700 relative">
-=======
             <div class="h-48 bg-gradient-to-br from-[#124559] to-[#0d2d3a] relative">
->>>>>>> origin/club/event-service
               @if (club.image) {
                 <img [src]="club.image" [alt]="club.name" class="w-full h-full object-cover">
               } @else {
@@ -99,11 +90,7 @@
                   </div>
                   <button
                     (click)="activateClub(club)"
-<<<<<<< HEAD
-                    class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
-=======
                     class="w-full bg-[#F6BD60] hover:bg-[#e5ac4f] text-gray-900 font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
->>>>>>> origin/club/event-service
                     Activate Club
                   </button>
                 } @else {
@@ -113,19 +100,11 @@
                     Suspend Club
                   </button>
                 }
-<<<<<<< HEAD
-                <button
-                  (click)="viewClubDetails(club)"
-                  class="w-full bg-primary-600 hover:bg-primary-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
-                  View Details & Members
-                </button>
-=======
             <button
               (click)="viewClubDetails(club)"
               class="w-full bg-gradient-to-r from-[#124559] to-[#0d2d3a] hover:from-[#0d2d3a] hover:to-[#01161e] text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200">
               View Details & Members
             </button>
->>>>>>> origin/club/event-service
               </div>
             </div>
           </div>
@@ -190,19 +169,11 @@
   <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeModal()">
     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden" (click)="$event.stopPropagation()">
       <!-- Modal Header -->
-<<<<<<< HEAD
-      <div class="bg-gradient-to-r from-primary-600 to-primary-700 p-6 text-white">
-        <div class="flex justify-between items-start">
-          <div>
-            <h2 class="text-2xl font-bold mb-2">{{ selectedClub.name }}</h2>
-            <p class="text-primary-100">{{ selectedClub.description }}</p>
-=======
       <div class="bg-gradient-to-r from-[#124559] to-[#0d2d3a] p-6 text-white">
         <div class="flex justify-between items-start">
           <div>
             <h2 class="text-2xl font-bold mb-2">{{ selectedClub.name }}</h2>
             <p class="text-gray-200">{{ selectedClub.description }}</p>
->>>>>>> origin/club/event-service
           </div>
           <button (click)="closeModal()" class="text-white hover:text-gray-200 transition-colors">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,11 +227,7 @@
           @if (showMembersSection) {
             @if (loadingMembers) {
               <div class="flex justify-center py-8">
-<<<<<<< HEAD
-                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
-=======
                 <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F6BD60]"></div>
->>>>>>> origin/club/event-service
               </div>
             } @else if (clubMembers.length === 0) {
               <p class="text-center text-gray-500 dark:text-gray-400 py-8">No members yet</p>
@@ -269,11 +236,7 @@
                 @for (member of clubMembers; track member.id) {
                   <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
                     <div class="flex items-center gap-3">
-<<<<<<< HEAD
-                      <div class="w-10 h-10 bg-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-=======
                       <div class="w-10 h-10 bg-gradient-to-br from-[#124559] to-[#0d2d3a] rounded-full flex items-center justify-center text-white font-semibold">
->>>>>>> origin/club/event-service
                         {{ member.userName ? member.userName.charAt(0).toUpperCase() : member.userId }}
                       </div>
                       <div>
@@ -290,8 +253,6 @@
             }
           }
         </div>
-<<<<<<< HEAD
-=======
 
         <!-- Membership Requests Section -->
         @if (selectedClub && selectedClub.id) {
@@ -299,7 +260,6 @@
             <app-club-membership-requests [clubId]="selectedClub.id"></app-club-membership-requests>
           </div>
         }
->>>>>>> origin/club/event-service
       </div>
 
       <!-- Modal Footer -->
@@ -313,7 +273,4 @@
     </div>
   </div>
 }
-<<<<<<< HEAD
-=======
 
->>>>>>> origin/club/event-service

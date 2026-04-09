@@ -38,8 +38,6 @@ public class EventController {
         return ResponseEntity.ok(eventService.getUpcomingEvents());
     }
     
-<<<<<<< HEAD
-=======
     @GetMapping("/ongoing")
     public ResponseEntity<List<EventDTO>> getOngoingEvents() {
         return ResponseEntity.ok(eventService.getOngoingEvents());
@@ -50,7 +48,6 @@ public class EventController {
         return ResponseEntity.ok(eventService.getPastEvents());
     }
     
->>>>>>> origin/club/event-service
     @GetMapping("/creator/{creatorId}")
     public ResponseEntity<List<EventDTO>> getEventsByCreator(@PathVariable Long creatorId) {
         return ResponseEntity.ok(eventService.getEventsByCreator(creatorId));

@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { EventService, Event } from '../../../core/services/event.service';
-import { NotificationService } from '../../../core/services/notification.service';
-=======
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
@@ -17,36 +11,24 @@ interface EventWithCreator extends Event {
   creatorName?: string;
   creatorEmail?: string;
 }
->>>>>>> origin/club/event-service
 
 @Component({
   selector: 'app-events-manage',
   standalone: true,
   imports: [CommonModule],
-<<<<<<< HEAD
-  templateUrl: './events-manage.component.html'
-})
-export class EventsManageComponent implements OnInit {
-  allEvents: Event[] = [];
-=======
   templateUrl: './events-manage.component.html',
   styleUrls: ['./events-manage.component.scss']
 })
 export class EventsManageComponent implements OnInit, OnDestroy {
   allEvents: EventWithCreator[] = [];
->>>>>>> origin/club/event-service
   loading = false;
   error: string | null = null;
   
   // Modal state
   showDetailsModal = false;
-<<<<<<< HEAD
-  selectedEvent: Event | null = null;
-=======
   selectedEvent: EventWithCreator | null = null;
   
   private wsSubscriptions = new Subscription();
->>>>>>> origin/club/event-service
 
   eventTypeIcons: { [key: string]: string } = {
     'WORKSHOP': '🛠️',
@@ -56,14 +38,6 @@ export class EventsManageComponent implements OnInit, OnDestroy {
 
   constructor(
     private eventService: EventService,
-<<<<<<< HEAD
-    private notificationService: NotificationService
-  ) {}
-
-  ngOnInit() {
-    this.loadEvents();
-  }
-=======
     private notificationService: NotificationService,
     private userService: UserService,
     private eventWsService: EventWebSocketService,
@@ -100,7 +74,6 @@ export class EventsManageComponent implements OnInit, OnDestroy {
     });
     this.wsSubscriptions.add(syncSub);
   }
->>>>>>> origin/club/event-service
 
   loadEvents() {
     this.loading = true;
@@ -109,15 +82,10 @@ export class EventsManageComponent implements OnInit, OnDestroy {
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
         // Filtrer uniquement les événements créés (APPROVED et REJECTED)
-<<<<<<< HEAD
-        this.allEvents = events.filter(e => e.status === 'APPROVED' || e.status === 'REJECTED');
-        this.loading = false;
-=======
         const filteredEvents = events.filter(e => e.status === 'APPROVED' || e.status === 'REJECTED');
         
         // Enrichir avec les informations du créateur
         this.enrichEventsWithCreatorInfo(filteredEvents);
->>>>>>> origin/club/event-service
       },
       error: (err) => {
         console.error('Error loading events:', err);
@@ -127,9 +95,6 @@ export class EventsManageComponent implements OnInit, OnDestroy {
     });
   }
 
-<<<<<<< HEAD
-  viewEventDetails(event: Event) {
-=======
   enrichEventsWithCreatorInfo(events: Event[]) {
     const enrichedEvents: EventWithCreator[] = [];
     let completed = 0;
@@ -183,7 +148,6 @@ export class EventsManageComponent implements OnInit, OnDestroy {
   }
 
   viewEventDetails(event: EventWithCreator) {
->>>>>>> origin/club/event-service
     this.selectedEvent = event;
     this.showDetailsModal = true;
   }

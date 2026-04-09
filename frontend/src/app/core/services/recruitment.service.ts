@@ -98,7 +98,7 @@ export interface ScoreApplicationRequest {
 
 export interface ScheduleInterviewRequest {
   interviewScheduledAt: string;
-<<<<<<< HEAD
+
   platform?: MeetingPlatform;
   meetingLink?: string;
   meetingTitle?: string;
@@ -131,12 +131,7 @@ export interface MeetingLinkResponse {
   additionalInfo?: string;
 }
 
-=======
-  meetingLink?: string;
-  notes?: string;
-}
 
->>>>>>> origin/club/event-service
 export interface AddNoteRequest {
   content: string;
 }
@@ -236,7 +231,7 @@ export class RecruitmentService {
   getApplicationByUserId(userId: number): Observable<ApplicationResponse> {
     return this.http.get<ApplicationResponse>(`${this.apiUrl}/user/${userId}`);
   }
-<<<<<<< HEAD
+
 
   // Meeting link generation
   generateMeetingLink(data: GenerateMeetingLinkRequest): Observable<MeetingLinkResponse> {
@@ -246,6 +241,5 @@ export class RecruitmentService {
   getAvailablePlatforms(): Observable<{ [key: string]: boolean }> {
     return this.http.get<{ [key: string]: boolean }>(`${this.apiUrl}/available-platforms`);
   }
-=======
->>>>>>> origin/club/event-service
+
 }
