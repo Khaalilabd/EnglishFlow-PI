@@ -63,6 +63,16 @@ public class GoogleOAuthService {
                 .setAccessType("offline")
                 .build();
 
+        // Vérifier si les tokens existent déjà
+        Credential credential = flow.loadCredential("user");
+        if (credential != null && credential.getRefreshToken() != null) {
+            log.info("✅ Using existing OAuth2 tokens from: {}", tokensDirectoryPath);
+            return credential;
+        }
+
+        // Si pas de tokens, lancer le flux d'autorisation
+        log.warn("⚠️ No valid tokens found. Starting OAuth2 authorization flow...");
+        
         // Créer le receiver local pour recevoir le code d'autorisation
         // Utiliser le port 15000 (port libre vérifié - loin des microservices)
         LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(15000).build();

@@ -366,7 +366,7 @@ export class RecruitmentDashboardComponent implements OnInit {
         this.scheduledInterviewInfo = {
           candidateName: `${this.selectedApplication!.firstName} ${this.selectedApplication!.lastName}`,
           dateTime: this.formatSelectedDateTime(),
-          meetingLink: response.meetingLink || this.meetingLink,
+          meetingLink: response.interviewMeetingLink || this.meetingLink,
           platform: this.getPlatformDisplayName(this.selectedPlatform),
           duration: this.durationMinutes
         };
@@ -551,6 +551,12 @@ export class RecruitmentDashboardComponent implements OnInit {
         this.isLoading = false;
       }
     });
+  }
+
+  changeStatusFromFinal(application: ApplicationResponse, newStatus: string): void {
+    if (confirm(`Are you sure you want to move ${application.firstName} ${application.lastName} back to ${newStatus}? This will allow re-evaluation of the application.`)) {
+      this.changeStatus(application, newStatus);
+    }
   }
 
   getStatusBadgeClass(status: string): string {

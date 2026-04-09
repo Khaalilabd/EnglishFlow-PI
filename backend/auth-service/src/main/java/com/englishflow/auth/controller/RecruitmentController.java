@@ -60,6 +60,12 @@ public class RecruitmentController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/apply/{applicationId}/accept-terms")
+    public ResponseEntity<ApplicationResponse> acceptTerms(@PathVariable Long applicationId) {
+        ApplicationResponse response = recruitmentService.acceptTerms(applicationId);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/apply/{applicationId}")
     public ResponseEntity<ApplicationResponse> getApplication(@PathVariable Long applicationId) {
         ApplicationResponse response = recruitmentService.getApplication(applicationId);

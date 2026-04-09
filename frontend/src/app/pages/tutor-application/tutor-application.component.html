@@ -262,10 +262,68 @@
         </div>
       </div>
 
+      <!-- Terms and Conditions -->
+      <div class="terms-section">
+        <label class="terms-checkbox">
+          <input type="checkbox" [(ngModel)]="termsAccepted" [ngModelOptions]="{standalone: true}">
+          <span class="checkmark"></span>
+          <span class="terms-text">
+            I have read and accept the 
+            <a href="javascript:void(0)" (click)="showTermsModal = true" class="terms-link">Terms and Conditions</a>
+            and 
+            <a href="javascript:void(0)" (click)="showTermsModal = true" class="terms-link">Privacy Policy</a>
+          </span>
+        </label>
+        <div class="error-text" *ngIf="showTermsError">
+          You must accept the terms and conditions to submit your application
+        </div>
+      </div>
+
       <div class="final-submit">
-        <button type="button" class="btn-primary btn-large" (click)="submitApplication()" [disabled]="isSubmitting">
+        <button type="button" class="btn-primary btn-large" (click)="submitApplication()" [disabled]="isSubmitting || !termsAccepted">
           {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
         </button>
+      </div>
+    </div>
+
+    <!-- Terms and Conditions Modal -->
+    <div class="modal-overlay" *ngIf="showTermsModal" (click)="showTermsModal = false">
+      <div class="modal-content terms-modal" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>Terms and Conditions</h2>
+          <button class="btn-close" (click)="showTermsModal = false">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h3>1. Application Process</h3>
+          <p>By submitting this application, you agree to participate in our recruitment process, which may include interviews, skills assessments, and background checks.</p>
+          
+          <h3>2. Information Accuracy</h3>
+          <p>You certify that all information provided in this application is true, complete, and accurate. Any false or misleading information may result in disqualification or termination.</p>
+          
+          <h3>3. Data Privacy</h3>
+          <p>Your personal data will be processed in accordance with applicable data protection laws. We will use your information solely for recruitment purposes and will not share it with third parties without your consent.</p>
+          
+          <h3>4. Intellectual Property</h3>
+          <p>Any materials you submit (including video presentations) remain your property, but you grant us the right to review them for recruitment purposes.</p>
+          
+          <h3>5. Commitment</h3>
+          <p>If accepted, you agree to:</p>
+          <ul>
+            <li>Maintain professional conduct at all times</li>
+            <li>Adhere to our teaching standards and methodologies</li>
+            <li>Complete required training programs</li>
+            <li>Respect student confidentiality</li>
+          </ul>
+          
+          <h3>6. Contract Terms</h3>
+          <p>Employment terms, compensation, and working conditions will be detailed in a separate contract if your application is successful.</p>
+          
+          <h3>7. Right to Withdraw</h3>
+          <p>You may withdraw your application at any time by contacting us at recruitment&#64;jungleinenglish.com</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-primary" (click)="showTermsModal = false">Close</button>
+        </div>
       </div>
     </div>
 

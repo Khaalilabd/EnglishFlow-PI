@@ -175,6 +175,11 @@ public class RecruitmentService {
             throw new IllegalArgumentException("CV is required to submit application");
         }
 
+        // Check if terms and conditions are accepted
+        if (application.getTermsAccepted() == null || !application.getTermsAccepted()) {
+            throw new IllegalArgumentException("You must accept the terms and conditions to submit your application");
+        }
+
         TutorApplication.ApplicationStatus oldStatus = application.getStatus();
         application.setStatus(TutorApplication.ApplicationStatus.SUBMITTED);
         application.setSubmittedAt(LocalDateTime.now());
@@ -194,6 +199,21 @@ public class RecruitmentService {
         }
 
         log.info("Application submitted: {}", applicationId);
+        return ApplicationResponse.fromEntity(saved);
+    }
+
+    // Accept terms and conditions
+    @Transactional
+    public ApplicationResponse acceptTerms(Long applicationId) {
+        TutorApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new IllegalArgumentException("Application not found"));
+
+        application.setTermsAccepted(true);
+        application.setTermsAcceptedAt(LocalDateTime.now());
+
+        TutorApplication saved = applicationRepository.save(application);
+        log.info("Terms accepted for application: {}", applicationId);
+
         return ApplicationResponse.fromEntity(saved);
     }
 

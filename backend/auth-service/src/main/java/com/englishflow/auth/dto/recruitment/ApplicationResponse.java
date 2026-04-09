@@ -42,6 +42,9 @@ public class ApplicationResponse {
     private Integer testScore;
     private LocalDateTime testCompletedAt;
 
+    private Boolean termsAccepted;
+    private LocalDateTime termsAcceptedAt;
+
     private String status;
     private Integer currentStep;
 
@@ -88,6 +91,8 @@ public class ApplicationResponse {
                 .availability(application.getAvailability())
                 .testScore(application.getTestScore())
                 .testCompletedAt(application.getTestCompletedAt())
+                .termsAccepted(application.getTermsAccepted())
+                .termsAcceptedAt(application.getTermsAcceptedAt())
                 .status(application.getStatus().name())
                 .currentStep(application.getCurrentStep())
                 .qualificationScore(application.getQualificationScore())

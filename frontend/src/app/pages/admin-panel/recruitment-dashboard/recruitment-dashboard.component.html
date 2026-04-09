@@ -582,21 +582,136 @@
   <!-- Accepted & Rejected Section -->
   <div class="final-status-section">
     <div class="status-column accepted">
-      <h3>✅ Accepted ({{ statistics?.accepted || 0 }})</h3>
-      <div class="application-list">
-        <div class="list-item" *ngFor="let app of getApplicationsByStatus('ACCEPTED')">
-          <span>{{ app.firstName }} {{ app.lastName }}</span>
-          <span class="date">{{ formatDate(app.createdAt) }}</span>
+      <div class="status-column-header">
+        <h3>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke-width="2"/>
+            <polyline points="22 4 12 14.01 9 11.01" stroke-width="2"/>
+          </svg>
+          Accepted
+        </h3>
+        <span class="count-badge accepted">{{ statistics?.accepted || 0 }}</span>
+      </div>
+      <div class="application-cards-list">
+        <div class="final-status-card accepted" *ngFor="let app of getApplicationsByStatus('ACCEPTED')" (click)="openDetailModal(app)">
+          <div class="card-avatar accepted">
+            {{ getInitials(app.firstName, app.lastName) }}
+          </div>
+          <div class="card-info">
+            <h4>{{ app.firstName }} {{ app.lastName }}</h4>
+            <div class="card-meta">
+              <span class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-width="2"/>
+                  <polyline points="22,6 12,13 2,6" stroke-width="2"/>
+                </svg>
+                {{ app.email }}
+              </span>
+              <span class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/>
+                  <line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/>
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                </svg>
+                {{ formatDate(app.reviewedAt || app.createdAt) }}
+              </span>
+            </div>
+            <div class="card-score" *ngIf="app.overallScore">
+              <span class="score-label">Score:</span>
+              <span class="score-value" [style.color]="getScoreColor(app.overallScore)">{{ app.overallScore }}/100</span>
+            </div>
+          </div>
+          <div class="card-actions-final" (click)="$event.stopPropagation()">
+            <button class="btn-action-icon" (click)="openDetailModal(app)" title="View Details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+              </svg>
+            </button>
+            <button class="btn-action-icon warning" (click)="changeStatusFromFinal(app, 'UNDER_REVIEW')" title="Move to Under Review">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="1 4 1 10 7 10" stroke-width="2"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="empty-state-final" *ngIf="getApplicationsByStatus('ACCEPTED').length === 0">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+            <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+            <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+          </svg>
+          <p>No accepted applications yet</p>
         </div>
       </div>
     </div>
     
     <div class="status-column rejected">
-      <h3>❌ Rejected ({{ statistics?.rejected || 0 }})</h3>
-      <div class="application-list">
-        <div class="list-item" *ngFor="let app of getApplicationsByStatus('REJECTED')">
-          <span>{{ app.firstName }} {{ app.lastName }}</span>
-          <span class="date">{{ formatDate(app.createdAt) }}</span>
+      <div class="status-column-header">
+        <h3>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+            <line x1="15" y1="9" x2="9" y2="15" stroke-width="2"/>
+            <line x1="9" y1="9" x2="15" y2="15" stroke-width="2"/>
+          </svg>
+          Rejected
+        </h3>
+        <span class="count-badge rejected">{{ statistics?.rejected || 0 }}</span>
+      </div>
+      <div class="application-cards-list">
+        <div class="final-status-card rejected" *ngFor="let app of getApplicationsByStatus('REJECTED')" (click)="openDetailModal(app)">
+          <div class="card-avatar rejected">
+            {{ getInitials(app.firstName, app.lastName) }}
+          </div>
+          <div class="card-info">
+            <h4>{{ app.firstName }} {{ app.lastName }}</h4>
+            <div class="card-meta">
+              <span class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke-width="2"/>
+                  <polyline points="22,6 12,13 2,6" stroke-width="2"/>
+                </svg>
+                {{ app.email }}
+              </span>
+              <span class="meta-item">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2" stroke-width="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6" stroke-width="2"/>
+                  <line x1="8" y1="2" x2="8" y2="6" stroke-width="2"/>
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                </svg>
+                {{ formatDate(app.reviewedAt || app.createdAt) }}
+              </span>
+            </div>
+            <div class="card-rejection-reason" *ngIf="app.rejectionReason">
+              <span class="reason-label">Reason:</span>
+              <span class="reason-text">{{ app.rejectionReason }}</span>
+            </div>
+          </div>
+          <div class="card-actions-final" (click)="$event.stopPropagation()">
+            <button class="btn-action-icon" (click)="openDetailModal(app)" title="View Details">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke-width="2"/>
+                <circle cx="12" cy="12" r="3" stroke-width="2"/>
+              </svg>
+            </button>
+            <button class="btn-action-icon warning" (click)="changeStatusFromFinal(app, 'UNDER_REVIEW')" title="Give Another Chance">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <polyline points="1 4 1 10 7 10" stroke-width="2"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" stroke-width="2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <div class="empty-state-final" *ngIf="getApplicationsByStatus('REJECTED').length === 0">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="12" cy="12" r="10" stroke-width="2"/>
+            <line x1="12" y1="8" x2="12" y2="12" stroke-width="2"/>
+            <line x1="12" y1="16" x2="12.01" y2="16" stroke-width="2"/>
+          </svg>
+          <p>No rejected applications yet</p>
         </div>
       </div>
     </div>

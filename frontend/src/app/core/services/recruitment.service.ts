@@ -54,6 +54,8 @@ export interface ApplicationResponse {
   motivationLetter?: string;
   teachingPhilosophy?: string;
   availability?: string;
+  termsAccepted?: boolean;
+  termsAcceptedAt?: string;
   status: string;
   currentStep: number;
   createdAt: string;
@@ -62,6 +64,7 @@ export interface ApplicationResponse {
   interviewMeetingLink?: string;
   reviewedAt?: string;
   reviewedBy?: number;
+  rejectionReason?: string;
   documents?: DocumentResponse[];
   notes?: NoteResponse[];
   qualificationScore?: number;
@@ -228,6 +231,10 @@ export class RecruitmentService {
 
   submitApplication(applicationId: number): Observable<ApplicationResponse> {
     return this.http.post<ApplicationResponse>(`${this.apiUrl}/apply/${applicationId}/submit`, {});
+  }
+
+  acceptTerms(applicationId: number): Observable<ApplicationResponse> {
+    return this.http.post<ApplicationResponse>(`${this.apiUrl}/apply/${applicationId}/accept-terms`, {});
   }
 
   getApplication(applicationId: number): Observable<ApplicationResponse> {

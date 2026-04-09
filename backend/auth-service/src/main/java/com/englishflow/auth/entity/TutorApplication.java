@@ -74,6 +74,13 @@ public class TutorApplication {
     private Integer testScore;
     private LocalDateTime testCompletedAt;
 
+    // Terms and Conditions
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean termsAccepted = false;
+    
+    private LocalDateTime termsAcceptedAt;
+
     // Application Status
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

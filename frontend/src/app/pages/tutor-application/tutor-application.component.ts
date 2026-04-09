@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { RecruitmentService, ApplicationResponse } from '../../core/services/recruitment.service';
 
 @Component({
   selector: 'app-tutor-application',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './tutor-application.component.html',
   styleUrls: ['./tutor-application.component.scss']
 })
@@ -24,6 +24,11 @@ export class TutorApplicationComponent implements OnInit {
   isSubmitting = false;
   errorMessage = '';
   successMessage = '';
+  
+  // Terms and conditions
+  termsAccepted = false;
+  showTermsModal = false;
+  showTermsError = false;
   
   // Animation states
   isButtonAnimating = false;
@@ -215,18 +220,39 @@ export class TutorApplicationComponent implements OnInit {
   submitApplication(): void {
     if (!this.applicationId) return;
 
+    // Check if terms are accepted
+    if (!this.termsAccepted) {
+      this.showTermsError = true;
+      this.errorMessage = 'You must accept the terms and conditions to submit your application';
+      setTimeout(() => {
+        this.showTermsError = false;
+        this.errorMessage = '';
+      }, 5000);
+      return;
+    }
+
     this.isSubmitting = true;
     this.errorMessage = '';
 
-    this.recruitmentService.submitApplication(this.applicationId).subscribe({
+    // First, accept terms
+    this.recruitmentService.acceptTerms(this.applicationId).subscribe({
       next: () => {
-        this.successMessage = 'Application submitted successfully!';
-        setTimeout(() => {
-          this.router.navigate(['/']);
-        }, 2000);
+        // Then submit application
+        this.recruitmentService.submitApplication(this.applicationId!).subscribe({
+          next: () => {
+            this.successMessage = 'Application submitted successfully!';
+            setTimeout(() => {
+              this.router.navigate(['/']);
+            }, 2000);
+          },
+          error: (error: any) => {
+            this.errorMessage = error.error?.message || 'Failed to submit application';
+            this.isSubmitting = false;
+          }
+        });
       },
-      error: (error) => {
-        this.errorMessage = error.error?.message || 'Failed to submit application';
+      error: (error: any) => {
+        this.errorMessage = error.error?.message || 'Failed to accept terms';
         this.isSubmitting = false;
       }
     });
