@@ -283,6 +283,8 @@
             </plugin>
             
             <!-- JaCoCo Maven Plugin for Test Coverage -->
+            <!-- Temporarily disabled due to Maven Central 403 errors in CI/CD -->
+            <!--
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -323,19 +325,19 @@
                 </executions>
                 <configuration>
                     <excludes>
-                        <!-- Exclude DTOs (no logic to test) -->
+                        Exclude DTOs (no logic to test)
                         <exclude>**/dto/**</exclude>
-                        <!-- Exclude Entities (JPA entities, no logic) -->
+                        Exclude Entities (JPA entities, no logic)
                         <exclude>**/entity/**</exclude>
-                        <!-- Exclude Config classes (Spring configuration) -->
+                        Exclude Config classes (Spring configuration)
                         <exclude>**/config/**</exclude>
-                        <!-- Exclude Main application class -->
+                        Exclude Main application class
                         <exclude>**/AuthServiceApplication.class</exclude>
-                        <!-- Exclude Repository interfaces (Spring Data, no implementation) -->
+                        Exclude Repository interfaces (Spring Data, no implementation)
                         <exclude>**/repository/**</exclude>
-                        <!-- Exclude Feign Client interfaces (no implementation) -->
+                        Exclude Feign Client interfaces (no implementation)
                         <exclude>**/client/**</exclude>
-                        <!-- Exclude services with external dependencies (hard to test) -->
+                        Exclude services with external dependencies (hard to test)
                         <exclude>**/service/EmailService.class</exclude>
                         <exclude>**/service/FileStorageService.class</exclude>
                         <exclude>**/service/GeoIpService.class</exclude>
@@ -344,6 +346,7 @@
                     </excludes>
                 </configuration>
             </plugin>
+            -->
             
             <!-- Maven Surefire Plugin for Running Tests -->
             <plugin>
