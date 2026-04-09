@@ -42,6 +42,12 @@ class ClubServiceTest {
     @Mock
     private ClubMapper clubMapper;
 
+    @Mock
+    private WebSocketNotificationService wsNotificationService;
+
+    @Mock
+    private SkillService skillService;
+
     @InjectMocks
     private ClubService clubService;
 
@@ -151,19 +157,22 @@ class ClubServiceTest {
     @Test
     void deleteClub_WhenClubExists_ShouldDeleteSuccessfully() {
         // Arrange
-        when(clubRepository.existsById(1)).thenReturn(true);
+        when(clubRepository.findById(1)).thenReturn(Optional.of(testClub));
+        doNothing().when(clubRepository).deleteById(1);
+        doNothing().when(wsNotificationService).sendGlobalClubNotification(any());
 
         // Act
         clubService.deleteClub(1);
 
         // Assert
         verify(clubRepository, times(1)).deleteById(1);
+        verify(wsNotificationService, times(1)).sendGlobalClubNotification(any());
     }
 
     @Test
     void deleteClub_WhenClubNotExists_ShouldThrowException() {
         // Arrange
-        when(clubRepository.existsById(999)).thenReturn(false);
+        when(clubRepository.findById(999)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ClubNotFoundException.class, () -> clubService.deleteClub(999));
