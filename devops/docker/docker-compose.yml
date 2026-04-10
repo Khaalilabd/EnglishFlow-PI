@@ -168,6 +168,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8086
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - EUREKA_INSTANCE_HOSTNAME=courses-service
       - DB_URL=jdbc:postgresql://postgres:5432/englishflow_courses
@@ -184,7 +185,7 @@ services:
       dockerfile: Dockerfile
     container_name: englishflow-exam
     ports:
-      - "8087:8087"
+      - "8089:8089"
     networks:
       - englishflow-network
     depends_on:
@@ -195,7 +196,7 @@ services:
       eureka-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -361,7 +362,7 @@ services:
       dockerfile: Dockerfile
     container_name: englishflow-complaints
     ports:
-      - "8089:8089"
+      - "8087:8087"
     networks:
       - englishflow-network
     depends_on:
@@ -370,7 +371,7 @@ services:
       eureka-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -450,6 +451,38 @@ services:
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
+  # Sponsors Service
+  sponsors-service:
+    build:
+      context: ../../backend/sponsors-service
+      dockerfile: Dockerfile
+    container_name: englishflow-sponsors
+    ports:
+      - "8091:8091"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_INSTANCE_HOSTNAME=sponsors-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_sponsors
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
   # Config Server
   config-server:
     build:
@@ -484,7 +517,7 @@ services:
     depends_on:
       - api-gateway
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 3s
       retries: 3

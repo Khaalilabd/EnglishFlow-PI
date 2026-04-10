@@ -1,5 +1,7 @@
 version: '3.8'
 
+name: jungle-in-english
+
 services:
   # PostgreSQL
   postgres:
@@ -176,7 +178,7 @@ services:
       context: ./backend/exam-service
       dockerfile: Dockerfile
     ports:
-      - "8087:8087"
+      - "8089:8089"
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/englishflow_exams
       DB_USERNAME: postgres
@@ -214,7 +216,7 @@ services:
       context: ./backend/complaints-service
       dockerfile: Dockerfile
     ports:
-      - "8089:8089"
+      - "8087:8087"
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/englishflow_complaints
       DB_USERNAME: postgres
@@ -246,6 +248,25 @@ services:
       - englishflow
     restart: unless-stopped
 
+  # Sponsors Service
+  sponsors-service:
+    build:
+      context: ./backend/sponsors-service
+      dockerfile: Dockerfile
+    ports:
+      - "8091:8091"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/englishflow_sponsors
+      DB_USERNAME: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres123}
+      EUREKA_SERVER_URL: http://eureka-server:8761/eureka/
+    depends_on:
+      - postgres
+      - eureka-server
+    networks:
+      - englishflow
+    restart: unless-stopped
+
   # Frontend
   frontend:
     build:
@@ -258,6 +279,8 @@ services:
     networks:
       - englishflow
     restart: unless-stopped
+    healthcheck:
+      disable: true
 
 volumes:
   postgres_data:
