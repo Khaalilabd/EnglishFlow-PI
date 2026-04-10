@@ -44,6 +44,8 @@ public class AuthService {
     private final AuditLogService auditLogService;
     private final UserSessionService userSessionService;
     private final MetricsService metricsService;
+    private final TwoFactorAuthService twoFactorAuthService;
+    private final GamificationIntegrationService gamificationIntegrationService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -104,6 +106,9 @@ public class AuthService {
             }
 
             user = userRepository.save(user);
+
+            // Note: Gamification level will be initialized after the user completes the assessment test
+            // The assessment service will call gamification-service to initialize the level
 
             // Create activation token
             String activationToken = UUID.randomUUID().toString();
@@ -222,6 +227,22 @@ public class AuthService {
 
             // Reset rate limit on successful login
             rateLimitService.resetAttempts(request.getEmail());
+            
+            // Check if 2FA is enabled
+            if (twoFactorAuthService.isTwoFactorEnabled(user.getId())) {
+                log.info("2FA required for user: {}", user.getEmail());
+                
+                // Generate temporary token (valid for 5 minutes)
+                String tempToken = jwtUtil.generateTempToken(user.getEmail(), user.getId());
+                
+                metricsService.recordLoginDuration(System.currentTimeMillis() - startTime);
+                
+                return AuthResponse.builder()
+                        .requires2FA(true)
+                        .tempToken(tempToken)
+                        .email(user.getEmail())
+                        .build();
+            }
             
             // Record metrics
             metricsService.recordLoginSuccess();
@@ -362,11 +383,13 @@ public class AuthService {
         // Create refresh token
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId(), deviceInfo, ipAddress);
         
-        // Create user session
+        // Create user session and get session token
+        String sessionToken = null;
         try {
             log.info("Attempting to create session for user: {} (ID: {})", user.getEmail(), user.getId());
             UserSession session = userSessionService.createSession(user.getId(), request);
-            log.info("Session created successfully for user: {} with token: {}", user.getEmail(), session.getSessionToken());
+            sessionToken = session.getSessionToken();
+            log.info("Session created successfully for user: {} with token: {}", user.getEmail(), sessionToken);
         } catch (Exception e) {
             log.error("Failed to create session for user: {} - Error: {}", user.getEmail(), e.getMessage(), e);
             // Continue anyway - session tracking is not critical for login
@@ -375,6 +398,7 @@ public class AuthService {
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken.getToken())
+                .sessionToken(sessionToken)
                 .type("Bearer")
                 .id(user.getId())
                 .email(user.getEmail())
@@ -465,6 +489,47 @@ public class AuthService {
         }
         
         return request.getRemoteAddr();
+    }
+
+    /**
+     * Verify 2FA code during login
+     */
+    @Transactional
+    public AuthResponse verifyTwoFactorLogin(String tempToken, String code, HttpServletRequest request) {
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            // Validate temporary token
+            if (!jwtUtil.validateTempToken(tempToken)) {
+                metricsService.recordLoginFailure();
+                throw new com.englishflow.auth.exception.InvalidTokenException("2FA", "Temporary token expired or invalid");
+            }
+            
+            // Extract user info from temp token
+            String email = jwtUtil.extractEmailFromToken(tempToken);
+            Long userId = jwtUtil.extractUserIdFromToken(tempToken);
+            
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(userId));
+            
+            // Verify 2FA code
+            if (!twoFactorAuthService.verifyTwoFactorCode(userId, code)) {
+                metricsService.recordLoginFailure();
+                throw new com.englishflow.auth.exception.InvalidTokenException("2FA", "Invalid verification code");
+            }
+            
+            // Record successful login
+            metricsService.recordLoginSuccess();
+            metricsService.recordLoginDuration(System.currentTimeMillis() - startTime);
+            
+            log.info("2FA verification successful for user: {}", email);
+            
+            // Create full auth response with tokens
+            return createAuthResponse(user, request);
+        } catch (Exception e) {
+            metricsService.recordLoginDuration(System.currentTimeMillis() - startTime);
+            throw e;
+        }
     }
 
 }

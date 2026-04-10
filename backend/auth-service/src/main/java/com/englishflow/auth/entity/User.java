@@ -61,6 +61,9 @@ public class User {
     @Column
     private Integer yearsOfExperience; // For teachers
 
+    @Column
+    private Long applicationId; // Link to TutorApplication for recruitment history
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

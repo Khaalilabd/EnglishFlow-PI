@@ -26,6 +26,7 @@ public class UserDTO {
     private String bio;
     private String englishLevel;
     private Integer yearsOfExperience;
+    private Long applicationId; // Link to recruitment application
     private String role;
     
     @JsonProperty("isActive")
@@ -34,6 +35,9 @@ public class UserDTO {
     private boolean registrationFeePaid;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    
+    // Gamification fields
+    private UserLevelDTO gamificationLevel;
 
     public static UserDTO fromEntity(User user) {
         UserDTO dto = new UserDTO();
@@ -51,6 +55,7 @@ public class UserDTO {
         dto.setBio(user.getBio());
         dto.setEnglishLevel(user.getEnglishLevel());
         dto.setYearsOfExperience(user.getYearsOfExperience());
+        dto.setApplicationId(user.getApplicationId());
         dto.setRole(user.getRole().name());
         dto.setActive(user.isActive());
         dto.setRegistrationFeePaid(user.isRegistrationFeePaid());

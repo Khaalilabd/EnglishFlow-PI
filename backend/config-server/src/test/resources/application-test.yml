@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: file://${user.home}/config-repo
+          default-label: main
+        native:
+          search-locations: classpath:/config
+
+server:
+  port: 0
+
+eureka:
+  client:
+    enabled: false

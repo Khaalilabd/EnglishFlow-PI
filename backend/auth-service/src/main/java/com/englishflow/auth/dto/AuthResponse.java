@@ -15,6 +15,7 @@ public class AuthResponse {
 
     private String token;
     private String refreshToken;
+    private String sessionToken; // Session token for tracking user sessions
     @Builder.Default
     private String type = "Bearer";
     private Long id;
@@ -27,6 +28,10 @@ public class AuthResponse {
     private Boolean profileCompleted;
     private long expiresIn; // Access token expiry in seconds
     private LocalDateTime refreshTokenExpiryDate;
+    
+    // 2FA fields
+    private Boolean requires2FA; // Indicates if 2FA verification is required
+    private String tempToken; // Temporary token for 2FA verification (short-lived)
 
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone) {
         this.token = token;

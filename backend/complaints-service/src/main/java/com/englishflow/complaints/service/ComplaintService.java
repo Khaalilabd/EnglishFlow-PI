@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -33,11 +34,15 @@ public class ComplaintService {
     private final NotificationSseService notificationSseService;
     private final RestTemplate restTemplate;
     
-    private static final String AUTH_SERVICE_URL = "http://localhost:8081/api/users";
+    @Value("${auth.service.url}")
+    private String authServiceUrl;
     
     @Transactional
     public Complaint createComplaint(Complaint complaint) {
         log.info("Creating complaint for user: {}", complaint.getUserId());
+        
+        // Validation métier supplémentaire
+        validateComplaint(complaint);
         
         complaint.setStatus(ComplaintStatus.OPEN);
         
@@ -52,6 +57,55 @@ public class ComplaintService {
         createComplaintNotification(saved);
         
         return saved;
+    }
+    
+    /**
+     * Validation métier pour les complaints
+     */
+    private void validateComplaint(Complaint complaint) {
+        // Vérifier que le sujet n'est pas vide après trim
+        if (complaint.getSubject() == null || complaint.getSubject().trim().isEmpty()) {
+            throw new IllegalArgumentException("Subject cannot be empty");
+        }
+        
+        // Vérifier que la description n'est pas vide après trim
+        if (complaint.getDescription() == null || complaint.getDescription().trim().isEmpty()) {
+            throw new IllegalArgumentException("Description cannot be empty");
+        }
+        
+        // Vérifier la longueur minimale de la description
+        if (complaint.getDescription().trim().length() < 20) {
+            throw new IllegalArgumentException("Description must be at least 20 characters long");
+        }
+        
+        // Vérifier que userId est valide
+        if (complaint.getUserId() == null || complaint.getUserId() <= 0) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        
+        // Vérifier que targetRole est défini
+        if (complaint.getTargetRole() == null) {
+            throw new IllegalArgumentException("Target role is required");
+        }
+        
+        // Vérifier que category est définie
+        if (complaint.getCategory() == null) {
+            throw new IllegalArgumentException("Category is required");
+        }
+        
+        // Validation spécifique pour CLUB_SUSPENSION
+        if (complaint.getCategory() == com.englishflow.complaints.enums.ComplaintCategory.CLUB_SUSPENSION) {
+            if (complaint.getClubId() == null || complaint.getClubId() <= 0) {
+                throw new IllegalArgumentException("Club ID is required for club suspension complaints");
+            }
+        }
+        
+        // Validation des champs optionnels s'ils sont fournis
+        if (complaint.getSessionCount() != null && complaint.getSessionCount() < 0) {
+            throw new IllegalArgumentException("Session count cannot be negative");
+        }
+        
+        log.info("Complaint validation passed for user: {}", complaint.getUserId());
     }
     
     private void createComplaintNotification(Complaint complaint) {
@@ -196,7 +250,7 @@ public class ComplaintService {
     
     private Map<String, Object> getUserInfo(Long userId) {
         try {
-            String url = AUTH_SERVICE_URL + "/" + userId;
+            String url = authServiceUrl + "/users/" + userId + "/public";
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             log.info("Successfully fetched user info for userId: {}", userId);
             return response != null ? response : Map.of("firstName", "Unknown", "lastName", "User");

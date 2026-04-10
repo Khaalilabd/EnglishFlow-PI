@@ -7,9 +7,12 @@
         <img [src]="user.avatar" alt="user" />
       </div>
       <div class="order-3 xl:order-2">
-        <h4 class="mb-2 text-lg font-semibold text-center text-gray-800 dark:text-white/90 xl:text-left">
-          {{ user.firstName }} {{ user.lastName }}
-        </h4>
+        <div class="flex items-center justify-center gap-2 mb-2 xl:justify-start">
+          <h4 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+            {{ user.firstName }} {{ user.lastName }}
+          </h4>
+          <app-user-role-badge [role]="user.role"></app-user-role-badge>
+        </div>
         <div class="flex flex-col items-center gap-1 text-center xl:flex-row xl:gap-3 xl:text-left">
           <p class="text-sm text-gray-500 dark:text-gray-400">
             {{ user.role }}

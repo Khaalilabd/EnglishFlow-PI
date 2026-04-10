@@ -121,4 +121,21 @@ public class AuthController {
         authService.logoutFromAllDevices(userId);
         return ResponseEntity.ok(Map.of("message", "Logged out from all devices successfully"));
     }
+    
+    @PostMapping("/login/verify-2fa")
+    public ResponseEntity<AuthResponse> verifyTwoFactorLogin(
+            @Valid @RequestBody com.englishflow.auth.dto.TwoFactorLoginRequest request,
+            HttpServletRequest httpRequest) {
+        try {
+            AuthResponse response = authService.verifyTwoFactorLogin(
+                    request.getTempToken(), 
+                    request.getCode(), 
+                    httpRequest
+            );
+            return ResponseEntity.ok(response);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(null);
+        }
+    }
 }

@@ -4,8 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { MessagingService } from '../../../../core/services/messaging.service';
 import { AuthService } from '../../../../core/services/auth.service';
-import { Conversation } from '../../../../core/models/conversation.model';
-import { Message, SendMessageRequest, MessageType } from '../../../../core/models/message.model';
+import { Conversation, ConversationType, CreateConversationRequest } from '../../../../core/models/conversation.model';
+import { Message, SendMessageRequest, MessageType, MessageStatus } from '../../../../core/models/message.model';
 import { NewConversationModalComponent } from '../new-conversation-modal/new-conversation-modal.component';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
@@ -31,6 +31,9 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   searchQuery: string = '';
   isTyping: boolean = false;
   showNewConversationModal: boolean = false;
+  showGroupInfoModal: boolean = false;
+  showAddParticipantModal: boolean = false;
+  showEditGroupModal: boolean = false;
   showEmojiPicker: boolean = false;
   hoveredMessageId: number | null = null;
   showReactionPicker: { [messageId: number]: boolean } = {};
@@ -39,6 +42,27 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
   uploadingFile: boolean = false;
   imageUrls: { [messageId: number]: string } = {}; // Cache des URLs blob pour les images
   audioUrls: { [messageId: number]: string } = {}; // Cache des URLs blob pour les audios
+  
+  // Group management
+  participantSearchQuery: string = '';
+  groupInfoSearchQuery: string = '';
+  availableUsers: any[] = [];
+  filteredAvailableUsers: any[] = [];
+  selectedUsersToAdd: any[] = [];
+  editGroupTitle: string = '';
+  editGroupDescription: string = '';
+  editGroupPhoto: File | null = null;
+  editGroupPhotoPreview: string | null = null;
+  isLoadingParticipants: boolean = false;
+  
+  // Tutor-to-tutor messaging
+  tutors: any[] = [];
+  filteredTutors: any[] = [];
+  tutorSearchQuery: string = '';
+  showTutorsSection: boolean = false;
+  showPackSection: boolean = true;
+  showDiscussionsSection: boolean = true;
+  currentUserRole: string = '';
   
   // Image modal
   selectedImageUrl: string | null = null;
@@ -87,6 +111,12 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     const currentUser = this.authService.currentUserValue;
     if (currentUser) {
       this.currentUserId = currentUser.id;
+      this.currentUserRole = currentUser.role;
+      
+      // Si l'utilisateur est un tuteur, charger la liste des tuteurs
+      if (this.currentUserRole === 'TUTOR') {
+        this.loadTutors();
+      }
     }
     this.loadConversations();
     this.connectWebSocket();
@@ -134,6 +164,9 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     this.stompClient.onConnect = (frame) => {
       console.log('WebSocket Connected successfully', frame);
       this.connected = true;
+      
+      // S'abonner aux mises à jour de toutes les conversations de l'utilisateur
+      this.subscribeToAllConversations();
     };
 
     this.stompClient.onStompError = (frame) => {
@@ -176,9 +209,96 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         next: (conversations) => {
           this.conversations = conversations;
           this.filteredConversations = conversations;
+          
+          // Mettre à jour selectedConversation si elle existe
+          if (this.selectedConversationId) {
+            const updated = conversations.find(c => c.id === this.selectedConversationId);
+            if (updated) {
+              this.selectedConversation = updated;
+            }
+          }
         },
         error: (error) => console.error('Error loading conversations:', error)
       });
+  }
+  
+  loadTutors(): void {
+    console.log('🔍 loadTutors called, currentUserRole:', this.currentUserRole);
+    this.messagingService.getUsersByRole('TUTOR')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (tutors) => {
+          console.log('✅ Tutors received from API:', tutors);
+          console.log('📊 Number of tutors:', tutors.length);
+          this.tutors = tutors;
+          this.filteredTutors = tutors;
+          console.log('Loaded tutors:', tutors);
+        },
+        error: (error) => {
+          console.error('❌ Error loading tutors:', error);
+          console.error('Error details:', error.error);
+          console.error('Status:', error.status);
+        }
+      });
+  }
+  
+  filterTutors(): void {
+    if (!this.tutorSearchQuery.trim()) {
+      this.filteredTutors = this.tutors;
+    } else {
+      const query = this.tutorSearchQuery.toLowerCase();
+      this.filteredTutors = this.tutors.filter(tutor =>
+        `${tutor.firstName} ${tutor.lastName}`.toLowerCase().includes(query) ||
+        tutor.email.toLowerCase().includes(query)
+      );
+    }
+  }
+  
+  toggleTutorsSection(): void {
+    this.showTutorsSection = !this.showTutorsSection;
+  }
+  
+  togglePackSection(): void {
+    this.showPackSection = !this.showPackSection;
+  }
+  
+  toggleDiscussionsSection(): void {
+    this.showDiscussionsSection = !this.showDiscussionsSection;
+  }
+  
+  startConversationWithTutor(tutor: any): void {
+    // Vérifier si une conversation existe déjà avec ce tuteur
+    const existingConversation = this.conversations.find(conv => 
+      conv.type === ConversationType.DIRECT && 
+      conv.participants.some(p => p.userId === tutor.id)
+    );
+    
+    if (existingConversation) {
+      // Sélectionner la conversation existante
+      this.selectConversation(existingConversation.id);
+      this.showTutorsSection = false;
+    } else {
+      // Créer une nouvelle conversation
+      const request: CreateConversationRequest = {
+        type: ConversationType.DIRECT,
+        participantIds: [tutor.id],
+        title: undefined,
+        description: undefined,
+        groupPhoto: undefined
+      };
+      
+      this.messagingService.createConversation(request)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (conversation) => {
+            this.conversations.unshift(conversation);
+            this.filteredConversations = this.conversations;
+            this.selectConversation(conversation.id);
+            this.showTutorsSection = false;
+          },
+          error: (error) => console.error('Error creating conversation:', error)
+        });
+    }
   }
 
   filterConversations(): void {
@@ -266,6 +386,91 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         }
       }
     );
+    
+    // Subscribe to read status updates
+    this.stompClient.subscribe(
+      `/topic/conversation/${conversationId}/read-status`,
+      (message: IMessage) => {
+        const update = JSON.parse(message.body);
+        console.log('Received read status update:', update);
+        
+        // Mettre à jour le statut des messages qui ont été lus
+        if (update.messageIds && update.messageIds.length > 0) {
+          update.messageIds.forEach((messageId: number) => {
+            const msg = this.messages.find(m => m.id === messageId);
+            if (msg && msg.senderId === this.currentUserId) {
+              // Mettre à jour le statut du message
+              msg.status = MessageStatus.READ;
+              console.log('Updated message', messageId, 'status to READ');
+            }
+          });
+          this.cdr.detectChanges();
+        }
+      }
+    );
+  }
+  
+  subscribeToAllConversations(): void {
+    if (!this.stompClient || !this.connected) {
+      return;
+    }
+    
+    // S'abonner aux notifications de nouveaux messages pour toutes les conversations de l'utilisateur
+    this.stompClient.subscribe(
+      `/user/queue/messages`,
+      (message: IMessage) => {
+        const messageData = JSON.parse(message.body);
+        console.log('Received new message notification:', messageData);
+        
+        // Mettre à jour la liste des conversations
+        this.updateConversationList(messageData);
+      }
+    );
+  }
+  
+  updateConversationList(newMessage: any): void {
+    // Trouver la conversation dans la liste
+    const convIndex = this.conversations.findIndex(c => c.id === newMessage.conversationId);
+    
+    if (convIndex !== -1) {
+      const conv = this.conversations[convIndex];
+      
+      // Mettre à jour le dernier message
+      conv.lastMessage = {
+        id: newMessage.id,
+        conversationId: newMessage.conversationId,
+        content: newMessage.content,
+        messageType: newMessage.messageType,
+        senderId: newMessage.senderId,
+        senderName: newMessage.senderName,
+        senderAvatar: newMessage.senderAvatar,
+        createdAt: newMessage.createdAt,
+        updatedAt: newMessage.updatedAt,
+        isEdited: newMessage.isEdited || false,
+        status: newMessage.status,
+        reactions: newMessage.reactions || [],
+        readBy: newMessage.readBy || []
+      };
+      conv.lastMessageAt = newMessage.createdAt;
+      
+      // Si le message n'est pas de l'utilisateur actuel et que la conversation n'est pas ouverte
+      if (newMessage.senderId !== this.currentUserId && 
+          this.selectedConversationId !== newMessage.conversationId) {
+        conv.unreadCount = (conv.unreadCount || 0) + 1;
+      }
+      
+      // Remonter la conversation en haut de la liste
+      this.conversations.splice(convIndex, 1);
+      this.conversations.unshift(conv);
+      
+      // Mettre à jour la liste filtrée
+      this.filterConversations();
+      
+      this.cdr.detectChanges();
+    } else {
+      // Si la conversation n'existe pas dans la liste, recharger toutes les conversations
+      this.loadConversations();
+    }
   }
   
   subscribeToReactionUpdates(): void {
@@ -481,16 +686,49 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
 
   getTitle(conv: Conversation): string {
     if (conv.title) return conv.title;
+    
+    // Vérifier si participants existe et n'est pas vide
+    if (!conv.participants || conv.participants.length === 0) {
+      return 'Chargement...';
+    }
+    
     const other = conv.participants.find(p => p.userId !== this.currentUserId);
+    
+    // Si on ne trouve pas l'autre participant, c'est que les données ne sont pas encore chargées
+    if (!other) {
+      return 'Chargement...';
+    }
+    
     // Utiliser userName s'il existe et n'est pas vide, sinon utiliser l'email
-    if (other?.userName && other.userName !== 'User' && other.userName.trim() !== '') {
+    if (other.userName && other.userName !== 'User' && other.userName.trim() !== '') {
       return other.userName;
     }
+    
     // Fallback sur l'email si userName n'est pas disponible
-    return other?.userEmail?.split('@')[0] || 'Conversation';
+    return other.userEmail?.split('@')[0] || 'Conversation';
   }
 
   getAvatar(conv: Conversation): string {
+    // Pour les groupes, utiliser la photo du groupe si elle existe
+    if (conv.type === 'GROUP' && conv.groupPhoto) {
+      if (conv.groupPhoto.startsWith('http')) {
+        return conv.groupPhoto;
+      }
+      // Utiliser la même route que les photos de profil: /uploads/...
+      return `http://localhost:8080${conv.groupPhoto}`;
+    }
+    
+    // Pour les groupes sans photo, utiliser une icône de groupe
+    if (conv.type === 'GROUP') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(conv.title || 'Groupe')}&background=667eea&color=fff&bold=true&size=128`;
+    }
+    
+    // Vérifier si participants existe et n'est pas vide
+    if (!conv.participants || conv.participants.length === 0) {
+      return 'https://ui-avatars.com/api/?name=...&background=667eea&color=fff&bold=true&size=128';
+    }
+    
+    // Pour les conversations directes
     const other = conv.participants.find(p => p.userId !== this.currentUserId);
     if (other?.userAvatar && !other.userAvatar.includes('ui-avatars.com')) {
       return `http://localhost:8088${other.userAvatar}`;
@@ -933,4 +1171,321 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
     this.selectedImageUrl = null;
     this.selectedImageName = '';
   }
+  
+  openGroupInfo(): void {
+    this.groupInfoSearchQuery = '';
+    // Recharger la conversation pour avoir les participants à jour
+    if (this.selectedConversationId) {
+      this.isLoadingParticipants = true;
+      this.messagingService.getConversation(this.selectedConversationId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (conversation) => {
+            this.selectedConversation = conversation;
+            this.showGroupInfoModal = true;
+            this.isLoadingParticipants = false;
+            this.cdr.detectChanges();
+          },
+          error: (error) => {
+            console.error('Error loading conversation:', error);
+            this.showGroupInfoModal = true;
+            this.isLoadingParticipants = false;
+          }
+        });
+    } else {
+      this.showGroupInfoModal = true;
+    }
+  }
+  
+  getFilteredParticipants() {
+    if (!this.selectedConversation) return [];
+    
+    const query = this.groupInfoSearchQuery.toLowerCase().trim();
+    if (!query) {
+      return this.selectedConversation.participants;
+    }
+    
+    return this.selectedConversation.participants.filter(p => 
+      p.userName.toLowerCase().includes(query) ||
+      p.userEmail.toLowerCase().includes(query)
+    );
+  }
+  
+  isPackGroup(): boolean {
+    return this.selectedConversation?.title?.startsWith('Pack: ') || false;
+  }
+  
+  canLeaveGroup(): boolean {
+    // Ne peut pas quitter un groupe de pack (doit se désinscrire du pack)
+    return !this.isPackGroup();
+  }
+  
+  isTutor(userId: number): boolean {
+    if (!this.selectedConversation) return false;
+    const participant = this.selectedConversation.participants.find(p => p.userId === userId);
+    return participant?.role === 'ADMIN';
+  }
+  
+  isPackConversation(conversation: Conversation): boolean {
+    return conversation.title?.startsWith('Pack: ') || false;
+  }
+  
+  getSortedConversations(): Conversation[] {
+    // Trier les conversations: groupes de pack en premier, puis par date
+    return [...this.filteredConversations].sort((a, b) => {
+      const aIsPack = this.isPackConversation(a);
+      const bIsPack = this.isPackConversation(b);
+      
+      // Les packs en premier
+      if (aIsPack && !bIsPack) return -1;
+      if (!aIsPack && bIsPack) return 1;
+      
+      // Sinon, trier par date du dernier message
+      const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      return bTime - aTime;
+    });
+  }
+  
+  getPackConversations(): Conversation[] {
+    return this.filteredConversations
+      .filter(conv => this.isPackConversation(conv))
+      .sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+  }
+  
+  getRegularConversations(): Conversation[] {
+    return this.filteredConversations
+      .filter(conv => !this.isPackConversation(conv))
+      .sort((a, b) => {
+        const aTime = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+        const bTime = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+        return bTime - aTime;
+      });
+  }
+  
+  removeParticipant(userId: number): void {
+    if (!this.selectedConversation) return;
+    
+    const participant = this.selectedConversation.participants.find(p => p.userId === userId);
+    if (!participant) return;
+    
+    if (!confirm(`Êtes-vous sûr de vouloir retirer ${participant.userName} du groupe?`)) {
+      return;
+    }
+    
+    this.messagingService.removeParticipant(this.selectedConversation.id, userId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          // Recharger la conversation
+          this.openGroupInfo();
+          alert(`${participant.userName} a été retiré du groupe`);
+        },
+        error: (error) => {
+          console.error('Error removing participant:', error);
+          alert('Erreur lors du retrait du participant');
+        }
+      });
+  }
+  
+  closeGroupInfo(): void {
+    this.showGroupInfoModal = false;
+  }
+  
+  openAddParticipant(): void {
+    this.participantSearchQuery = '';
+    this.selectedUsersToAdd = [];
+    this.loadAvailableUsers();
+    this.showAddParticipantModal = true;
+  }
+  
+  closeAddParticipant(): void {
+    this.showAddParticipantModal = false;
+    this.availableUsers = [];
+    this.filteredAvailableUsers = [];
+    this.selectedUsersToAdd = [];
+  }
+  
+  loadAvailableUsers(): void {
+    if (!this.selectedConversation) return;
+    
+    this.isLoadingParticipants = true;
+    // Récupérer tous les utilisateurs depuis auth-service
+    this.authService.getAllUsers().subscribe({
+      next: (users) => {
+        // Filtrer les utilisateurs qui ne sont pas déjà dans la conversation
+        const participantIds = this.selectedConversation!.participants.map(p => p.userId);
+        this.availableUsers = users.filter(u => !participantIds.includes(u.id));
+        this.filteredAvailableUsers = [...this.availableUsers];
+        this.isLoadingParticipants = false;
+      },
+      error: (error) => {
+        console.error('Error loading users:', error);
+        this.isLoadingParticipants = false;
+      }
+    });
+  }
+  
+  filterAvailableUsers(): void {
+    const query = this.participantSearchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredAvailableUsers = [...this.availableUsers];
+    } else {
+      this.filteredAvailableUsers = this.availableUsers.filter(user => 
+        user.firstName.toLowerCase().includes(query) ||
+        user.lastName.toLowerCase().includes(query) ||
+        user.email.toLowerCase().includes(query)
+      );
+    }
+  }
+  
+  toggleUserSelection(user: any): void {
+    const index = this.selectedUsersToAdd.findIndex(u => u.id === user.id);
+    if (index > -1) {
+      this.selectedUsersToAdd.splice(index, 1);
+    } else {
+      this.selectedUsersToAdd.push(user);
+    }
+  }
+  
+  isUserSelected(userId: number): boolean {
+    return this.selectedUsersToAdd.some(u => u.id === userId);
+  }
+  
+  removeUserFromSelection(userId: number): void {
+    this.selectedUsersToAdd = this.selectedUsersToAdd.filter(u => u.id !== userId);
+  }
+  
+  addSelectedParticipants(): void {
+    if (!this.selectedConversation || this.selectedUsersToAdd.length === 0) return;
+    
+    const participantIds = this.selectedUsersToAdd.map(u => u.id);
+    this.isLoadingParticipants = true;
+    
+    this.messagingService.addParticipants(this.selectedConversation.id, participantIds)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conversation) => {
+          this.selectedConversation = conversation;
+          this.closeAddParticipant();
+          this.isLoadingParticipants = false;
+          // Afficher un message de succès
+          alert(`${participantIds.length} participant(s) ajouté(s) avec succès!`);
+          // Recharger la conversation pour avoir les participants à jour
+          this.openGroupInfo();
+        },
+        error: (error) => {
+          console.error('Error adding participants:', error);
+          this.isLoadingParticipants = false;
+          alert('Erreur lors de l\'ajout des participants');
+        }
+      });
+  }
+  
+  openEditGroup(): void {
+    if (!this.selectedConversation) return;
+    
+    this.editGroupTitle = this.selectedConversation.title || '';
+    this.editGroupDescription = this.selectedConversation.description || '';
+    this.editGroupPhoto = null;
+    this.editGroupPhotoPreview = null;
+    this.showEditGroupModal = true;
+  }
+  
+  closeEditGroup(): void {
+    this.showEditGroupModal = false;
+    this.editGroupTitle = '';
+    this.editGroupDescription = '';
+    this.editGroupPhoto = null;
+    this.editGroupPhotoPreview = null;
+  }
+  
+  onEditGroupPhotoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.editGroupPhoto = file;
+      
+      // Créer une preview
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.editGroupPhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+  
+  saveGroupChanges(): void {
+    if (!this.selectedConversation || !this.editGroupTitle.trim()) return;
+    
+    // Si une nouvelle photo a été sélectionnée, l'uploader d'abord
+    if (this.editGroupPhoto) {
+      const formData = new FormData();
+      formData.append('file', this.editGroupPhoto);
+      
+      this.messagingService.uploadGroupPhoto(formData)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (response) => {
+            // Mettre à jour le groupe avec la nouvelle photo
+            this.updateGroupInfo(response.groupPhoto);
+          },
+          error: (error) => {
+            console.error('Error uploading photo:', error);
+            alert('Erreur lors de l\'upload de la photo');
+          }
+        });
+    } else {
+      // Mettre à jour sans changer la photo
+      this.updateGroupInfo(this.selectedConversation.groupPhoto);
+    }
+  }
+  
+  private updateGroupInfo(groupPhoto?: string): void {
+    if (!this.selectedConversation) return;
+    
+    this.messagingService.updateGroup(
+      this.selectedConversation.id,
+      this.editGroupTitle,
+      this.editGroupDescription
+    ).pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (conversation) => {
+          this.selectedConversation = conversation;
+          this.closeEditGroup();
+          this.loadConversations();
+          // Recharger le modal d'info
+          this.openGroupInfo();
+        },
+        error: (error) => {
+          console.error('Error updating group:', error);
+          alert('Erreur lors de la modification du groupe');
+        }
+      });
+  }
+  
+  leaveGroup(): void {
+    if (!this.selectedConversation || !confirm('Êtes-vous sûr de vouloir quitter ce groupe ?')) {
+      return;
+    }
+    
+    this.messagingService.leaveGroup(this.selectedConversation.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.closeGroupInfo();
+          this.loadConversations();
+          this.selectedConversation = null;
+          this.selectedConversationId = null;
+        },
+        error: (error) => {
+          console.error('Error leaving group:', error);
+          alert('Erreur lors de la sortie du groupe');
+        }
+      });
+  }
 }
+

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { GamificationService, UserLevel, UserBadge } from '../../services/gamification.service';
+import { AuthService } from '../../core/services/auth.service';
 
 interface Course {
   id: number;
@@ -50,11 +52,12 @@ interface Stat {
   styleUrls: ['./student-panel.component.scss']
 })
 export class StudentPanelComponent implements OnInit {
-  currentUser = {
-    firstName: 'Shariar',
-    lastName: 'Hossain',
-    avatar: 'https://i.pravatar.cc/150?img=12'
-  };
+  currentUser: any;
+
+  // Gamification
+  userLevel: UserLevel | null = null;
+  userBadges: UserBadge[] = [];
+  isLoadingGamification = false;
 
   stats: Stat[] = [
     {
@@ -148,8 +151,64 @@ export class StudentPanelComponent implements OnInit {
 
   calendarDays: number[] = [];
 
+  constructor(
+    private gamificationService: GamificationService,
+    private authService: AuthService
+  ) {}
+
   ngOnInit() {
+    this.currentUser = this.authService.currentUserValue;
     this.generateCalendar();
+    this.loadGamificationData();
+  }
+
+  loadGamificationData() {
+    if (!this.currentUser?.id) return;
+
+    this.isLoadingGamification = true;
+
+    // Load user level and points
+    this.gamificationService.getUserLevel(this.currentUser.id).subscribe({
+      next: (level) => {
+        this.userLevel = level;
+        console.log('User level loaded:', level);
+      },
+      error: (error) => {
+        console.error('Failed to load user level:', error);
+        // Set default values if service is not available
+        this.userLevel = {
+          userId: this.currentUser.id,
+          assessmentLevel: null,
+          assessmentLevelIcon: '❓',
+          assessmentLevelName: 'Not assessed yet',
+          hasCompletedAssessment: false,
+          currentXP: 0,
+          totalXP: 0,
+          xpForNextLevel: 1000,
+          progressPercentage: 0,
+          jungleCoins: 0,
+          loyaltyTier: 'BRONZE',
+          loyaltyTierIcon: '🥉',
+          loyaltyDiscount: 0,
+          totalSpent: 0,
+          consecutiveDays: 0
+        };
+      }
+    });
+
+    // Load user badges
+    this.gamificationService.getUserBadges(this.currentUser.id).subscribe({
+      next: (badges) => {
+        this.userBadges = badges.slice(0, 6); // Show only first 6 badges
+        console.log('User badges loaded:', badges);
+        this.isLoadingGamification = false;
+      },
+      error: (error) => {
+        console.error('Failed to load user badges:', error);
+        this.userBadges = [];
+        this.isLoadingGamification = false;
+      }
+    });
   }
 
   generateCalendar() {

@@ -6,6 +6,7 @@ import com.englishflow.complaints.enums.ComplaintCategory;
 import com.englishflow.complaints.repository.ComplaintRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -23,7 +24,8 @@ public class AcademicComplaintService {
     private final ComplaintWorkflowService workflowService;
     private final ComplaintPriorityService priorityService;
     
-    private static final String AUTH_SERVICE_URL = "http://localhost:8081/api/users";
+    @Value("${auth.service.url}")
+    private String authServiceUrl;
     
     /**
      * Get all complaints with user information for ACADEMIC_OFFICE_AFFAIR
@@ -36,18 +38,22 @@ public class AcademicComplaintService {
     }
     
     /**
-     * Get complaints for ACADEMIC_OFFICE_AFFAIR (TECHNICAL, ADMINISTRATIVE, SCHEDULE, TUTOR_BEHAVIOR)
+     * Get complaints for ACADEMIC_OFFICE_AFFAIR (TECHNICAL, ADMINISTRATIVE, BEHAVIORAL, SCHEDULE, TUTOR_BEHAVIOR, CLUB_SUSPENSION, OTHER)
      */
     public List<ComplaintWithUserDTO> getComplaintsForAcademicOffice() {
         log.info("Fetching complaints for ACADEMIC_OFFICE_AFFAIR");
         
         List<Complaint> complaints = complaintRepository.findAllByOrderByCreatedAtDesc();
         
-        // Filter only TECHNICAL, ADMINISTRATIVE, BEHAVIORAL
+        // Filter only TECHNICAL, ADMINISTRATIVE, BEHAVIORAL, SCHEDULE, TUTOR_BEHAVIOR, CLUB_SUSPENSION, OTHER
         List<Complaint> filteredComplaints = complaints.stream()
                 .filter(c -> c.getCategory() == ComplaintCategory.TECHNICAL ||
                            c.getCategory() == ComplaintCategory.ADMINISTRATIVE ||
-                           c.getCategory() == ComplaintCategory.BEHAVIORAL)
+                           c.getCategory() == ComplaintCategory.BEHAVIORAL ||
+                           c.getCategory() == ComplaintCategory.SCHEDULE ||
+                           c.getCategory() == ComplaintCategory.TUTOR_BEHAVIOR ||
+                           c.getCategory() == ComplaintCategory.CLUB_SUSPENSION ||
+                           c.getCategory() == ComplaintCategory.OTHER)
                 .toList();
         
         return buildComplaintDTOs(filteredComplaints);
@@ -155,7 +161,7 @@ public class AcademicComplaintService {
     
     private Map<String, Object> getUserInfo(Long userId) {
         try {
-            String url = AUTH_SERVICE_URL + "/" + userId;
+            String url = authServiceUrl + "/users/" + userId + "/public";
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
             log.info("Successfully fetched user info for userId: {}", userId);
             return response != null ? response : Map.of("firstName", "User#" + userId, "email", "N/A");

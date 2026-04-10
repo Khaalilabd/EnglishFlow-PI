@@ -1,43 +1,94 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { UserService, User, UpdateUserRequest } from '../../../core/services/user.service';
+import { RecruitmentService, ApplicationResponse } from '../../../core/services/recruitment.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmationDialogComponent, ConfirmationConfig } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
+import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loader/skeleton-loader.component';
 
 @Component({
   selector: 'app-tutors',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, RouterModule, ConfirmationDialogComponent, SkeletonLoaderComponent],
   templateUrl: './tutors.component.html',
   styleUrls: ['./tutors.component.scss']
 })
-export class TutorsComponent implements OnInit {
+export class TutorsComponent implements OnInit, OnDestroy {
+  @ViewChild(ConfirmationDialogComponent) confirmDialog!: ConfirmationDialogComponent;
+  
   users: User[] = [];
   filteredUsers: User[] = [];
   loading = false;
   searchTerm = '';
   selectedStatus = 'ALL';
+  selectedExperienceRange = 'ALL';
+  showAdvancedFilters = false;
   
   showEditModal = false;
   showViewModal = false;
+  showDocumentModal = false;
   editForm!: FormGroup;
   selectedUser: User | null = null;
+  selectedApplication: ApplicationResponse | null = null;
+  selectedDocument: any = null;
+  documentViewerUrl: string = '';
+  loadingApplication = false;
   
   currentPage = 1;
   itemsPerPage = 10;
   totalPages = 1;
 
+  // Sorting
+  sortField: 'firstName' | 'lastName' | 'email' | 'yearsOfExperience' = 'firstName';
+  sortDirection: 'asc' | 'desc' = 'asc';
+
   constructor(
     private userService: UserService,
+    private recruitmentService: RecruitmentService,
     private fb: FormBuilder,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private sanitizer: DomSanitizer
   ) {
     this.initForms();
   }
 
   ngOnInit(): void {
     this.loadTutors();
+    this.setupKeyboardShortcuts();
+  }
+
+  ngOnDestroy(): void {
+    document.removeEventListener('keydown', this.handleKeyboardShortcut);
+  }
+
+  private handleKeyboardShortcut = (event: KeyboardEvent): void => {
+    if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+      event.preventDefault();
+      const searchInput = document.querySelector('.search-input') as HTMLInputElement;
+      if (searchInput) searchInput.focus();
+    }
+    if (event.key === 'Escape') {
+      if (this.showEditModal) this.closeEditModal();
+      if (this.showViewModal) this.closeViewModal();
+    }
+    if ((event.ctrlKey || event.metaKey) && event.key === 'e') {
+      event.preventDefault();
+      this.exportToCSV();
+    }
+  };
+
+  private setupKeyboardShortcuts(): void {
+    document.addEventListener('keydown', this.handleKeyboardShortcut);
+  }
+
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.selectedStatus = 'ALL';
+    this.selectedExperienceRange = 'ALL';
+    this.applyFilters();
   }
 
   initForms(): void {
@@ -105,9 +156,44 @@ export class TutorsComponent implements OnInit {
       filtered = filtered.filter(user => !user.isActive);
     }
 
+    // Experience range filter
+    if (this.selectedExperienceRange === '0-2') {
+      filtered = filtered.filter(user => user.yearsOfExperience && user.yearsOfExperience <= 2);
+    } else if (this.selectedExperienceRange === '3-5') {
+      filtered = filtered.filter(user => user.yearsOfExperience && user.yearsOfExperience >= 3 && user.yearsOfExperience <= 5);
+    } else if (this.selectedExperienceRange === '5+') {
+      filtered = filtered.filter(user => user.yearsOfExperience && user.yearsOfExperience > 5);
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[this.sortField];
+      let bValue: any = b[this.sortField];
+      
+      if (aValue === null || aValue === undefined) aValue = '';
+      if (bValue === null || bValue === undefined) bValue = '';
+      
+      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+      
+      if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
     this.filteredUsers = filtered;
     this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
     this.currentPage = 1;
+  }
+
+  sortBy(field: 'firstName' | 'lastName' | 'email' | 'yearsOfExperience'): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.applyFilters();
   }
 
   get paginatedUsers(): User[] {
@@ -154,7 +240,24 @@ export class TutorsComponent implements OnInit {
   }
 
   deactivateUser(user: User): void {
-    if (confirm(`Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`)) {
+    const config: ConfirmationConfig = {
+      title: 'Deactivate Tutor',
+      message: `Are you sure you want to deactivate ${user.firstName} ${user.lastName}?`,
+      confirmText: 'Deactivate',
+      cancelText: 'Cancel',
+      type: 'warning',
+      details: [
+        'Tutor will lose access to the platform',
+        'Teaching history will be preserved',
+        'Student assignments will be affected',
+        'Can be reactivated later'
+      ]
+    };
+
+    this.confirmDialog.config = config;
+    this.confirmDialog.show();
+    
+    const subscription = this.confirmDialog.confirmed.subscribe(() => {
       this.userService.deactivateUser(user.id).subscribe({
         next: (updatedUser: User) => {
           const index = this.users.findIndex(u => u.id === user.id);
@@ -169,11 +272,31 @@ export class TutorsComponent implements OnInit {
           this.toastService.error('Failed to deactivate tutor. Please try again.');
         }
       });
-    }
+      subscription.unsubscribe();
+    });
   }
 
   deleteUser(user: User): void {
-    if (confirm(`Are you sure you want to delete ${user.firstName} ${user.lastName}?`)) {
+    const config: ConfirmationConfig = {
+      title: '⚠️ Delete Tutor',
+      message: `You are about to permanently delete ${user.firstName} ${user.lastName}. This action cannot be undone.`,
+      confirmText: 'Delete Permanently',
+      cancelText: 'Cancel',
+      type: 'danger',
+      requireTextConfirmation: true,
+      confirmationText: user.lastName,
+      details: [
+        'All tutor records will be removed',
+        'Teaching history will be deleted',
+        'Student assignments will be affected',
+        'This action is irreversible'
+      ]
+    };
+
+    this.confirmDialog.config = config;
+    this.confirmDialog.show();
+    
+    const subscription = this.confirmDialog.confirmed.subscribe(() => {
       this.userService.deleteUser(user.id).subscribe({
         next: () => {
           this.users = this.users.filter(u => u.id !== user.id);
@@ -185,7 +308,8 @@ export class TutorsComponent implements OnInit {
           this.toastService.error('Failed to delete tutor. Please try again.');
         }
       });
-    }
+      subscription.unsubscribe();
+    });
   }
 
   editUser(user: User): void {
@@ -249,12 +373,128 @@ export class TutorsComponent implements OnInit {
 
   openViewModal(user: User): void {
     this.selectedUser = user;
+    this.selectedApplication = null;
     this.showViewModal = true;
+    
+    console.log('👤 Opening view modal for user:', user);
+    console.log('📋 User applicationId:', user.applicationId);
+    
+    // Load recruitment application if exists
+    if (user.applicationId) {
+      console.log('✅ Loading recruitment application...');
+      this.loadingApplication = true;
+      this.recruitmentService.getApplicationByUserId(user.id).subscribe({
+        next: (application) => {
+          console.log('✅ Application loaded:', application);
+          this.selectedApplication = application;
+          this.loadingApplication = false;
+        },
+        error: (error) => {
+          console.error('❌ Error loading application:', error);
+          this.loadingApplication = false;
+        }
+      });
+    } else {
+      console.log('⚠️ No applicationId found for this user');
+    }
   }
 
   closeViewModal(): void {
     this.showViewModal = false;
     this.selectedUser = null;
+    this.selectedApplication = null;
+  }
+
+  // Document viewer methods
+  openDocumentModal(document: any): void {
+    this.selectedDocument = document;
+    this.documentViewerUrl = this.getDocumentUrl(document);
+    this.showDocumentModal = true;
+  }
+
+  closeDocumentModal(): void {
+    this.showDocumentModal = false;
+    this.selectedDocument = null;
+    this.documentViewerUrl = '';
+  }
+
+  getDocumentUrl(document: any): string {
+    return `http://localhost:8080/${document.filePath}`;
+  }
+
+  getSafeUrl(url: string): SafeResourceUrl {
+    return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  downloadDocument(document: any): void {
+    const url = this.getDocumentUrl(document);
+    window.open(url, '_blank');
+  }
+
+  getDocumentIcon(document: any): string {
+    const type = document.type.toLowerCase();
+    const fileType = document.fileType?.toLowerCase() || '';
+    
+    if (type === 'video_presentation' || fileType.includes('video')) {
+      return '🎥';
+    } else if (fileType.includes('pdf')) {
+      return '📄';
+    } else if (fileType.includes('image')) {
+      return '🖼️';
+    } else if (fileType.includes('word') || fileType.includes('doc')) {
+      return '📝';
+    }
+    return '📎';
+  }
+
+  isVideoDocument(document: any): boolean {
+    return document.type === 'VIDEO_PRESENTATION' || 
+           document.fileType?.toLowerCase().includes('video');
+  }
+
+  isPdfDocument(document: any): boolean {
+    return document.fileType?.toLowerCase().includes('pdf');
+  }
+
+  isImageDocument(document: any): boolean {
+    return document.fileType?.toLowerCase().includes('image');
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
+  getDocumentTypeName(type: string): string {
+    const names: { [key: string]: string } = {
+      'CV': 'Curriculum Vitae',
+      'DEGREE': 'Degree Certificate',
+      'CERTIFICATE': 'Teaching Certificate',
+      'ID_CARD': 'ID Card',
+      'VIDEO_PRESENTATION': 'Video Presentation',
+      'OTHER': 'Other Document'
+    };
+    return names[type] || type;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
+  }
+
+  getScoreColor(score: number | undefined): string {
+    if (!score) return '#999';
+    if (score >= 80) return '#2D5757';
+    if (score >= 60) return '#F6BD60';
+    return '#C84630';
   }
 
   getUserInitials(user: User): string {
@@ -271,6 +511,46 @@ export class TutorsComponent implements OnInit {
     if (tutorsWithExperience.length === 0) return 0;
     const total = tutorsWithExperience.reduce((sum, u) => sum + (u.yearsOfExperience || 0), 0);
     return Math.round(total / tutorsWithExperience.length);
+  }
+
+  // New features
+  itemsPerPageOptions = [12, 24, 48, 96];
+
+  changeItemsPerPage(value: number): void {
+    this.itemsPerPage = value;
+    this.currentPage = 1;
+    this.totalPages = Math.ceil(this.filteredUsers.length / this.itemsPerPage);
+  }
+
+  exportToCSV(): void {
+    const headers = ['First Name', 'Last Name', 'Email', 'Phone', 'CIN', 'Years of Experience', 'Status', 'Fee Paid'];
+    const data = this.filteredUsers.map(u => [
+      u.firstName,
+      u.lastName,
+      u.email,
+      u.phone || '',
+      u.cin || '',
+      u.yearsOfExperience?.toString() || '',
+      u.isActive ? 'Active' : 'Inactive',
+      u.registrationFeePaid ? 'Paid' : 'Unpaid'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...data.map(row => row.map(cell => `"${cell}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `tutors_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.toastService.success('Tutors exported successfully!');
   }
 
   get Math() {

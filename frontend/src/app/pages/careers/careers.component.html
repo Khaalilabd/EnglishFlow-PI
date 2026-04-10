@@ -1,0 +1,186 @@
+<div class="careers-page">
+  <!-- ***** Modern Header Area Start ***** -->
+  <header class="modern-header">
+    <nav class="modern-nav">
+      <div class="nav-container">
+        <!-- Logo -->
+        <a routerLink="/" class="nav-logo">
+          <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
+          <span class="logo-text">JUNGLE IN ENGLISH</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="nav-menu" [class.active]="mobileMenuOpen">
+          <ul class="nav-links">
+            <li><a routerLink="/" class="nav-link">Home</a></li>
+            <li><a routerLink="/" fragment="services" class="nav-link">Services</a></li>
+            <li><a routerLink="/" fragment="courses" class="nav-link">Courses</a></li>
+            <li><a routerLink="/" fragment="clubs" class="nav-link">Clubs</a></li>
+            <li><a routerLink="/" fragment="team" class="nav-link">Team</a></li>
+            <li><a routerLink="/careers" class="nav-link active">Careers</a></li>
+            <li><a routerLink="/" fragment="events" class="nav-link">Events</a></li>
+            <li><a routerLink="/" fragment="contact" class="nav-link">Contact</a></li>
+          </ul>
+
+          <!-- Auth Buttons / User Menu -->
+          <div class="nav-actions">
+            @if (!(isAuthenticated$ | async)) {
+              <!-- Guest Actions -->
+              <a routerLink="/login" class="btn-login">Login</a>
+              <a routerLink="/register" class="btn-register">Get Started</a>
+            } @else {
+              <!-- Authenticated User Actions -->
+              <div class="nav-user-section">
+                <app-frontoffice-notification-dropdown />
+                <app-frontoffice-user-dropdown />
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+  <!-- ***** Modern Header Area End ***** -->
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Shape the Future of English Learning</h1>
+      <p class="hero-subtitle">Join our global community of passionate educators and inspire students worldwide. Make teaching your passion, not just your profession.</p>
+      <button class="btn-apply-hero" (click)="applyNow()">
+        Start Your Journey
+        <span class="arrow">→</span>
+      </button>
+      
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">500+</span>
+          <span class="stat-label">Active Tutors</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">10K+</span>
+          <span class="stat-label">Students Taught</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">95%</span>
+          <span class="stat-label">Satisfaction Rate</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section">
+    <div class="section-header">
+      <h2>Why Teach With Us?</h2>
+      <p>Discover the benefits of joining our teaching community</p>
+    </div>
+    
+    <div class="benefits-grid">
+      <div class="benefit-card" *ngFor="let benefit of benefits">
+        <div class="benefit-icon">{{ benefit.icon }}</div>
+        <h3>{{ benefit.title }}</h3>
+        <p>{{ benefit.description }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Requirements Section -->
+  <section class="requirements-section">
+    <div class="section-header">
+      <h2>What We're Looking For</h2>
+      <p>Requirements to become a tutor</p>
+    </div>
+    
+    <div class="requirements-content">
+      <div class="requirements-list">
+        <div class="requirement-item" *ngFor="let req of requirements">
+          <span class="check-icon">✓</span>
+          <span>{{ req }}</span>
+        </div>
+      </div>
+      
+      <div class="requirements-cta">
+        <h3>Ready to Apply?</h3>
+        <p>The application process takes about 15-20 minutes to complete</p>
+        <button class="btn-apply" (click)="applyNow()">Start Your Application</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Application Process -->
+  <section class="process-section">
+    <div class="section-header">
+      <h2>Your Path to Success</h2>
+      <p>Four simple steps to join our teaching community</p>
+    </div>
+    
+    <div class="process-steps">
+      <div class="step">
+        <div class="step-number">1</div>
+        <h3>Apply Online</h3>
+        <p>Complete our streamlined application form with your qualifications and teaching experience</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">2</div>
+        <h3>Interview</h3>
+        <p>Meet with our team to discuss your teaching philosophy and career goals</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">3</div>
+        <h3>Demo Lesson</h3>
+        <p>Showcase your teaching skills with a brief demonstration lesson</p>
+      </div>
+      
+      <div class="step">
+        <div class="step-number">4</div>
+        <h3>Welcome Aboard</h3>
+        <p>Get onboarded, set your schedule, and start inspiring students!</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Section -->
+  <section class="testimonials-section">
+    <div class="section-header">
+      <h2>What Our Tutors Say</h2>
+      <p>Hear from educators who are already part of our community</p>
+    </div>
+    
+    <div class="testimonials-grid">
+      <div class="testimonial-card" *ngFor="let testimonial of testimonials">
+        <div class="quote-icon">"</div>
+        <p class="quote">{{ testimonial.quote }}</p>
+        <div class="author">
+          <div class="author-photo">{{ testimonial.photo }}</div>
+          <div class="author-info">
+            <div class="author-name">{{ testimonial.name }}</div>
+            <div class="author-role">{{ testimonial.role }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Ready to Inspire?</h2>
+      <p>Join hundreds of educators who are already making a difference. Your teaching journey starts here.</p>
+      <button class="btn-apply-large" (click)="applyNow()">
+        Apply to Become a Tutor
+        <span class="arrow">→</span>
+      </button>
+      <p class="cta-note">✓ Quick 15-minute application • ✓ No application fee • ✓ Start earning within days</p>
+    </div>
+  </section>
+</div>

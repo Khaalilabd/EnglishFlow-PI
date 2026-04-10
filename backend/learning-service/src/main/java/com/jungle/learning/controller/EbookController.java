@@ -205,4 +205,22 @@ public class EbookController {
         return ResponseEntity.ok().build();
     }
 
+    // Approval endpoints
+    @PostMapping("/{id}/approve")
+    public ResponseEntity<EbookDTO> approveEbook(@PathVariable Long id) {
+        return ResponseEntity.ok(ebookService.approveEbook(id));
+    }
+
+    @PostMapping("/{id}/reject")
+    public ResponseEntity<EbookDTO> rejectEbook(
+            @PathVariable Long id,
+            @RequestParam(required = false) String reason) {
+        return ResponseEntity.ok(ebookService.rejectEbook(id, reason));
+    }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<EbookDTO>> getPendingEbooks() {
+        return ResponseEntity.ok(ebookService.getPendingEbooks());
+    }
+
 }

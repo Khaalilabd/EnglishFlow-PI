@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { TwoFactorAuthService } from '../../services/two-factor-auth.service';
 import { LogoComponent } from '../../shared/components/logo.component';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, LogoComponent, RecaptchaModule, RecaptchaFormsModule, FormsModule],
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss']
 })
@@ -21,10 +22,25 @@ export class LoginComponent implements OnInit {
   recaptchaToken: string | null = null;
   siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
   showPassword = false;
+  
+  // 2FA related
+  show2FAModal = false;
+  twoFactorCode = '';
+  tempToken = '';
+  loading2FA = false;
+  
+  // Field focus states for floating labels
+  emailFocused = false;
+  passwordFocused = false;
+  
+  // Field touched states for better validation display
+  emailTouched = false;
+  passwordTouched = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
+    private twoFactorService: TwoFactorAuthService,
     private router: Router,
     private route: ActivatedRoute
   ) {
@@ -54,8 +70,15 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
+    // Mark all fields as touched to show validation errors
+    Object.keys(this.loginForm.controls).forEach(key => {
+      this.loginForm.get(key)?.markAsTouched();
+    });
+    this.emailTouched = true;
+    this.passwordTouched = true;
+
     if (this.loginForm.invalid) {
-      this.errorMessage = 'Please fill in all required fields';
+      this.errorMessage = 'Please correct the errors below';
       return;
     }
 
@@ -71,6 +94,14 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
+        
+        // Check if 2FA is required
+        if (response.requires2FA && response.tempToken) {
+          this.tempToken = response.tempToken;
+          this.show2FAModal = true;
+          this.loading = false;
+          return;
+        }
         
         // Vérifier si le profil est complet
         if (response.profileCompleted === false) {
@@ -95,7 +126,7 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         console.error('Login error:', error);
-        this.errorMessage = error.error?.message || 'Invalid credentials';
+        this.errorMessage = error.error?.message || 'Invalid email or password. Please try again.';
         this.loading = false;
       },
       complete: () => {
@@ -104,11 +135,102 @@ export class LoginComponent implements OnInit {
     });
   }
 
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+  
+  onEmailFocus(): void {
+    this.emailFocused = true;
+  }
+  
+  onEmailBlur(): void {
+    this.emailFocused = false;
+    this.emailTouched = true;
+  }
+  
+  onPasswordFocus(): void {
+    this.passwordFocused = true;
+  }
+  
+  onPasswordBlur(): void {
+    this.passwordFocused = false;
+    this.passwordTouched = true;
+  }
+  
+  hasEmailValue(): boolean {
+    return this.email?.value && this.email.value.length > 0;
+  }
+  
+  hasPasswordValue(): boolean {
+    return this.password?.value && this.password.value.length > 0;
+  }
+  
+  isEmailValid(): boolean {
+    return this.email?.valid || false;
+  }
+  
+  isPasswordValid(): boolean {
+    return this.password?.valid || false;
+  }
+  
+  shouldShowEmailError(): boolean {
+    return (this.email?.invalid && (this.email?.touched || this.emailTouched)) || false;
+  }
+  
+  shouldShowPasswordError(): boolean {
+    return (this.password?.invalid && (this.password?.touched || this.passwordTouched)) || false;
+  }
+
   get email() {
     return this.loginForm.get('email');
   }
 
   get password() {
     return this.loginForm.get('password');
+  }
+
+  verify2FA(): void {
+    if (!this.twoFactorCode || this.twoFactorCode.length !== 6) {
+      this.errorMessage = 'Please enter a valid 6-digit code';
+      return;
+    }
+
+    this.loading2FA = true;
+    this.errorMessage = '';
+
+    this.twoFactorService.verifyTwoFactorLogin(this.tempToken, this.twoFactorCode).subscribe({
+      next: (response) => {
+        console.log('2FA verification successful:', response);
+        
+        // Store the tokens and user data
+        this.authService.updateCurrentUser(response);
+        localStorage.setItem('token', response.token);
+        if (response.refreshToken) {
+          localStorage.setItem('refreshToken', response.refreshToken);
+        }
+        
+        // Redirect based on role
+        if (response.role === 'ADMIN') {
+          this.router.navigate(['/dashboard']);
+        } else {
+          this.router.navigate(['/']);
+        }
+      },
+      error: (error) => {
+        console.error('2FA verification error:', error);
+        this.errorMessage = error.error?.message || 'Invalid verification code';
+        this.loading2FA = false;
+      },
+      complete: () => {
+        this.loading2FA = false;
+      }
+    });
+  }
+
+  cancel2FA(): void {
+    this.show2FAModal = false;
+    this.twoFactorCode = '';
+    this.tempToken = '';
+    this.errorMessage = '';
   }
 }

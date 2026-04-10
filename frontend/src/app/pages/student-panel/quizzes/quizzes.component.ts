@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuizService } from '../../../core/services/quiz.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { Quiz, Question } from '../../../core/models/quiz.model';
 
 @Component({
@@ -58,11 +59,19 @@ export class QuizzesComponent implements OnInit {
   showStreakAnimation = false;
   streakMessage = '';
 
-  constructor(private quizService: QuizService) {}
+  constructor(
+    private quizService: QuizService,
+    private authService: AuthService
+  ) {}
 
   ngOnInit() {
     this.loadQuizzes();
     this.loadMyAttempts();
+  }
+
+  getCurrentUserId(): number {
+    const user = this.authService.currentUserValue;
+    return user?.id || 1;
   }
 
   loadQuizzes() {
@@ -158,7 +167,7 @@ export class QuizzesComponent implements OnInit {
           }
           
           // Start attempt
-          this.quizService.startAttempt(quiz.id!, 1).subscribe({
+          this.quizService.startAttempt(quiz.id!, this.getCurrentUserId()).subscribe({
             next: (attempt) => {
               this.attemptId = attempt.id!;
               this.quizStartTime = new Date();
@@ -261,7 +270,7 @@ export class QuizzesComponent implements OnInit {
 
     const request = {
       quizId: this.selectedQuiz.id!,
-      studentId: 1,
+      studentId: this.getCurrentUserId(),
       answers: this.currentAnswers
     };
 
@@ -293,9 +302,10 @@ export class QuizzesComponent implements OnInit {
   }
 
   loadMyAttempts() {
-    this.quizService.getStudentAttempts(1).subscribe({
+    this.quizService.getStudentAttempts(this.getCurrentUserId()).subscribe({
       next: (attempts) => {
         this.myAttempts = attempts.filter((a: any) => a.status === 'COMPLETED');
+        console.log('📊 Loaded attempts with quiz titles:', this.myAttempts);
       },
       error: (error) => console.error('Error loading attempts:', error)
     });
@@ -320,7 +330,12 @@ export class QuizzesComponent implements OnInit {
     });
   }
 
-  getQuizTitle(quizId: number): string {
+  getQuizTitle(quizId: number, quizTitle?: string): string {
+    // If quiz title is provided directly (from attempt), use it
+    if (quizTitle) {
+      return quizTitle;
+    }
+    // Otherwise, look it up in the quizzes array
     const quiz = this.quizzes.find(q => q.id === quizId);
     return quiz ? quiz.title : 'Unknown Quiz';
   }

@@ -22,7 +22,7 @@ import { TypingIndicatorComponent } from '../typing-indicator/typing-indicator.c
         <div class="flex-1">
           <h3 class="font-medium text-white">{{ getConversationTitle() }}</h3>
           <p class="text-xs text-[#00a884]" *ngIf="isOnline()">en ligne</p>
-          <p class="text-xs text-[#aebac1]" *ngIf="!isOnline()">hors ligne</p>
+          <p class="text-xs text-[#aebac1]" *ngIf="!isOnline() && conversation">hors ligne</p>
         </div>
         <div class="flex gap-2">
           <!-- Search in conversation -->
@@ -328,6 +328,10 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
   }
 
   getConversationTitle(): string {
+    if (!this.conversation) {
+      return 'Chargement...';
+    }
+    
     if (this.conversation.title) {
       return this.conversation.title;
     }
@@ -340,14 +344,40 @@ export class ChatWindowComponent implements AfterViewChecked, OnChanges {
   }
 
   getConversationAvatar(): string {
+    if (!this.conversation) {
+      return 'https://ui-avatars.com/api/?name=...&background=2D5757&color=fff';
+    }
+    
+    // Pour les groupes, utiliser une icône de groupe
+    if (this.conversation.type === 'GROUP') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.conversation.title || 'Groupe')}&background=667eea&color=fff&bold=true&size=128`;
+    }
+    
     const otherParticipant = this.conversation.participants.find(
       p => p.userId !== this.currentUserId
     );
     
-    return otherParticipant?.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle())}&background=2D5757&color=fff`;
+    if (otherParticipant?.userAvatar && otherParticipant.userAvatar.trim() !== '') {
+      // Si l'URL commence par http, c'est une URL complète (Google, etc.)
+      if (otherParticipant.userAvatar.startsWith('http')) {
+        return otherParticipant.userAvatar;
+      }
+      // Sinon, c'est un chemin relatif - utiliser l'API Gateway
+      if (!otherParticipant.userAvatar.includes('ui-avatars.com')) {
+        return `http://localhost:8080${otherParticipant.userAvatar}`;
+      }
+      return otherParticipant.userAvatar;
+    }
+    
+    // Fallback sur ui-avatars
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle())}&background=2D5757&color=fff`;
   }
 
   isOnline(): boolean {
+    if (!this.conversation) {
+      return false;
+    }
+    
     const otherParticipant = this.conversation.participants.find(
       p => p.userId !== this.currentUserId
     );

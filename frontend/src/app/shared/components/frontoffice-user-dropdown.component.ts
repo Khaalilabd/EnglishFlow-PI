@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthResponse } from '../../core/models/user.model';
+import { UserRoleBadgeComponent } from './user-role-badge/user-role-badge.component';
 
 @Component({
   selector: 'app-frontoffice-user-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, UserRoleBadgeComponent],
   template: `
     <div class="user-dropdown">
       <button
@@ -30,7 +31,10 @@ import { AuthResponse } from '../../core/models/user.model';
         class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg py-2 z-50"
       >
         <div class="px-4 py-3 border-b border-gray-100">
-          <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
+          <div class="flex items-center gap-2 mb-1">
+            <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
+            <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+          </div>
           <p class="text-xs text-gray-500">{{ currentUser?.email }}</p>
         </div>
         
@@ -77,9 +81,9 @@ import { AuthResponse } from '../../core/models/user.model';
     .user-btn {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 6px 16px 6px 6px;
-      background: rgba(255, 255, 255, 0.1);
+      gap: 16px;
+      padding: 6px 24px 6px 6px;
+      background: transparent;
       border: none;
       border-radius: 50px;
       cursor: pointer;
@@ -87,32 +91,58 @@ import { AuthResponse } from '../../core/models/user.model';
     }
     
     .user-btn:hover {
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(246, 189, 96, 0.15);
     }
     
     .user-avatar {
-      width: 36px;
-      height: 36px;
+      width: 52px;
+      height: 52px;
+      min-width: 52px;
+      min-height: 52px;
       border-radius: 50%;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      border: 3px solid #F6BD60;
       object-fit: cover;
+      box-shadow: 0 4px 16px rgba(246, 189, 96, 0.6);
+      transition: all 0.3s ease;
+      background: #fff;
+      flex-shrink: 0;
+    }
+    
+    .user-btn:hover .user-avatar {
+      border-color: #f5b04a;
+      box-shadow: 0 6px 20px rgba(246, 189, 96, 0.8);
+      transform: scale(1.05);
     }
     
     .user-name {
       color: #fff;
-      font-weight: 500;
-      font-size: 14px;
+      font-weight: 600;
+      font-size: 16px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
     
     .dropdown-icon {
-      width: 16px;
-      height: 16px;
-      color: #fff;
+      width: 20px;
+      height: 20px;
+      color: #F6BD60;
+      transition: transform 0.3s ease;
+      flex-shrink: 0;
+    }
+    
+    .user-btn:hover .dropdown-icon {
+      transform: translateY(2px);
     }
     
     @media (max-width: 768px) {
       .user-name {
         display: none;
+      }
+      
+      .user-avatar {
+        width: 48px;
+        height: 48px;
+        min-width: 48px;
+        min-height: 48px;
       }
     }
   `]

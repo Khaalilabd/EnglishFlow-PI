@@ -17,4 +17,5 @@ public class ParticipantDTO {
     private String userAvatar;
     private Boolean isOnline;
     private LocalDateTime lastReadAt;
+    private String role; // ADMIN or MEMBER
 }

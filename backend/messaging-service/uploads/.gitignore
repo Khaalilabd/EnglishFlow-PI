@@ -1,0 +1,8 @@
+# Ignorer tous les fichiers uploadés
+*
+# Mais garder les dossiers avec .gitkeep
+!.gitignore
+!group-photos/
+!group-photos/.gitkeep
+!messages/
+!messages/.gitkeep

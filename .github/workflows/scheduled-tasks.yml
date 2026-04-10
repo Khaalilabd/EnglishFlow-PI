@@ -1,0 +1,168 @@
+name: Scheduled Tasks
+
+on:
+  schedule:
+    # Run dependency updates every Monday at 9 AM
+    - cron: '0 9 * * 1'
+    # Run security scans daily at midnight
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  dependency-update:
+    name: Update Dependencies
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 9 * * 1' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Update Maven dependencies
+        run: |
+          cd backend
+          for service in */; do
+            if [ -f "$service/pom.xml" ]; then
+              cd "$service"
+              mvn versions:use-latest-releases -DallowMajorUpdates=false
+              cd ..
+            fi
+          done
+      
+      - name: Update npm dependencies
+        working-directory: frontend
+        run: |
+          npm update
+          npm audit fix
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          title: 'chore: Weekly dependency updates'
+          body: |
+            Automated dependency updates
+            
+            - Updated Maven dependencies
+            - Updated npm dependencies
+            - Fixed security vulnerabilities
+          branch: chore/dependency-updates
+          labels: dependencies, automated
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Notify on critical vulnerabilities
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: 'failure'
+          text: 'Critical security vulnerabilities detected!'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  cleanup-artifacts:
+    name: Cleanup Old Artifacts
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Delete old artifacts
+        uses: c-hive/gha-remove-artifacts@v1
+        with:
+          age: '7 days'
+          skip-recent: 5
+
+  cleanup-packages:
+    name: Cleanup Old Packages
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Delete old container images
+        uses: actions/delete-package-versions@v4
+        with:
+          package-name: 'englishflow-*'
+          package-type: 'container'
+          min-versions-to-keep: 10
+          delete-only-untagged-versions: 'true'
+
+  database-backup:
+    name: Database Backup
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 0 * * *' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Backup production database
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.PRODUCTION_USER }}@${{ secrets.PRODUCTION_HOST }} << 'EOF'
+            cd /opt/englishflow
+            docker-compose exec -T postgres pg_dumpall -U postgres | gzip > backup-$(date +%Y%m%d).sql.gz
+            
+            # Upload to S3 or backup storage
+            aws s3 cp backup-$(date +%Y%m%d).sql.gz s3://englishflow-backups/
+            
+            # Keep only last 30 days
+            find . -name "backup-*.sql.gz" -mtime +30 -delete
+          EOF
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      
+      - name: Notify backup status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Database backup completed'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        if: always()
+
+  performance-test:
+    name: Performance Testing
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Run k6 load tests
+        uses: grafana/k6-action@v0.3.1
+        with:
+          filename: tests/performance/load-test.js
+          cloud: true
+          token: ${{ secrets.K6_CLOUD_TOKEN }}
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: k6-results
+          path: results/

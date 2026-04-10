@@ -313,3 +313,620 @@ input[type="checkbox"] {
 .animate-slideDown {
   animation: slideDown 0.3s ease-out;
 }
+
+// Elegant borders for Quick Stats Cards (YOUR ROLE, MEMBERS, STATUS)
+
+// Base card styling with enhanced borders
+.grid.grid-cols-1.md\:grid-cols-3 > div {
+  position: relative;
+  overflow: hidden;
+  
+  // Subtle gradient border effect
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 1rem;
+    padding: 2px;
+    background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// YOUR ROLE card - Golden/Yellow theme
+.hover\:border-\[\#F6BD60\] {
+  border-color: rgba(246, 189, 96, 0.6) !important;
+  box-shadow: 0 4px 12px rgba(246, 189, 96, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: rgba(246, 189, 96, 0.9) !important;
+    box-shadow: 0 8px 24px rgba(246, 189, 96, 0.35), 
+                0 0 0 1px rgba(246, 189, 96, 0.2) inset;
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  // Icon container glow effect
+  .bg-gradient-to-br.from-\[\#F6BD60\] {
+    box-shadow: 0 4px 12px rgba(246, 189, 96, 0.4);
+    transition: all 0.4s ease;
+  }
+  
+  &:hover .bg-gradient-to-br.from-\[\#F6BD60\] {
+    box-shadow: 0 6px 20px rgba(246, 189, 96, 0.6);
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+// MEMBERS card - Red theme
+.hover\:border-\[\#C84630\] {
+  border-color: rgba(200, 70, 48, 0.6) !important;
+  box-shadow: 0 4px 12px rgba(200, 70, 48, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: rgba(200, 70, 48, 0.9) !important;
+    box-shadow: 0 8px 24px rgba(200, 70, 48, 0.35),
+                0 0 0 1px rgba(200, 70, 48, 0.2) inset;
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  // Icon container glow effect
+  .bg-gradient-to-br.from-\[\#C84630\] {
+    box-shadow: 0 4px 12px rgba(200, 70, 48, 0.4);
+    transition: all 0.4s ease;
+  }
+  
+  &:hover .bg-gradient-to-br.from-\[\#C84630\] {
+    box-shadow: 0 6px 20px rgba(200, 70, 48, 0.6);
+    transform: scale(1.1) rotate(-5deg);
+  }
+  
+  // Progress bar animation
+  .h-2.bg-gray-200 {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) inset;
+  }
+  
+  &:hover .bg-gradient-to-r.from-\[\#C84630\] {
+    animation: progressPulse 1.5s ease-in-out infinite;
+  }
+}
+
+@keyframes progressPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+// STATUS card - Dark teal theme
+.hover\:border-\[\#2D5757\] {
+  border-color: rgba(45, 87, 87, 0.6) !important;
+  box-shadow: 0 4px 12px rgba(45, 87, 87, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: rgba(45, 87, 87, 0.9) !important;
+    box-shadow: 0 8px 24px rgba(45, 87, 87, 0.35),
+                0 0 0 1px rgba(45, 87, 87, 0.2) inset;
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  // Icon container glow effect
+  .bg-gradient-to-br.from-\[\#2D5757\] {
+    box-shadow: 0 4px 12px rgba(45, 87, 87, 0.4);
+    transition: all 0.4s ease;
+  }
+  
+  &:hover .bg-gradient-to-br.from-\[\#2D5757\] {
+    box-shadow: 0 6px 20px rgba(45, 87, 87, 0.6);
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+// REQUESTS card (VP/Secretary) - Yellow theme
+.hover\:border-yellow-500 {
+  border-color: rgba(234, 179, 8, 0.6) !important;
+  box-shadow: 0 4px 12px rgba(234, 179, 8, 0.2);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    border-color: rgba(234, 179, 8, 0.9) !important;
+    box-shadow: 0 8px 24px rgba(234, 179, 8, 0.35),
+                0 0 0 1px rgba(234, 179, 8, 0.2) inset;
+    transform: translateY(-4px) scale(1.02);
+  }
+  
+  // Icon container glow effect
+  .bg-gradient-to-br.from-yellow-500 {
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+    transition: all 0.4s ease;
+  }
+  
+  &:hover .bg-gradient-to-br.from-yellow-500 {
+    box-shadow: 0 6px 20px rgba(234, 179, 8, 0.6);
+    transform: scale(1.1) rotate(-5deg);
+  }
+}
+
+// Enhanced text styling for card labels
+.text-xs.font-bold.text-gray-500.uppercase.tracking-wide {
+  transition: all 0.3s ease;
+  letter-spacing: 0.1em;
+}
+
+.bg-white.rounded-2xl:hover .text-xs.font-bold.text-gray-500.uppercase.tracking-wide {
+  letter-spacing: 0.15em;
+  transform: translateX(2px);
+}
+
+// Card title animation
+.text-xl.font-bold.text-\[\#2D5757\] {
+  transition: all 0.3s ease;
+}
+
+.bg-white.rounded-2xl:hover .text-xl.font-bold.text-\[\#2D5757\] {
+  transform: scale(1.05);
+  text-shadow: 0 2px 4px rgba(45, 87, 87, 0.1);
+}
+
+// Icon containers - base styling
+.w-12.h-12.rounded-xl {
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  
+  span {
+    display: inline-block;
+    transition: transform 0.4s ease;
+  }
+}
+
+// Ripple effect on card click
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.bg-white.rounded-2xl {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    background: radial-gradient(circle, rgba(45, 87, 87, 0.3), transparent);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  &:active::after {
+    animation: ripple 0.6s ease-out;
+  }
+}
+
+// ============================================
+// ANIMATIONS FOR CLUB DETAILS PAGE
+// ============================================
+
+// Fade in from bottom animation
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Fade in from top animation
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Fade in from left
+@keyframes fadeInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Fade in from right
+@keyframes fadeInRight {
+  from {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+// Scale in animation
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+// Bounce in animation
+@keyframes bounceIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+// Pulse animation
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+// Gradient animation
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// Apply animations to detail page elements
+.min-h-screen.bg-gradient-to-br {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+// Top navigation bar animation
+.bg-white.rounded-2xl.p-4 {
+  animation: fadeInDown 0.4s ease-out;
+}
+
+// Hero card animation
+.relative.bg-white.rounded-3xl {
+  animation: scaleIn 0.6s ease-out;
+  
+  img {
+    transition: transform 0.5s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.05);
+  }
+}
+
+// Cover image animation
+.relative.h-64.overflow-hidden {
+  animation: scaleIn 0.6s ease-out;
+  
+  img {
+    transition: transform 0.5s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.1);
+  }
+}
+
+// Quick stats cards animation with stagger
+.grid.grid-cols-1.md\:grid-cols-3 > .bg-white {
+  animation: fadeInUp 0.6s ease-out backwards;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+  
+  &:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Icon containers with bounce animation
+.w-12.h-12.rounded-xl,
+.w-14.h-14.rounded-2xl {
+  animation: bounceIn 0.6s ease-out backwards;
+  transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  
+  &:hover {
+    transform: rotate(15deg) scale(1.15);
+  }
+}
+
+// Progress bar animation
+.h-2.bg-gray-200 {
+  .bg-gradient-to-r {
+    animation: slideInFromLeft 1.2s ease-out;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+@keyframes slideInFromLeft {
+  from {
+    width: 0;
+  }
+}
+
+// Badge animations with hover effects
+span[class*="px-"][class*="py-"][class*="rounded-full"],
+span[class*="px-"][class*="py-"][class*="rounded"] {
+  animation: fadeInRight 0.5s ease-out backwards;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: scale(1.1) rotate(-2deg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Button animations
+button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Member cards animation
+.bg-gray-50.dark\:bg-gray-700 {
+  animation: fadeInLeft 0.5s ease-out backwards;
+  transition: all 0.3s ease;
+  
+  @for $i from 1 through 20 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.05}s;
+    }
+  }
+  
+  &:hover {
+    transform: translateX(8px) scale(1.02);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Task cards animation (Kanban)
+.bg-white.rounded-lg.p-3 {
+  animation: scaleIn 0.4s ease-out backwards;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// Kanban columns animation
+.bg-gradient-to-br {
+  animation: fadeInUp 0.5s ease-out backwards;
+  
+  &:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+  
+  &:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  
+  &:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+}
+
+// Alert/Warning cards animation
+.bg-red-50,
+.bg-yellow-50,
+.bg-green-50,
+.bg-blue-50 {
+  animation: fadeInDown 0.6s ease-out;
+  
+  &:hover {
+    transform: scale(1.01);
+  }
+}
+
+// Suspension alert special animation
+.relative.bg-gradient-to-r.from-red-50 {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+// Floating animation for icons
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+// Shimmer effect
+@keyframes shimmerEffect {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmerEffect 2s infinite;
+}
+
+// Stagger animation for content sections
+.space-y-6 > * {
+  animation: fadeInUp 0.5s ease-out backwards;
+  
+  @for $i from 1 through 15 {
+    &:nth-child(#{$i}) {
+      animation-delay: #{$i * 0.08}s;
+    }
+  }
+}
+
+// Category badge with gradient animation
+.flex.items-center.gap-2.px-4.py-2 {
+  animation: fadeInRight 0.6s ease-out;
+  background-size: 200% 200%;
+  
+  &:hover {
+    animation: gradientShift 2s ease infinite;
+  }
+}
+
+// Smooth transitions for all interactive elements
+* {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+// Special animation for pending requests
+.bg-yellow-50.dark\:bg-yellow-900\/20 {
+  animation: pulse 2s ease-in-out infinite;
+  
+  .bg-white.dark\:bg-gray-800 {
+    animation: fadeInUp 0.4s ease-out backwards;
+    
+    @for $i from 1 through 10 {
+      &:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.1}s;
+      }
+    }
+  }
+}
+
+// Ripple effect on click
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-effect {
+  position: relative;
+  overflow: hidden;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  
+  &:active::after {
+    animation: ripple 0.6s ease-out;
+  }
+}
+
+// Glow effect for important elements
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(246, 189, 96, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(246, 189, 96, 0.6);
+  }
+}
+
+.glow-effect {
+  animation: glow 2s ease-in-out infinite;
+}

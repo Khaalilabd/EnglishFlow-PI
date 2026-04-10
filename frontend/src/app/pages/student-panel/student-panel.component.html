@@ -6,7 +6,7 @@
   </div>
 
   <!-- Stats Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
     <div 
       *ngFor="let stat of stats; let i = index"
       class="bg-white rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow"
@@ -27,6 +27,86 @@
       </div>
       <h3 class="text-2xl font-bold text-gray-800 mb-1">{{ stat.value }}</h3>
       <p class="text-sm text-gray-600">{{ stat.title }}</p>
+    </div>
+
+    <!-- Gamification Card -->
+    <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow text-white">
+      <div class="flex items-center justify-between mb-4">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center bg-white/20">
+          <span class="text-2xl">{{ userLevel?.assessmentLevelIcon || '❓' }}</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <span class="text-sm font-semibold px-3 py-1 rounded-full bg-white/20">
+            {{ userLevel?.assessmentLevel || '?' }}
+          </span>
+          <span *ngIf="userLevel?.assessmentLevel && !userLevel?.certifiedLevel" 
+                class="text-lg" 
+                title="Not certified">⚠️</span>
+          <span *ngIf="userLevel?.certifiedLevel" 
+                class="text-lg" 
+                title="Certified">✅</span>
+        </div>
+      </div>
+      
+      <!-- Not assessed message -->
+      <div *ngIf="!userLevel?.hasCompletedAssessment" class="mb-3 p-3 bg-white/10 rounded-lg">
+        <p class="text-sm font-semibold mb-2">📝 Take your assessment test</p>
+        <p class="text-xs text-white/80">Discover your English level and start earning XP!</p>
+      </div>
+      
+      <!-- XP Progress Bar (only if assessed) -->
+      <div *ngIf="userLevel?.hasCompletedAssessment" class="mb-3">
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-xs text-white/90">Level Progress</span>
+          <span class="text-xs text-white/90">{{ userLevel?.progressPercentage || 0 }}%</span>
+        </div>
+        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden">
+          <div 
+            class="bg-white h-full rounded-full transition-all duration-500 ease-out"
+            [style.width.%]="userLevel?.progressPercentage || 0"
+          ></div>
+        </div>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-xs text-white/80">{{ userLevel?.totalXP || 0 }} XP</span>
+          <span class="text-xs text-white/80">{{ userLevel?.xpForNextLevel || 1000 }} to next</span>
+        </div>
+      </div>
+      
+      <h3 class="text-2xl font-bold mb-1">{{ userLevel?.jungleCoins || 0 }} 🪙</h3>
+      <p class="text-sm text-white/90">Jungle Coins</p>
+      <div class="mt-3 flex items-center gap-2">
+        <span class="text-xs">🔥 {{ userLevel?.consecutiveDays || 0 }} day streak</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badges Section -->
+  <div *ngIf="userBadges && userBadges.length > 0" class="bg-white rounded-2xl p-6 shadow-sm mb-8">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 mb-1">Recent Badges</h2>
+        <p class="text-sm text-gray-500">Your latest achievements</p>
+      </div>
+      <button class="text-amber-600 hover:text-amber-700 font-medium text-sm flex items-center space-x-2 transition-colors">
+        <span>View All ({{ userBadges.length }})</span>
+        <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+    
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <div 
+        *ngFor="let badge of userBadges; let i = index"
+        class="group flex flex-col items-center p-4 bg-gradient-to-br from-gray-50 to-white rounded-xl hover:shadow-lg transition-all duration-300 border border-gray-100 hover:border-amber-200 cursor-pointer animate-slide-up"
+        [style.animation-delay]="i * 100 + 'ms'"
+        [title]="badge.description"
+      >
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-md">
+          <span class="text-3xl">{{ badge.icon }}</span>
+        </div>
+        <p class="text-sm font-bold text-gray-900 text-center mb-1">{{ badge.name }}</p>
+        <p class="text-xs text-gray-500 text-center line-clamp-2">{{ badge.description }}</p>
+        <span class="text-xs text-amber-600 font-medium mt-2">{{ badge.earnedAt | date:'short' }}</span>
+      </div>
     </div>
   </div>
 

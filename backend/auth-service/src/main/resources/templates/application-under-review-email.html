@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Under Review</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #3D3D60;
+            background-color: #F7EDE2;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #F6BD60 0%, #2D5757 100%);
+            color: #ffffff;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .content h2 {
+            color: #2D5757;
+            font-size: 22px;
+            margin-top: 0;
+        }
+        .content p {
+            margin: 15px 0;
+            font-size: 16px;
+        }
+        .status-badge {
+            display: inline-block;
+            background-color: #F6BD60;
+            color: #3D3D60;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 16px;
+            margin: 20px 0;
+        }
+        .info-box {
+            background-color: #F7EDE2;
+            border-left: 4px solid #2D5757;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 5px;
+        }
+        .footer {
+            background-color: #3D3D60;
+            color: #F7EDE2;
+            text-align: center;
+            padding: 25px 30px;
+            font-size: 14px;
+        }
+        .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">🔍</div>
+            <h1>Application Under Review</h1>
+        </div>
+        
+        <div class="content">
+            <h2>Hello <span th:text="${firstName}">Candidate</span>,</h2>
+            
+            <p>Great news! Your tutor application is now being actively reviewed by our recruitment team.</p>
+            
+            <div style="text-align: center;">
+                <span class="status-badge">📊 UNDER REVIEW</span>
+            </div>
+            
+            <div class="info-box">
+                <p style="margin: 0; font-size: 16px;">
+                    <strong>Our team is currently evaluating:</strong>
+                </p>
+                <ul style="margin: 10px 0;">
+                    <li>Your teaching qualifications and experience</li>
+                    <li>Educational background and certifications</li>
+                    <li>Teaching philosophy and methodology</li>
+                    <li>Overall fit with our teaching standards</li>
+                </ul>
+            </div>
+            
+            <p>We take great care in selecting tutors who share our passion for quality English education. The review process typically takes 2-3 business days.</p>
+            
+            <p><strong>What to expect next:</strong></p>
+            <ul>
+                <li>You'll receive an update once the review is complete</li>
+                <li>If your profile matches our requirements, we'll schedule an interview</li>
+                <li>You may be asked to complete a skills assessment</li>
+            </ul>
+            
+            <p>Thank you for your patience as we carefully review your application.</p>
+            
+            <p style="margin-top: 30px;">
+                Best regards,<br>
+                <strong>The Jungle in English Recruitment Team</strong>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p><strong>Jungle in English</strong></p>
+            <p>Empowering English learners worldwide</p>
+        </div>
+    </div>
+</body>
+</html>

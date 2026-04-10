@@ -20,6 +20,15 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# File Upload Configuration
+file:
+  upload-dir: uploads
 
 eureka:
   client:
@@ -28,8 +37,36 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+    # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
+    registry-fetch-interval-seconds: 5
+    # Activer le healthcheck
+    healthcheck:
+      enabled: true
+    # Désactiver le cache local pour un rafraîchissement immédiat
+    disable-delta: false
   instance:
     prefer-ip-address: true
+    # Intervalle de heartbeat (par défaut 30s, réduit à 5s)
+    lease-renewal-interval-in-seconds: 5
+    # Durée avant expiration (par défaut 90s, réduit à 10s)
+    lease-expiration-duration-in-seconds: 10
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
+    # Statut initial
+    initial-status: STARTING
+    # Activer le healthcheck endpoint
+    health-check-url-path: /actuator/health
+
+# Feign Configuration
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 10000
+        loggerLevel: basic
+  circuitbreaker:
+    enabled: true
 
 management:
   endpoints:
@@ -40,6 +77,9 @@ management:
     export:
       prometheus:
         enabled: true
+  health:
+    redis:
+      enabled: false
 
 # Redis Cache Configuration (désactivé par défaut - décommenter pour activer)
 #  cache:

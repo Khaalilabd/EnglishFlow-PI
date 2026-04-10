@@ -27,7 +27,8 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/ws/**", "/actuator/**").permitAll()
+                .requestMatchers("/ws/**", "/actuator/**", "/uploads/**").permitAll()
+                .requestMatchers("/messaging/internal/**").permitAll() // Endpoints internes pour communication inter-services
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

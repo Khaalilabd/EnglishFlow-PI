@@ -1,5 +1,5 @@
 server:
-  port: 8087
+  port: 8089
 
 spring:
   application:
@@ -49,8 +49,25 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+    # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
+    registry-fetch-interval-seconds: 5
+    # Activer le healthcheck
+    healthcheck:
+      enabled: true
+    # Désactiver le cache local pour un rafraîchissement immédiat
+    disable-delta: false
   instance:
     prefer-ip-address: true
+    # Intervalle de heartbeat (par défaut 30s, réduit à 5s)
+    lease-renewal-interval-in-seconds: 5
+    # Durée avant expiration (par défaut 90s, réduit à 10s)
+    lease-expiration-duration-in-seconds: 10
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
+    # Statut initial
+    initial-status: STARTING
+    # Activer le healthcheck endpoint
+    health-check-url-path: /actuator/health
 
 management:
   endpoints:
@@ -60,3 +77,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+# Auth Service Configuration
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8080/api/auth}

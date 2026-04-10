@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { tap, catchError } from 'rxjs/operators';
 import { Conversation, CreateConversationRequest } from '../models/conversation.model';
 import { Message, SendMessageRequest, Page, ReactionSummary, AddReactionRequest } from '../models/message.model';
 import { User } from '../models/user.model';
@@ -76,5 +77,48 @@ export class MessagingService {
   // File download
   downloadFile(url: string): Observable<Blob> {
     return this.http.get(url, { responseType: 'blob' });
+  }
+  
+  // Upload group photo
+  uploadGroupPhoto(formData: FormData): Observable<{groupPhoto: string}> {
+    return this.http.post<{groupPhoto: string}>(`${this.apiUrl}/upload-group-photo`, formData);
+  }
+  
+  // Get users by role (for tutor-to-tutor messaging)
+  getUsersByRole(role: string): Observable<any[]> {
+    const url = `${this.apiUrl}/users/by-role/${role}`;
+    console.log('🌐 Calling API:', url);
+    return this.http.get<any[]>(url).pipe(
+      tap(response => console.log('📥 API Response:', response)),
+      catchError(error => {
+        console.error('❌ API Error:', error);
+        return throwError(() => error);
+      })
+    );
+  }
+  
+  // Group management
+  leaveGroup(conversationId: number): Observable<void> {
+    return this.http.post<void>(`${this.apiUrl}/conversations/${conversationId}/leave`, {});
+  }
+  
+  addParticipants(conversationId: number, participantIds: number[]): Observable<Conversation> {
+    return this.http.post<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}/participants`,
+      { participantIds }
+    );
+  }
+  
+  removeParticipant(conversationId: number, participantId: number): Observable<void> {
+    return this.http.delete<void>(
+      `${this.apiUrl}/conversations/${conversationId}/participants/${participantId}`
+    );
+  }
+  
+  updateGroup(conversationId: number, title: string, description: string): Observable<Conversation> {
+    return this.http.put<Conversation>(
+      `${this.apiUrl}/conversations/${conversationId}`,
+      { title, description }
+    );
   }
 }

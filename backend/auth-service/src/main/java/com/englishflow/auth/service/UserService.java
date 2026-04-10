@@ -9,6 +9,9 @@ import com.englishflow.auth.repository.ActivationTokenRepository;
 import com.englishflow.auth.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +31,18 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailService emailService;
+    private final GamificationIntegrationService gamificationIntegrationService;
     private final ActivationTokenRepository activationTokenRepository;
+    private final com.englishflow.auth.repository.ProfessionalDocumentRepository professionalDocumentRepository;
+    private final com.englishflow.auth.repository.TutorApplicationRepository tutorApplicationRepository;
+
+    public com.englishflow.auth.repository.ProfessionalDocumentRepository getProfessionalDocumentRepository() {
+        return professionalDocumentRepository;
+    }
+    
+    public com.englishflow.auth.repository.TutorApplicationRepository getTutorApplicationRepository() {
+        return tutorApplicationRepository;
+    }
 
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
@@ -41,10 +55,20 @@ public class UserService {
                 .map(UserDTO::fromEntity);
     }
 
+    @Cacheable(value = "users", key = "#id")
     public UserDTO getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
-        return UserDTO.fromEntity(user);
+        UserDTO userDTO = UserDTO.fromEntity(user);
+        
+        // Fetch gamification level
+        try {
+            userDTO.setGamificationLevel(gamificationIntegrationService.getUserLevel(id));
+        } catch (Exception e) {
+            log.error("Failed to fetch gamification level for user {}: {}", id, e.getMessage());
+        }
+        
+        return userDTO;
     }
 
     public List<UserDTO> getUsersByRole(String role) {
@@ -61,6 +85,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public UserDTO updateUser(Long id, UserDTO userDTO) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
@@ -86,6 +114,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public UserDTO updateUserByAdmin(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
@@ -110,6 +142,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
             throw new com.englishflow.auth.exception.UserNotFoundException(id);
@@ -123,6 +159,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public UserDTO toggleUserStatus(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
@@ -267,6 +307,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public UserDTO activateUser(Long id) {
         System.out.println("📝 UserService.activateUser called with ID: " + id);
         
@@ -299,6 +343,10 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "usersByEmail", allEntries = true)
+    })
     public UserDTO deactivateUser(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));

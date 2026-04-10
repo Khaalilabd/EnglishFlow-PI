@@ -58,6 +58,14 @@ public class QuizService {
     }
     
     @Transactional(readOnly = true)
+    public List<QuizDTO> getQuizzesByCourse(Long courseId) {
+        return quizRepository.findByCourseId(courseId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
     public QuizDTO getQuizById(Long id) {
         Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + id));

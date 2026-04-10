@@ -7,11 +7,29 @@ spring:
   servlet:
     multipart:
       enabled: true
-      max-file-size: 5MB
-      max-request-size: 5MB
+      max-file-size: 50MB
+      max-request-size: 50MB
   cloud:
     config:
       enabled: false
+  cache:
+    type: none
+  # Redis cache désactivé temporairement
+  # cache:
+  #   type: redis
+  #   redis:
+  #     time-to-live: 3600000
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/englishflow_identity}
     username: ${DB_USERNAME:postgres}
@@ -54,6 +72,14 @@ spring:
               - email
               - profile
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            authorization-grant-type: authorization_code
+            client-name: Google
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+            user-name-attribute: sub
 
 app:
   frontend:
@@ -69,7 +95,7 @@ recaptcha:
 
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION:900000}
+  expiration: ${JWT_EXPIRATION:86400000}
   refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
 
 eureka:
@@ -79,8 +105,25 @@ eureka:
       defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
+    # Intervalle de récupération du registre (par défaut 30s, réduit à 5s)
+    registry-fetch-interval-seconds: 5
+    # Activer le healthcheck
+    healthcheck:
+      enabled: true
+    # Désactiver le cache local pour un rafraîchissement immédiat
+    disable-delta: false
   instance:
     prefer-ip-address: true
+    # Intervalle de heartbeat (par défaut 30s, réduit à 5s)
+    lease-renewal-interval-in-seconds: 5
+    # Durée avant expiration (par défaut 90s, réduit à 10s)
+    lease-expiration-duration-in-seconds: 10
+    # Métadonnées pour identifier l'instance avec le port
+    instance-id: ${spring.application.name}:${random.value}:${server.port}
+    # Statut initial
+    initial-status: STARTING
+    # Activer le healthcheck endpoint
+    health-check-url-path: /actuator/health
 
 # Swagger/OpenAPI Configuration
 springdoc:
@@ -128,6 +171,8 @@ management:
       enabled: true
     readinessState:
       enabled: true
+    redis:
+      enabled: false
   tracing:
     sampling:
       probability: 1.0

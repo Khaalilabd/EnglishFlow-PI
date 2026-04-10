@@ -42,6 +42,26 @@ $info: #3B82F6;
 }
 
 // ============================================
+// Carousel Smooth Transitions
+// ============================================
+// Carousel now uses inline transition-transform with manual control
+// No keyframe animation needed
+
+// ============================================
+// Ebook Card Hover Effect for Favorite Button
+// ============================================
+.ebook-card-hover {
+  .favorite-btn {
+    opacity: 0;
+    pointer-events: auto;
+  }
+  
+  &:hover .favorite-btn {
+    opacity: 1;
+  }
+}
+
+// ============================================
 // Book Spine (3D Shelf View)
 // ============================================
 .book-spine {

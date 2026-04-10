@@ -9,6 +9,29 @@ export interface User {
   isActive: boolean;
   registrationFeePaid: boolean;
   createdAt: Date;
+  gamificationLevel?: UserLevel;
+}
+
+export interface UserLevel {
+  userId: number;
+  assessmentLevel: string;
+  assessmentLevelIcon: string;
+  assessmentLevelName: string;
+  certifiedLevel?: string;
+  certifiedLevelIcon?: string;
+  certifiedLevelName?: string;
+  currentXP: number;
+  totalXP: number;
+  xpForNextLevel: number;
+  progressPercentage: number;
+  nextLevel?: string;
+  jungleCoins: number;
+  loyaltyTier: string;
+  loyaltyTierIcon: string;
+  loyaltyDiscount: number;
+  totalSpent: number;
+  consecutiveDays: number;
+  rank?: number;
 }
 
 export enum UserRole {
@@ -44,6 +67,7 @@ export interface RegisterRequest {
 export interface AuthResponse {
   token: string;
   refreshToken?: string;
+  sessionToken?: string; // Session token for tracking user sessions
   type: string;
   id: number;
   email: string;
@@ -59,7 +83,13 @@ export interface AuthResponse {
   postalCode?: string;
   bio?: string;
   englishLevel?: string;
+  yearsOfExperience?: number;
+  specializations?: string;
+  applicationId?: number;
   profileCompleted?: boolean;
   expiresIn?: number;
   refreshTokenExpiryDate?: string;
+  requires2FA?: boolean;
+  tempToken?: string;
+  gamificationLevel?: UserLevel;
 }

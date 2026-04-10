@@ -18,6 +18,7 @@ export interface User {
   bio?: string;
   englishLevel?: string;
   yearsOfExperience?: number;
+  applicationId?: number;
   role: string;
   isActive: boolean;
   registrationFeePaid: boolean;
@@ -77,6 +78,10 @@ export class UserService {
     return this.http.get<User[]>(`${this.apiUrl}/auth/admin/users/role/${role}`);
   }
 
+  getPublicTutors(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.apiUrl}/auth/users/public/tutors`);
+  }
+
   createUser(userData: CreateUserRequest): Observable<User> {
     return this.http.post<User>(`${this.apiUrl}/auth/admin/users`, userData);
   }
@@ -99,10 +104,10 @@ export class UserService {
 
   // New methods for club member details
   getUserById(userId: number): Observable<UserDetails> {
-    return this.http.get<UserDetails>(`${this.apiUrl}/auth/users/${userId}`);
+    return this.http.get<UserDetails>(`${this.apiUrl}/users/${userId}/public`);
   }
 
   getUsersByIds(userIds: number[]): Observable<UserDetails[]> {
-    return this.http.post<UserDetails[]>(`${this.apiUrl}/auth/users/batch`, { userIds });
+    return this.http.post<UserDetails[]>(`${this.apiUrl}/users/batch`, { userIds });
   }
 }

@@ -24,4 +24,10 @@ public class CreateConversationRequest {
     
     @Size(max = 255, message = "Title must not exceed 255 characters")
     private String title;
+    
+    @Size(max = 500, message = "Description must not exceed 500 characters")
+    private String description;
+    
+    @Size(max = 500, message = "Group photo URL must not exceed 500 characters")
+    private String groupPhoto;
 }

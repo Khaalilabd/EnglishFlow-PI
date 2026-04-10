@@ -28,6 +28,31 @@ export class RegisterComponent {
   showPassword = false;
   showConfirmPassword = false;
   maxDate: string;
+  
+  // Field focus states
+  firstNameFocused = false;
+  lastNameFocused = false;
+  emailFocused = false;
+  passwordFocused = false;
+  confirmPasswordFocused = false;
+  cinFocused = false;
+  phoneFocused = false;
+  dateOfBirthFocused = false;
+  
+  // Field touched states
+  firstNameTouched = false;
+  lastNameTouched = false;
+  emailTouched = false;
+  passwordTouched = false;
+  confirmPasswordTouched = false;
+  cinTouched = false;
+  phoneTouched = false;
+  dateOfBirthTouched = false;
+  addressTouched = false;
+  cityTouched = false;
+  postalCodeTouched = false;
+  bioTouched = false;
+  englishLevelTouched = false;
 
   englishLevels = [
     { value: 'A1', label: 'A1 - Beginner' },
@@ -215,6 +240,41 @@ export class RegisterComponent {
   get englishLevel() { return this.registerForm.get('englishLevel'); }
   get yearsOfExperience() { return this.registerForm.get('yearsOfExperience'); }
   
+  // Toggle password visibility methods
+  togglePasswordVisibility(): void {
+    this.showPassword = !this.showPassword;
+  }
+  
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
+  }
+  
+  // Field validation helper methods
+  hasValue(fieldName: string): boolean {
+    const field = this.registerForm.get(fieldName);
+    return field?.value && field.value.length > 0;
+  }
+  
+  isFieldValid(fieldName: string): boolean {
+    const field = this.registerForm.get(fieldName);
+    return field?.valid || false;
+  }
+  
+  shouldShowFieldError(fieldName: string, touched: boolean): boolean {
+    const field = this.registerForm.get(fieldName);
+    return (field?.invalid && (field?.touched || touched)) || false;
+  }
+  
+  // Focus handlers
+  onFieldFocus(fieldName: string): void {
+    (this as any)[`${fieldName}Focused`] = true;
+  }
+  
+  onFieldBlur(fieldName: string): void {
+    (this as any)[`${fieldName}Focused`] = false;
+    (this as any)[`${fieldName}Touched`] = true;
+  }
+  
   // Helper methods for password strength display
   get passwordStrength(): string {
     const password = this.password?.value || '';
@@ -230,6 +290,33 @@ export class RegisterComponent {
     if (strength <= 2) return 'weak';
     if (strength === 3) return 'medium';
     return 'strong';
+  }
+  
+  get passwordStrengthColor(): string {
+    switch(this.passwordStrength) {
+      case 'weak': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'strong': return 'bg-green-500';
+      default: return 'bg-gray-300';
+    }
+  }
+  
+  get passwordStrengthWidth(): string {
+    switch(this.passwordStrength) {
+      case 'weak': return 'w-1/3';
+      case 'medium': return 'w-2/3';
+      case 'strong': return 'w-full';
+      default: return 'w-0';
+    }
+  }
+  
+  get passwordStrengthText(): string {
+    switch(this.passwordStrength) {
+      case 'weak': return 'Weak';
+      case 'medium': return 'Medium';
+      case 'strong': return 'Strong';
+      default: return '';
+    }
   }
   
   getStepErrors(): string[] {

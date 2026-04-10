@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skills Test Available</title>
+</head>
+<body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #3D3D60; background-color: #F7EDE2; margin: 0; padding: 0;">
+    <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <div style="background: linear-gradient(135deg, #F6BD60 0%, #C84630 100%); color: #ffffff; padding: 40px 30px; text-align: center;">
+            <div style="font-size: 48px; margin-bottom: 10px;">📝</div>
+            <h1 style="margin: 0; font-size: 28px; font-weight: 600;">Skills Test Available</h1>
+        </div>
+        
+        <div style="padding: 40px 30px;">
+            <h2 style="color: #2D5757; font-size: 22px; margin-top: 0;">Hello <span th:text="${firstName}">Candidate</span>,</h2>
+            
+            <p style="margin: 15px 0; font-size: 16px;">As part of our recruitment process, we'd like to invite you to complete a teaching skills assessment.</p>
+            
+            <div style="background-color: #F7EDE2; border-left: 4px solid #F6BD60; padding: 20px; margin: 25px 0; border-radius: 5px;">
+                <p style="margin: 0 0 10px 0; font-size: 18px; color: #2D5757;"><strong>📋 Test Information:</strong></p>
+                <p style="margin: 10px 0;">Duration: Approximately 45-60 minutes</p>
+                <p style="margin: 10px 0;">Format: Online assessment</p>
+                <p style="margin: 10px 0;">Topics: Grammar, teaching methodology, lesson planning</p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+                <a th:href="${testLink}" style="display: inline-block; background-color: #2D5757; color: #F7EDE2; padding: 15px 40px; text-decoration: none; border-radius: 5px; font-weight: 600; font-size: 16px;">Start Test</a>
+            </div>
+            
+            <p style="margin: 15px 0; font-size: 16px;"><strong>Important notes:</strong></p>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Complete the test in one sitting - you cannot save and return later</li>
+                <li>Ensure you have a stable internet connection</li>
+                <li>Find a quiet place where you won't be interrupted</li>
+                <li>Have a pen and paper ready for notes</li>
+            </ul>
+            
+            <p style="margin: 15px 0; font-size: 16px;">This assessment helps us understand your teaching capabilities and ensures you're well-prepared to deliver quality lessons to our students.</p>
+            
+            <p style="margin-top: 30px;">
+                Good luck!<br>
+                <strong>The Jungle in English Recruitment Team</strong>
+            </p>
+        </div>
+        
+        <div style="background-color: #3D3D60; color: #F7EDE2; text-align: center; padding: 25px 30px; font-size: 14px;">
+            <p style="margin: 5px 0;"><strong>Jungle in English</strong></p>
+            <p style="margin: 5px 0;">Empowering English learners worldwide</p>
+        </div>
+    </div>
+</body>
+</html>

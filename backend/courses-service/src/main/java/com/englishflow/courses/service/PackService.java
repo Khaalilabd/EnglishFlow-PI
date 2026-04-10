@@ -18,6 +18,7 @@ public class PackService implements IPackService {
     
     private final PackRepository packRepository;
     private final PackEnrollmentRepository enrollmentRepository;
+    private final com.englishflow.courses.client.MessagingServiceClient messagingServiceClient;
     
     @Override
     @Transactional
@@ -40,6 +41,27 @@ public class PackService implements IPackService {
         pack.setCreatedBy(packDTO.getCreatedBy());
         
         Pack saved = packRepository.save(pack);
+        
+        // Créer automatiquement un groupe de discussion pour le pack avec le tuteur
+        try {
+            List<Long> initialParticipants = new java.util.ArrayList<>();
+            initialParticipants.add(packDTO.getTutorId());
+            
+            Long conversationId = messagingServiceClient.createPackGroup(
+                packDTO.getName(),
+                packDTO.getDescription(),
+                packDTO.getTutorId(),
+                initialParticipants
+            );
+            
+            if (conversationId != null) {
+                saved.setConversationId(conversationId);
+                saved = packRepository.save(saved);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to create messaging group for pack: " + e.getMessage());
+        }
+        
         return toDTO(saved);
     }
     
@@ -124,6 +146,17 @@ public class PackService implements IPackService {
     @Override
     @Transactional
     public void deletePack(Long id) {
+        Pack pack = packRepository.findById(id).orElse(null);
+        
+        // Supprimer le groupe de discussion si existant
+        if (pack != null && pack.getConversationId() != null) {
+            try {
+                messagingServiceClient.deletePackGroup(pack.getConversationId());
+            } catch (Exception e) {
+                System.err.println("Failed to delete messaging group: " + e.getMessage());
+            }
+        }
+        
         // First, delete all enrollments for this pack
         enrollmentRepository.deleteByPackId(id);
         
@@ -187,6 +220,7 @@ public class PackService implements IPackService {
         dto.setDescription(pack.getDescription());
         dto.setStatus(pack.getStatus());
         dto.setCreatedBy(pack.getCreatedBy());
+        dto.setConversationId(pack.getConversationId());
         dto.setCreatedAt(pack.getCreatedAt());
         dto.setUpdatedAt(pack.getUpdatedAt());
         dto.setIsEnrollmentOpen(pack.isEnrollmentOpen());

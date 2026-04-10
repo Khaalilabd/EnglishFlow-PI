@@ -164,6 +164,42 @@ public class UserController {
         }
     }
     
+    @GetMapping("/public/tutors")
+    public ResponseEntity<List<UserDTO>> getPublicTutors() {
+        try {
+            log.info("Public endpoint: Fetching active tutors");
+            List<User> tutors = userRepository.findByRoleAndIsActive(User.Role.TUTOR, true);
+            List<UserDTO> tutorDTOs = tutors.stream()
+                    .map(UserDTO::fromEntity)
+                    .collect(Collectors.toList());
+            log.info("Found {} active tutors", tutorDTOs.size());
+            return ResponseEntity.ok(tutorDTOs);
+        } catch (Exception e) {
+            log.error("Error fetching public tutors: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/by-role/{role}")
+    public ResponseEntity<List<UserDTO>> getUsersByRolePublic(@PathVariable String role) {
+        try {
+            log.info("Public endpoint: Fetching users with role: {}", role);
+            User.Role userRole = User.Role.valueOf(role.toUpperCase());
+            List<User> users = userRepository.findByRoleAndIsActive(userRole, true);
+            List<UserDTO> userDTOs = users.stream()
+                    .map(UserDTO::fromEntity)
+                    .collect(Collectors.toList());
+            log.info("Found {} active users with role {}", userDTOs.size(), role);
+            return ResponseEntity.ok(userDTOs);
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid role: {}", role);
+            return ResponseEntity.badRequest().build();
+        } catch (Exception e) {
+            log.error("Error fetching users by role: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
     @GetMapping("/{id}/public")
     public ResponseEntity<UserDTO> getUserByIdPublic(@PathVariable Long id) {
         log.info("Public endpoint called for user ID: {}", id);
@@ -267,6 +303,186 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to delete photo: " + e.getMessage()));
+        }
+    }
+
+    // ========== Professional Documents Endpoints ==========
+
+    @PostMapping("/{id}/upload-document")
+    public ResponseEntity<Map<String, Object>> uploadProfessionalDocument(
+            @PathVariable Long id,
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("documentType") String documentType) {
+        
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Please select a file"));
+            }
+            
+            // Vérifier la taille (max 50MB)
+            long maxSize = 50 * 1024 * 1024; // 50MB
+            if (!fileStorageService.isValidFileSize(file, maxSize)) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "File size must be less than 50MB"));
+            }
+            
+            User user = userRepository.findById(id)
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
+            
+            // Sauvegarder le fichier
+            String filePath = fileStorageService.storeFile(file);
+            
+            // Créer l'enregistrement du document
+            com.englishflow.auth.entity.ProfessionalDocument document = com.englishflow.auth.entity.ProfessionalDocument.builder()
+                .userId(user.getId())
+                .fileName(file.getOriginalFilename())
+                .filePath(filePath)
+                .documentType(documentType)
+                .fileSize(file.getSize())
+                .build();
+            
+            com.englishflow.auth.repository.ProfessionalDocumentRepository documentRepository = 
+                userService.getProfessionalDocumentRepository();
+            document = documentRepository.save(document);
+            
+            return ResponseEntity.ok(Map.of(
+                "id", document.getId(),
+                "fileName", document.getFileName(),
+                "filePath", document.getFilePath(),
+                "documentType", document.getDocumentType(),
+                "uploadedAt", document.getUploadedAt().toString()
+            ));
+            
+        } catch (Exception e) {
+            log.error("Failed to upload document: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to upload document: " + e.getMessage()));
+        }
+    }
+
+    @GetMapping("/{id}/documents")
+    public ResponseEntity<List<Map<String, Object>>> getUserDocuments(@PathVariable Long id) {
+        try {
+            com.englishflow.auth.repository.ProfessionalDocumentRepository documentRepository = 
+                userService.getProfessionalDocumentRepository();
+            
+            List<com.englishflow.auth.entity.ProfessionalDocument> documents = documentRepository.findByUserId(id);
+            
+            List<Map<String, Object>> response = documents.stream()
+                .map(doc -> Map.of(
+                    "id", (Object) doc.getId(),
+                    "fileName", doc.getFileName(),
+                    "filePath", doc.getFilePath(),
+                    "documentType", doc.getDocumentType(),
+                    "fileSize", doc.getFileSize(),
+                    "uploadedAt", doc.getUploadedAt().toString()
+                ))
+                .collect(Collectors.toList());
+            
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            log.error("Failed to fetch documents: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/documents/{documentId}")
+    public ResponseEntity<Map<String, String>> deleteDocument(@PathVariable Long documentId) {
+        try {
+            com.englishflow.auth.repository.ProfessionalDocumentRepository documentRepository = 
+                userService.getProfessionalDocumentRepository();
+            
+            com.englishflow.auth.entity.ProfessionalDocument document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found"));
+            
+            // Supprimer le fichier physique
+            fileStorageService.deleteFile(document.getFilePath());
+            
+            // Supprimer l'enregistrement
+            documentRepository.delete(document);
+            
+            return ResponseEntity.ok(Map.of("message", "Document deleted successfully"));
+            
+        } catch (Exception e) {
+            log.error("Failed to delete document: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to delete document: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{id}/professional")
+    public ResponseEntity<Map<String, String>> updateProfessionalProfile(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> professionalData) {
+        
+        try {
+            User user = userRepository.findById(id)
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
+            
+            // Mettre à jour les champs professionnels avec gestion des types
+            if (professionalData.containsKey("yearsOfExperience")) {
+                Object yearsObj = professionalData.get("yearsOfExperience");
+                if (yearsObj != null) {
+                    Integer years = yearsObj instanceof Integer ? (Integer) yearsObj : Integer.parseInt(yearsObj.toString());
+                    user.setYearsOfExperience(years);
+                }
+            }
+            if (professionalData.containsKey("englishLevel")) {
+                String level = (String) professionalData.get("englishLevel");
+                user.setEnglishLevel(level);
+            }
+            
+            // Note: Les autres champs (education, certifications, etc.) sont stockés dans TutorApplication
+            // Si l'utilisateur a un applicationId, on peut mettre à jour l'application
+            if (user.getApplicationId() != null && professionalData.size() > 2) {
+                // Mettre à jour l'application de recrutement si elle existe
+                com.englishflow.auth.entity.TutorApplication application = 
+                    userService.getTutorApplicationRepository().findById(user.getApplicationId()).orElse(null);
+                
+                if (application != null) {
+                    if (professionalData.containsKey("education")) {
+                        application.setEducation((String) professionalData.get("education"));
+                    }
+                    if (professionalData.containsKey("certifications")) {
+                        application.setCertifications((String) professionalData.get("certifications"));
+                    }
+                    if (professionalData.containsKey("workExperience")) {
+                        application.setWorkExperience((String) professionalData.get("workExperience"));
+                    }
+                    if (professionalData.containsKey("teachingPhilosophy")) {
+                        application.setTeachingPhilosophy((String) professionalData.get("teachingPhilosophy"));
+                    }
+                    if (professionalData.containsKey("availability")) {
+                        application.setAvailability((String) professionalData.get("availability"));
+                    }
+                    if (professionalData.containsKey("specializations")) {
+                        application.setSpecializations((String) professionalData.get("specializations"));
+                    }
+                    if (professionalData.containsKey("yearsOfExperience")) {
+                        Object yearsObj = professionalData.get("yearsOfExperience");
+                        if (yearsObj != null) {
+                            Integer years = yearsObj instanceof Integer ? (Integer) yearsObj : Integer.parseInt(yearsObj.toString());
+                            application.setYearsOfExperience(years);
+                        }
+                    }
+                    if (professionalData.containsKey("englishLevel")) {
+                        application.setEnglishLevel((String) professionalData.get("englishLevel"));
+                    }
+                    
+                    userService.getTutorApplicationRepository().save(application);
+                }
+            }
+            
+            userRepository.save(user);
+            
+            return ResponseEntity.ok(Map.of("message", "Professional profile updated successfully"));
+            
+        } catch (Exception e) {
+            log.error("Failed to update professional profile: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to update professional profile: " + e.getMessage()));
         }
     }
 }

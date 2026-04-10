@@ -1,20 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
+import { TwoFactorAuthService, TwoFactorSetupResponse, TwoFactorStatusResponse } from '../../../services/two-factor-auth.service';
+import { SessionService, UserSession, SessionSummary } from '../../../services/session.service';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-student-settings',
+  selector: 'app-dashboard-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class StudentSettingsComponent implements OnInit {
+export class DashboardSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
   activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
   
@@ -28,11 +30,39 @@ export class StudentSettingsComponent implements OnInit {
   
   profilePhotoPreview: string | null = null;
   selectedFile: File | null = null;
+  isDragging = false;
+  
+  // Password strength
+  passwordStrength: 'weak' | 'medium' | 'strong' | null = null;
+  
+  // Profile completion
+  profileCompletion = 0;
+  
+  // Dark mode
+  isDarkMode = false;
+  
+  // Active sessions
+  activeSessions: any[] = [];
+  sessionSummary: any = null;
+  showSessionsModal = false;
+  isLoadingSessions = false;
+
+  // 2FA properties
+  twoFactorStatus: TwoFactorStatusResponse | null = null;
+  isLoading2FA = false;
+  showSetupModal = false;
+  showDisableModal = false;
+  setupData: TwoFactorSetupResponse | null = null;
+  verificationCode = '';
+  backupCodes: string[] = [];
+  showBackupCodesModal = false;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private twoFactorService: TwoFactorAuthService,
+    private sessionService: SessionService
   ) {}
 
   ngOnInit() {
@@ -41,6 +71,8 @@ export class StudentSettingsComponent implements OnInit {
     // Load fresh user data from backend
     if (this.currentUser) {
       this.loadUserProfile();
+      this.load2FAStatus();
+      this.loadSessionSummary();
     }
     
     this.authService.currentUser$.subscribe(user => {
@@ -51,6 +83,56 @@ export class StudentSettingsComponent implements OnInit {
     });
     
     this.initializeForms();
+    this.calculateProfileCompletion();
+    this.loadDarkModePreference();
+  }
+  
+  calculateProfileCompletion() {
+    if (!this.currentUser) return;
+    
+    const fields = [
+      this.currentUser.firstName,
+      this.currentUser.lastName,
+      this.currentUser.email,
+      this.currentUser.phone,
+      this.currentUser.dateOfBirth,
+      this.currentUser.address,
+      this.currentUser.city,
+      this.currentUser.postalCode,
+      this.currentUser.bio,
+      this.currentUser.profilePhoto
+    ];
+    
+    const filledFields = fields.filter(field => field && field.toString().trim() !== '').length;
+    this.profileCompletion = Math.round((filledFields / fields.length) * 100);
+  }
+  
+  loadDarkModePreference() {
+    const savedMode = localStorage.getItem('darkMode');
+    this.isDarkMode = savedMode === 'true';
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    }
+  }
+  
+  toggleDarkMode() {
+    this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('darkMode', this.isDarkMode.toString());
+    
+    if (this.isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    Swal.fire({
+      icon: 'success',
+      title: 'Theme Updated!',
+      text: `${this.isDarkMode ? 'Dark' : 'Light'} mode activated`,
+      confirmButtonColor: '#3b82f6',
+      timer: 1500,
+      showConfirmButton: false
+    });
   }
 
   loadUserProfile() {
@@ -100,6 +182,11 @@ export class StudentSettingsComponent implements OnInit {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
+    
+    // Watch password changes for strength indicator
+    this.passwordForm.get('newPassword')?.valueChanges.subscribe(password => {
+      this.checkPasswordStrength(password);
+    });
 
     this.notificationForm = this.fb.group({
       emailNotifications: [true],
@@ -113,6 +200,32 @@ export class StudentSettingsComponent implements OnInit {
   passwordMatchValidator(g: FormGroup) {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { 'mismatch': true };
   }
+  
+  checkPasswordStrength(password: string) {
+    if (!password) {
+      this.passwordStrength = null;
+      return;
+    }
+    
+    let strength = 0;
+    
+    // Length check
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    
+    // Character variety checks
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/\d/.test(password)) strength++;
+    if (/[^a-zA-Z\d]/.test(password)) strength++;
+    
+    if (strength <= 2) {
+      this.passwordStrength = 'weak';
+    } else if (strength <= 4) {
+      this.passwordStrength = 'medium';
+    } else {
+      this.passwordStrength = 'strong';
+    }
+  }
 
   setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance') {
     this.activeTab = tab;
@@ -121,13 +234,62 @@ export class StudentSettingsComponent implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.selectedFile = file;
-      const reader = new FileReader();
-      reader.onload = (e: any) => {
-        this.profilePhotoPreview = e.target.result;
-      };
-      reader.readAsDataURL(file);
+      this.handleFile(file);
     }
+  }
+  
+  onDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = true;
+  }
+  
+  onDragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+  }
+  
+  onDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragging = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files && files.length > 0) {
+      this.handleFile(files[0]);
+    }
+  }
+  
+  handleFile(file: File) {
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Invalid File',
+        text: 'Please select an image file',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+    
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      Swal.fire({
+        icon: 'error',
+        title: 'File Too Large',
+        text: 'Please select an image smaller than 5MB',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+    
+    this.selectedFile = file;
+    const reader = new FileReader();
+    reader.onload = (e: any) => {
+      this.profilePhotoPreview = e.target.result;
+    };
+    reader.readAsDataURL(file);
   }
 
   uploadProfilePhoto() {
@@ -141,7 +303,7 @@ export class StudentSettingsComponent implements OnInit {
     this.http.post<any>(`http://localhost:8088/api/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
       next: (response) => {
         console.log('Upload response:', response);
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#3b82f6', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
         
@@ -162,7 +324,7 @@ export class StudentSettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Upload error:', error);
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -176,11 +338,12 @@ export class StudentSettingsComponent implements OnInit {
     this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
       next: () => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+        this.calculateProfileCompletion();
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#3b82f6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -196,11 +359,11 @@ export class StudentSettingsComponent implements OnInit {
       next: () => {
         this.isLoadingPassword = false;
         this.passwordForm.reset();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#F6BD60', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#3b82f6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingPassword = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#F6BD60' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#3b82f6' });
       }
     });
   }
@@ -209,7 +372,7 @@ export class StudentSettingsComponent implements OnInit {
     this.isLoadingNotifications = true;
     setTimeout(() => {
       this.isLoadingNotifications = false;
-      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#F6BD60', timer: 2000 });
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#3b82f6', timer: 2000 });
     }, 1000);
   }
 
@@ -220,7 +383,7 @@ export class StudentSettingsComponent implements OnInit {
       return `http://localhost:8081${this.currentUser.profilePhoto}`;
     }
     const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
-    return `https://ui-avatars.com/api/?name=${name}&background=F6BD60&color=fff&size=256`;
+    return `https://ui-avatars.com/api/?name=${name}&background=3b82f6&color=fff&size=256`;
   }
 
   getFieldError(formGroup: FormGroup, fieldName: string): string {
@@ -231,5 +394,387 @@ export class StudentSettingsComponent implements OnInit {
     if (field?.hasError('pattern')) return 'Invalid format';
     if (field?.hasError('email')) return 'Invalid email address';
     return '';
+  }
+
+  // ========== 2FA Methods ==========
+
+  load2FAStatus() {
+    this.twoFactorService.getTwoFactorStatus().subscribe({
+      next: (status) => {
+        this.twoFactorStatus = status;
+      },
+      error: (error) => {
+        console.error('Failed to load 2FA status:', error);
+      }
+    });
+  }
+
+  openSetup2FA() {
+    this.isLoading2FA = true;
+    this.twoFactorService.setupTwoFactor().subscribe({
+      next: (response) => {
+        this.setupData = response;
+        this.showSetupModal = true;
+        this.isLoading2FA = false;
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Failed to setup 2FA',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  enable2FA() {
+    if (!this.verificationCode || this.verificationCode.length !== 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Code',
+        text: 'Please enter a 6-digit code',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    this.isLoading2FA = true;
+    this.twoFactorService.enableTwoFactor(this.verificationCode).subscribe({
+      next: () => {
+        this.isLoading2FA = false;
+        this.backupCodes = this.setupData?.backupCodes || [];
+        this.showSetupModal = false;
+        this.showBackupCodesModal = true;
+        this.verificationCode = '';
+        this.load2FAStatus();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: '2FA has been enabled successfully',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Invalid verification code',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  openDisable2FA() {
+    this.showDisableModal = true;
+    this.verificationCode = '';
+  }
+
+  disable2FA() {
+    if (!this.verificationCode || this.verificationCode.length !== 6) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Invalid Code',
+        text: 'Please enter a 6-digit code',
+        confirmButtonColor: '#3b82f6'
+      });
+      return;
+    }
+
+    this.isLoading2FA = true;
+    this.twoFactorService.disableTwoFactor(this.verificationCode).subscribe({
+      next: () => {
+        this.isLoading2FA = false;
+        this.showDisableModal = false;
+        this.verificationCode = '';
+        this.load2FAStatus();
+        
+        Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: '2FA has been disabled',
+          confirmButtonColor: '#3b82f6',
+          timer: 2000
+        });
+      },
+      error: (error) => {
+        this.isLoading2FA = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: error.error?.message || 'Invalid verification code',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  regenerateBackupCodes() {
+    Swal.fire({
+      title: 'Regenerate Backup Codes?',
+      text: 'This will invalidate all existing backup codes',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3b82f6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, regenerate'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.isLoading2FA = true;
+        this.twoFactorService.regenerateBackupCodes().subscribe({
+          next: (codes) => {
+            this.isLoading2FA = false;
+            this.backupCodes = codes;
+            this.showBackupCodesModal = true;
+            this.load2FAStatus();
+            
+            Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'New backup codes generated',
+              confirmButtonColor: '#3b82f6',
+              timer: 2000
+            });
+          },
+          error: (error) => {
+            this.isLoading2FA = false;
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: error.error?.message || 'Failed to regenerate codes',
+              confirmButtonColor: '#3b82f6'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  downloadBackupCodes() {
+    const text = this.backupCodes.join('\n');
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'englishflow-backup-codes.txt';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  }
+
+  closeSetupModal() {
+    this.showSetupModal = false;
+    this.verificationCode = '';
+    this.setupData = null;
+  }
+
+  closeDisableModal() {
+    this.showDisableModal = false;
+    this.verificationCode = '';
+  }
+
+  closeBackupCodesModal() {
+    this.showBackupCodesModal = false;
+    this.backupCodes = [];
+  }
+
+  // ========== Session Management Methods ==========
+
+  loadSessionSummary() {
+    this.isLoadingSessions = true;
+    const currentToken = this.sessionService.getCurrentSessionToken();
+    
+    this.sessionService.getSessionSummary(currentToken || undefined).subscribe({
+      next: (summary: SessionSummary) => {
+        this.sessionSummary = summary;
+        this.isLoadingSessions = false;
+      },
+      error: (error) => {
+        console.error('Failed to load session summary:', error);
+        this.isLoadingSessions = false;
+      }
+    });
+  }
+
+  openSessionsModal() {
+    this.showSessionsModal = true;
+    this.loadAllSessions();
+  }
+
+  closeSessionsModal() {
+    this.showSessionsModal = false;
+  }
+
+  loadAllSessions() {
+    this.isLoadingSessions = true;
+    const currentToken = this.sessionService.getCurrentSessionToken();
+    
+    this.sessionService.getMyActiveSessions(currentToken || undefined).subscribe({
+      next: (sessions: UserSession[]) => {
+        this.activeSessions = sessions;
+        this.isLoadingSessions = false;
+      },
+      error: (error) => {
+        console.error('Failed to load sessions:', error);
+        this.isLoadingSessions = false;
+        Swal.fire({
+          icon: 'error',
+          title: 'Error!',
+          text: 'Failed to load sessions',
+          confirmButtonColor: '#3b82f6'
+        });
+      }
+    });
+  }
+
+  revokeSession(sessionId: number, sessionInfo: string) {
+    // Check if this is the current session
+    // Since sessionToken might be null (OAuth login issue), we check multiple conditions:
+    const session = this.activeSessions.find(s => s.id === sessionId);
+    const storedSessionId = localStorage.getItem('currentSessionId');
+    const isOnlySession = this.activeSessions.length === 1;
+    const isCurrentSession = session?.isCurrent || isOnlySession || (storedSessionId && sessionId.toString() === storedSessionId);
+    
+    Swal.fire({
+      title: isCurrentSession ? 'Terminate Current Session?' : 'Revoke Session?',
+      html: isCurrentSession 
+        ? `<p class="text-red-600 font-semibold mb-2">⚠️ Warning: This is your current session!</p><p>You will be logged out immediately.</p><small class="text-gray-600">${sessionInfo}</small>`
+        : `Are you sure you want to revoke this session?<br><small class="text-gray-600">${sessionInfo}</small>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: isCurrentSession ? 'Yes, log me out' : 'Yes, revoke it',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (isCurrentSession) {
+          // If terminating current session, clear everything and logout immediately
+          
+          // Terminate session on backend first
+          this.sessionService.terminateSession(sessionId).subscribe({
+            next: () => {
+              // Clear all storage immediately
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Show success message briefly
+              Swal.fire({
+                icon: 'success',
+                title: 'Logged out!',
+                text: 'Redirecting to home page...',
+                confirmButtonColor: '#3b82f6',
+                timer: 500,
+                showConfirmButton: false,
+                allowOutsideClick: false
+              }).then(() => {
+                // Force complete page reload to home
+                window.location.replace('/');
+              });
+            },
+            error: (error) => {
+              // Even if backend fails, still logout locally
+              console.error('Failed to terminate session on backend:', error);
+              
+              // Clear all storage
+              localStorage.clear();
+              sessionStorage.clear();
+              
+              // Force redirect
+              window.location.replace('/');
+            }
+          });
+        } else {
+          // Normal revoke for other sessions
+          this.sessionService.terminateSession(sessionId).subscribe({
+            next: () => {
+              Swal.fire({
+                icon: 'success',
+                title: 'Session Revoked!',
+                text: 'The session has been terminated successfully',
+                confirmButtonColor: '#3b82f6',
+                timer: 2000
+              });
+              this.loadSessionSummary();
+              if (this.showSessionsModal) {
+                this.loadAllSessions();
+              }
+            },
+            error: (error) => {
+              Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: error.error?.message || 'Failed to revoke session',
+                confirmButtonColor: '#3b82f6'
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  revokeAllOtherSessions() {
+    Swal.fire({
+      title: 'Revoke All Other Sessions?',
+      text: 'This will sign you out from all other devices. Your current session will remain active.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: '#6b7280',
+      confirmButtonText: 'Yes, revoke all',
+      cancelButtonText: 'Cancel'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        const currentToken = this.sessionService.getCurrentSessionToken();
+        this.sessionService.terminateOtherSessions(currentToken || undefined).subscribe({
+          next: (response) => {
+            Swal.fire({
+              icon: 'success',
+              title: 'Sessions Revoked!',
+              text: `${response.terminatedCount} session(s) have been terminated`,
+              confirmButtonColor: '#3b82f6',
+              timer: 2000
+            });
+            this.loadSessionSummary();
+            if (this.showSessionsModal) {
+              this.loadAllSessions();
+            }
+          },
+          error: (error) => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error!',
+              text: error.error?.message || 'Failed to revoke sessions',
+              confirmButtonColor: '#3b82f6'
+            });
+          }
+        });
+      }
+    });
+  }
+
+  getDeviceIcon(deviceType: string): string {
+    return this.sessionService.getDeviceIcon(deviceType);
+  }
+
+  getBrowserIcon(browserName: string): string {
+    return this.sessionService.getBrowserIcon(browserName);
+  }
+
+  getOSIcon(os: string): string {
+    return this.sessionService.getOSIcon(os);
+  }
+
+  formatLocation(session: UserSession): string {
+    return this.sessionService.formatLocation(session);
+  }
+
+  getStatusColor(status: string): string {
+    return this.sessionService.getStatusColor(status);
   }
 }

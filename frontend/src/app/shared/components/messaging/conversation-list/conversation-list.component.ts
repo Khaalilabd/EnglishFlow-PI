@@ -1,7 +1,7 @@
 import { Component, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Conversation } from '../../../../core/models/conversation.model';
+import { Conversation, ConversationType } from '../../../../core/models/conversation.model';
 
 @Component({
   selector: 'app-conversation-list',
@@ -55,13 +55,19 @@ import { Conversation } from '../../../../core/models/conversation.model';
           <div class="flex items-center gap-3">
             <!-- Avatar -->
             <div class="relative flex-shrink-0">
+              <!-- Group Icon Overlay -->
+              <div *ngIf="conversation.type === 'GROUP'" class="absolute -top-1 -right-1 w-5 h-5 bg-[#667eea] rounded-full flex items-center justify-center z-10 border-2 border-[#111b21]">
+                <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"></path>
+                </svg>
+              </div>
               <img 
                 [src]="getConversationAvatar(conversation)" 
                 [alt]="getConversationTitle(conversation)" 
                 class="w-12 h-12 rounded-full object-cover ring-2 ring-[#2a3942]"
               >
               <span 
-                *ngIf="isParticipantOnline(conversation)"
+                *ngIf="isParticipantOnline(conversation) && conversation.type !== 'GROUP'"
                 class="absolute bottom-0 right-0 w-3 h-3 bg-[#00a884] border-2 border-[#111b21] rounded-full"
               ></span>
             </div>
@@ -78,7 +84,7 @@ import { Conversation } from '../../../../core/models/conversation.model';
               </div>
               <div class="flex items-center justify-between">
                 <p class="text-sm text-[#aebac1] truncate flex-1">
-                  {{ conversation.lastMessage?.content || 'Aucun message' }}
+                  {{ getLastMessagePreview(conversation) }}
                 </p>
                 <!-- Unread Badge -->
                 <span 
@@ -125,7 +131,6 @@ export class ConversationListComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['conversations']) {
-      console.log('📋 ConversationList: Conversations changed', this.conversations);
       this.filterConversations();
     }
   }
@@ -161,11 +166,39 @@ export class ConversationListComponent implements OnChanges {
   }
 
   getConversationAvatar(conversation: Conversation): string {
+    // Pour les groupes, utiliser la photo du groupe si elle existe
+    if (conversation.type === 'GROUP' && conversation.groupPhoto) {
+      if (conversation.groupPhoto.startsWith('http')) {
+        return conversation.groupPhoto;
+      }
+      // Utiliser la même route que les photos de profil: /uploads/...
+      return `http://localhost:8080${conversation.groupPhoto}`;
+    }
+    
+    // Pour les groupes sans photo, utiliser une icône de groupe
+    if (conversation.type === 'GROUP') {
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(conversation.title || 'Groupe')}&background=667eea&color=fff&bold=true&size=128`;
+    }
+    
+    // Pour les conversations directes, trouver l'autre participant
     const otherParticipant = conversation.participants.find(
       p => p.userId !== this.currentUserId
     );
     
-    return otherParticipant?.userAvatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle(conversation))}&background=2D5757&color=fff`;
+    if (otherParticipant?.userAvatar && otherParticipant.userAvatar.trim() !== '') {
+      // Si l'URL commence par http, c'est une URL complète (Google, etc.)
+      if (otherParticipant.userAvatar.startsWith('http')) {
+        return otherParticipant.userAvatar;
+      }
+      // Sinon, c'est un chemin relatif - utiliser l'API Gateway
+      if (!otherParticipant.userAvatar.includes('ui-avatars.com')) {
+        return `http://localhost:8080${otherParticipant.userAvatar}`;
+      }
+      return otherParticipant.userAvatar;
+    }
+    
+    // Fallback sur ui-avatars
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(this.getConversationTitle(conversation))}&background=667eea&color=fff&bold=true&size=128`;
   }
 
   isParticipantOnline(conversation: Conversation): boolean {
@@ -192,5 +225,38 @@ export class ConversationListComponent implements OnChanges {
     if (diffDays < 7) return `${diffDays}j`;
     
     return messageDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+  }
+  
+  getLastMessagePreview(conversation: Conversation): string {
+    // Si pas de dernier message
+    if (!conversation.lastMessage) {
+      return 'Aucun message';
+    }
+    
+    // Si plusieurs messages non lus (2 ou plus)
+    if (conversation.unreadCount && conversation.unreadCount > 1) {
+      return `${conversation.unreadCount} nouveaux messages`;
+    }
+    
+    // Si 1 message non lu ou message lu, afficher le contenu
+    const content = conversation.lastMessage.content;
+    
+    // Pour les messages de type FILE
+    if (conversation.lastMessage.messageType === 'FILE') {
+      return '📎 Fichier';
+    }
+    
+    // Pour les messages vocaux
+    if (conversation.lastMessage.messageType === 'VOICE') {
+      return '🎤 Message vocal';
+    }
+    
+    // Pour les emojis
+    if (conversation.lastMessage.messageType === 'EMOJI') {
+      return conversation.lastMessage.content;
+    }
+    
+    // Pour les messages texte
+    return content || 'Nouveau message';
   }
 }

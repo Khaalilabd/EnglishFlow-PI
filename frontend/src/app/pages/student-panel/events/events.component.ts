@@ -2,27 +2,39 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { switchMap, map } from 'rxjs/operators';
+import { of } from 'rxjs';
 import { EventService, Event } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { UserService } from '../../../core/services/user.service';
 import { MemberService } from '../../../core/services/member.service';
+import { EventFeedbackService, EventFeedback, EventFeedbackStats } from '../../../core/services/event-feedback.service';
+import { NotificationService } from '../../../core/services/notification.service';
+import { StarRatingComponent } from '../../../shared/components/star-rating/star-rating.component';
+import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
+import { LocationMapComponent } from '../../../shared/components/location-map/location-map.component';
 
 @Component({
   selector: 'app-events',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, StarRatingComponent, LocationSearchComponent, LocationMapComponent],
   templateUrl: './events.component.html',
   styleUrls: ['./events.component.scss']
 })
 export class EventsComponent implements OnInit, OnDestroy {
   events: Event[] = [];
   upcomingEvents: Event[] = [];
+  pastEvents: Event[] = []; // New: Past events
   myEvents: Event[] = [];
   loading = false;
   currentUserId: number | null = null;
-  selectedTab: 'all' | 'upcoming' = 'upcoming';
+  selectedTab: 'all' | 'upcoming' | 'past' = 'upcoming'; // Updated to include 'past'
   isAdmin = false;
   canCreateEvent = false; // Nouvelle propriété pour vérifier les permissions
+  searchQuery: string = ''; // Dynamic search
+  filteredEvents: Event[] = [];
+  filteredUpcomingEvents: Event[] = [];
+  filteredPastEvents: Event[] = []; // New: Filtered past events
 
   // Modal states
   showModal = false;
@@ -34,6 +46,22 @@ export class EventsComponent implements OnInit, OnDestroy {
   showParticipantsModal = false;
   eventParticipants: any[] = [];
   loadingParticipants = false;
+
+  // Feedback
+  feedbackForm: EventFeedback = {
+    eventId: 0,
+    userId: 0,
+    rating: 0,
+    comment: '',
+    anonymous: false
+  };
+  feedbackStats: EventFeedbackStats | null = null;
+  userFeedback: EventFeedback | null = null; // Store user's own feedback
+  hasGivenFeedback = false;
+  submittingFeedback = false;
+  showFeedbackCommentsModal = false;
+  feedbackComments: EventFeedback[] = [];
+  loadingFeedbackComments = false;
 
   // Countdown timer
   countdown: {
@@ -48,7 +76,8 @@ export class EventsComponent implements OnInit, OnDestroy {
   eventForm: Event = {
     title: '',
     type: 'WORKSHOP',
-    eventDate: '',
+    startDate: '',
+    endDate: '',
     location: '',
     maxParticipants: 10,
     description: ''
@@ -72,7 +101,9 @@ export class EventsComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private userService: UserService,
-    private memberService: MemberService
+    private memberService: MemberService,
+    private feedbackService: EventFeedbackService,
+    private notificationService: NotificationService
   ) {}
 
   ngOnInit() {
@@ -113,6 +144,12 @@ export class EventsComponent implements OnInit, OnDestroy {
       }
     });
     
+    // Subscribe to event participation changes (join/leave/approve/reject)
+    this.eventService.eventParticipationChanged$.subscribe(() => {
+      console.log('🔄 Event participation changed, reloading events...');
+      this.loadEvents();
+    });
+    
     // Check if there's an event ID in the route
     this.route.paramMap.subscribe(params => {
       const eventId = params.get('id');
@@ -138,6 +175,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.startCountdown();
         // Load user's events to check if registered
         this.loadUserEventsForRegistrationCheck();
+        // Load feedback data
+        this.loadFeedbackData();
       },
       error: (error) => {
         console.error('Error loading event:', error);
@@ -214,8 +253,8 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (!this.selectedEvent) return;
 
     const now = new Date().getTime();
-    const eventDate = new Date(this.selectedEvent.eventDate).getTime();
-    const distance = eventDate - now;
+    const eventStartDate = new Date(this.selectedEvent.startDate).getTime();
+    const distance = eventStartDate - now;
 
     if (distance < 0) {
       // Event has started or passed
@@ -238,8 +277,39 @@ export class EventsComponent implements OnInit, OnDestroy {
   isEventStarted(): boolean {
     if (!this.selectedEvent) return false;
     const now = new Date().getTime();
-    const eventDate = new Date(this.selectedEvent.eventDate).getTime();
-    return now >= eventDate;
+    const eventStartDate = new Date(this.selectedEvent.startDate).getTime();
+    return now >= eventStartDate;
+  }
+
+  isEventEnded(): boolean {
+    if (!this.selectedEvent || !this.selectedEvent.endDate) return false;
+    const now = new Date().getTime();
+    const eventEndDate = new Date(this.selectedEvent.endDate).getTime();
+    return now >= eventEndDate;
+  }
+
+  // Check if a specific event is ended (for list view)
+  isEventEndedById(event: Event): boolean {
+    if (!event) return false;
+    const now = new Date();
+    const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+    return eventEndDate < now;
+  }
+
+  getEventStatus(): 'upcoming' | 'ongoing' | 'ended' {
+    if (!this.selectedEvent) return 'upcoming';
+    
+    const now = new Date().getTime();
+    const eventStartDate = new Date(this.selectedEvent.startDate).getTime();
+    const eventEndDate = this.selectedEvent.endDate ? new Date(this.selectedEvent.endDate).getTime() : eventStartDate;
+    
+    if (now >= eventEndDate) {
+      return 'ended';
+    } else if (now >= eventStartDate) {
+      return 'ongoing';
+    } else {
+      return 'upcoming';
+    }
   }
 
   loadEvents() {
@@ -248,11 +318,26 @@ export class EventsComponent implements OnInit, OnDestroy {
     // Load all events
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
-        // Filter to show only APPROVED events (or events created by current user)
+        console.log('📋 All events from API:', events);
+        console.log('📊 Events by status:', events.reduce((acc: any, e) => {
+          acc[e.status || 'UNKNOWN'] = (acc[e.status || 'UNKNOWN'] || 0) + 1;
+          return acc;
+        }, {}));
+        
+        // Filter to show only APPROVED events in the public lists
+        // Creator can see their own events in "My Events" section, not in public lists
         const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED' || event.creatorId === this.currentUserId
+          event.status === 'APPROVED'
         );
+        console.log('✅ Filtered APPROVED events:', filteredEvents.length, filteredEvents);
+        
         this.events = this.filterAvailableEvents(filteredEvents);
+        this.pastEvents = this.filterPastEvents(filteredEvents); // New: Filter past events
+        console.log('📅 Available events (within 3 days):', this.events.length, this.events);
+        console.log('🕐 Past events:', this.pastEvents.length, this.pastEvents);
+        this.filteredEvents = [...this.events]; // Initialize filtered events
+        this.filteredPastEvents = [...this.pastEvents]; // Initialize filtered past events
+        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
         this.loading = false;
       },
       error: (error) => {
@@ -264,11 +349,18 @@ export class EventsComponent implements OnInit, OnDestroy {
     // Load upcoming events (within 3 days)
     this.eventService.getUpcomingEvents().subscribe({
       next: (events) => {
-        // Filter to show only APPROVED events (or events created by current user)
+        console.log('🔜 Upcoming events from API:', events);
+        
+        // Filter to show only APPROVED events in the public lists
         const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED' || event.creatorId === this.currentUserId
+          event.status === 'APPROVED'
         );
+        console.log('✅ Filtered APPROVED upcoming events:', filteredEvents.length, filteredEvents);
+        
         this.upcomingEvents = this.filterUpcomingEvents(filteredEvents);
+        console.log('📅 Upcoming events (more than 3 days):', this.upcomingEvents.length, this.upcomingEvents);
+        this.filteredUpcomingEvents = [...this.upcomingEvents]; // Initialize filtered upcoming events
+        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
       },
       error: (error) => {
         console.error('Error loading upcoming events:', error);
@@ -277,7 +369,7 @@ export class EventsComponent implements OnInit, OnDestroy {
 
     // Load user's events (created + joined)
     if (this.currentUserId) {
-      // Get events created by user (all statuses for creator)
+      // Get events created by user (ALL statuses for creator - including PENDING)
       this.eventService.getEventsByCreator(this.currentUserId).subscribe({
         next: (createdEvents) => {
           // Get events user joined
@@ -292,7 +384,7 @@ export class EventsComponent implements OnInit, OnDestroy {
                     joinedEventIds.includes(e.id) && 
                     e.status === 'APPROVED'
                   );
-                  // Combine created and joined events (remove duplicates)
+                  // Combine created events (ALL statuses) and joined events (remove duplicates)
                   const myEventsMap = new Map<number, Event>();
                   [...createdEvents, ...joinedEvents].forEach(event => {
                     if (event.id) {
@@ -300,6 +392,8 @@ export class EventsComponent implements OnInit, OnDestroy {
                     }
                   });
                   this.myEvents = Array.from(myEventsMap.values());
+                  console.log('📋 My events (including PENDING):', this.myEvents);
+                  this.addPendingEventsToFilteredLists(); // Add pending events when myEvents is loaded
                 },
                 error: (error) => console.error('Error loading all events for my events:', error)
               });
@@ -312,25 +406,46 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Filter events that are within 3 days or already started
+  // Filter events that are within 3 days or already started (but not ended)
   filterAvailableEvents(events: Event[]): Event[] {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    
+
     return events.filter(event => {
-      const eventDate = new Date(event.eventDate);
-      return eventDate <= threeDaysFromNow;
+      const eventStartDate = new Date(event.startDate);
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      
+      // Event must start within 3 days AND not be ended yet
+      return eventStartDate <= threeDaysFromNow && eventEndDate >= now;
     });
   }
 
-  // Filter events that are more than 3 days away (coming soon)
+  // Filter events that are more than 3 days away (coming soon) and not ended
   filterUpcomingEvents(events: Event[]): Event[] {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
+
+    return events.filter(event => {
+      const eventStartDate = new Date(event.startDate);
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      
+      // Event must start more than 3 days away AND not be ended yet
+      return eventStartDate > threeDaysFromNow && eventEndDate >= now;
+    });
+  }
+
+  // Filter events that have ended (past events)
+  filterPastEvents(events: Event[]): Event[] {
+    const now = new Date();
     
     return events.filter(event => {
-      const eventDate = new Date(event.eventDate);
-      return eventDate > threeDaysFromNow;
+      const eventEndDate = event.endDate ? new Date(event.endDate) : new Date(event.startDate);
+      return eventEndDate < now;
+    }).sort((a, b) => {
+      // Sort by end date descending (most recent first)
+      const dateA = a.endDate ? new Date(a.endDate) : new Date(a.startDate);
+      const dateB = b.endDate ? new Date(b.endDate) : new Date(b.startDate);
+      return dateB.getTime() - dateA.getTime();
     });
   }
 
@@ -338,21 +453,13 @@ export class EventsComponent implements OnInit, OnDestroy {
   isComingSoon(event: Event): boolean {
     const now = new Date();
     const threeDaysFromNow = new Date(now.getTime() + (3 * 24 * 60 * 60 * 1000));
-    const eventDate = new Date(event.eventDate);
-    return eventDate > threeDaysFromNow;
+    const eventStartDate = new Date(event.startDate);
+    return eventStartDate > threeDaysFromNow;
   }
 
   // Check if user is the creator of the event
   isEventCreator(event: Event): boolean {
-    const result = event.creatorId === this.currentUserId;
-    console.log('isEventCreator check:', {
-      eventId: event.id,
-      eventTitle: event.title,
-      eventCreatorId: event.creatorId,
-      currentUserId: this.currentUserId,
-      isCreator: result
-    });
-    return result;
+    return event.creatorId === this.currentUserId;
   }
 
   openCreateModal() {
@@ -360,10 +467,12 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.eventForm = {
       title: '',
       type: 'WORKSHOP',
-      eventDate: '',
+      startDate: '',
+      endDate: '',
       location: '',
       maxParticipants: 10,
-      description: ''
+      description: '',
+      gallery: [] // Initialize empty gallery
     };
     this.showModal = true;
   }
@@ -372,9 +481,13 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.isEditMode = true;
     this.eventForm = { ...event };
     // Convert date format for datetime-local input
-    if (this.eventForm.eventDate) {
-      const date = new Date(this.eventForm.eventDate);
-      this.eventForm.eventDate = date.toISOString().slice(0, 16);
+    if (this.eventForm.startDate) {
+      const startDate = new Date(this.eventForm.startDate);
+      this.eventForm.startDate = startDate.toISOString().slice(0, 16);
+    }
+    if (this.eventForm.endDate) {
+      const endDate = new Date(this.eventForm.endDate);
+      this.eventForm.endDate = endDate.toISOString().slice(0, 16);
     }
     this.showModal = true;
   }
@@ -384,19 +497,75 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.isEditMode = false;
   }
 
+  onLocationSelected(locationData: LocationData) {
+    this.eventForm.location = locationData.address;
+    this.eventForm.latitude = locationData.latitude;
+    this.eventForm.longitude = locationData.longitude;
+  }
+
   saveEvent() {
     // Add creatorId when creating a new event
     if (!this.isEditMode && this.currentUserId) {
       this.eventForm.creatorId = this.currentUserId;
     }
 
+    // Validate required fields
+    if (!this.eventForm.title?.trim()) {
+      this.notificationService.error('Missing Title', 'Please enter an event title');
+      return;
+    }
+
+    if (!this.eventForm.description?.trim()) {
+      this.notificationService.error('Missing Description', 'Please enter an event description');
+      return;
+    }
+
+    if (!this.eventForm.eventDate && !this.eventForm.startDate) {
+      this.notificationService.error('Missing Date', 'Please select an event date');
+      return;
+    }
+
+    // Validate dates
+    if (this.eventForm.startDate && this.eventForm.endDate) {
+      const startDate = new Date(this.eventForm.startDate);
+      const endDate = new Date(this.eventForm.endDate);
+      
+      if (endDate <= startDate) {
+        this.notificationService.error('Invalid Dates', 'End date must be after start date!');
+        return;
+      }
+    }
+
+    // Log gallery before saving
+    console.log('💾 Saving event with gallery:', this.eventForm.gallery);
+    console.log('📊 Gallery length:', this.eventForm.gallery?.length || 0);
+    console.log('📅 Start Date:', this.eventForm.startDate);
+    console.log('📅 End Date:', this.eventForm.endDate);
+
     if (this.isEditMode && this.eventForm.id) {
       const eventId = this.eventForm.id;
+      
+      // Check if event is APPROVED - if so, set status back to PENDING for re-approval
+      if (this.selectedEvent?.status === 'APPROVED') {
+        this.eventForm.status = 'PENDING';
+        this.notificationService.info(
+          'Modification Request', 
+          'Your changes will be submitted for approval by the Academic Manager'
+        );
+      }
+      
       this.eventService.updateEvent(eventId, this.eventForm).subscribe({
         next: (updatedEvent) => {
-          alert('Event updated successfully!');
+          if (this.selectedEvent?.status === 'APPROVED') {
+            this.notificationService.success(
+              'Request Submitted', 
+              'Your modification request has been sent for approval. The event will be updated once approved.'
+            );
+          } else {
+            this.notificationService.success('Event Updated', 'Event has been updated successfully!');
+          }
           this.closeModal();
-          
+
           // If we're in details view, update the selected event
           if (this.showDetailsView && this.selectedEvent?.id === eventId) {
             this.selectedEvent = { ...updatedEvent };
@@ -406,37 +575,50 @@ export class EventsComponent implements OnInit, OnDestroy {
           this.loadEvents();
         },
         error: (error) => {
-          console.error('Error updating event:', error);
           const errorMessage = error.error?.message || 'Failed to update event';
-          alert(errorMessage);
+          this.notificationService.error('Update Failed', errorMessage);
         }
       });
     } else {
+      // New event creation - status will be PENDING by default
       this.eventService.createEvent(this.eventForm).subscribe({
-        next: () => {
-          alert('Event created successfully!');
+        next: (createdEvent) => {
+          this.notificationService.success(
+            'Event Created', 
+            'Your event has been submitted for approval by the Academic Manager!'
+          );
           this.closeModal();
           this.loadEvents();
         },
         error: (error) => {
-          console.error('Error creating event:', error);
           const errorMessage = error.error?.message || 'Failed to create event';
-          alert(errorMessage);
+          this.notificationService.error('Creation Failed', errorMessage);
         }
       });
     }
   }
 
   deleteEvent(eventId: number) {
-    if (confirm('Are you sure you want to delete this event?')) {
-      this.eventService.deleteEvent(eventId).subscribe({
+    if (!this.selectedEvent) return;
+    
+    // All deletion requests require Academic Manager approval
+    if (confirm('Your deletion request will be sent to the Academic Manager for approval. Do you want to proceed?')) {
+      // Set status to REJECTED to mark for deletion approval
+      const deleteRequest = { ...this.selectedEvent, status: 'REJECTED' as const };
+      
+      this.eventService.updateEvent(eventId, deleteRequest).subscribe({
         next: () => {
-          alert('Event deleted successfully!');
+          this.notificationService.success(
+            'Deletion Request Submitted', 
+            'Your deletion request has been sent to the Academic Manager for approval.'
+          );
           this.loadEvents();
+          if (this.showDetailsView) {
+            this.closeDetailsView();
+          }
         },
         error: (error) => {
-          console.error('Error deleting event:', error);
-          alert('Failed to delete event');
+          this.notificationService.error('Request Failed', 'Failed to submit deletion request');
         }
       });
     }
@@ -458,13 +640,13 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   joinEvent(eventId: number) {
     if (!this.currentUserId) {
-      alert('Please login to join events');
+      this.notificationService.warning('Login Required', 'Please login to join events');
       return;
     }
 
     this.eventService.joinEvent(eventId, this.currentUserId).subscribe({
       next: () => {
-        alert('Successfully joined the event!');
+        this.notificationService.success('Joined Event', 'Successfully joined the event!');
         // Notify that event participation has changed
         this.eventService.notifyEventParticipationChanged();
         if (this.showDetailsView && this.selectedEvent?.id === eventId) {
@@ -475,8 +657,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         }
       },
       error: (error) => {
-        console.error('Error joining event:', error);
-        alert(error.error?.message || 'Failed to join event');
+        const errorMessage = error.error?.message || 'Failed to join event';
+        this.notificationService.error('Join Failed', errorMessage);
       }
     });
   }
@@ -487,7 +669,7 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to leave this event?')) {
       this.eventService.leaveEvent(eventId, this.currentUserId).subscribe({
         next: () => {
-          alert('Successfully left the event');
+          this.notificationService.success('Left Event', 'Successfully left the event');
           // Notify that event participation has changed
           this.eventService.notifyEventParticipationChanged();
           if (this.showDetailsView && this.selectedEvent?.id === eventId) {
@@ -498,8 +680,7 @@ export class EventsComponent implements OnInit, OnDestroy {
           }
         },
         error: (error) => {
-          console.error('Error leaving event:', error);
-          alert('Failed to leave event');
+          this.notificationService.error('Leave Failed', 'Failed to leave event');
         }
       });
     }
@@ -532,19 +713,72 @@ export class EventsComponent implements OnInit, OnDestroy {
     return this.eventTypeColors[type] || 'bg-gray-100';
   }
 
-  selectTab(tab: 'all' | 'upcoming') {
+  selectTab(tab: 'all' | 'upcoming' | 'past') {
     this.selectedTab = tab;
+    this.applyEventFilter();
+  }
+
+  applyEventFilter() {
+    // Filter events based on search query (by club name)
+    if (this.searchQuery.trim()) {
+      const query = this.searchQuery.toLowerCase().trim();
+      this.filteredEvents = this.events.filter(event =>
+        event.clubName?.toLowerCase().includes(query)
+      );
+      this.filteredUpcomingEvents = this.upcomingEvents.filter(event =>
+        event.clubName?.toLowerCase().includes(query)
+      );
+      this.filteredPastEvents = this.pastEvents.filter(event =>
+        event.clubName?.toLowerCase().includes(query)
+      );
+    } else {
+      this.filteredEvents = [...this.events];
+      this.filteredUpcomingEvents = [...this.upcomingEvents];
+      this.filteredPastEvents = [...this.pastEvents];
+    }
+    
+    // Add PENDING events to filtered lists
+    this.addPendingEventsToFilteredLists();
+  }
+
+  private addPendingEventsToFilteredLists() {
+    if (this.currentUserId && this.myEvents.length > 0) {
+      const pendingEvents = this.myEvents.filter(event => 
+        event.status === 'PENDING' && event.creatorId === this.currentUserId
+      );
+      
+      // Add to filteredEvents (all tab)
+      pendingEvents.forEach(pendingEvent => {
+        if (!this.filteredEvents.some(e => e.id === pendingEvent.id)) {
+          this.filteredEvents.push(pendingEvent);
+        }
+      });
+      
+      // Add to filteredUpcomingEvents (upcoming tab)
+      pendingEvents.forEach(pendingEvent => {
+        if (!this.filteredUpcomingEvents.some(e => e.id === pendingEvent.id)) {
+          this.filteredUpcomingEvents.push(pendingEvent);
+        }
+      });
+    }
   }
 
   getDisplayEvents(): Event[] {
+    // Pure getter - no side effects, no array modifications
     switch (this.selectedTab) {
       case 'all':
-        return this.events;
+        return this.filteredEvents;
       case 'upcoming':
-        return this.upcomingEvents;
+        return this.filteredUpcomingEvents;
+      case 'past':
+        return this.filteredPastEvents;
       default:
-        return this.events;
+        return this.filteredEvents;
     }
+  }
+
+  onSearchChange() {
+    this.applyEventFilter();
   }
 
   // Image handling methods
@@ -553,13 +787,13 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (file) {
       // Check file size (max 2MB)
       if (file.size > 2 * 1024 * 1024) {
-        alert('Image size must be less than 2MB');
+        this.notificationService.error('File Too Large', 'Image size must be less than 2MB');
         return;
       }
 
       // Check file type
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        this.notificationService.error('Invalid File', 'Please select an image file');
         return;
       }
 
@@ -576,10 +810,78 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.eventForm.image = undefined;
   }
 
+  // Gallery management
+  onGalleryImageSelected(evt: any) {
+    const input = evt.target as HTMLInputElement;
+    console.log('📸 Gallery image selection triggered');
+    console.log('📁 Files selected:', input.files?.length || 0);
+    
+    if (input.files && input.files.length > 0) {
+      const files = Array.from(input.files);
+      console.log('📋 Processing files:', files.length);
+      
+      // Initialize gallery array if it doesn't exist
+      if (!this.eventForm.gallery) {
+        this.eventForm.gallery = [];
+        console.log('🆕 Gallery array initialized');
+      }
+
+      // Process each file
+      files.forEach((file, index) => {
+        console.log(`🖼️ Processing file ${index + 1}:`, file.name, file.type, file.size);
+        
+        // Check file type
+        if (!file.type.startsWith('image/')) {
+          this.notificationService.error('Invalid File', 'Please select only image files');
+          return;
+        }
+
+        // Check file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+          this.notificationService.error('File Too Large', 'Image size must not exceed 2MB');
+          return;
+        }
+
+        // Convert to base64
+        const reader = new FileReader();
+        reader.onload = (e: any) => {
+          const base64 = e.target.result;
+          console.log(`✅ File ${index + 1} converted to base64, length:`, base64.length);
+          
+          if (this.eventForm.gallery) {
+            this.eventForm.gallery.push(base64);
+            console.log('📊 Gallery now has', this.eventForm.gallery.length, 'images');
+          }
+        };
+        reader.onerror = (error) => {
+          console.error('❌ Error reading file:', error);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  }
+
+  removeGalleryImage(index: number) {
+    if (this.eventForm.gallery) {
+      this.eventForm.gallery.splice(index, 1);
+    }
+  }
+
+  // Image modal for gallery
+  selectedGalleryImage: string | null = null;
+
+  openImageModal(image: string) {
+    this.selectedGalleryImage = image;
+  }
+
+  closeImageModal() {
+    this.selectedGalleryImage = null;
+  }
+
   // Participants management
   openParticipantsModal(eventId: number) {
     if (!this.isEventCreator(this.selectedEvent!)) {
-      alert('Only the event creator can view participants.');
+      this.notificationService.warning('Access Denied', 'Only the event creator can view participants.');
       return;
     }
     
@@ -641,9 +943,8 @@ export class EventsComponent implements OnInit, OnDestroy {
         });
       },
       error: (err) => {
-        console.error('❌ Error loading event participants:', err);
         this.loadingParticipants = false;
-        alert('Failed to load event participants.');
+        this.notificationService.error('Load Failed', 'Failed to load event participants.');
       }
     });
   }
@@ -652,16 +953,14 @@ export class EventsComponent implements OnInit, OnDestroy {
     if (confirm('Are you sure you want to remove this participant from the event?')) {
       this.eventService.leaveEvent(eventId, userId).subscribe({
         next: () => {
-          console.log('✅ Participant removed successfully');
-          alert('Participant removed successfully!');
+          this.notificationService.success('Participant Removed', 'Participant has been removed successfully!');
           // Reload participants
           this.loadEventParticipants(eventId);
           // Reload event details to update count
           this.loadAndDisplayEvent(eventId);
         },
         error: (err) => {
-          console.error('❌ Error removing participant:', err);
-          alert('Failed to remove participant. Please try again.');
+          this.notificationService.error('Remove Failed', 'Failed to remove participant. Please try again.');
         }
       });
     }
@@ -692,5 +991,233 @@ export class EventsComponent implements OnInit, OnDestroy {
         this.canCreateEvent = false;
       }
     });
+  }
+
+  // ==================== FEEDBACK METHODS ====================
+
+  /**
+   * Check if feedback section should be displayed
+   */
+  showFeedbackSection(): boolean {
+    if (!this.selectedEvent || !this.selectedEvent.endDate) return false;
+    
+    // Show if event has ended
+    const eventEnded = new Date(this.selectedEvent.endDate) < new Date();
+    return eventEnded;
+  }
+
+  /**
+   * Check if feedback form should be displayed
+   */
+  showFeedbackForm(): boolean {
+    if (!this.selectedEvent || !this.currentUserId) return false;
+    
+    const eventEnded = new Date(this.selectedEvent.endDate) < new Date();
+    const isParticipant = this.isUserRegistered(this.selectedEvent.id!);
+    const isCreator = this.isEventCreator(this.selectedEvent);
+    
+    return eventEnded && isParticipant && !isCreator && !this.hasGivenFeedback;
+  }
+
+  /**
+   * Check if feedback stats should be displayed
+   */
+  showFeedbackStats(): boolean {
+    if (!this.feedbackStats) return false;
+    
+    const isCreator = this.selectedEvent ? this.isEventCreator(this.selectedEvent) : false;
+    
+    // Creator can always see stats (even if 0 feedbacks)
+    // Others need at least 3 feedbacks
+    if (isCreator) {
+      return true;
+    }
+    
+    const hasMinimumFeedbacks = this.feedbackStats.totalFeedbacks >= 3;
+    return hasMinimumFeedbacks;
+  }
+
+  /**
+   * Load feedback data for the selected event
+   */
+  loadFeedbackData() {
+    if (!this.selectedEvent || !this.selectedEvent.id) return;
+
+    const eventId = this.selectedEvent.id;
+
+    // Load feedback stats
+    this.feedbackService.getEventFeedbackStats(eventId).subscribe({
+      next: (stats) => {
+        this.feedbackStats = stats;
+        console.log('📊 Feedback stats loaded:', stats);
+      },
+      error: (err) => {
+        console.error('❌ Error loading feedback stats:', err);
+      }
+    });
+
+    // Check if user has given feedback and load it
+    if (this.currentUserId) {
+      this.feedbackService.hasUserGivenFeedback(eventId, this.currentUserId).subscribe({
+        next: (hasFeedback) => {
+          this.hasGivenFeedback = hasFeedback;
+          console.log('✅ User has given feedback:', hasFeedback);
+          
+          // If user has given feedback, load their feedback details
+          if (hasFeedback) {
+            this.feedbackService.getUserFeedback(eventId, this.currentUserId!).subscribe({
+              next: (feedback) => {
+                this.userFeedback = feedback;
+                console.log('📝 User feedback loaded:', feedback);
+              },
+              error: (err) => {
+                console.error('❌ Error loading user feedback:', err);
+              }
+            });
+          }
+        },
+        error: (err) => {
+          console.error('❌ Error checking user feedback:', err);
+        }
+      });
+    }
+  }
+
+  /**
+   * Set rating (star click)
+   */
+  setRating(rating: number) {
+    this.feedbackForm.rating = rating;
+    
+    // Add a small vibration feedback on mobile devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(50);
+    }
+    
+    // Log for debugging
+    console.log('⭐ Rating set to:', rating);
+  }
+
+  /**
+   * Submit feedback
+   */
+  submitFeedback() {
+    if (!this.selectedEvent || !this.currentUserId || this.feedbackForm.rating === 0) {
+      return;
+    }
+
+    this.submittingFeedback = true;
+
+    const feedback: EventFeedback = {
+      eventId: this.selectedEvent.id!,
+      userId: this.currentUserId,
+      rating: this.feedbackForm.rating,
+      comment: this.feedbackForm.comment || '',
+      anonymous: false
+    };
+
+    this.feedbackService.createFeedback(feedback).subscribe({
+      next: (result) => {
+        this.notificationService.success('Feedback Submitted', 'Thank you for your feedback! 🎉');
+        
+        // Reset form
+        this.feedbackForm = {
+          eventId: 0,
+          userId: 0,
+          rating: 0,
+          comment: '',
+          anonymous: false
+        };
+        
+        // Mark as given
+        this.hasGivenFeedback = true;
+        this.submittingFeedback = false;
+        
+        // Reload feedback data
+        this.loadFeedbackData();
+      },
+      error: (err) => {
+        this.notificationService.error('Submission Failed', 'Error submitting your feedback. Please try again.');
+        this.submittingFeedback = false;
+      }
+    });
+  }
+
+  /**
+   * Get distribution percentage for rating bar
+   */
+  getDistributionPercentage(rating: number): number {
+    if (!this.feedbackStats || this.feedbackStats.totalFeedbacks === 0) {
+      return 0;
+    }
+    
+    const count = this.feedbackStats.ratingDistribution[rating] || 0;
+    return (count / this.feedbackStats.totalFeedbacks) * 100;
+  }
+
+  /**
+   * Open feedback comments modal (for creator)
+   */
+  openFeedbackCommentsModal() {
+    if (!this.selectedEvent || !this.isEventCreator(this.selectedEvent)) {
+      return;
+    }
+
+    this.showFeedbackCommentsModal = true;
+    this.loadingFeedbackComments = true;
+
+    this.feedbackService.getEventFeedbacks(this.selectedEvent.id!).pipe(
+      switchMap((feedbacks: EventFeedback[]) => {
+        // Extraire les IDs des utilisateurs non-anonymes
+        const userIds = feedbacks
+          .filter((f: EventFeedback) => !f.anonymous)
+          .map((f: EventFeedback) => f.userId)
+          .filter((id: number, index: number, self: number[]) => self.indexOf(id) === index); // Unique IDs
+        
+        if (userIds.length === 0) {
+          return of({ feedbacks, users: [] });
+        }
+
+        // Charger les informations des utilisateurs
+        return this.userService.getUsersByIds(userIds).pipe(
+          map(users => ({ feedbacks, users }))
+        );
+      })
+    ).subscribe({
+      next: ({ feedbacks, users }) => {
+        // Créer une map des utilisateurs
+        const userMap = new Map(users.map(u => [u.id, u]));
+        
+        // Enrichir les feedbacks avec les noms des utilisateurs
+        this.feedbackComments = feedbacks.map((feedback: EventFeedback) => {
+          if (feedback.anonymous) {
+            return feedback;
+          }
+          
+          const user = userMap.get(feedback.userId);
+          return {
+            ...feedback,
+            userFirstName: user?.firstName || '',
+            userLastName: user?.lastName || '',
+            userImage: user?.image || undefined
+          };
+        });
+        
+        this.loadingFeedbackComments = false;
+        console.log('💬 Feedback comments loaded with user details:', this.feedbackComments);
+      },
+      error: (err) => {
+        console.error('❌ Error loading feedback comments:', err);
+        this.loadingFeedbackComments = false;
+      }
+    });
+  }
+
+  /**
+   * Close feedback comments modal
+   */
+  closeFeedbackCommentsModal() {
+    this.showFeedbackCommentsModal = false;
+    this.feedbackComments = [];
   }
 }

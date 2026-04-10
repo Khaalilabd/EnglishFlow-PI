@@ -100,6 +100,12 @@ public class ComplaintPriorityService {
                 return com.englishflow.complaints.enums.TargetRole.TUTOR;
             case BEHAVIORAL:
                 return com.englishflow.complaints.enums.TargetRole.ACADEMIC_OFFICE_AFFAIR;
+            case TUTOR_BEHAVIOR:
+                return com.englishflow.complaints.enums.TargetRole.ACADEMIC_OFFICE_AFFAIR;
+            case SCHEDULE:
+                return com.englishflow.complaints.enums.TargetRole.ACADEMIC_OFFICE_AFFAIR;
+            case CLUB_SUSPENSION:
+                return com.englishflow.complaints.enums.TargetRole.ACADEMIC_OFFICE_AFFAIR;
             case TECHNICAL:
                 return com.englishflow.complaints.enums.TargetRole.SUPPORT;
             case ADMINISTRATIVE:
@@ -131,6 +137,15 @@ public class ComplaintPriorityService {
             case BEHAVIORAL:
                 score += 40;
                 break;
+            case TUTOR_BEHAVIOR:
+                score += 35;
+                break;
+            case SCHEDULE:
+                score += 30;
+                break;
+            case CLUB_SUSPENSION:
+                score += 35;
+                break;
             case OTHER:
                 score += 15;
                 break;
@@ -155,7 +170,8 @@ public class ComplaintPriorityService {
      */
     public boolean requiresIntervention(Complaint complaint) {
         // Critical categories
-        if (complaint.getCategory() == ComplaintCategory.BEHAVIORAL) {
+        if (complaint.getCategory() == ComplaintCategory.BEHAVIORAL || 
+            complaint.getCategory() == ComplaintCategory.TUTOR_BEHAVIOR) {
             return true;
         }
         
@@ -201,7 +217,13 @@ public class ComplaintPriorityService {
         switch (category) {
             case BEHAVIORAL:
                 return 8;
+            case TUTOR_BEHAVIOR:
+                return 7;
             case PEDAGOGICAL:
+                return 6;
+            case SCHEDULE:
+                return 6;
+            case CLUB_SUSPENSION:
                 return 6;
             case ADMINISTRATIVE:
                 return 5;
