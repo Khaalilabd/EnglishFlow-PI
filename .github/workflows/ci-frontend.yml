@@ -2,7 +2,7 @@ name: Frontend CI
 
 on:
   push:
-    branches: [ main, develop, User-Authentication-Management ]
+    branches: [ main, develop, User-Authentication-Management, learning-service ]
     paths:
       - 'frontend/**'
       - '.github/workflows/ci-frontend.yml'

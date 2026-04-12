@@ -2,7 +2,7 @@ name: Docker Build & Deploy
 
 on:
   push:
-    branches: [ main, User-Authentication-Management ]
+    branches: [ main, User-Authentication-Management, learning-service ]
     tags:
       - 'v*'
   workflow_dispatch:
