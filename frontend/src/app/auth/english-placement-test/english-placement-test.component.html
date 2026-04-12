@@ -1,0 +1,430 @@
+<div class="placement-test-overlay">
+  <!-- Animated gradient background layers -->
+  <div class="gradient-layer-1"></div>
+  <div class="gradient-layer-2"></div>
+  
+  <div class="test-container">
+    
+    <!-- WELCOME SCREEN -->
+    <div class="welcome-screen" *ngIf="!testStarted" @slideIn>
+      <div class="welcome-card">
+        <!-- Top accent stripe -->
+        <div class="accent-stripe"></div>
+        
+        <!-- Pill badge -->
+        <div class="placement-badge">Placement Test</div>
+        
+        <!-- Heading -->
+        <h1 class="welcome-heading">Find your English level</h1>
+        
+        <!-- Subheading -->
+        <p class="welcome-subheading">
+          A 12-minute test covering 4 skills — taken once to place you in the right course.
+        </p>
+        
+        <!-- Skill icon row -->
+        <div class="skill-icons-row">
+          <div class="skill-icon-tile">
+            <div class="icon-container grammar-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 4h14M3 10h14M3 16h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="icon-label">Grammar</span>
+          </div>
+          
+          <div class="skill-icon-tile">
+            <div class="icon-container listening-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 3v14M7 6v8M13 6v8M4 9v2M16 9v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="icon-label">Listening</span>
+          </div>
+          
+          <div class="skill-icon-tile">
+            <div class="icon-container reading-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 4h12v12H4V4zM8 8h6M8 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="icon-label">Reading</span>
+          </div>
+          
+          <div class="skill-icon-tile">
+            <div class="icon-container speaking-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 2c-1.5 0-2.5 1-2.5 2.5v5c0 1.5 1 2.5 2.5 2.5s2.5-1 2.5-2.5v-5C12.5 3 11.5 2 10 2zM6 9v.5C6 12 7.8 14 10 14s4-2 4-4.5V9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <span class="icon-label">Speaking</span>
+          </div>
+        </div>
+        
+        <!-- Feature block -->
+        <div class="feature-block">
+          <div class="feature-row">
+            <div class="check-circle">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 5.5L4.5 8L9 3.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>21 questions across 5 skills</span>
+          </div>
+          
+          <div class="feature-row">
+            <div class="check-circle">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 5.5L4.5 8L9 3.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Difficulty adjusts to your answers</span>
+          </div>
+          
+          <div class="feature-row">
+            <div class="check-circle">
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 5.5L4.5 8L9 3.5" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+            <span>Your result places you in the right course track</span>
+          </div>
+        </div>
+        
+        <!-- CTA button -->
+        <button class="start-test-btn" (click)="startTest()">
+          Start the test →
+        </button>
+        
+        <!-- Footer hint -->
+        <p class="welcome-footer">Free · Results saved to your profile</p>
+      </div>
+    </div>
+
+    <!-- TEST CONTENT (only show after test started) -->
+    <div *ngIf="testStarted">
+      <!-- Progress Header -->
+      <div class="progress-header">
+        <div class="progress-info">
+          <span class="section-name">{{ sectionTitle }}</span>
+          <span class="question-counter" *ngIf="currentSection !== 'results'">
+            Question {{ currentQuestionIndex + 1 }} / 
+            {{ currentSection === 'grammar' ? 7 : currentSection === 'listening' ? 5 : currentSection === 'reading' ? 3 : currentSection === 'pictureDescription' ? 5 : 1 }}
+          </span>
+        </div>
+        <div class="timer" [ngClass]="timerClass">
+          <svg width="20" height="20" viewBox="0 0 20 20">
+            <circle cx="10" cy="10" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+          </svg>
+          {{ timerDisplay }}
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" [style.width.%]="progressPercentage"></div>
+        </div>
+      </div>
+
+      <!-- Grammar Section -->
+      <div class="section-content" *ngIf="currentSection === 'grammar'">
+        <div class="question-card" [@questionSlide]="currentQuestionIndex" [ngClass]="{'correct-feedback': showFeedback && isCorrect, 'wrong-feedback': showFeedback && !isCorrect}">
+          <div class="difficulty-badge" [attr.data-level]="currentLevel">{{ currentLevel }}</div>
+          <h2 class="question-text">{{ currentGrammarQuestion?.sentence || currentGrammarQuestion?.question }}</h2>
+          
+          <div class="options-grid">
+            <button 
+              *ngFor="let option of currentGrammarQuestion?.options; let i = index"
+              class="option-pill"
+              [ngClass]="{
+                'selected': selectedAnswer === i,
+                'correct': showFeedback && isCorrectGrammarAnswer(i),
+                'wrong': showFeedback && selectedAnswer === i && !isCorrect
+              }"
+              (click)="selectAnswer(i)"
+              [disabled]="showFeedback">
+              {{ option }}
+              <span class="checkmark" *ngIf="showFeedback && isCorrectGrammarAnswer(i)">✓</span>
+            </button>
+          </div>
+
+          <button 
+            *ngIf="!showFeedback"
+            [@buttonFade]
+            class="submit-btn" 
+            [disabled]="selectedAnswer === null"
+            (click)="submitAnswer()">
+            Submit Answer
+          </button>
+        </div>
+      </div>
+
+      <!-- Listening Section -->
+      <div class="section-content" *ngIf="currentSection === 'listening'">
+        <div class="question-card" [@questionSlide]="currentQuestionIndex">
+          <h2 class="section-heading">Listen to the audio</h2>
+          
+          <div class="audio-player">
+            <button 
+              class="play-btn" 
+              (click)="playAudio()"
+              [disabled]="audioPlaysLeft <= 0 || isAudioPlaying">
+              <svg *ngIf="!isAudioPlaying" width="48" height="48" viewBox="0 0 48 48">
+                <path d="M16 10v28l22-14z" fill="currentColor"/>
+              </svg>
+              <div *ngIf="isAudioPlaying" class="waveform">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </button>
+            <div class="plays-badge">
+              Plays left: {{ audioPlaysLeft }}
+            </div>
+          </div>
+
+          <div class="question-section">
+            <h3 class="question-text">{{ currentListeningQuestion?.question }}</h3>
+            
+            <div class="options-list">
+              <button 
+                *ngFor="let option of currentListeningQuestion?.options; let i = index"
+                class="option-item"
+                [ngClass]="{
+                  'selected': selectedAnswer === i,
+                  'correct': showFeedback && isCorrectListeningAnswer(i),
+                  'wrong': showFeedback && selectedAnswer === i && !isCorrect
+                }"
+                (click)="selectAnswer(i)"
+                [disabled]="showFeedback">
+                <span class="option-letter">{{ getOptionLetter(i) }}</span>
+                {{ option }}
+                <span class="checkmark" *ngIf="showFeedback && isCorrectListeningAnswer(i)">✓</span>
+              </button>
+            </div>
+
+            <button 
+              *ngIf="!showFeedback"
+              [@buttonFade]
+              class="submit-btn" 
+              [disabled]="selectedAnswer === null"
+              (click)="submitAnswer()">
+              Submit Answer
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reading Section -->
+      <div class="section-content" *ngIf="currentSection === 'reading'">
+        <div class="question-card" [@questionSlide]="currentQuestionIndex">
+          <div class="reading-passage">
+            <div class="passage-content">
+              {{ currentReadingQuestion?.passage }}
+            </div>
+          </div>
+
+          <h3 class="question-text">{{ currentReadingQuestion?.question }}</h3>
+          
+          <div class="options-list">
+            <button 
+              *ngFor="let option of currentReadingQuestion?.options; let i = index"
+              class="option-item"
+              [ngClass]="{
+                'selected': selectedAnswer === i,
+                'correct': showFeedback && isCorrectReadingAnswer(i),
+                'wrong': showFeedback && selectedAnswer === i && !isCorrect
+              }"
+              (click)="selectAnswer(i)"
+              [disabled]="showFeedback">
+              <span class="option-letter">{{ getOptionLetter(i) }}</span>
+              {{ option }}
+              <span class="checkmark" *ngIf="showFeedback && isCorrectReadingAnswer(i)">✓</span>
+            </button>
+          </div>
+
+          <button 
+            *ngIf="!showFeedback"
+            [@buttonFade]
+            class="submit-btn" 
+            [disabled]="selectedAnswer === null"
+            (click)="submitAnswer()">
+            Submit Answer
+          </button>
+        </div>
+      </div>
+
+      <!-- Picture Description Section -->
+      <div class="section-content" *ngIf="currentSection === 'pictureDescription'">
+        <div class="question-card picture-card" [@questionSlide]="currentQuestionIndex">
+          <div class="picture-layout">
+            <div class="picture-column">
+              <img 
+                [src]="currentPictureDescriptionQuestion?.imageSrc" 
+                alt="Test image"
+                class="test-image">
+            </div>
+            
+            <div class="description-column">
+              <p class="section-label">Which statement best describes the image?</p>
+              
+              <div class="picture-options">
+                <button 
+                  *ngFor="let option of currentPictureDescriptionQuestion?.options; let i = index"
+                  class="picture-option"
+                  [ngClass]="{
+                    'selected': selectedAnswer === i,
+                    'correct': showFeedback && isCorrectPictureDescriptionAnswer(i),
+                    'wrong': showFeedback && selectedAnswer === i && !isCorrect
+                  }"
+                  (click)="selectAnswer(i)"
+                  [disabled]="showFeedback">
+                  <span class="option-badge">{{ getOptionLetter(i) }}</span>
+                  <span class="option-text">{{ option }}</span>
+                  <span class="checkmark" *ngIf="showFeedback && isCorrectPictureDescriptionAnswer(i)">✓</span>
+                </button>
+              </div>
+
+              <button 
+                *ngIf="!showFeedback"
+                [@buttonFade]
+                class="submit-btn" 
+                [disabled]="selectedAnswer === null"
+                (click)="submitAnswer()">
+                Submit Answer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Speaking Section -->
+      <div class="section-content" *ngIf="currentSection === 'speaking'" @slideIn>
+        <div class="question-card speaking-card">
+          <h2 class="section-heading">Speaking Task</h2>
+          <p class="speaking-prompt">Describe what you did yesterday in 2–3 sentences.</p>
+
+          <div class="recording-area" *ngIf="speechSupported">
+            <button 
+              class="mic-btn" 
+              [ngClass]="{'recording': isRecording}"
+              (click)="isRecording ? stopRecording() : startRecording()">
+              <svg width="64" height="64" viewBox="0 0 64 64">
+                <path d="M32 8c-4.4 0-8 3.6-8 8v16c0 4.4 3.6 8 8 8s8-3.6 8-8V16c0-4.4-3.6-8-8-8zm0 36c-6.6 0-12-5.4-12-12h-4c0 8.8 7.2 16 16 16s16-7.2 16-16h-4c0 6.6-5.4 12-12 12z" fill="currentColor"/>
+              </svg>
+              <span>{{ isRecording ? 'Stop Recording' : 'Start Recording' }}</span>
+            </button>
+
+            <div class="transcript-box" *ngIf="transcript">
+              <p>{{ transcript }}</p>
+            </div>
+          </div>
+
+          <div class="no-speech-support" *ngIf="!speechSupported">
+            <p>Speech recognition is not supported in your browser.</p>
+            <p>You can skip this section.</p>
+          </div>
+
+          <div class="speaking-actions">
+            <button class="skip-btn" (click)="skipSpeaking()">
+              Skip this section
+            </button>
+            <button 
+              class="submit-btn" 
+              *ngIf="transcript"
+              (click)="finishTest()">
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Section -->
+      <div class="section-content results-section" *ngIf="currentSection === 'results'" @slideIn>
+        <div class="confetti" *ngIf="showConfetti"></div>
+        
+        <div class="results-card">
+          <h1 class="congratulations">Congratulations!</h1>
+          
+          <div class="level-badge-container">
+            <div class="level-badge" [attr.data-level]="finalLevel">
+              <div class="badge-circle" [attr.data-level]="finalLevel">
+                <span class="level-text">{{ finalLevel }}</span>
+                <span class="level-subtitle">{{ getLevelName() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="score-summary">
+            <p class="score-text">Correct answers: {{ getCorrectAnswersCount() }}/20</p>
+            <p class="score-percentage">Your score is {{ getScorePercentage() }}%.</p>
+          </div>
+
+          <p class="level-description">
+            You are {{ getLevelArticle() }} {{ finalLevel }} 
+            ({{ getLevelName() }}) English user.
+          </p>
+
+          <div class="skill-breakdown">
+            <h3>Skill Breakdown</h3>
+            
+            <div class="skill-item">
+              <div class="skill-label">
+                <span>Grammar</span>
+                <span>{{ skillBreakdown.grammar }}%</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill grammar-fill" [style.width.%]="skillBreakdown.grammar"></div>
+              </div>
+            </div>
+
+            <div class="skill-item">
+              <div class="skill-label">
+                <span>Listening</span>
+                <span>{{ skillBreakdown.listening }}%</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill listening-fill" [style.width.%]="skillBreakdown.listening"></div>
+              </div>
+            </div>
+
+            <div class="skill-item">
+              <div class="skill-label">
+                <span>Reading</span>
+                <span>{{ skillBreakdown.reading }}%</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill reading-fill" [style.width.%]="skillBreakdown.reading"></div>
+              </div>
+            </div>
+
+            <div class="skill-item">
+              <div class="skill-label">
+                <span>Picture Description</span>
+                <span>{{ skillBreakdown.pictureDescription }}%</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill picture-fill" [style.width.%]="skillBreakdown.pictureDescription"></div>
+              </div>
+            </div>
+
+            <div class="skill-item">
+              <div class="skill-label">
+                <span>Speaking</span>
+                <span>{{ skillBreakdown.speaking }}%</span>
+              </div>
+              <div class="skill-bar">
+                <div class="skill-fill speaking-fill" [style.width.%]="skillBreakdown.speaking"></div>
+              </div>
+            </div>
+          </div>
+
+          <p class="personalized-insight">{{ personalizedInsight }}</p>
+
+          <p class="recommendation">
+            Based on your score, you should start practicing {{ finalLevel }} grammar topics.
+          </p>
+
+          <button class="dashboard-btn" (click)="goToDashboard()">
+            Enter my dashboard →
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

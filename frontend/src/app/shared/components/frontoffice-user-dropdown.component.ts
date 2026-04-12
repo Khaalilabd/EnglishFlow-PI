@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { AuthResponse } from '../../core/models/user.model';
 import { UserRoleBadgeComponent } from './user-role-badge/user-role-badge.component';
+import { PlacementTestService } from '../../core/services/placement-test.service';
 
 @Component({
   selector: 'app-frontoffice-user-dropdown',
@@ -34,11 +35,45 @@ import { UserRoleBadgeComponent } from './user-role-badge/user-role-badge.compon
           <div class="flex items-center gap-2 mb-1">
             <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
             <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
+            <!-- English Level Badge with Green Glow -->
+            <span 
+              *ngIf="currentUser?.role === 'STUDENT' && hasEnglishLevel()"
+              class="english-level-badge"
+            >
+              {{ currentUser?.englishLevel }}
+            </span>
           </div>
           <p class="text-xs text-gray-500">{{ currentUser?.email }}</p>
         </div>
         
+        <!-- NEW ACCOUNTS: Show "Take English Test" button if NO englishLevel -->
+        <button
+          *ngIf="currentUser?.role === 'STUDENT' && needsEnglishTest()"
+          (click)="navigateToPlacementTest()"
+          class="flex items-center gap-3 w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 transition-all duration-200"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          Take English Test 🎯
+        </button>
+        
+        <!-- EXISTING ACCOUNTS: Show "Student Panel" if HAS englishLevel -->
         <a
+          *ngIf="currentUser?.role === 'STUDENT' && hasEnglishLevel()"
+          [routerLink]="userPanelRoute"
+          class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+          (click)="closeDropdown()"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+          </svg>
+          Student Panel
+        </a>
+        
+        <!-- NON-STUDENT USERS: Show their respective panel -->
+        <a
+          *ngIf="currentUser?.role !== 'STUDENT'"
           [routerLink]="userPanelRoute"
           class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
           (click)="closeDropdown()"
@@ -133,6 +168,35 @@ import { UserRoleBadgeComponent } from './user-role-badge/user-role-badge.compon
       transform: translateY(2px);
     }
     
+    /* English Level Badge with Green Glow Animation */
+    .english-level-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 12px;
+      box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      animation: pulse-glow 2s infinite;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    
+    @keyframes pulse-glow {
+      0% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+      }
+    }
+    
     @media (max-width: 768px) {
       .user-name {
         display: none;
@@ -153,7 +217,8 @@ export class FrontofficeUserDropdownComponent implements OnInit {
   
   constructor(
     public authService: AuthService,
-    private router: Router
+    private router: Router,
+    private placementTestService: PlacementTestService
   ) {
     this.currentUser = this.authService.currentUserValue;
     this.authService.currentUser$.subscribe(user => {
@@ -220,10 +285,74 @@ export class FrontofficeUserDropdownComponent implements OnInit {
 
   toggleDropdown() {
     this.isOpen = !this.isOpen;
+    
+    // When opening dropdown, force check the latest user data from localStorage
+    if (this.isOpen) {
+      const storedUser = localStorage.getItem('currentUser');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        this.currentUser = user;
+        console.log('🔍 Frontoffice Dropdown opened - Refreshed user data, englishLevel:', user.englishLevel);
+      }
+    }
   }
 
   closeDropdown() {
     this.isOpen = false;
+  }
+
+  /**
+   * Determines if user needs to take the English placement test
+   * Returns TRUE if user has NO valid English level (needs test)
+   * Returns FALSE if user has a valid English level (already took test)
+   */
+  needsEnglishTest(): boolean {
+    const englishLevel = this.currentUser?.englishLevel;
+    
+    // Check if englishLevel is missing, null, undefined, empty, or whitespace
+    const hasNoLevel = !englishLevel || 
+                       (typeof englishLevel === 'string' && englishLevel.trim() === '');
+    
+    console.log('🔍 Frontoffice needsEnglishTest check:', {
+      englishLevel: englishLevel,
+      hasNoLevel: hasNoLevel
+    });
+    
+    return !!hasNoLevel;
+  }
+
+  /**
+   * Determines if user has already completed the English test
+   * Returns TRUE if user has a valid English level
+   * Returns FALSE if user needs to take the test
+   */
+  hasEnglishLevel(): boolean {
+    const englishLevel = this.currentUser?.englishLevel;
+    
+    // Check if englishLevel exists and is not empty/whitespace
+    const hasLevel = !!(englishLevel && 
+                       typeof englishLevel === 'string' && 
+                       englishLevel.trim() !== '');
+    
+    console.log('🔍 Frontoffice hasEnglishLevel check:', {
+      englishLevel: englishLevel,
+      hasLevel: hasLevel
+    });
+    
+    return hasLevel;
+  }
+
+  navigateToPlacementTest(): void {
+    this.closeDropdown();
+    console.log('🎯 Triggering placement test from frontoffice dropdown');
+    
+    // Navigate to student panel first
+    this.router.navigate(['/user-panel/dashboard']).then(() => {
+      // Then trigger the test after a short delay
+      setTimeout(() => {
+        this.placementTestService.triggerTest();
+      }, 300);
+    });
   }
 
   logout() {
