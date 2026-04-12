@@ -26,6 +26,7 @@ public class AuthResponse {
     private String profilePhoto;
     private String phone;
     private Boolean profileCompleted;
+    private String englishLevel; // English proficiency level (A1, A2, B1, B2, C1, C2)
     private long expiresIn; // Access token expiry in seconds
     private LocalDateTime refreshTokenExpiryDate;
     
@@ -44,6 +45,7 @@ public class AuthResponse {
         this.profilePhoto = profilePhoto;
         this.phone = phone;
         this.profileCompleted = false; // Default value
+        this.englishLevel = null; // Default value
     }
     
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone, Boolean profileCompleted) {
@@ -57,5 +59,20 @@ public class AuthResponse {
         this.profilePhoto = profilePhoto;
         this.phone = phone;
         this.profileCompleted = profileCompleted;
+        this.englishLevel = null; // Default value
+    }
+
+    public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone, Boolean profileCompleted, String englishLevel) {
+        this.token = token;
+        this.type = "Bearer";
+        this.id = id;
+        this.email = email;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
+        this.profilePhoto = profilePhoto;
+        this.phone = phone;
+        this.profileCompleted = profileCompleted;
+        this.englishLevel = englishLevel;
     }
 }

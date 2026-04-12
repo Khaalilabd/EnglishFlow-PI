@@ -35,10 +35,10 @@ import { PlacementTestService } from '../../core/services/placement-test.service
           <div class="flex items-center gap-2 mb-1">
             <p class="text-sm font-medium text-gray-900">{{ currentUser?.firstName }} {{ currentUser?.lastName }}</p>
             <app-user-role-badge [role]="currentUser?.role || ''"></app-user-role-badge>
-            <!-- English Level Badge with Green Glow -->
+            <!-- English Level Badge -->
             <span 
-              *ngIf="currentUser?.role === 'STUDENT' && hasEnglishLevel()"
-              class="english-level-badge"
+              *ngIf="currentUser?.role === 'STUDENT' && currentUser?.englishLevel"
+              class="inline-flex items-center justify-center px-2.5 py-1 text-xs font-bold text-white bg-gradient-to-r from-green-500 to-green-600 rounded-full"
             >
               {{ currentUser?.englishLevel }}
             </span>

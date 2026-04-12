@@ -53,6 +53,7 @@ export class UserDropdownComponent {
     private placementTestService: PlacementTestService,
     private router: Router
   ) {
+    this.currentUser = this.authService.currentUserValue;
     // Subscribe to user changes
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;

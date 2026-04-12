@@ -32,19 +32,15 @@ import { UserRoleBadgeComponent } from '../../components/user-role-badge/user-ro
           <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           <input 
             type="text" 
-            placeholder="Search courses, lessons, assignments..."
+            placeholder="AAAASearch courses, lessons, assignments..."
             class="w-full pl-12 pr-4 py-2.5 bg-[#F7EDE2]/30 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
         </div>
       </div>
 
       <!-- Right: Actions -->
       <div class="flex items-center space-x-4 ml-6">
-        <!-- TEST Menu -->
-        <a 
-          routerLink="/user-panel/courses"
-          class="px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold rounded-lg transition-colors shadow-sm">
-          TEST
-        </a>
+     
+      
 
         <!-- Notifications -->
         <button class="relative p-2 hover:bg-[#F7EDE2] rounded-xl transition-colors">

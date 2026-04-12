@@ -408,6 +408,7 @@ public class AuthService {
                 .profilePhoto(user.getProfilePhoto())
                 .phone(user.getPhone())
                 .profileCompleted(user.isProfileCompleted())
+                .englishLevel(user.getEnglishLevel())
                 .expiresIn(jwtUtil.getExpirationTimeInSeconds())
                 .refreshTokenExpiryDate(refreshToken.getExpiryDate())
                 .build();

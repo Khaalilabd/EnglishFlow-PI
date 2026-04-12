@@ -1,5 +1,11 @@
-<div [@routeAnimations]="getRouteAnimationData()" class="route-container">
+<div [@routeAnimations]="getRouteAnimationData()" class="route-container" [style.display]="showPlacementTest ? 'none' : 'block'">
   <router-outlet></router-outlet>
 </div>
 <app-toast></app-toast>
 <app-notification-toast></app-notification-toast>
+
+<!-- English Placement Test Overlay -->
+<app-english-placement-test 
+  *ngIf="showPlacementTest"
+  (testCompleted)="onTestCompleted($event)">
+</app-english-placement-test>
