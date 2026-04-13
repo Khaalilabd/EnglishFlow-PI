@@ -276,6 +276,11 @@ export const routes: Routes = [
         title: 'Topic Details | Jungle in English'
       },
       {
+        path: 'my-vocabulary',
+        loadComponent: () => import('./pages/student-panel/my-vocabulary/my-vocabulary.component').then(m => m.MyVocabularyComponent),
+        title: 'My Vocabulary | Jungle in English'
+      },
+      {
         path: 'subscription',
         loadComponent: () => import('./pages/student-panel/subscription/subscription.component').then(m => m.SubscriptionComponent),
         title: 'My Subscription | Jungle in English'
@@ -604,11 +609,6 @@ export const routes: Routes = [
         path: 'recruitment',
         loadComponent: () => import('./pages/admin-panel/recruitment-dashboard/recruitment-dashboard.component').then(m => m.RecruitmentDashboardComponent),
         title: 'Tutor Recruitment | Jungle in English Dashboard'
-      },
-      {
-        path: 'interview-calendar',
-        loadComponent: () => import('./pages/admin-panel/interview-calendar/interview-calendar.component').then(m => m.InterviewCalendarComponent),
-        title: 'Interview Calendar | Jungle in English Dashboard'
       },
       {
         path: 'sessions',

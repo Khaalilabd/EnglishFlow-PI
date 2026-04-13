@@ -73,6 +73,9 @@ public class Club {
     @Column(name = "suspended_at")
     private LocalDateTime suspendedAt; // Date de suspension
     
+    @Column(name = "announcement_topic_id")
+    private Integer announcementTopicId; // ID du topic d'annonce créé automatiquement
+    
     @OneToMany(mappedBy = "club", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Member> members = new ArrayList<>();

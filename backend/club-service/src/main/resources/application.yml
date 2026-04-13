@@ -53,6 +53,11 @@ auth:
   service:
     url: ${AUTH_SERVICE_URL:http://localhost:8081}
 
+# Internal Service Communication
+internal:
+  service:
+    key: ${INTERNAL_SERVICE_KEY:englishflow-internal-service-secret-key-change-in-production-minimum-256-bits}
+
 # Konnect Payment Configuration
 konnect:
   api-url: https://api.preprod.konnect.network/api/v2/payments/init-payment
@@ -143,7 +148,9 @@ management:
 logging:
   level:
     root: ${LOG_LEVEL_ROOT:INFO}
-    com.englishflow.club: ${LOG_LEVEL_APP:INFO}
+    com.englishflow.club: ${LOG_LEVEL_APP:DEBUG}
+    com.englishflow.club.config.FeignConfig: DEBUG
+    feign: DEBUG
     org.hibernate.SQL: ${LOG_LEVEL_SQL:WARN}
     org.hibernate.type.descriptor.sql.BasicBinder: ${LOG_LEVEL_SQL_BINDER:WARN}
     org.springframework.web: INFO

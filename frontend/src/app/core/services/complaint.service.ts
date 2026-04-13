@@ -65,18 +65,6 @@ export interface ComplaintWorkflow {
   timestamp: string;
 }
 
-export interface ComplaintNotification {
-  id: number;
-  complaintId: number;
-  recipientId: number;
-  recipientRole: string;
-  notificationType: string;
-  message: string;
-  isRead: boolean;
-  readAt?: string;
-  createdAt: string;
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -152,19 +140,6 @@ export class ComplaintService {
     response?: string;
   }): Observable<Complaint> {
     return this.http.post<Complaint>(`${this.apiUrl}/${id}/status`, data);
-  }
-
-  // Notification endpoints
-  getUserNotifications(userId: number): Observable<ComplaintNotification[]> {
-    return this.http.get<ComplaintNotification[]>(`${this.apiUrl}/notifications/${userId}`);
-  }
-
-  markNotificationAsRead(notificationId: number): Observable<void> {
-    return this.http.put<void>(`${this.apiUrl}/notifications/${notificationId}/read`, {});
-  }
-
-  getUnreadNotificationCount(userId: number): Observable<{ unreadCount: number }> {
-    return this.http.get<{ unreadCount: number }>(`${this.apiUrl}/notifications/${userId}/count`);
   }
   
   // Message endpoints

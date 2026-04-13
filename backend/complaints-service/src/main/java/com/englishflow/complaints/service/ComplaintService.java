@@ -2,10 +2,8 @@ package com.englishflow.complaints.service;
 
 import com.englishflow.complaints.dto.StudentComplaintDTO;
 import com.englishflow.complaints.entity.Complaint;
-import com.englishflow.complaints.entity.ComplaintNotification;
 import com.englishflow.complaints.enums.ComplaintStatus;
 import com.englishflow.complaints.repository.ComplaintMessageRepository;
-import com.englishflow.complaints.repository.ComplaintNotificationRepository;
 import com.englishflow.complaints.repository.ComplaintRepository;
 import com.englishflow.complaints.repository.ComplaintWorkflowRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,8 +28,6 @@ public class ComplaintService {
     private final ComplaintPriorityService priorityService;
     private final ComplaintMessageRepository messageRepository;
     private final ComplaintWorkflowRepository workflowRepository;
-    private final ComplaintNotificationRepository notificationRepository;
-    private final NotificationSseService notificationSseService;
     private final RestTemplate restTemplate;
     
     @Value("${auth.service.url}")
@@ -52,9 +48,6 @@ public class ComplaintService {
         Complaint saved = complaintRepository.save(complaint);
         log.info("Complaint created with ID: {} - Priority: {} - Target: {}", 
                  saved.getId(), saved.getPriority(), saved.getTargetRole());
-        
-        // Create and send notification to target role
-        createComplaintNotification(saved);
         
         return saved;
     }
@@ -108,43 +101,7 @@ public class ComplaintService {
         log.info("Complaint validation passed for user: {}", complaint.getUserId());
     }
     
-    private void createComplaintNotification(Complaint complaint) {
-        log.info("🔔 Creating notification for complaint: {}", complaint.getId());
-        log.info("📧 Target role: {}", complaint.getTargetRole().name());
-        
-        // Get student name
-        String studentName = "Student";
-        try {
-            Map<String, Object> userInfo = getUserInfo(complaint.getUserId());
-            String firstName = (String) userInfo.getOrDefault("firstName", "");
-            String lastName = (String) userInfo.getOrDefault("lastName", "");
-            studentName = (firstName + " " + lastName).trim();
-            if (studentName.isEmpty()) {
-                studentName = "Student";
-            }
-        } catch (Exception e) {
-            log.error("Failed to fetch student name for userId: {}", complaint.getUserId(), e);
-        }
-        
-        ComplaintNotification notification = new ComplaintNotification();
-        notification.setComplaintId(complaint.getId());
-        notification.setRecipientId(0L); // Broadcast to role
-        notification.setRecipientRole(complaint.getTargetRole().name());
-        notification.setNotificationType("NEW_COMPLAINT");
-        notification.setMessage(String.format("New complaint from %s: %s", studentName, complaint.getSubject()));
-        notification.setIsRead(false);
-        
-        ComplaintNotification saved = notificationRepository.save(notification);
-        log.info("✅ Notification saved to database with ID: {}", saved.getId());
-        log.info("📊 Notification details: recipientRole={}, type={}, message={}", 
-                saved.getRecipientRole(), saved.getNotificationType(), saved.getMessage());
-        
-        // Send real-time notification to all users with target role
-        log.info("🚀 Sending SSE notification to role: {}", complaint.getTargetRole().name());
-        notificationSseService.sendNotificationToRole(complaint.getTargetRole().name(), saved);
-        log.info("✅ SSE notification sent for complaint: {}", complaint.getId());
-    }
-    
+
     public List<StudentComplaintDTO> getComplaintsByUserIdWithResponder(Long userId) {
         log.info("Fetching complaints with responder info for user: {}", userId);
         List<Complaint> complaints = complaintRepository.findByUserIdOrderByCreatedAtDesc(userId);
@@ -234,9 +191,6 @@ public class ComplaintService {
         
         workflowRepository.deleteByComplaintId(id);
         log.info("Deleted workflow history for complaint: {}", id);
-        
-        notificationRepository.deleteByComplaintId(id);
-        log.info("Deleted notifications for complaint: {}", id);
         
         // Finally delete the complaint itself
         complaintRepository.deleteById(id);

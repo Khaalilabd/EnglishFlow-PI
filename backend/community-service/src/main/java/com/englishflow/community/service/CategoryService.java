@@ -37,6 +37,14 @@ public class CategoryService {
     }
     
     @Transactional(readOnly = true)
+    public List<SubCategoryDTO> getAllSubCategories() {
+        log.info("Fetching all subcategories from database");
+        return subCategoryRepository.findAll().stream()
+                .map(this::convertSubCategoryToDTO)
+                .collect(Collectors.toList());
+    }
+    
+    @Transactional(readOnly = true)
     // @Cacheable(value = "categories", key = "#id") // Décommenter si Redis est activé
     public CategoryDTO getCategoryById(Long id) {
         log.info("Fetching category {} from database", id);

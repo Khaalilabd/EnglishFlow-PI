@@ -6,17 +6,14 @@ import com.englishflow.complaints.dto.ComplaintWorkflowDTO;
 import com.englishflow.complaints.dto.StudentComplaintDTO;
 import com.englishflow.complaints.entity.Complaint;
 import com.englishflow.complaints.entity.ComplaintMessage;
-import com.englishflow.complaints.entity.ComplaintNotification;
 import com.englishflow.complaints.entity.ComplaintWorkflow;
 import com.englishflow.complaints.enums.ComplaintStatus;
-import com.englishflow.complaints.repository.ComplaintNotificationRepository;
 import com.englishflow.complaints.repository.ComplaintRepository;
 import com.englishflow.complaints.service.AcademicComplaintService;
 import com.englishflow.complaints.service.ComplaintMessageService;
 import com.englishflow.complaints.service.ComplaintSecurityService;
 import com.englishflow.complaints.service.ComplaintService;
 import com.englishflow.complaints.service.ComplaintWorkflowService;
-import com.englishflow.complaints.service.NotificationSseService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -45,8 +40,6 @@ public class ComplaintController {
     private final AcademicComplaintService academicComplaintService;
     private final ComplaintWorkflowService workflowService;
     private final ComplaintMessageService messageService;
-    private final ComplaintNotificationRepository notificationRepository;
-    private final NotificationSseService notificationSseService;
     private final ComplaintRepository complaintRepository;
     private final ComplaintSecurityService securityService;
     
@@ -361,34 +354,6 @@ public class ComplaintController {
         }
     }
     
-    // ========== NOTIFICATION ENDPOINTS ==========
-    
-    @GetMapping("/notifications/{userId}")
-    public ResponseEntity<List<ComplaintNotification>> getUserNotifications(@PathVariable Long userId) {
-        log.info("GET /api/complaints/notifications/{} - Fetching notifications", userId);
-        List<ComplaintNotification> notifications = 
-                notificationRepository.findByRecipientIdAndIsReadFalseOrderByCreatedAtDesc(userId);
-        return ResponseEntity.ok(notifications);
-    }
-    
-    @PutMapping("/notifications/{notificationId}/read")
-    public ResponseEntity<Void> markNotificationAsRead(@PathVariable Long notificationId) {
-        log.info("PUT /api/complaints/notifications/{}/read - Marking as read", notificationId);
-        ComplaintNotification notification = notificationRepository.findById(notificationId)
-                .orElseThrow(() -> new RuntimeException("Notification not found"));
-        notification.setIsRead(true);
-        notification.setReadAt(LocalDateTime.now());
-        notificationRepository.save(notification);
-        return ResponseEntity.ok().build();
-    }
-    
-    @GetMapping("/notifications/{userId}/count")
-    public ResponseEntity<Map<String, Long>> getUnreadNotificationCount(@PathVariable Long userId) {
-        log.info("GET /api/complaints/notifications/{}/count - Getting unread count", userId);
-        long count = notificationRepository.countByRecipientIdAndIsReadFalse(userId);
-        return ResponseEntity.ok(Map.of("unreadCount", count));
-    }
-    
     // ========== MESSAGE ENDPOINTS ==========
     
     @PostMapping("/{id}/messages")
@@ -406,44 +371,5 @@ public class ComplaintController {
         log.info("GET /api/complaints/{}/messages - Fetching messages", id);
         List<ComplaintMessageDTO> messages = messageService.getMessagesByComplaintId(id);
         return ResponseEntity.ok(messages);
-    }
-    
-    // ========== SSE NOTIFICATION ENDPOINTS ==========
-    
-    /**
-     * Stream notifications for a specific user via SSE
-     * Usage: EventSource('/api/complaints/notifications/stream/{userId}')
-     */
-    @GetMapping(value = "/notifications/stream/{userId}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamNotificationsForUser(@PathVariable Long userId) {
-        log.info("GET /api/complaints/notifications/stream/{} - Creating SSE connection for user", userId);
-        SseEmitter emitter = notificationSseService.createEmitterForUser(userId);
-        log.info("SSE emitter created successfully for user: {}", userId);
-        return emitter;
-    }
-    
-    /**
-     * Stream notifications for a specific role via SSE
-     * Usage: EventSource('/api/complaints/notifications/stream/role/{role}')
-     */
-    @GetMapping(value = "/notifications/stream/role/{role}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamNotificationsForRole(@PathVariable String role) {
-        log.info("GET /api/complaints/notifications/stream/role/{} - Creating SSE connection for role", role);
-        SseEmitter emitter = notificationSseService.createEmitterForRole(role);
-        log.info("SSE emitter created successfully for role: {}", role);
-        return emitter;
-    }
-    
-    /**
-     * Get active SSE connections count for monitoring
-     */
-    @GetMapping("/notifications/stream/stats")
-    public ResponseEntity<Map<String, Object>> getStreamStats() {
-        log.info("GET /api/complaints/notifications/stream/stats - Getting SSE statistics");
-        // This would require adding methods to NotificationSseService to get stats
-        return ResponseEntity.ok(Map.of(
-            "message", "SSE streaming is active",
-            "timestamp", LocalDateTime.now()
-        ));
     }
 }

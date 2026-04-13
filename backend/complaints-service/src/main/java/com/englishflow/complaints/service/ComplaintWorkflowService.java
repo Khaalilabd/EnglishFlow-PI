@@ -2,10 +2,8 @@ package com.englishflow.complaints.service;
 
 import com.englishflow.complaints.dto.ComplaintWorkflowDTO;
 import com.englishflow.complaints.entity.Complaint;
-import com.englishflow.complaints.entity.ComplaintNotification;
 import com.englishflow.complaints.entity.ComplaintWorkflow;
 import com.englishflow.complaints.enums.ComplaintStatus;
-import com.englishflow.complaints.repository.ComplaintNotificationRepository;
 import com.englishflow.complaints.repository.ComplaintWorkflowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,8 +23,6 @@ import java.util.Map;
 public class ComplaintWorkflowService {
     
     private final ComplaintWorkflowRepository workflowRepository;
-    private final ComplaintNotificationRepository notificationRepository;
-    private final NotificationSseService notificationSseService;
     private final RestTemplate restTemplate;
     
     @Value("${auth.service.url}")
@@ -52,50 +48,12 @@ public class ComplaintWorkflowService {
         workflowRepository.save(workflow);
         log.info("Workflow recorded for complaint {} - {} -> {}", 
                  complaint.getId(), oldStatus, complaint.getStatus());
-        
-        // Create notification
-        createNotification(complaint, actorId, actorRole, workflow.getIsEscalation());
     }
     
     private boolean isEscalation(ComplaintStatus from, ComplaintStatus to) {
         // Escalation if moving from resolved/rejected back to open/in_progress
         return (from == ComplaintStatus.RESOLVED || from == ComplaintStatus.REJECTED) &&
                (to == ComplaintStatus.OPEN || to == ComplaintStatus.IN_PROGRESS);
-    }
-    
-    private void createNotification(Complaint complaint, Long actorId, String actorRole, boolean isEscalation) {
-        try {
-            ComplaintNotification notification = new ComplaintNotification();
-            notification.setComplaintId(complaint.getId());
-            notification.setRecipientId(complaint.getUserId());
-            notification.setRecipientRole("STUDENT");
-            
-            if (isEscalation) {
-                notification.setNotificationType("ESCALATION");
-                notification.setMessage(String.format("Your complaint '%s' has been escalated for review", complaint.getSubject()));
-            } else if (complaint.getStatus() == ComplaintStatus.NOTED) {
-                notification.setNotificationType("NOTED");
-                notification.setMessage(String.format("Your tutor has noted your complaint: '%s'", complaint.getSubject()));
-            } else {
-                notification.setNotificationType("STATUS_CHANGE");
-                notification.setMessage(String.format("Your complaint '%s' status changed to %s", complaint.getSubject(), complaint.getStatus()));
-            }
-            
-            notification.setIsRead(false);
-            ComplaintNotification saved = notificationRepository.save(notification);
-            log.info("Notification saved to database for userId: {}", complaint.getUserId());
-            
-            // Send real-time notification via SSE - don't fail if this fails
-            try {
-                notificationSseService.sendNotificationToUser(complaint.getUserId(), saved);
-                log.info("Real-time notification sent to student userId: {}", complaint.getUserId());
-            } catch (Exception e) {
-                log.warn("Failed to send real-time notification via SSE, but notification was saved to database", e);
-            }
-        } catch (Exception e) {
-            log.error("Error creating notification for complaint {}", complaint.getId(), e);
-            // Don't throw - notification failure shouldn't fail the whole workflow
-        }
     }
     
     public List<ComplaintWorkflow> getComplaintHistory(Long complaintId) {
@@ -167,22 +125,6 @@ public class ComplaintWorkflowService {
         workflow.setEscalationReason("Automatic escalation due to overdue complaint");
         
         workflowRepository.save(workflow);
-        
-        // Notify ACADEMIC_OFFICE_AFFAIR
-        ComplaintNotification notification = new ComplaintNotification();
-        notification.setComplaintId(complaint.getId());
-        notification.setRecipientId(0L); // Broadcast to all ACADEMIC_OFFICE_AFFAIR
-        notification.setRecipientRole("ACADEMIC_OFFICE_AFFAIR");
-        notification.setNotificationType("OVERDUE");
-        notification.setMessage(String.format("Complaint '%s' is overdue and requires immediate attention", complaint.getSubject()));
-        notification.setIsRead(false);
-        
-        ComplaintNotification saved = notificationRepository.save(notification);
-        
-        // Send real-time notification via SSE
-        notificationSseService.sendNotificationToRole("ACADEMIC_OFFICE_AFFAIR", saved);
-        log.info("Real-time overdue notification sent to ACADEMIC_OFFICE_AFFAIR");
-        
         log.warn("Complaint {} escalated due to overdue status", complaint.getId());
     }
 }

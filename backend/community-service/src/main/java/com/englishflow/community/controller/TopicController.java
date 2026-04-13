@@ -31,8 +31,16 @@ public class TopicController {
             @Valid @RequestBody CreateTopicRequest request,
             @RequestHeader(value = "X-User-Role", required = false, defaultValue = "STUDENT") String userRole) {
         
-        // Check if user has permission to create topic
-        if (!permissionService.canCreateTopic(request.getSubCategoryId(), userRole)) {
+        // Check if request is from internal service (bypass permission check)
+        boolean isInternalService = org.springframework.security.core.context.SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getAuthorities()
+                .stream()
+                .anyMatch(auth -> "ROLE_INTERNAL_SERVICE".equals(auth.getAuthority()));
+        
+        // Check if user has permission to create topic (skip for internal services)
+        if (!isInternalService && !permissionService.canCreateTopic(request.getSubCategoryId(), userRole)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
         

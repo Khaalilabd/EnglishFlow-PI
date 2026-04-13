@@ -5,7 +5,6 @@ import com.englishflow.community.dto.CreateCategoryRequest;
 import com.englishflow.community.dto.CreateSubCategoryRequest;
 import com.englishflow.community.dto.SubCategoryDTO;
 import com.englishflow.community.service.CategoryService;
-import com.englishflow.community.service.DataInitializationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,19 +22,11 @@ import java.util.List;
 public class CommunityController {
     
     private final CategoryService categoryService;
-    private final DataInitializationService dataInitializationService;
 
     @GetMapping("/health")
     @Operation(summary = "Health check", description = "Check if the community service is running")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("Community service is running");
-    }
-    
-    @PostMapping("/initialize")
-    @Operation(summary = "Initialize data", description = "Initialize default categories and subcategories")
-    public ResponseEntity<String> initializeData() {
-        dataInitializationService.initializeCategories();
-        return ResponseEntity.ok("Categories initialized successfully");
     }
     
     @GetMapping
@@ -72,6 +63,13 @@ public class CommunityController {
     }
     
     // SubCategory endpoints
+    @GetMapping("/subcategories")
+    @Operation(summary = "Get all subcategories", description = "Retrieve all subcategories")
+    public ResponseEntity<List<SubCategoryDTO>> getAllSubCategories() {
+        List<SubCategoryDTO> subCategories = categoryService.getAllSubCategories();
+        return ResponseEntity.ok(subCategories);
+    }
+    
     @GetMapping("/subcategories/{id}")
     @Operation(summary = "Get subcategory by ID", description = "Retrieve a specific subcategory by its ID")
     public ResponseEntity<SubCategoryDTO> getSubCategoryById(@PathVariable Long id) {

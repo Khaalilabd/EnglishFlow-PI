@@ -22,12 +22,29 @@ public class PermissionService {
      * @param subCategoryId The subcategory ID
      * @param userRole The user's role (STUDENT, TUTOR, ACADEMIC_OFFICE_AFFAIR, ADMIN)
      * @return true if user can create topic, false otherwise
+     * Note: This method cannot check club membership (requires userId). 
+     * For club-restricted subcategories, returns false and frontend must check separately.
      */
     public boolean canCreateTopic(Long subCategoryId, String userRole) {
         SubCategory subCategory = subCategoryRepository.findById(subCategoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("SubCategory not found with id: " + subCategoryId));
         
         Category category = subCategory.getCategory();
+        
+        // Check if subcategory requires admin role (School Announcements)
+        if (subCategory.getRequiresAdminRole() != null && subCategory.getRequiresAdminRole()) {
+            log.debug("SubCategory {} requires admin role, checking if user role {} is ADMIN or ACADEMIC_OFFICE_AFFAIR", 
+                     subCategoryId, userRole);
+            return "ADMIN".equals(userRole) || "ACADEMIC_OFFICE_AFFAIR".equals(userRole);
+        }
+        
+        // Check if subcategory requires club membership (Official Announcements)
+        // We cannot verify club membership here without userId, so return false
+        // Frontend must check club membership separately
+        if (subCategory.getRequiresClubMembership() != null && subCategory.getRequiresClubMembership()) {
+            log.debug("SubCategory {} requires club membership, cannot verify without userId", subCategoryId);
+            return false; // Frontend will check club membership
+        }
         
         // If category is locked, only ACADEMIC_OFFICE_AFFAIR can create topics
         if (category.getIsLocked() != null && category.getIsLocked()) {

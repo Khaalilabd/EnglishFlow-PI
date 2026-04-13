@@ -84,3 +84,103 @@
     }
   }
 }
+
+// Dictionary feature styles
+@keyframes pulse-subtle {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+  }
+  
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+  }
+  
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+  }
+}
+
+// Floating dictionary button
+.dictionary-float-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 9999 !important;
+  animation: float 3s ease-in-out infinite, pulse-ring 2s infinite;
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+  
+  &:hover {
+    animation: pulse-ring 2s infinite;
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+  }
+}
+
+// Dictionary hint tooltip
+.dictionary-hint {
+  position: fixed;
+  bottom: 5.5rem;
+  right: 2rem;
+  z-index: 9999 !important;
+  animation: slide-in-right 0.3s ease-out;
+}
+
+// Word hover effect in content
+[appWordLookup] {
+  cursor: text;
+  
+  &::selection {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: inherit;
+  }
+}
+
+// Add subtle highlight on word selection
+.topic-content, .post-content {
+  user-select: text;
+  
+  p, div, span {
+    position: relative;
+    
+    &:hover {
+      cursor: text;
+    }
+  }
+}
+
+
+// TTS Control animations
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
+}

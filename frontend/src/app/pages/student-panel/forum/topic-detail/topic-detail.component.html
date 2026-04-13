@@ -221,8 +221,8 @@
           </div>
           
           <!-- Image -->
-          <div *ngIf="topic.resourceType === 'IMAGE'" class="rounded-2xl overflow-hidden shadow-2xl border-4 border-white ring-2 ring-gray-100">
-            <img [src]="'http://localhost:8080/api/community' + topic.resourceLink" [alt]="topic.title" class="w-full h-auto">
+          <div *ngIf="topic.resourceType === 'IMAGE'" class="rounded-2xl overflow-hidden shadow-2xl border-4 border-white ring-2 ring-gray-100 mx-auto" style="max-width: 600px;">
+            <img [src]="getImageUrl(topic.resourceLink)" [alt]="topic.title" class="w-full h-auto">
           </div>
           
           <!-- Video -->
@@ -234,13 +234,49 @@
         </div>
         
         <!-- Regular Content -->
-        <div *ngIf="!isEventHighlight && !isRecruitmentTopic && topic.content && topic.content.trim()" class="ql-editor text-gray-700" [innerHTML]="sanitizeHtml(topic.content)"></div>
+        <div *ngIf="!isEventHighlight && !isRecruitmentTopic && topic.content && topic.content.trim()">
+          <!-- Original Content (before ADDITIONAL_CONTENT marker) -->
+          <div class="ql-editor text-gray-700" 
+               appWordLookup 
+               (wordSelected)="onWordSelected($event)">
+            <app-highlighted-text 
+              [htmlContent]="getOriginalContent(topic.content)"
+              [highlightIndex]="isReadingTopic ? currentHighlightIndex : -1"
+              [isActive]="isReadingTopic">
+            </app-highlighted-text>
+          </div>
+          
+          <!-- Additional Content (after ADDITIONAL_CONTENT marker) -->
+          <div *ngIf="hasAdditionalContent(topic.content)" class="mt-6">
+            <div class="bg-gradient-to-r from-orange-50 to-yellow-50 border-l-4 border-orange-400 rounded-lg p-5">
+              <div class="flex items-center gap-2 mb-3">
+                <i class="fas fa-plus-circle text-orange-600 text-lg"></i>
+                <h4 class="font-bold text-gray-900">Additional Information</h4>
+              </div>
+              <div class="ql-editor text-gray-700" 
+                   appWordLookup 
+                   (wordSelected)="onWordSelected($event)">
+                <app-highlighted-text 
+                  [htmlContent]="getAdditionalContent(topic.content)"
+                  [highlightIndex]="isReadingTopic ? currentHighlightIndex : -1"
+                  [isActive]="isReadingTopic">
+                </app-highlighted-text>
+              </div>
+            </div>
+          </div>
+        </div>
         
         <!-- Recruitment Topic Display -->
         <div *ngIf="isRecruitmentTopic && topic.content && topic.content.trim()">
           <div class="bg-secondary-100 rounded-lg p-6 border border-secondary-300 mb-4">
             <h4 class="text-lg font-semibold text-primary mb-4">Application Requirements</h4>
-            <div class="ql-editor text-gray-700" [innerHTML]="sanitizeHtml(topic.content)"></div>
+            <div class="ql-editor text-gray-700">
+              <app-highlighted-text 
+                [htmlContent]="topic.content"
+                [highlightIndex]="isReadingTopic ? currentHighlightIndex : -1"
+                [isActive]="isReadingTopic">
+              </app-highlighted-text>
+            </div>
           </div>
           
          
@@ -280,6 +316,13 @@
             <i class="fas fa-comment"></i>
             <span>{{ topic.postsCount }} {{ topic.postsCount === 1 ? 'reply' : 'replies' }}</span>
           </div>
+          
+          <!-- Listen Button -->
+          <button (click)="readTopic()"
+                  class="flex items-center gap-2 px-4 py-2 bg-teal-100 text-teal-700 rounded-lg hover:bg-teal-200 transition-colors font-medium">
+            <i class="fas fa-volume-up"></i>
+            <span>Listen</span>
+          </button>
         </div>
         
         <button 
@@ -398,8 +441,16 @@
                 </div>
 
                 <!-- Actions -->
-                <div *ngIf="canEditOrDelete(post)" class="flex items-center gap-2">
+                <div class="flex items-center gap-2">
+                  <!-- Listen Button -->
                   <button 
+                    (click)="readPost(post)"
+                    class="p-2 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-lg transition-all duration-200"
+                    title="Listen to this post">
+                    <i class="fas fa-volume-up w-4 h-4"></i>
+                  </button>
+                  
+                  <button *ngIf="canEditOrDelete(post)"
                     (click)="openEditPostModal($event, post)"
                     class="p-2 text-gray-600 hover:text-primary hover:bg-secondary-100 rounded-lg transition-all duration-200"
                     title="Edit">
@@ -420,7 +471,7 @@
                         d="M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10"/>
                     </svg>
                   </button>
-                  <button 
+                  <button *ngIf="canEditOrDelete(post)"
                     (click)="deletePost($event, post.id)"
                     class="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
                     title="Delete">
@@ -440,7 +491,13 @@
               </div>
 
               <!-- Post Text -->
-              <div class="ql-editor text-gray-700 mb-3" [innerHTML]="sanitizeHtml(post.content)"></div>
+              <div class="ql-editor text-gray-700 mb-3">
+                <app-highlighted-text 
+                  [htmlContent]="post.content"
+                  [highlightIndex]="currentReadingPostId === post.id ? currentHighlightIndex : -1"
+                  [isActive]="currentReadingPostId === post.id">
+                </app-highlighted-text>
+              </div>
 
               <!-- Reactions for Post -->
               <app-reaction-bar 
@@ -591,4 +648,68 @@
       </button>
     </div>
   </div>
+</div>
+
+<!-- Dictionary Modal -->
+<app-dictionary-modal 
+  [isOpen]="showDictionary" 
+  [word]="selectedWord"
+  [context]="selectedContext"
+  [topicId]="topicId"
+  (closeModal)="closeDictionary()">
+</app-dictionary-modal>
+
+<!-- Floating Dictionary Button -->
+<div class="dictionary-float-btn">
+  <button 
+    (click)="toggleDictionaryHint()"
+    class="relative w-16 h-16 bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-600 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 flex items-center justify-center group hover:scale-110"
+    title="Dictionary Feature">
+    <i class="fas fa-book-open text-2xl group-hover:scale-110 transition-transform"></i>
+    
+    <!-- NEW Badge -->
+    <span class="absolute -top-1 -right-1 bg-gradient-to-r from-pink-500 to-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full animate-pulse shadow-lg">
+      NEW
+    </span>
+  </button>
+</div>
+
+<!-- Dictionary Hint Tooltip -->
+<div *ngIf="showDictionaryHint" 
+     class="dictionary-hint bg-white rounded-xl shadow-2xl p-5 max-w-sm border-2 border-blue-500 relative">
+  <button (click)="toggleDictionaryHint()" 
+          class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors">
+    <i class="fas fa-times text-lg"></i>
+  </button>
+  
+  <div class="flex items-start gap-3 mb-4">
+    <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+      <i class="fas fa-magic text-blue-600 text-xl"></i>
+    </div>
+    <div>
+      <h4 class="font-bold text-gray-800 text-lg mb-1">Quick Tip!</h4>
+      <p class="text-sm text-gray-600 leading-relaxed">
+        <strong class="text-blue-600">Double-click</strong> any word to see its definition, pronunciation, and examples!
+      </p>
+    </div>
+  </div>
+  
+  <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-3">
+    <div class="flex items-center gap-2 text-sm text-gray-700">
+      <i class="fas fa-lightbulb text-yellow-500 text-lg"></i>
+      <span class="font-medium">Try it on any word in the forum</span>
+    </div>
+  </div>
+  
+  <!-- Arrow pointing to button -->
+  <div class="absolute -bottom-2 right-8 w-4 h-4 bg-white border-r-2 border-b-2 border-blue-500 transform rotate-45"></div>
+</div>
+
+
+<!-- TTS Control Panel (Floating) -->
+<div *ngIf="showTTSControl" class="fixed bottom-6 right-6 z-50 w-96 animate-slide-up">
+  <app-tts-control 
+    [textToRead]="ttsText"
+    [onClose]="closeTTSControl.bind(this)">
+  </app-tts-control>
 </div>

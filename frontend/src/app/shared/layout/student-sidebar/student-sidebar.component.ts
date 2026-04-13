@@ -149,6 +149,11 @@ export class StudentSidebarComponent {
           path: "/user-panel/forum",
         },
         {
+          icon: 'fas fa-book-bookmark',
+          name: "My Vocabulary",
+          path: "/user-panel/my-vocabulary",
+        },
+        {
           icon: 'fas fa-envelope',
           name: "Messages",
           path: "/user-panel/messages",

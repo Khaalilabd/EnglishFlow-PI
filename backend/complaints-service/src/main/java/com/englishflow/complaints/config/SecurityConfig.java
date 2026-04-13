@@ -4,6 +4,8 @@ import com.englishflow.complaints.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -12,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -23,7 +26,23 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
-                .anyRequest().permitAll() // Allow all requests, JWT filter will extract user info
+                // Actuator endpoints
+                .requestMatchers("/actuator/**").permitAll()
+                
+                // Public read endpoints
+                .requestMatchers(HttpMethod.GET, "/complaints/public/**").permitAll()
+                
+                // Authenticated endpoints
+                .requestMatchers(HttpMethod.POST, "/complaints/**").authenticated()
+                .requestMatchers(HttpMethod.GET, "/complaints/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/complaints/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/complaints/**").authenticated()
+                
+                // Admin-only endpoints
+                .requestMatchers("/complaints/admin/**").hasRole("ADMIN")
+                
+                // All other requests require authentication
+                .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

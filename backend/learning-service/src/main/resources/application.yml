@@ -71,6 +71,10 @@ auth:
   service:
     url: ${AUTH_SERVICE_URL:http://localhost:8080/api/auth}
 
+jwt:
+  secret: ${JWT_SECRET:dGhpc2lzYXZlcnlzZWNyZXRrZXlmb3JlbmdsaXNoZmxvd2xlYXJuaW5nc2VydmljZTEyMzQ1Ng==}
+  expiration: 900000
+
 ---
 spring:
   config:

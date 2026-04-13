@@ -6,13 +6,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
 
 /**
- * Filter to extract user information from JWT token and add it to request headers
+ * Filter to extract user information from JWT token and set up Spring Security authentication
  */
 @Component
 @Slf4j
@@ -36,6 +40,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Add user info to request attributes for controller access
                     request.setAttribute("X-User-Id", userId);
                     request.setAttribute("X-User-Role", userRole);
+                    
+                    // Set up Spring Security authentication context
+                    SimpleGrantedAuthority authority = new SimpleGrantedAuthority("ROLE_" + userRole);
+                    UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(userId, null, Collections.singletonList(authority));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
                     
                     log.debug("JWT validated - userId: {}, role: {}", userId, userRole);
                 }

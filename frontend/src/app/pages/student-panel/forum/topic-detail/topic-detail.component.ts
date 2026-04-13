@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -7,12 +7,17 @@ import { QuillEditorComponent } from 'ngx-quill';
 import { ForumService, Topic, Post, CreatePostRequest } from '../../../../services/forum.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ReactionBarComponent } from '../../../../components/reaction-bar/reaction-bar.component';
+import { DictionaryModalComponent } from '../../../../shared/components/dictionary-modal.component';
+import { WordLookupDirective } from '../../../../shared/directives/word-lookup.directive';
+import { TtsControlComponent } from '../../../../shared/components/tts-control.component';
+import { HighlightedTextComponent } from '../../../../shared/components/highlighted-text.component';
+import { TextToSpeechService } from '../../../../services/text-to-speech.service';
 import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-topic-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent, QuillEditorComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent, QuillEditorComponent, DictionaryModalComponent, WordLookupDirective, TtsControlComponent, HighlightedTextComponent],
   templateUrl: './topic-detail.component.html',
   styleUrl: './topic-detail.component.scss'
 })
@@ -28,8 +33,21 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
   // Event Highlights
   isEventHighlight = false;
   eventMedia: Array<{type: string, data: string, name: string}> = [];
+  
+  // Dictionary
+  showDictionary = false;
+  selectedWord = '';
+  selectedContext = '';
+  showDictionaryHint = false;
   eventDescription: string = '';
   currentMediaIndex = 0;
+  
+  // Text-to-Speech
+  showTTSControl = false;
+  ttsText = '';
+  currentHighlightIndex = -1;
+  currentReadingPostId: number | null = null;
+  isReadingTopic = false;
   
   // Recruitment
   isRecruitmentTopic = false;
@@ -66,6 +84,8 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
 
   private authService = inject(AuthService);
   private sanitizer = inject(DomSanitizer);
+  public ttsService = inject(TextToSpeechService);
+  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     private route: ActivatedRoute,
@@ -82,6 +102,9 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
     
     // Add keyboard navigation for carousel
     document.addEventListener('keydown', this.handleKeyboardNavigation.bind(this));
+    
+    // Show dictionary feature hint on first visit
+    this.showDictionaryWelcome();
   }
   
   ngOnDestroy(): void {
@@ -241,6 +264,15 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
   
   getSafeUrl(url: string): SafeResourceUrl {
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+  }
+
+  getImageUrl(resourceLink: string): string {
+    // Si l'URL commence par 'data:' (base64) ou 'http', l'utiliser directement
+    if (resourceLink && (resourceLink.startsWith('data:') || resourceLink.startsWith('http'))) {
+      return resourceLink;
+    }
+    // Sinon, ajouter le préfixe du serveur
+    return 'http://localhost:8080/api/community' + resourceLink;
   }
 
   loadPosts(): void {
@@ -534,5 +566,138 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
   sanitizeHtml(html: string) {
     return this.sanitizer.bypassSecurityTrustHtml(html);
   }
+  
+  hasAdditionalContent(content: string): boolean {
+    return !!(content && content.includes('[ADDITIONAL_CONTENT]'));
+  }
+  
+  getOriginalContent(content: string): string {
+    if (!content) return '';
+    if (content.includes('[ADDITIONAL_CONTENT]')) {
+      return content.split('[ADDITIONAL_CONTENT]')[0];
+    }
+    return content;
+  }
+  
+  getAdditionalContent(content: string): string {
+    if (!content || !content.includes('[ADDITIONAL_CONTENT]')) return '';
+    const parts = content.split('[ADDITIONAL_CONTENT]');
+    return parts[1] || '';
+  }
+  
+  onWordSelected(selection: { word: string, context: string }) {
+    this.selectedWord = selection.word;
+    this.selectedContext = selection.context;
+    this.showDictionary = true;
+  }
+  
+  closeDictionary() {
+    this.showDictionary = false;
+  }
+  
+  showDictionaryWelcome() {
+    // Check if user has seen the welcome message
+    const hasSeenWelcome = localStorage.getItem('dictionaryWelcomeSeen');
+    
+    if (!hasSeenWelcome) {
+      setTimeout(() => {
+        Swal.fire({
+          title: '<i class="fas fa-book-open text-blue-600"></i> Dictionary Feature!',
+          html: `
+            <div class="text-left space-y-3">
+              <p class="text-gray-700">
+                <i class="fas fa-magic text-purple-500"></i> 
+                <strong>Double-click any word</strong> in the forum to instantly see:
+              </p>
+              <ul class="list-none space-y-2 ml-4">
+                <li><i class="fas fa-check-circle text-green-500"></i> Definition & meaning</li>
+                <li><i class="fas fa-volume-up text-blue-500"></i> Audio pronunciation</li>
+                <li><i class="fas fa-lightbulb text-yellow-500"></i> Usage examples</li>
+                <li><i class="fas fa-exchange-alt text-indigo-500"></i> Synonyms & antonyms</li>
+              </ul>
+              <p class="text-sm text-gray-500 mt-3">
+                <i class="fas fa-info-circle"></i> Try it now by double-clicking any word!
+              </p>
+            </div>
+          `,
+          icon: 'info',
+          confirmButtonText: 'Got it!',
+          confirmButtonColor: '#3B82F6',
+          showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+          },
+          hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+          }
+        });
+        
+        localStorage.setItem('dictionaryWelcomeSeen', 'true');
+      }, 1500);
+    }
+  }
+  
+  toggleDictionaryHint() {
+    this.showDictionaryHint = !this.showDictionaryHint;
+  }
 
+  // Text-to-Speech methods
+  readPost(post: Post): void {
+    const textContent = this.stripHtml(post.content);
+    this.ttsText = textContent;
+    this.showTTSControl = true;
+    this.currentReadingPostId = post.id;
+    this.isReadingTopic = false;
+    
+    // Set highlight callback
+    this.ttsService.setHighlightCallback((wordIndex: number) => {
+      this.currentHighlightIndex = wordIndex;
+      // Force Angular to detect changes
+      this.cdr.detectChanges();
+    });
+    
+    // Auto-play
+    setTimeout(() => {
+      this.ttsService.speak(textContent);
+    }, 300);
+  }
+
+  readTopic(): void {
+    if (!this.topic) return;
+    
+    const textContent = this.stripHtml(this.topic.content);
+    this.ttsText = textContent;
+    this.showTTSControl = true;
+    this.currentReadingPostId = null;
+    this.isReadingTopic = true;
+    
+    console.log('readTopic called - isReadingTopic:', this.isReadingTopic);
+    console.log('Topic content length:', textContent.length);
+    
+    // Set highlight callback
+    this.ttsService.setHighlightCallback((wordIndex: number) => {
+      this.currentHighlightIndex = wordIndex;
+      console.log('Highlight callback - wordIndex:', wordIndex);
+      // Force Angular to detect changes
+      this.cdr.detectChanges();
+    });
+    
+    // Auto-play
+    setTimeout(() => {
+      this.ttsService.speak(textContent);
+    }, 300);
+  }
+
+  closeTTSControl(): void {
+    this.showTTSControl = false;
+    this.ttsService.stop();
+    this.currentHighlightIndex = -1;
+    this.currentReadingPostId = null;
+    this.isReadingTopic = false;
+  }
+
+  private stripHtml(html: string): string {
+    const tmp = document.createElement('DIV');
+    tmp.innerHTML = html;
+    return tmp.textContent || tmp.innerText || '';
+  }
 }

@@ -18,6 +18,6 @@ CREATE TABLE IF NOT EXISTS club_update_requests (
 );
 
 -- Index pour améliorer les performances des requêtes
-CREATE INDEX idx_club_update_requests_club_id ON club_update_requests(club_id);
-CREATE INDEX idx_club_update_requests_status ON club_update_requests(status);
-CREATE INDEX idx_club_update_requests_club_status ON club_update_requests(club_id, status);
+CREATE INDEX IF NOT EXISTS idx_club_update_requests_club_id ON club_update_requests(club_id);
+CREATE INDEX IF NOT EXISTS idx_club_update_requests_status ON club_update_requests(status);
+CREATE INDEX IF NOT EXISTS idx_club_update_requests_club_status ON club_update_requests(club_id, status);

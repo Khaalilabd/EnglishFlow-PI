@@ -45,7 +45,7 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create SubCategories for General
         createSubCategory("Student Introductions", "Introduce yourself, talk about your level and goals", general);
-        createSubCategory("School Announcements", "Important news, schedule changes, reminders", general);
+        createSubCategory("School Announcements", "Important news, schedule changes, reminders", general, false, true); // Requires admin role
         createSubCategory("General Questions", "For everything that doesn't fit in another category", general);
 
         // Create SubCategories for Language Discussions
@@ -56,7 +56,6 @@ public class DataInitializer implements CommandLineRunner {
 
         // Create SubCategories for Clubs
         createSubCategory("Official Announcements", "Official club announcements (restricted to club members)", clubs, true);
-        createSubCategory("Reading Club", "Discussion about books in English, recommendations", clubs);
         createSubCategory("Movie / Series Club", "Talk about movies and series in original version, analyze dialogues and vocabulary", clubs);
         createSubCategory("Conversation Club", "Informal conversation groups to practice English", clubs);
         createSubCategory("Culture & Travel Club", "Discover the culture of English-speaking countries, share your experiences", clubs);
@@ -86,15 +85,20 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void createSubCategory(String name, String description, Category category) {
-        createSubCategory(name, description, category, false);
+        createSubCategory(name, description, category, false, false);
     }
     
     private void createSubCategory(String name, String description, Category category, boolean requiresClubMembership) {
+        createSubCategory(name, description, category, requiresClubMembership, false);
+    }
+    
+    private void createSubCategory(String name, String description, Category category, boolean requiresClubMembership, boolean requiresAdminRole) {
         SubCategory subCategory = new SubCategory();
         subCategory.setName(name);
         subCategory.setDescription(description);
         subCategory.setCategory(category);
         subCategory.setRequiresClubMembership(requiresClubMembership);
+        subCategory.setRequiresAdminRole(requiresAdminRole);
         subCategoryRepository.save(subCategory);
     }
 }
