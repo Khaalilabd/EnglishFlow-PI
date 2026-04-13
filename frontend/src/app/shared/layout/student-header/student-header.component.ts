@@ -32,7 +32,7 @@ import { UserRoleBadgeComponent } from '../../components/user-role-badge/user-ro
           <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
           <input 
             type="text" 
-            placeholder="AAAASearch courses, lessons, assignments..."
+            placeholder="Search courses, lessons, assignments..."
             class="w-full pl-12 pr-4 py-2.5 bg-[#F7EDE2]/30 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] focus:border-transparent transition-all">
         </div>
       </div>
