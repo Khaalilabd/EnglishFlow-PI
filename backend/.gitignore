@@ -27,6 +27,13 @@ build/
 *.tar.gz
 *.rar
 
+# Logs directories and files
+logs/
+*.log
+*.log.*
+*.json.gz
+*.log.gz
+
 # IDE
 .idea/
 *.iml
