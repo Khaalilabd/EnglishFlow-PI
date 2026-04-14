@@ -22,10 +22,31 @@ const io = new Server(server, {
  * called setRemoteDescription. We buffer them per-socket and flush when
  * the target peer is ready (i.e. when they send their first offer/answer).
  *
- * iceCandidateBuffer: Map<targetSocketId, Array<{ from, candidate }>>
+ * iceCandidateBuffer: Map<targetSocketId, { candidates: Array<{ from, candidate }>, timeoutId: NodeJS.Timeout }>
  */
 const rooms = new Map();
 const iceCandidateBuffer = new Map();
+
+// Helper function to flush ICE candidates for a target socket
+function flushIceCandidates(targetSocketId) {
+  if (iceCandidateBuffer.has(targetSocketId)) {
+    const bufferEntry = iceCandidateBuffer.get(targetSocketId);
+    const targetSocket = io.sockets.sockets.get(targetSocketId);
+    
+    if (targetSocket && bufferEntry.candidates.length > 0) {
+      console.log(`[ICE Buffer] Flushing ${bufferEntry.candidates.length} buffered candidates to ${targetSocketId}`);
+      bufferEntry.candidates.forEach(({ from, candidate }) => {
+        targetSocket.emit('ice-candidate', { from, candidate });
+      });
+    }
+    
+    // Clear timeout and remove buffer entry
+    if (bufferEntry.timeoutId) {
+      clearTimeout(bufferEntry.timeoutId);
+    }
+    iceCandidateBuffer.delete(targetSocketId);
+  }
+}
 
 // Track active meetings by lessonId
 const activeMeetings = new Map();
@@ -69,7 +90,7 @@ io.on('connection', (socket) => {
       lessonId: lessonId || null
     });
 
-    // Track active meeting when tutor joins with a lessonId
+    // Track active meeting when tutor joins with a lessonId (always use String keys)
     if (role === 'tutor' && lessonId) {
       activeMeetings.set(String(lessonId), {
         roomId,
@@ -92,55 +113,31 @@ io.on('connection', (socket) => {
     console.log(`[Room ${roomId}] ${userName} (${role}) joined — ${rooms.get(roomId).size} total`);
 
     // Flush any buffered ICE candidates for this socket
-    if (iceCandidateBuffer.has(socket.id)) {
-      const buffered = iceCandidateBuffer.get(socket.id);
-      console.log(`[ICE Buffer] Flushing ${buffered.length} buffered candidates to ${socket.id}`);
-      buffered.forEach(({ from, candidate }) => {
-        socket.emit('ice-candidate', { from, candidate });
-      });
-      iceCandidateBuffer.delete(socket.id);
-    }
+    flushIceCandidates(socket.id);
   });
 
   // ── WebRTC signaling relay ─────────────────────────────────────────────────
 
   /**
-   * offer — relay SDP offer from one peer to another.
+   * description — relay SDP (offer or answer) between peers.
+   * This is the unified "perfect negotiation" pattern.
    * Research: The server must be a pure relay. It must NOT modify the SDP.
-   * Both initial offers and renegotiation offers use the same event.
    */
-  // Perfect negotiation: relay description (offer or answer) between peers
   socket.on('description', ({ to, from, description }) => {
     if (!to || !description) return;
     console.log(`[Description:${description.type}] ${from || socket.id} → ${to}`);
     io.to(to).emit('description', { from: from || socket.id, description });
-  });
-
-  socket.on('offer', ({ to, offer, from, fromName }) => {
-    if (!to || !offer) return;
-    console.log(`[Offer] ${fromName || from} → ${to}`);
-    io.to(to).emit('offer', { from: from || socket.id, fromName: fromName || '', offer });
-  });
-
-  socket.on('answer', ({ to, answer, from }) => {
-    if (!to || !answer) return;
-    console.log(`[Answer] ${from || socket.id} → ${to}`);
-    io.to(to).emit('answer', { from: from || socket.id, answer });
+    
+    // Flush ICE candidates after relaying description (remote description will be set soon)
+    flushIceCandidates(to);
   });
 
   /**
    * ice-candidate — relay ICE candidates between peers.
    *
    * Research finding (critical): ICE candidates can arrive at the signaling
-   * server BEFORE the target peer has called setRemoteDescription. If we just
-   * forward them immediately, the client will call addIceCandidate() before
-   * the remote description is set, causing "Cannot add ICE candidate" errors
-   * and a broken connection.
-   *
-   * Fix: Check if the target socket is currently connected. If not (they
-   * haven't joined yet), buffer the candidate and flush it when they join.
-   * If they ARE connected, forward immediately — the client-side code is
-   * responsible for its own buffering after setRemoteDescription.
+   * server BEFORE the target peer has called setRemoteDescription. We buffer
+   * them with a 30-second TTL to prevent memory leaks.
    */
   socket.on('ice-candidate', ({ to, candidate, from }) => {
     if (!to || !candidate) return;
@@ -151,9 +148,18 @@ io.on('connection', (socket) => {
       // Target is connected — forward immediately
       targetSocket.emit('ice-candidate', { from: from || socket.id, candidate });
     } else {
-      // Target not connected yet — buffer the candidate
-      if (!iceCandidateBuffer.has(to)) iceCandidateBuffer.set(to, []);
-      iceCandidateBuffer.get(to).push({ from: from || socket.id, candidate });
+      // Target not connected yet — buffer the candidate with TTL
+      if (!iceCandidateBuffer.has(to)) {
+        // Create buffer entry with 30-second TTL
+        const timeoutId = setTimeout(() => {
+          console.log(`[ICE Buffer] TTL expired for ${to}, clearing buffer`);
+          iceCandidateBuffer.delete(to);
+        }, 30000);
+        
+        iceCandidateBuffer.set(to, { candidates: [], timeoutId });
+      }
+      
+      iceCandidateBuffer.get(to).candidates.push({ from: from || socket.id, candidate });
       console.log(`[ICE Buffer] Buffered candidate for ${to} (not yet connected)`);
     }
   });
@@ -168,6 +174,12 @@ io.on('connection', (socket) => {
       video: !!video,
       screen: !!screen
     });
+  });
+
+  // Request all peers in room to re-broadcast their media state
+  socket.on('request-media-state', ({ roomId }) => {
+    if (!roomId) return;
+    socket.to(roomId).emit('broadcast-media-state');
   });
 
   // ── Chat ───────────────────────────────────────────────────────────────────
@@ -215,11 +227,12 @@ io.on('connection', (socket) => {
         console.log(`[Room ${roomId}] Closed (empty)`);
       }
 
-      // Clean up active meeting tracking
+      // Clean up active meeting tracking (always use String keys)
       if (isTutor && lessonId) {
-        const meeting = activeMeetings.get(String(lessonId));
+        const lessonIdKey = String(lessonId);
+        const meeting = activeMeetings.get(lessonIdKey);
         if (meeting && meeting.tutorSocketId === socket.id) {
-          activeMeetings.delete(String(lessonId));
+          activeMeetings.delete(lessonIdKey);
         }
       }
 

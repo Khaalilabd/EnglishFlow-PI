@@ -1,374 +1,471 @@
-import { Component, OnInit, OnDestroy, AfterViewChecked, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { AuthService } from '../../core/services/auth.service';
 import { io, Socket } from 'socket.io-client';
 
-interface RemotePeer {
+/**
+ * Student Meeting Component - Clean Architecture
+ * 
+ * This component handles the student side of WebRTC video meetings.
+ * Features: Camera, Audio, Screen Share viewing, Clean UI
+ */
+
+interface Peer {
   socketId: string;
   name: string;
-  role: 'tutor' | 'student';
-  pc: RTCPeerConnection;
-  stream: MediaStream;
-  audioEnabled: boolean;
-  videoEnabled: boolean;
-  screenSharing: boolean;
-  // Perfect negotiation state
-  makingOffer: boolean;
-  ignoreOffer: boolean;
-  isSettingRemoteAnswerPending: boolean;
+  role: string;
+  connection?: RTCPeerConnection;
+  stream?: MediaStream;
+  iceBuffer?: RTCIceCandidate[];
 }
-
-const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302' },
-  { urls: 'stun:stun1.l.google.com:19302' }
-];
 
 @Component({
   selector: 'app-meeting-join',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './meeting-join.component.html'
+  templateUrl: './meeting-join.component.html',
+  styleUrls: ['./meeting-join.component.scss']
 })
 export class MeetingJoinComponent implements OnInit, OnDestroy, AfterViewChecked {
-  roomId = '';
-  displayName = '';
-  joined = false;
-  joining = false;
-  error = '';
+  // View References
+  @ViewChild('localVideo') localVideoRef!: ElementRef<HTMLVideoElement>;
+  @ViewChild('remoteVideo') remoteVideoRef!: ElementRef<HTMLVideoElement>;
+  @ViewChild('previewVideo') previewVideoRef!: ElementRef<HTMLVideoElement>;
 
-  socket!: Socket;
+  // State Management
+  roomId: string = '';
+  userName: string = '';
+  joined: boolean = false;
+  showPreview: boolean = true;
+  error: string = '';
+  connectionStatus: string = 'disconnected';
+
+  // Media State
   localStream: MediaStream | null = null;
-  localScreenStream: MediaStream | null = null;
+  previewStream: MediaStream | null = null;
+  audioEnabled: boolean = true;
+  videoEnabled: boolean = true;
 
-  peers: Map<string, RemotePeer> = new Map();
+  // WebRTC
+  socket: Socket | null = null;
+  peers: Map<string, Peer> = new Map();
+  
+  // ICE Configuration
+  private readonly iceServers = [
+    { urls: 'stun:stun.l.google.com:19302' },
+    { urls: 'stun:stun1.l.google.com:19302' }
+  ];
 
-  audioEnabled = true;
-  videoEnabled = true;
-  screenSharing = false;
+  // Flags
+  private noCameraMode: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
-    private router: Router,
-    private authService: AuthService,
-    private cdr: ChangeDetectorRef,
-    private zone: NgZone
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    // Get room ID from route
     this.roomId = this.route.snapshot.paramMap.get('roomId') || '';
-    const user = this.authService.currentUserValue;
-    if (user) this.displayName = `${user.firstName} ${user.lastName}`.trim();
-  }
+    
+    // Check for no-camera mode (useful for testing)
+    const urlParams = new URLSearchParams(window.location.search);
+    this.noCameraMode = urlParams.has('noCamera');
 
-  // ── Join ───────────────────────────────────────────────────────────────────
-
-  async joinMeeting(): Promise<void> {
-    if (!this.displayName.trim()) return;
-    this.joining = true;
-    this.error = '';
-
-    try {
-      this.localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      this.videoEnabled = true;
-      this.audioEnabled = true;
-    } catch {
-      try {
-        this.localStream = await navigator.mediaDevices.getUserMedia({ video: false, audio: true });
-        this.videoEnabled = false;
-        this.audioEnabled = true;
-        this.error = 'Joined with audio only (camera unavailable)';
-      } catch {
-        this.videoEnabled = false;
-        this.audioEnabled = false;
-        this.error = 'Joined without media. You can still see and hear others.';
-      }
+    if (!this.roomId) {
+      this.error = 'Invalid room ID';
+      return;
     }
 
-    this.joined = true;
-    this.joining = false;
-
-    // Attach local video
-    requestAnimationFrame(() => this.attachLocalVideo());
-    this.connectSocket();
-  }
-
-  private attachLocalVideo(): void {
-    document.querySelectorAll<HTMLVideoElement>('video[data-local-cam]').forEach(el => {
-      if (el.srcObject !== this.localStream) {
-        el.muted = true;
-        el.srcObject = this.localStream;
-        el.play().catch(() => {});
-      }
-    });
+    // Start camera preview
+    this.startPreview();
   }
 
   ngAfterViewChecked(): void {
-    // Attach local camera
-    if (this.localStream) {
-      document.querySelectorAll<HTMLVideoElement>('video[data-local-cam]').forEach(el => {
-        if (el.srcObject !== this.localStream) {
-          el.muted = true;
-          el.srcObject = this.localStream;
-          el.play().catch(() => {});
-        }
-      });
-    }
-    // Attach remote streams
-    this.peers.forEach((peer, socketId) => {
-      if (peer.stream && peer.stream.getTracks().length > 0) {
-        const el = document.getElementById(`cam-${socketId}`) as HTMLVideoElement;
-        if (el && el.srcObject !== peer.stream) {
-          el.muted = false;
-          el.srcObject = peer.stream;
-          el.play().catch(() => {});
-        }
-      }
-    });
+    // Attach streams to video elements
+    this.attachVideoStreams();
   }
 
-  // ── Socket ─────────────────────────────────────────────────────────────────
+  ngOnDestroy(): void {
+    this.cleanup();
+  }
 
-  private connectSocket(): void {
-    this.socket = io('http://localhost:3001', { transports: ['websocket', 'polling'] });
+  /**
+   * Start camera preview before joining
+   */
+  async startPreview(): Promise<void> {
+    try {
+      if (this.noCameraMode) {
+        // Audio only mode
+        this.previewStream = await navigator.mediaDevices.getUserMedia({
+          video: false,
+          audio: true
+        });
+        this.videoEnabled = false;
+      } else {
+        // Try HD video first, fallback to basic, then audio-only
+        try {
+          this.previewStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 1280, height: 720 },
+            audio: true
+          });
+        } catch (hdError) {
+          console.warn('HD video failed, trying basic video', hdError);
+          try {
+            this.previewStream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: true
+            });
+          } catch (basicError) {
+            console.warn('Basic video failed, trying audio-only', basicError);
+            this.previewStream = await navigator.mediaDevices.getUserMedia({
+              video: false,
+              audio: true
+            });
+            this.videoEnabled = false;
+            this.error = 'Camera unavailable - audio only mode';
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Failed to get user media:', err);
+      
+      // Handle specific errors
+      if (err.name === 'NotReadableError' || err.name === 'AbortError') {
+        this.error = 'Camera in use by another app - use ?noCamera=true for audio only';
+      } else if (err.name === 'NotAllowedError') {
+        this.error = 'Camera/microphone permission denied';
+      } else {
+        this.error = 'Failed to access camera/microphone';
+      }
+    }
+  }
 
+  /**
+   * Join the meeting room
+   */
+  async joinMeeting(): Promise<void> {
+    if (!this.userName.trim()) {
+      this.error = 'Please enter your name';
+      return;
+    }
+
+    try {
+      // Reuse preview stream to avoid "device in use" error
+      if (this.previewStream) {
+        this.localStream = this.previewStream;
+        this.previewStream = null;
+      } else {
+        // Fallback: get media if preview failed
+        this.localStream = await navigator.mediaDevices.getUserMedia({
+          video: !this.noCameraMode,
+          audio: true
+        });
+      }
+
+      // Connect to signaling server
+      this.connectToSignalingServer();
+      
+      // Update UI
+      this.showPreview = false;
+      this.joined = true;
+      this.connectionStatus = 'connecting';
+      
+    } catch (err) {
+      console.error('Failed to join meeting:', err);
+      this.error = 'Failed to join meeting';
+    }
+  }
+
+  /**
+   * Connect to Socket.IO signaling server
+   */
+  private connectToSignalingServer(): void {
+    this.socket = io('http://localhost:3001', {
+      transports: ['websocket'],
+      reconnection: true
+    });
+
+    // Connection events
     this.socket.on('connect', () => {
-      console.log('✅ Connected to signaling server');
-      this.socket.emit('join-room', {
+      console.log('Connected to signaling server');
+      this.socket!.emit('join-room', {
         roomId: this.roomId,
-        userName: this.displayName,
+        userName: this.userName,
         role: 'student'
       });
     });
 
-    // Existing peers in room
-    this.socket.on('room-peers', (peers: any[]) => {
-      peers.forEach(p => this.getOrCreatePeer(p.socketId, p.name, p.role));
+    // Room events
+    this.socket.on('room-peers', (peers: Peer[]) => {
+      console.log('Existing peers in room:', peers);
+      // Tutor should initiate connection
     });
 
-    // New peer joined
-    this.socket.on('peer-joined', ({ socketId, name, role }: any) => {
-      this.getOrCreatePeer(socketId, name, role);
+    this.socket.on('peer-joined', (peer: Peer) => {
+      console.log('Peer joined:', peer);
     });
 
-    // Perfect negotiation: incoming description
-    this.socket.on('description', async ({ from, description }: any) => {
-      const peer = this.getOrCreatePeer(from, '', 'tutor');
-      const pc = peer.pc;
-      const polite = false; // student is impolite (tutor drives negotiation)
+    // WebRTC signaling
+    this.socket.on('description', async ({ from, description }) => {
+      // Ignore own descriptions
+      if (from === this.socket!.id) return;
 
+      console.log('Received description:', description.type, 'from', from);
+      
       try {
-        const readyForOffer =
-          !peer.makingOffer &&
-          (pc.signalingState === 'stable' || peer.isSettingRemoteAnswerPending);
-        const offerCollision = description.type === 'offer' && !readyForOffer;
+        let peer = this.peers.get(from);
+        
+        if (!peer) {
+          peer = await this.createPeerConnection(from);
+        }
 
-        peer.ignoreOffer = !polite && offerCollision;
-        if (peer.ignoreOffer) return;
-
-        peer.isSettingRemoteAnswerPending = description.type === 'answer';
+        const pc = peer.connection!;
+        
+        // Set remote description
         await pc.setRemoteDescription(description);
-        peer.isSettingRemoteAnswerPending = false;
+        
+        // Flush buffered ICE candidates
+        if (peer.iceBuffer && peer.iceBuffer.length > 0) {
+          console.log(`Flushing ${peer.iceBuffer.length} buffered ICE candidates`);
+          for (const candidate of peer.iceBuffer) {
+            await pc.addIceCandidate(candidate);
+          }
+          peer.iceBuffer = [];
+        }
 
+        // If it's an offer, create and send answer
         if (description.type === 'offer') {
-          await pc.setLocalDescription();
-          this.socket.emit('description', {
+          const answer = await pc.createAnswer();
+          await pc.setLocalDescription(answer);
+          
+          this.socket!.emit('description', {
             to: from,
-            from: this.socket.id,
+            from: this.socket!.id,
             description: pc.localDescription
           });
         }
-      } catch (e) {
-        console.error('[Perfect Negotiation] description error:', e);
+      } catch (err) {
+        console.error('Error handling description:', err);
       }
     });
 
-    // Perfect negotiation: incoming ICE candidate
-    this.socket.on('ice-candidate', async ({ from, candidate }: any) => {
+    this.socket.on('ice-candidate', async ({ from, candidate }) => {
+      if (from === this.socket!.id) return;
+
       const peer = this.peers.get(from);
-      if (!peer) return;
+      if (!peer || !peer.connection) {
+        console.warn('Received ICE candidate for unknown peer:', from);
+        return;
+      }
+
       try {
-        await peer.pc.addIceCandidate(candidate ? new RTCIceCandidate(candidate) : undefined);
-      } catch (e) {
-        if (!peer.ignoreOffer) console.error('[ICE] addIceCandidate error:', e);
+        const pc = peer.connection;
+        
+        // Buffer candidates if remote description not set yet
+        if (!pc.remoteDescription) {
+          if (!peer.iceBuffer) peer.iceBuffer = [];
+          peer.iceBuffer.push(new RTCIceCandidate(candidate));
+          console.log('Buffered ICE candidate (no remote description yet)');
+        } else {
+          await pc.addIceCandidate(new RTCIceCandidate(candidate));
+        }
+      } catch (err) {
+        console.error('Error adding ICE candidate:', err);
       }
     });
 
-    this.socket.on('peer-left', ({ socketId }: any) => {
-      this.zone.run(() => this.removePeer(socketId));
-    });
-
-    this.socket.on('peer-media-state', ({ socketId, audio, video, screen }: any) => {
-      this.zone.run(() => {
-        const peer = this.peers.get(socketId);
-        if (!peer) return;
-        peer.audioEnabled = audio;
-        peer.videoEnabled = video;
-        peer.screenSharing = screen;
-        this.cdr.detectChanges();
-      });
+    // Peer left
+    this.socket.on('peer-left', ({ socketId }) => {
+      this.removePeer(socketId);
     });
 
     this.socket.on('tutor-left', () => {
-      this.zone.run(() => {
-        this.error = 'The tutor has ended the meeting';
-        setTimeout(() => this.router.navigate(['/student-panel']), 3000);
-      });
+      this.error = 'Tutor has ended the meeting';
+      setTimeout(() => this.leaveMeeting(), 3000);
+    });
+
+    // Disconnect
+    this.socket.on('disconnect', () => {
+      console.log('Disconnected from signaling server');
+      this.connectionStatus = 'disconnected';
     });
   }
 
-  // ── Peer Connection (Perfect Negotiation) ─────────────────────────────────
-
-  private getOrCreatePeer(socketId: string, name: string, role: 'tutor' | 'student'): RemotePeer {
-    if (this.peers.has(socketId)) return this.peers.get(socketId)!;
-
-    const pc = new RTCPeerConnection({ iceServers: ICE_SERVERS });
-    const stream = new MediaStream();
-
-    const peer: RemotePeer = {
-      socketId, name: name || 'Unknown', role,
-      pc, stream,
-      audioEnabled: true, videoEnabled: false, screenSharing: false,
-      makingOffer: false, ignoreOffer: false, isSettingRemoteAnswerPending: false
+  /**
+   * Create RTCPeerConnection for a peer
+   */
+  private async createPeerConnection(peerId: string): Promise<Peer> {
+    const pc = new RTCPeerConnection({ iceServers: this.iceServers });
+    
+    const peer: Peer = {
+      socketId: peerId,
+      name: 'Tutor',
+      role: 'tutor',
+      connection: pc,
+      stream: new MediaStream(),
+      iceBuffer: []
     };
 
-    this.peers.set(socketId, peer);
+    this.peers.set(peerId, peer);
 
     // Add local tracks
-    this.localStream?.getTracks().forEach(t => pc.addTrack(t, this.localStream!));
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => {
+        pc.addTrack(track, this.localStream!);
+      });
+    }
 
-    // Perfect negotiation: onnegotiationneeded
-    // Student is impolite — always initiates the offer
-    pc.onnegotiationneeded = async () => {
-      if (pc.signalingState !== 'stable') return;
-      try {
-        peer.makingOffer = true;
-        await pc.setLocalDescription();
-        this.socket.emit('description', {
-          to: socketId,
-          from: this.socket.id,
-          description: pc.localDescription
+    // Handle incoming tracks
+    pc.ontrack = (event) => {
+      console.log('Received remote track:', event.track.kind);
+      if (peer.stream) {
+        peer.stream.addTrack(event.track);
+      }
+      this.connectionStatus = 'connected';
+    };
+
+    // Handle ICE candidates
+    pc.onicecandidate = (event) => {
+      if (event.candidate) {
+        this.socket!.emit('ice-candidate', {
+          to: peerId,
+          candidate: event.candidate
         });
-      } catch (e) {
-        console.error('[Perfect Negotiation] onnegotiationneeded error:', e);
-      } finally {
-        peer.makingOffer = false;
       }
     };
 
-    // Handle incoming tracks — attach directly, don't rely on onunmute
-    pc.ontrack = ({ track, streams }) => {
-      this.zone.run(() => {
-        stream.addTrack(track);
-        if (track.kind === 'video') peer.videoEnabled = true;
-
-        const el = document.getElementById(`cam-${socketId}`) as HTMLVideoElement;
-        if (el) {
-          el.muted = false;
-          el.srcObject = stream;
-          el.play().catch(() => {});
-        }
-        this.cdr.detectChanges();
-      });
-    };
-
-    pc.onicecandidate = ({ candidate }) => {
-      this.socket.emit('ice-candidate', {
-        to: socketId,
-        from: this.socket.id,
-        candidate
-      });
-    };
-
+    // Handle connection state
     pc.onconnectionstatechange = () => {
-      console.log(`[WebRTC] ${name} → ${pc.connectionState}`);
-      if (pc.connectionState === 'failed') pc.restartIce();
+      console.log('Connection state:', pc.connectionState);
+      this.connectionStatus = pc.connectionState;
+      
+      if (pc.connectionState === 'failed' || pc.connectionState === 'disconnected') {
+        setTimeout(() => {
+          if (pc.connectionState === 'disconnected') {
+            pc.restartIce();
+          }
+        }, 5000);
+      }
     };
 
-    this.zone.run(() => this.cdr.detectChanges());
     return peer;
   }
 
-  private removePeer(socketId: string): void {
-    this.peers.get(socketId)?.pc.close();
-    this.peers.delete(socketId);
-    this.cdr.detectChanges();
-  }
-
-  // ── Controls ───────────────────────────────────────────────────────────────
-
+  /**
+   * Toggle audio on/off
+   */
   toggleAudio(): void {
-    this.audioEnabled = !this.audioEnabled;
-    this.localStream?.getAudioTracks().forEach(t => t.enabled = this.audioEnabled);
-    this.broadcastMediaState();
+    if (this.localStream) {
+      const audioTrack = this.localStream.getAudioTracks()[0];
+      if (audioTrack) {
+        audioTrack.enabled = !audioTrack.enabled;
+        this.audioEnabled = audioTrack.enabled;
+      }
+    }
   }
 
+  /**
+   * Toggle video on/off
+   */
   toggleVideo(): void {
-    this.videoEnabled = !this.videoEnabled;
-    this.localStream?.getVideoTracks().forEach(t => t.enabled = this.videoEnabled);
-    if (this.videoEnabled) requestAnimationFrame(() => this.attachLocalVideo());
-    this.broadcastMediaState();
+    if (this.localStream) {
+      const videoTrack = this.localStream.getVideoTracks()[0];
+      if (videoTrack) {
+        videoTrack.enabled = !videoTrack.enabled;
+        this.videoEnabled = videoTrack.enabled;
+      }
+    }
   }
 
-  async toggleScreenShare(): Promise<void> {
-    if (this.screenSharing) this.stopScreenShare();
-    else await this.startScreenShare();
-  }
-
-  private async startScreenShare(): Promise<void> {
-    try {
-      this.localScreenStream = await (navigator.mediaDevices as any).getDisplayMedia({ video: true, audio: false });
-      this.screenSharing = true;
-      this.peers.forEach(peer => {
-        this.localScreenStream!.getTracks().forEach(t => peer.pc.addTrack(t, this.localScreenStream!));
-      });
-      this.localScreenStream!.getVideoTracks()[0].onended = () => this.stopScreenShare();
-      this.broadcastMediaState();
-      this.cdr.detectChanges();
-    } catch (e) { console.error('Screen share error:', e); }
-  }
-
-  private stopScreenShare(): void {
-    if (!this.localScreenStream) return;
-    this.peers.forEach(peer => {
-      peer.pc.getSenders().forEach(s => {
-        if (this.localScreenStream!.getTracks().includes(s.track!)) peer.pc.removeTrack(s);
-      });
-    });
-    this.localScreenStream.getTracks().forEach(t => t.stop());
-    this.localScreenStream = null;
-    this.screenSharing = false;
-    this.broadcastMediaState();
-    this.cdr.detectChanges();
-  }
-
-  private broadcastMediaState(): void {
-    this.socket?.emit('media-state', {
-      roomId: this.roomId,
-      audio: this.audioEnabled,
-      video: this.videoEnabled,
-      screen: this.screenSharing
-    });
-  }
-
+  /**
+   * Leave the meeting
+   */
   leaveMeeting(): void {
-    this.localStream?.getTracks().forEach(t => t.stop());
-    this.localScreenStream?.getTracks().forEach(t => t.stop());
-    this.peers.forEach(p => p.pc.close());
-    this.peers.clear();
-    this.socket?.disconnect();
-    this.router.navigate(['/student-panel']);
+    this.cleanup();
+    this.router.navigate(['/']);
   }
 
-  // ── Getters ────────────────────────────────────────────────────────────────
+  /**
+   * Attach streams to video elements
+   */
+  private attachVideoStreams(): void {
+    // Attach preview stream
+    if (this.previewVideoRef && this.previewStream) {
+      const video = this.previewVideoRef.nativeElement;
+      if (video.srcObject !== this.previewStream) {
+        video.srcObject = this.previewStream;
+        video.muted = true;
+        video.play().catch(err => console.warn('Preview play failed:', err));
+      }
+    }
 
-  get peersArray(): RemotePeer[] { return Array.from(this.peers.values()); }
-  get anyoneSharing(): boolean { return this.screenSharing || this.peersArray.some(p => p.screenSharing); }
-  get sharingPeer(): RemotePeer | null { return this.peersArray.find(p => p.screenSharing) || null; }
+    // Attach local stream
+    if (this.localVideoRef && this.localStream) {
+      const video = this.localVideoRef.nativeElement;
+      if (video.srcObject !== this.localStream) {
+        video.srcObject = this.localStream;
+        video.muted = true;
+        video.play().catch(err => console.warn('Local play failed:', err));
+      }
+    }
 
-  getInitials(name: string): string { return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) || '?'; }
-  getFirstLetter(name: string): string { return (name?.trim()[0] || '?').toUpperCase(); }
+    // Attach remote stream (first peer only for now)
+    if (this.remoteVideoRef && this.peers.size > 0) {
+      const firstPeer = Array.from(this.peers.values())[0];
+      if (firstPeer.stream) {
+        const video = this.remoteVideoRef.nativeElement;
+        if (video.srcObject !== firstPeer.stream) {
+          video.srcObject = firstPeer.stream;
+          video.play().catch(err => console.warn('Remote play failed:', err));
+        }
+      }
+    }
+  }
 
-  ngOnDestroy(): void { this.leaveMeeting(); }
+  /**
+   * Remove a peer connection
+   */
+  private removePeer(peerId: string): void {
+    const peer = this.peers.get(peerId);
+    if (peer) {
+      if (peer.connection) {
+        peer.connection.close();
+      }
+      if (peer.stream) {
+        peer.stream.getTracks().forEach(track => track.stop());
+      }
+      this.peers.delete(peerId);
+    }
+  }
+
+  /**
+   * Cleanup all resources
+   */
+  private cleanup(): void {
+    // Stop all local tracks
+    if (this.localStream) {
+      this.localStream.getTracks().forEach(track => track.stop());
+      this.localStream = null;
+    }
+    
+    if (this.previewStream) {
+      this.previewStream.getTracks().forEach(track => track.stop());
+      this.previewStream = null;
+    }
+
+    // Close all peer connections
+    this.peers.forEach(peer => {
+      if (peer.connection) peer.connection.close();
+      if (peer.stream) peer.stream.getTracks().forEach(track => track.stop());
+    });
+    this.peers.clear();
+
+    // Disconnect socket
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+  }
 }

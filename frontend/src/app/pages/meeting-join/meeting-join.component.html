@@ -1,82 +1,120 @@
-<div class="h-screen bg-gray-900 flex flex-col">
-  <!-- Pre-Join Screen -->
-  <div *ngIf="!joined" class="flex items-center justify-center h-full">
-    <div class="bg-gray-800 rounded-lg shadow-xl p-8 w-96">
-      <h2 class="text-2xl font-bold text-white mb-6 text-center">Join Meeting</h2>
-      <div *ngIf="error" class="mb-4 p-3 bg-red-500/20 border border-red-500 rounded text-red-200 text-sm">{{error}}</div>
-      <div class="mb-4">
-        <label class="block text-gray-300 text-sm mb-2">Display Name</label>
-        <input type="text" [(ngModel)]="displayName" (keyup.enter)="joinMeeting()" class="w-full px-4 py-2 bg-gray-700 text-white rounded border border-gray-600 focus:border-teal-500 focus:outline-none" placeholder="Enter your name">
+<div class="meeting-container">
+  <!-- Preview Screen -->
+  <div class="preview-screen" *ngIf="showPreview">
+    <div class="preview-card">
+      <h1 class="preview-title">Join Meeting</h1>
+      
+      <div class="video-preview-container">
+        <video #previewVideo class="preview-video" autoplay playsinline></video>
+        <div class="preview-overlay" *ngIf="!previewStream">
+          <div class="spinner"></div>
+          <p>Loading camera...</p>
+        </div>
       </div>
-      <button (click)="joinMeeting()" [disabled]="!displayName.trim() || joining" class="w-full py-3 bg-teal-600 hover:bg-teal-700 disabled:bg-gray-600 text-white rounded font-semibold transition">
-        {{joining ? 'Joining...' : 'Join Meeting'}}
+
+      <div class="join-form">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="userName" 
+            placeholder="Enter your name"
+            (keyup.enter)="joinMeeting()"
+          />
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <button class="btn-join" (click)="joinMeeting()" [disabled]="!userName.trim()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+        Join Meeting
       </button>
+
+      <p class="room-info">Room: {{ roomId }}</p>
     </div>
   </div>
 
-  <!-- In Meeting -->
-  <div *ngIf="joined" class="flex flex-col h-full">
+  <!-- Meeting Screen -->
+  <div class="meeting-screen" *ngIf="joined">
     <!-- Header -->
-    <div class="bg-gray-800 px-4 py-3 flex items-center justify-between">
-      <div class="text-white font-semibold">Room: {{roomId}}</div>
-      <div class="text-gray-400 text-sm">{{peersArray.length + 1}} participant(s)</div>
+    <div class="meeting-header">
+      <div class="meeting-info">
+        <h2 class="meeting-title">{{ roomId }}</h2>
+        <div class="connection-status" [class.connected]="connectionStatus === 'connected'">
+          <span class="status-dot"></span>
+          {{ connectionStatus }}
+        </div>
+      </div>
+      <button class="btn-leave" (click)="leaveMeeting()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+        </svg>
+        Leave
+      </button>
     </div>
 
     <!-- Video Grid -->
-    <div class="flex-1 p-4 overflow-auto">
-      <div class="grid gap-4 h-full" [ngClass]="{'grid-cols-1': peersArray.length === 0, 'grid-cols-2': peersArray.length === 1, 'grid-cols-2 md:grid-cols-3': peersArray.length > 1}">
-        <!-- Local Video -->
-        <div class="relative bg-gray-800 rounded-lg overflow-hidden aspect-video">
-          <video #localVideo [srcObject]="localStream" autoplay muted playsinline class="w-full h-full object-cover" [class.hidden]="!videoEnabled"></video>
-          <div *ngIf="!videoEnabled" class="absolute inset-0 flex items-center justify-center bg-gray-700">
-            <div class="w-20 h-20 bg-teal-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-              {{getInitials(displayName)}}
-            </div>
-          </div>
-          <div class="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-sm">{{displayName}} (You)</div>
-          <div *ngIf="!audioEnabled" class="absolute top-2 right-2 bg-red-600 px-2 py-1 rounded text-white text-xs">Muted</div>
+    <div class="video-grid">
+      <!-- Remote Video (Tutor) -->
+      <div class="video-container main-video">
+        <video #remoteVideo class="video-element" autoplay playsinline></video>
+        <div class="video-overlay" *ngIf="peers.size === 0">
+          <div class="spinner"></div>
+          <p>Waiting for tutor...</p>
         </div>
+        <div class="video-label">
+          <span class="participant-name">Tutor</span>
+        </div>
+      </div>
 
-        <!-- Remote Videos -->
-        <div *ngFor="let peer of peersArray" class="relative bg-gray-800 rounded-lg overflow-hidden aspect-video">
-          <video [id]="'remote-' + peer.socketId" autoplay playsinline class="w-full h-full object-cover" [class.hidden]="!peer.videoEnabled"></video>
-          <div *ngIf="!peer.videoEnabled" class="absolute inset-0 flex items-center justify-center bg-gray-700">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center text-white text-2xl font-bold" [ngClass]="{'bg-teal-600': peer.role === 'tutor', 'bg-indigo-600': peer.role !== 'tutor'}">
-              {{getInitials(peer.name)}}
-            </div>
-          </div>
-          <div class="absolute bottom-2 left-2 bg-black/60 px-2 py-1 rounded text-white text-sm">{{peer.name}}</div>
-          <div *ngIf="!peer.audioEnabled" class="absolute top-2 right-2 bg-red-600 px-2 py-1 rounded text-white text-xs">Muted</div>
+      <!-- Local Video (Student - Picture in Picture) -->
+      <div class="video-container local-video">
+        <video #localVideo class="video-element" autoplay playsinline muted></video>
+        <div class="video-disabled-overlay" *ngIf="!videoEnabled">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 00-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409" />
+          </svg>
+        </div>
+        <div class="video-label">
+          <span class="participant-name">You</span>
         </div>
       </div>
     </div>
 
-    <!-- Controls -->
-    <div class="bg-gray-800 px-4 py-4 flex items-center justify-center gap-4">
-      <button (click)="toggleAudio()" class="p-4 rounded-full transition" [ngClass]="audioEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path *ngIf="audioEnabled" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
-          <path *ngIf="!audioEnabled" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"></path>
-        </svg>
-      </button>
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="controls-group">
+        <button class="control-btn" [class.disabled]="!audioEnabled" (click)="toggleAudio()">
+          <svg *ngIf="audioEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+          </svg>
+          <svg *ngIf="!audioEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3zM19.5 12c0 .621-.504 1.125-1.125 1.125M4.5 12c0 .621.504 1.125 1.125 1.125m0 0c.621 0 1.125-.504 1.125-1.125M5.625 13.125c.621 0 1.125-.504 1.125-1.125m0 0V9m0 3v3m6.75-6v6" />
+          </svg>
+          <span class="control-label">{{ audioEnabled ? 'Mute' : 'Unmute' }}</span>
+        </button>
 
-      <button (click)="toggleVideo()" class="p-4 rounded-full transition" [ngClass]="videoEnabled ? 'bg-gray-700 hover:bg-gray-600' : 'bg-red-600 hover:bg-red-700'">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
-        </svg>
-      </button>
+        <button class="control-btn" [class.disabled]="!videoEnabled" (click)="toggleVideo()">
+          <svg *ngIf="videoEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <svg *ngIf="!videoEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 00-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409" />
+          </svg>
+          <span class="control-label">{{ videoEnabled ? 'Stop Video' : 'Start Video' }}</span>
+        </button>
+      </div>
+    </div>
 
-      <button (click)="toggleScreenShare()" class="p-4 rounded-full transition" [ngClass]="screenSharing ? 'bg-teal-600 hover:bg-teal-700' : 'bg-gray-700 hover:bg-gray-600'">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-        </svg>
-      </button>
-
-      <button (click)="leaveMeeting()" class="p-4 bg-red-600 hover:bg-red-700 rounded-full transition">
-        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-        </svg>
-      </button>
+    <!-- Error Banner -->
+    <div class="error-banner" *ngIf="error && joined">
+      {{ error }}
     </div>
   </div>
 </div>
