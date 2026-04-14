@@ -374,6 +374,14 @@ spring:
             - StripPrefix=1
           order: 24
 
+        - id: refund-service
+          uri: http://localhost:8095
+          predicates:
+            - Path=/api/refunds/**
+          filters:
+            - StripPrefix=1
+          order: 24
+
         - id: notification-service
           uri: lb://notification-service
           predicates:

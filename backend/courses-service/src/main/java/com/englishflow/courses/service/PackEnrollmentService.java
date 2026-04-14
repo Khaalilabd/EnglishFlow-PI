@@ -292,6 +292,36 @@ public class PackEnrollmentService implements IPackEnrollmentService {
     }
     
     @Override
+    @Transactional
+    public void unenrollStudent(Long studentId, Long packId) {
+        // Find the pack enrollment
+        PackEnrollment enrollment = enrollmentRepository.findByStudentIdAndPackId(studentId, packId)
+            .orElseThrow(() -> new RuntimeException("Pack enrollment not found for student " + studentId + " and pack " + packId));
+        
+        // Get pack details to find all courses
+        Pack pack = packRepository.findById(packId)
+            .orElseThrow(() -> new RuntimeException("Pack not found with id: " + packId));
+        
+        // Unenroll from all courses in the pack
+        if (pack.getCourseIds() != null && !pack.getCourseIds().isEmpty()) {
+            for (Long courseId : pack.getCourseIds()) {
+                try {
+                    courseEnrollmentService.unenrollStudent(studentId, courseId);
+                } catch (Exception e) {
+                    System.err.println("Failed to unenroll student " + studentId + " from course " + courseId + ": " + e.getMessage());
+                    // Continue with other courses even if one fails
+                }
+            }
+        }
+        
+        // Delete the pack enrollment record
+        enrollmentRepository.delete(enrollment);
+        
+        // Update pack enrollment count
+        packService.decrementEnrollment(packId);
+    }
+    
+    @Override
     public boolean isStudentEnrolled(Long studentId, Long packId) {
         return enrollmentRepository.findByStudentIdAndPackId(studentId, packId).isPresent();
     }

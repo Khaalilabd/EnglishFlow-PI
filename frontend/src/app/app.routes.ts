@@ -265,6 +265,16 @@ export const routes: Routes = [
         path: 'settings',
         loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.StudentSettingsComponent),
         title: 'Settings | Jungle in English'
+      },
+      {
+        path: 'refund-request',
+        loadComponent: () => import('./pages/student-panel/refund-request/refund-request.component').then(m => m.RefundRequestComponent),
+        title: 'Request Refund | Jungle in English'
+      },
+      {
+        path: 'refund-history',
+        loadComponent: () => import('./pages/student-panel/refund-history/refund-history.component').then(m => m.RefundHistoryComponent),
+        title: 'Refund History | Jungle in English'
       }
     ]
   },

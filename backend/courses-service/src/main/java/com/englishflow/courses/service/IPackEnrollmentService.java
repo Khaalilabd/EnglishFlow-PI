@@ -24,5 +24,7 @@ public interface IPackEnrollmentService {
     
     void cancelEnrollment(Long enrollmentId);
     
+    void unenrollStudent(Long studentId, Long packId);
+    
     boolean isStudentEnrolled(Long studentId, Long packId);
 }

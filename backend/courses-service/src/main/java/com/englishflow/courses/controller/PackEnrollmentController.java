@@ -72,6 +72,14 @@ public class PackEnrollmentController {
         return ResponseEntity.noContent().build();
     }
     
+    @DeleteMapping("/unenroll")
+    public ResponseEntity<Void> unenrollStudent(
+            @RequestParam Long studentId,
+            @RequestParam Long packId) {
+        enrollmentService.unenrollStudent(studentId, packId);
+        return ResponseEntity.noContent().build();
+    }
+    
     @GetMapping("/check")
     public ResponseEntity<Boolean> isStudentEnrolled(
             @RequestParam Long studentId,
