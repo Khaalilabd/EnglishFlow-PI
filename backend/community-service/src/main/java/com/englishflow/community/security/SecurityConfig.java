@@ -32,14 +32,12 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/community/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/community/search/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/community/trending/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/community/permissions/**").permitAll()
                 
                 // Actuator endpoints
                 .requestMatchers("/actuator/**").permitAll()
                 
-                // Internal service endpoints - allow services with ROLE_INTERNAL_SERVICE
-                .requestMatchers(HttpMethod.POST, "/community/topics").hasAnyAuthority("ROLE_INTERNAL_SERVICE", "ROLE_USER", "ROLE_ADMIN")
-                
-                // Write operations - require authentication
+                // Write operations - require authentication (any authenticated user can write)
                 .requestMatchers(HttpMethod.POST, "/community/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/community/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/community/**").authenticated()
