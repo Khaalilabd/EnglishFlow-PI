@@ -383,3 +383,13 @@
     <p class="mt-4 text-gray-600 dark:text-gray-400">Loading course...</p>
   </div>
 </div>
+
+<!-- Payment Modal -->
+<app-payment-modal
+  *ngIf="showPaymentModal && course"
+  [itemType]="'COURSE'"
+  [itemId]="course.id!"
+  [itemName]="course.title"
+  [amount]="course.price || 0"
+  (closed)="onPaymentModalClosed()">
+</app-payment-modal>

@@ -1,0 +1,63 @@
+# Test Tutor Availability API
+
+### 1. Check if tutor 11 has availability
+GET http://localhost:8086/api/tutor-availability/tutor/11
+Accept: application/json
+
+### 2. Get available slots for tutor 11
+GET http://localhost:8088/api/tutor-availability/tutor/11/available-slots
+Accept: application/json
+
+### 3. Create availability for tutor 11 (if needed)
+POST http://localhost:8086/api/tutor-availability
+Content-Type: application/json
+
+{
+  "tutorId": 11,
+  "tutorName": "Test Tutor",
+  "availableDays": ["MONDAY", "WEDNESDAY", "FRIDAY"],
+  "timeSlots": [
+    {
+      "startTime": "10:00",
+      "endTime": "12:00"
+    },
+    {
+      "startTime": "14:00",
+      "endTime": "16:00"
+    }
+  ],
+  "categories": ["GENERAL_ENGLISH"],
+  "levels": ["BEGINNER", "INTERMEDIATE"],
+  "hourlyRate": 25.00,
+  "maxStudentsCapacity": 10,
+  "status": "AVAILABLE"
+}
+
+### 4. Update availability for tutor 11
+PUT http://localhost:8086/api/tutor-availability/11
+Content-Type: application/json
+
+{
+  "tutorId": 11,
+  "tutorName": "Test Tutor",
+  "availableDays": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+  "timeSlots": [
+    {
+      "startTime": "09:00",
+      "endTime": "11:00"
+    },
+    {
+      "startTime": "13:00",
+      "endTime": "15:00"
+    },
+    {
+      "startTime": "16:00",
+      "endTime": "18:00"
+    }
+  ],
+  "categories": ["GENERAL_ENGLISH", "BUSINESS_ENGLISH"],
+  "levels": ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
+  "hourlyRate": 30.00,
+  "maxStudentsCapacity": 15,
+  "status": "AVAILABLE"
+}

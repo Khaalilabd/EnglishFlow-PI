@@ -233,3 +233,14 @@
     </div>
   </div>
 </div>
+
+<!-- Payment Modal -->
+<app-payment-modal
+  *ngIf="showPaymentModal && pack"
+  [itemType]="'PACK'"
+  [itemId]="pack.id!"
+  [itemName]="pack.name"
+  [amount]="pack.price"
+  (closed)="onPaymentModalClosed()"
+  (enrolled)="onEnrolled()">
+</app-payment-modal>

@@ -5,6 +5,7 @@ import com.englishflow.courses.enums.CourseStatus;
 import com.englishflow.courses.service.ICourseService;
 import com.englishflow.courses.service.FileStorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -18,6 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/courses")
 @RequiredArgsConstructor
@@ -27,82 +29,169 @@ public class CourseController {
     private final FileStorageService fileStorageService;
     
     @PostMapping
-    public ResponseEntity<CourseDTO> createCourse(@RequestBody CourseDTO courseDTO) {
-        CourseDTO created = courseService.createCourse(courseDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    public ResponseEntity<?> createCourse(@RequestBody CourseDTO courseDTO) {
+        try {
+            log.info("Creating course: {}", courseDTO.getTitle());
+            
+            // Validate required fields
+            if (courseDTO.getTitle() == null || courseDTO.getTitle().trim().isEmpty()) {
+                log.warn("Course title is required");
+                return ResponseEntity.badRequest().body(Map.of("error", "Course title is required"));
+            }
+            if (courseDTO.getLevel() == null || courseDTO.getLevel().trim().isEmpty()) {
+                log.warn("Course level is required");
+                return ResponseEntity.badRequest().body(Map.of("error", "Course level is required"));
+            }
+            if (courseDTO.getTutorId() == null) {
+                log.warn("Tutor ID is required");
+                return ResponseEntity.badRequest().body(Map.of("error", "Tutor ID is required"));
+            }
+            
+            CourseDTO created = courseService.createCourse(courseDTO);
+            log.info("Course created successfully with ID: {}", created.getId());
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (Exception e) {
+            log.error("Error creating course", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to create course: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<CourseDTO> getCourseById(@PathVariable Long id) {
-        CourseDTO course = courseService.getCourseById(id);
-        return ResponseEntity.ok(course);
+    public ResponseEntity<?> getCourseById(@PathVariable Long id) {
+        try {
+            CourseDTO course = courseService.getCourseById(id);
+            return ResponseEntity.ok(course);
+        } catch (Exception e) {
+            log.error("Error getting course by ID: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get course: " + e.getMessage()));
+        }
     }
     
     @GetMapping
-    public ResponseEntity<Page<CourseDTO>> getAllCourses(
+    public ResponseEntity<?> getAllCourses(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "id") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortBy));
-        Page<CourseDTO> courses = courseService.getAllCoursesPaginated(pageable);
-        return ResponseEntity.ok(courses);
+        try {
+            Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.fromString(sortDirection), sortBy));
+            Page<CourseDTO> courses = courseService.getAllCoursesPaginated(pageable);
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting all courses", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get courses: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/all")
-    public ResponseEntity<List<CourseDTO>> getAllCoursesNoPagination() {
-        List<CourseDTO> courses = courseService.getAllCourses();
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<?> getAllCoursesNoPagination() {
+        try {
+            List<CourseDTO> courses = courseService.getAllCourses();
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting all courses (no pagination)", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get courses: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/published")
-    public ResponseEntity<List<CourseDTO>> getPublishedCourses() {
-        List<CourseDTO> courses = courseService.getPublishedCourses();
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<?> getPublishedCourses() {
+        try {
+            List<CourseDTO> courses = courseService.getPublishedCourses();
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting published courses", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get published courses: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<CourseDTO>> getCoursesByStatus(@PathVariable CourseStatus status) {
-        List<CourseDTO> courses = courseService.getCoursesByStatus(status);
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<?> getCoursesByStatus(@PathVariable CourseStatus status) {
+        try {
+            List<CourseDTO> courses = courseService.getCoursesByStatus(status);
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting courses by status: {}", status, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get courses: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/level/{level}")
-    public ResponseEntity<List<CourseDTO>> getCoursesByLevel(@PathVariable String level) {
-        List<CourseDTO> courses = courseService.getCoursesByLevel(level);
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<?> getCoursesByLevel(@PathVariable String level) {
+        try {
+            List<CourseDTO> courses = courseService.getCoursesByLevel(level);
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting courses by level: {}", level, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get courses: " + e.getMessage()));
+        }
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<CourseDTO> updateCourse(@PathVariable Long id, @RequestBody CourseDTO courseDTO) {
-        CourseDTO updated = courseService.updateCourse(id, courseDTO);
-        return ResponseEntity.ok(updated);
+    public ResponseEntity<?> updateCourse(@PathVariable Long id, @RequestBody CourseDTO courseDTO) {
+        try {
+            log.info("Updating course: {}", id);
+            CourseDTO updated = courseService.updateCourse(id, courseDTO);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            log.error("Error updating course: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to update course: " + e.getMessage()));
+        }
     }
     
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCourse(@PathVariable Long id) {
-        courseService.deleteCourse(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteCourse(@PathVariable Long id) {
+        try {
+            log.info("Deleting course: {}", id);
+            courseService.deleteCourse(id);
+            return ResponseEntity.noContent().build();
+        } catch (Exception e) {
+            log.error("Error deleting course: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to delete course: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/tutor/{tutorId}")
-    public ResponseEntity<List<CourseDTO>> getCoursesByTutor(@PathVariable Long tutorId) {
-        List<CourseDTO> courses = courseService.getCoursesByTutor(tutorId);
-        return ResponseEntity.ok(courses);
+    public ResponseEntity<?> getCoursesByTutor(@PathVariable Long tutorId) {
+        try {
+            List<CourseDTO> courses = courseService.getCoursesByTutor(tutorId);
+            return ResponseEntity.ok(courses);
+        } catch (Exception e) {
+            log.error("Error getting courses by tutor: {}", tutorId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to get courses: " + e.getMessage()));
+        }
     }
     
     @GetMapping("/{id}/exists")
-    public ResponseEntity<Boolean> courseExists(@PathVariable Long id) {
-        boolean exists = courseService.existsById(id);
-        return ResponseEntity.ok(exists);
+    public ResponseEntity<?> courseExists(@PathVariable Long id) {
+        try {
+            boolean exists = courseService.existsById(id);
+            return ResponseEntity.ok(exists);
+        } catch (Exception e) {
+            log.error("Error checking if course exists: {}", id, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to check course: " + e.getMessage()));
+        }
     }
     
     @PostMapping("/{id}/upload-thumbnail")
-    public ResponseEntity<Map<String, String>> uploadThumbnail(
+    public ResponseEntity<?> uploadThumbnail(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
         
         try {
+            log.info("Uploading thumbnail for course: {}", id);
+            
             // Validate file
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -141,20 +230,24 @@ public class CourseController {
             response.put("thumbnailUrl", thumbnailUrl);
             response.put("message", "Thumbnail uploaded successfully");
             
+            log.info("Thumbnail uploaded successfully for course: {}", id);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
+            log.error("Error uploading thumbnail for course: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to upload thumbnail: " + e.getMessage()));
         }
     }
     
     @PostMapping("/{id}/upload-material")
-    public ResponseEntity<Map<String, String>> uploadCourseMaterial(
+    public ResponseEntity<?> uploadCourseMaterial(
             @PathVariable Long id,
             @RequestParam("file") MultipartFile file) {
         
         try {
+            log.info("Uploading material for course: {}", id);
+            
             // Validate file
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -188,17 +281,20 @@ public class CourseController {
             response.put("fileUrl", materialUrl);
             response.put("message", "Course material uploaded successfully");
             
+            log.info("Material uploaded successfully for course: {}", id);
             return ResponseEntity.ok(response);
             
         } catch (Exception e) {
+            log.error("Error uploading material for course: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to upload material: " + e.getMessage()));
         }
     }
     
     @DeleteMapping("/{id}/thumbnail")
-    public ResponseEntity<Map<String, String>> deleteThumbnail(@PathVariable Long id) {
+    public ResponseEntity<?> deleteThumbnail(@PathVariable Long id) {
         try {
+            log.info("Deleting thumbnail for course: {}", id);
             CourseDTO course = courseService.getCourseById(id);
             
             if (course.getThumbnailUrl() != null) {
@@ -207,9 +303,11 @@ public class CourseController {
                 courseService.updateCourse(id, course);
             }
             
+            log.info("Thumbnail deleted successfully for course: {}", id);
             return ResponseEntity.ok(Map.of("message", "Thumbnail deleted successfully"));
             
         } catch (Exception e) {
+            log.error("Error deleting thumbnail for course: {}", id, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Failed to delete thumbnail: " + e.getMessage()));
         }

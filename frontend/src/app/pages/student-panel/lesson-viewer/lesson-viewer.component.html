@@ -188,10 +188,16 @@
           <!-- QUIZ Lesson -->
           @if (lesson.lessonType === 'QUIZ') {
             @if (lessonQuizId) {
-              <app-quiz-take 
+              <!-- Quiz component temporarily disabled -->
+              <!-- <app-quiz-take 
                 [quizId]="lessonQuizId" 
                 (quizCompleted)="onQuizCompleted()">
-              </app-quiz-take>
+              </app-quiz-take> -->
+              <div class="coming-soon">
+                <div class="coming-soon-icon">📝</div>
+                <h3>Quiz</h3>
+                <p>Quiz functionality is being loaded...</p>
+              </div>
             } @else {
               <div class="coming-soon">
                 <div class="coming-soon-icon">⚠️</div>
@@ -200,6 +206,90 @@
                 <p class="text-sm text-gray-500 mt-2">Please contact your tutor to assign a quiz to this lesson.</p>
               </div>
             }
+          }
+
+          <!-- ONLINE Lesson -->
+          @if (lesson.lessonType === 'ONLINE') {
+            <div class="online-lesson-container">
+              @if (loadingTimeAssignment) {
+                <div class="loading-state">
+                  <div class="spinner"></div>
+                  <p>Loading lesson schedule...</p>
+                </div>
+              } @else if (lessonTimeAssignment) {
+                <div class="online-lesson-info">
+                  <div class="schedule-card">
+                    <div class="schedule-header">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                      <h3>Lesson Schedule</h3>
+                    </div>
+                    
+                    <div class="schedule-details">
+                      <div class="schedule-item">
+                        <span class="label">Day:</span>
+                        <span class="value">{{ getDayName(lessonTimeAssignment.dayOfWeek) }}</span>
+                      </div>
+                      
+                      <div class="schedule-item">
+                        <span class="label">Start Time:</span>
+                        <span class="value">{{ lessonTimeAssignment.startTime }}</span>
+                      </div>
+                      
+                      <div class="schedule-item">
+                        <span class="label">End Time:</span>
+                        <span class="value">{{ lessonTimeAssignment.endTime }}</span>
+                      </div>
+                    </div>
+
+                    @if (canJoinLesson()) {
+                      <div class="join-section available">
+                        <div class="status-badge live">
+                          <span class="pulse"></span>
+                          <span>Lesson Available</span>
+                        </div>
+                        <button class="join-btn" (click)="joinLesson()">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                          </svg>
+                          Join Lesson
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="join-section unavailable">
+                        @if (activeMeetingRoomId) {
+                          <div class="status-badge waiting">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>{{ getTimeUntilStart() }}</span>
+                          </div>
+                          <p class="info-text">The join button will appear 15 minutes before the lesson starts</p>
+                        } @else {
+                          <div class="status-badge waiting">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Waiting for tutor to start meeting</span>
+                          </div>
+                          <p class="info-text">The tutor hasn't started the meeting yet. The join button will appear when the tutor starts the lesson.</p>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="no-schedule">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <h3>No Schedule Configured</h3>
+                  <p>The tutor hasn't set up a schedule for this online lesson yet.</p>
+                  <p class="text-sm">Please contact your tutor for more information.</p>
+                </div>
+              }
+            </div>
           }
 
           <!-- ASSIGNMENT, INTERACTIVE (Coming Soon) -->

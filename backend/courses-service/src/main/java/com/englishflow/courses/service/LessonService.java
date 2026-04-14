@@ -6,6 +6,7 @@ import com.englishflow.courses.entity.Lesson;
 import com.englishflow.courses.enums.LessonType;
 import com.englishflow.courses.repository.ChapterRepository;
 import com.englishflow.courses.repository.LessonRepository;
+import com.englishflow.courses.repository.LessonTimeAssignmentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +20,7 @@ public class LessonService implements ILessonService {
     
     private final LessonRepository lessonRepository;
     private final ChapterRepository chapterRepository;
+    private final LessonTimeAssignmentRepository timeAssignmentRepository;
     
     @Override
     @Transactional(readOnly = true)
@@ -114,6 +116,9 @@ public class LessonService implements ILessonService {
         if (!lessonRepository.existsById(id)) {
             throw new RuntimeException("Lesson not found with id: " + id);
         }
+        // Delete time assignment first to avoid FK constraint violation
+        timeAssignmentRepository.findByLessonId(id)
+                .ifPresent(timeAssignmentRepository::delete);
         lessonRepository.deleteById(id);
     }
     

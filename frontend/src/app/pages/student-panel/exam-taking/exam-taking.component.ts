@@ -219,19 +219,16 @@ export class ExamTakingComponent implements OnInit, OnDestroy {
 
   calculateTimeRemaining(): void {
     if (!this.attempt) {
-      console.error('❌ No attempt found');
       this.timeRemaining = 0;
       return;
     }
     
     if (!this.attempt.exam || !this.attempt.exam.totalDuration) {
-      console.error('❌ Exam or totalDuration is missing:', this.attempt.exam);
       this.timeRemaining = 0;
       return;
     }
     
     if (!this.attempt.startedAt) {
-      console.error('❌ startedAt is missing:', this.attempt);
       this.timeRemaining = 0;
       return;
     }
@@ -239,7 +236,6 @@ export class ExamTakingComponent implements OnInit, OnDestroy {
     const startTime = new Date(this.attempt.startedAt).getTime();
     
     if (isNaN(startTime)) {
-      console.error('❌ Invalid startedAt date:', this.attempt.startedAt);
       this.timeRemaining = 0;
       return;
     }
@@ -248,17 +244,6 @@ export class ExamTakingComponent implements OnInit, OnDestroy {
     const elapsed = Math.floor((now - startTime) / 1000);
     const totalSeconds = this.attempt.exam.totalDuration * 60;
     this.timeRemaining = Math.max(0, totalSeconds - elapsed);
-    
-    console.log('✅ Timer calculated:', {
-      startTime: this.attempt.startedAt,
-      startTimeMs: startTime,
-      nowMs: now,
-      totalDuration: this.attempt.exam.totalDuration,
-      totalSeconds: totalSeconds,
-      elapsed: elapsed,
-      timeRemaining: this.timeRemaining,
-      formatted: this.formattedTime
-    });
   }
 
   startTimer(): void {

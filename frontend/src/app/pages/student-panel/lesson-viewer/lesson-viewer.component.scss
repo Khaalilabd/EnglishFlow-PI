@@ -899,3 +899,266 @@
     justify-content: center;
   }
 }
+
+// Online lesson styles
+.online-lesson-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+
+  .loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 3rem;
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+  }
+
+  .online-lesson-info {
+    .schedule-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+
+      .schedule-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+
+        .icon {
+          width: 24px;
+          height: 24px;
+        }
+
+        h3 {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin: 0;
+        }
+      }
+
+      .schedule-details {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .schedule-item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0.75rem;
+          background: #f9fafb;
+          border-radius: 8px;
+
+          .label {
+            font-weight: 500;
+            color: #6b7280;
+          }
+
+          .value {
+            font-weight: 600;
+            color: #111827;
+            font-size: 1.125rem;
+          }
+        }
+      }
+
+      .join-section {
+        padding: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+
+        &.available {
+          background: linear-gradient(to bottom, #ecfdf5, white);
+        }
+
+        &.unavailable {
+          background: #f9fafb;
+        }
+
+        .status-badge {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.5rem 1rem;
+          border-radius: 9999px;
+          font-weight: 500;
+          margin-bottom: 1rem;
+
+          &.live {
+            background: #10b981;
+            color: white;
+
+            .pulse {
+              width: 8px;
+              height: 8px;
+              background: white;
+              border-radius: 50%;
+              animation: pulse 2s ease-in-out infinite;
+            }
+          }
+
+          &.waiting {
+            background: #fef3c7;
+            color: #92400e;
+
+            svg {
+              width: 20px;
+              height: 20px;
+            }
+          }
+        }
+
+        .join-btn {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.5rem;
+          padding: 1rem;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 1.125rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+
+          svg {
+            width: 24px;
+            height: 24px;
+          }
+
+          &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(102, 126, 234, 0.4);
+          }
+
+          &:active {
+            transform: translateY(0);
+          }
+        }
+
+        .info-text {
+          color: #6b7280;
+          font-size: 0.875rem;
+          text-align: center;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .no-schedule {
+    text-align: center;
+    padding: 3rem;
+    background: #f9fafb;
+    border-radius: 12px;
+
+    svg {
+      width: 64px;
+      height: 64px;
+      color: #9ca3af;
+      margin: 0 auto 1rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      color: #6b7280;
+      margin-bottom: 0.5rem;
+
+      &.text-sm {
+        font-size: 0.875rem;
+        color: #9ca3af;
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+// Dark mode support
+:host-context(.dark) {
+  .online-lesson-container {
+    .online-lesson-info {
+      .schedule-card {
+        background: #1f2937;
+
+        .schedule-details {
+          .schedule-item {
+            background: #111827;
+
+            .label {
+              color: #9ca3af;
+            }
+
+            .value {
+              color: #f9fafb;
+            }
+          }
+        }
+
+        .join-section {
+          border-top-color: #374151;
+
+          &.available {
+            background: linear-gradient(to bottom, #064e3b, #1f2937);
+          }
+
+          &.unavailable {
+            background: #111827;
+          }
+
+          .info-text {
+            color: #9ca3af;
+          }
+        }
+      }
+    }
+
+    .no-schedule {
+      background: #1f2937;
+
+      h3 {
+        color: #f9fafb;
+      }
+
+      p {
+        color: #9ca3af;
+      }
+    }
+  }
+}

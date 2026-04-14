@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
@@ -10,24 +10,47 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-tutor-settings',
   standalone: true,
-  imports: [CommonModule, RouterModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
 export class TutorSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
-  activeTab: 'profile' | 'security' | 'notifications' | 'appearance' = 'profile';
+  activeTab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional' = 'profile';
   
   profileForm!: FormGroup;
   passwordForm!: FormGroup;
   notificationForm!: FormGroup;
+  professionalForm!: FormGroup;
   
   isLoadingProfile = false;
   isLoadingPassword = false;
   isLoadingNotifications = false;
+  isLoadingSessions = false;
+  isLoading2FA = false;
+  isLoadingDocuments = false;
   
   profilePhotoPreview: string | null = null;
   selectedFile: File | null = null;
+  selectedDocumentFile: File | null = null;
+  currentDocument: any = null;
+  showDocumentViewer: boolean = false;
+  showSessionsModal: boolean = false;
+  showBackupCodesModal: boolean = false;
+  showDisableModal: boolean = false;
+  showSetupModal: boolean = false;
+  activeSessions: any[] = [];
+  backupCodes: string[] = [];
+  verificationCode: string = '';
+  setupData: any = null;
+  professionalDocuments: any[] = [];
+  documentType: string = '';
+  isDarkMode: boolean = false;
+  sessionSummary: any = null;
+  twoFactorStatus: any = null;
+  passwordStrength: string = '';
+  isDragging: boolean = false;
+  profileCompletion: number = 0;
 
   constructor(
     private fb: FormBuilder,
@@ -110,7 +133,7 @@ export class TutorSettingsComponent implements OnInit {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { 'mismatch': true };
   }
 
-  setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance') {
+  setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional') {
     this.activeTab = tab;
   }
 
@@ -223,5 +246,197 @@ export class TutorSettingsComponent implements OnInit {
     if (field?.hasError('pattern')) return 'Invalid format';
     if (field?.hasError('email')) return 'Invalid email address';
     return '';
+  }
+
+  downloadDocument(document: any): void {
+    if (!document) return;
+    // Implement document download logic
+    const link = document.createElement('a');
+    link.href = document.url || document.path;
+    link.download = document.name || 'document';
+    link.click();
+  }
+
+  isImageFile(filePath: string): boolean {
+    if (!filePath) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    return imageExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
+  }
+
+  isPdfFile(filePath: string): boolean {
+    if (!filePath) return false;
+    return filePath.toLowerCase().endsWith('.pdf');
+  }
+
+  isVideoFile(filePath: string): boolean {
+    if (!filePath) return false;
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv'];
+    return videoExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
+  }
+
+  closeDocumentViewer(): void {
+    this.currentDocument = null;
+  }
+
+  getDocumentIcon(documentType: string): string {
+    const iconMap: { [key: string]: string } = {
+      'pdf': 'fa-file-pdf',
+      'doc': 'fa-file-word',
+      'docx': 'fa-file-word',
+      'xls': 'fa-file-excel',
+      'xlsx': 'fa-file-excel',
+      'ppt': 'fa-file-powerpoint',
+      'pptx': 'fa-file-powerpoint',
+      'txt': 'fa-file-text',
+      'zip': 'fa-file-archive',
+      'image': 'fa-file-image',
+      'video': 'fa-file-video',
+      'audio': 'fa-file-audio'
+    };
+    return iconMap[documentType?.toLowerCase()] || 'fa-file';
+  }
+
+  closeSessionsModal(): void {
+    // Close sessions modal logic
+  }
+
+  revokeAllOtherSessions(): void {
+    // Revoke all other sessions logic
+  }
+
+  formatLocation(session: any): string {
+    if (!session) return '';
+    const parts = [];
+    if (session.city) parts.push(session.city);
+    if (session.country) parts.push(session.country);
+    return parts.join(', ') || 'Unknown location';
+  }
+
+  revokeSession(sessionId: string, browserName: string): void {
+    // Revoke specific session logic
+  }
+
+  getOSIcon(os: string): string {
+    const osMap: { [key: string]: string } = {
+      'windows': 'fa-windows',
+      'mac': 'fa-apple',
+      'linux': 'fa-linux',
+      'android': 'fa-android',
+      'ios': 'fa-apple'
+    };
+    return osMap[os?.toLowerCase()] || 'fa-desktop';
+  }
+
+  getBrowserIcon(browser: string): string {
+    const browserMap: { [key: string]: string } = {
+      'chrome': 'fa-chrome',
+      'firefox': 'fa-firefox',
+      'safari': 'fa-safari',
+      'edge': 'fa-edge',
+      'opera': 'fa-opera'
+    };
+    return browserMap[browser?.toLowerCase()] || 'fa-globe';
+  }
+
+  getDeviceIcon(deviceType: string): string {
+    const deviceMap: { [key: string]: string } = {
+      'desktop': 'fa-desktop',
+      'mobile': 'fa-mobile',
+      'tablet': 'fa-tablet',
+      'laptop': 'fa-laptop'
+    };
+    return deviceMap[deviceType?.toLowerCase()] || 'fa-device';
+  }
+
+  closeBackupCodesModal(): void {
+    // Close backup codes modal logic
+  }
+
+  downloadBackupCodes(): void {
+    // Download backup codes logic
+  }
+
+  disable2FA(): void {
+    // Disable 2FA logic
+  }
+
+  closeDisableModal(): void {
+    // Close disable modal logic
+  }
+
+  enable2FA(): void {
+    // Enable 2FA logic
+  }
+
+  closeSetupModal(): void {
+    // Close setup modal logic
+  }
+
+  onSubmitProfessional(): void {
+    // Submit professional form logic
+  }
+
+  deleteDocument(docId: string): void {
+    // Delete document logic
+  }
+
+  viewDocument(doc: any): void {
+    this.currentDocument = doc;
+    this.showDocumentViewer = true;
+  }
+
+  uploadDocument(): void {
+    // Upload document logic
+  }
+
+  onDocumentFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.selectedDocumentFile = file;
+    }
+  }
+
+  toggleDarkMode(): void {
+    // Toggle dark mode logic
+  }
+
+  openSessionsModal(): void {
+    this.showSessionsModal = true;
+  }
+
+  openDisable2FA(): void {
+    this.showDisableModal = true;
+  }
+
+  regenerateBackupCodes(): void {
+    // Regenerate backup codes logic
+  }
+
+  openSetup2FA(): void {
+    this.showSetupModal = true;
+  }
+
+  onDrop(event: any): void {
+    event.preventDefault();
+    this.isDragging = false;
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      this.selectedFile = files[0];
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.profilePhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(files[0]);
+    }
+  }
+
+  onDragLeave(event: any): void {
+    event.preventDefault();
+    this.isDragging = false;
+  }
+
+  onDragOver(event: any): void {
+    event.preventDefault();
+    this.isDragging = true;
   }
 }

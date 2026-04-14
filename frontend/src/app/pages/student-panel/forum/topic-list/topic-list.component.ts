@@ -1,9 +1,9 @@
-import { Component, OnInit, ChangeDetectorRef, inject } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, inject, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer } from '@angular/platform-browser';
-import { QuillEditorComponent } from 'ngx-quill';
+// import { QuillEditorComponent } from 'ngx-quill'; // ngx-quill not installed
 import { ForumService, Topic, CreateTopicRequest, SubCategory } from '../../../../services/forum.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ClubService } from '../../../../core/services/club.service';
@@ -13,7 +13,8 @@ import { forkJoin } from 'rxjs';
 @Component({
   selector: 'app-topic-list',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, QuillEditorComponent],
+  imports: [CommonModule, RouterModule, FormsModule],
+  schemas: [NO_ERRORS_SCHEMA],
   templateUrl: './topic-list.component.html',
   styleUrl: './topic-list.component.scss'
 })

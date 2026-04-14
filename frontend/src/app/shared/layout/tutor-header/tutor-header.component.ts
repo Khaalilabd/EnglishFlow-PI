@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { SidebarService } from '../../services/sidebar.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
@@ -49,6 +49,15 @@ import { UserRoleBadgeComponent } from '../../components/user-role-badge/user-ro
         <button class="relative p-2 hover:bg-gray-100 rounded-xl transition-colors">
           <i class="fas fa-envelope text-gray-600 text-xl"></i>
           <span *ngIf="unreadMessages > 0" class="absolute top-0 right-0 bg-teal-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{{unreadMessages}}</span>
+        </button>
+
+        <!-- Start Meeting Button -->
+        <button (click)="startMeeting()"
+          class="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-semibold text-sm transition-all shadow-md hover:shadow-lg">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          <span class="hidden md:block">Start Meeting</span>
         </button>
 
         <!-- User Menu -->
@@ -156,7 +165,8 @@ export class TutorHeaderComponent implements OnInit {
 
   constructor(
     private sidebarService: SidebarService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {
     this.currentUser$ = this.authService.currentUser$;
     
@@ -220,6 +230,11 @@ export class TutorHeaderComponent implements OnInit {
 
   closeUserMenu() {
     this.userMenuOpen = false;
+  }
+
+  startMeeting(): void {
+    const roomId = 'englishflow-' + Math.random().toString(36).substring(2, 10);
+    this.router.navigate(['/meeting', roomId]);
   }
 
   logout() {

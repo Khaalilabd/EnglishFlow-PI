@@ -38,6 +38,33 @@ export const routes: Routes = [
     path: '',
     component: HomeComponent
   },
+
+  // Public meeting join (for students with invite link)
+  {
+    path: 'join/:roomId',
+    loadComponent: () => import('./pages/meeting-join/meeting-join.component').then(m => m.MeetingJoinComponent),
+    title: 'Join Meeting | Jungle in English'
+  },
+
+  // Payment return/cancel pages (Paymee redirects here)
+  {
+    path: 'payment/return',
+    loadComponent: () => import('./pages/payment/payment-return/payment-return.component').then(m => m.PaymentReturnComponent),
+    title: 'Payment Result | Jungle in English'
+  },
+  {
+    path: 'payment/cancel',
+    loadComponent: () => import('./pages/payment/payment-return/payment-return.component').then(m => m.PaymentReturnComponent),
+    title: 'Payment Cancelled | Jungle in English'
+  },
+
+  // Tutor meeting room — top-level so it renders full-screen without the sidebar layout
+  {
+    path: 'meeting/:roomId',
+    loadComponent: () => import('./pages/tutor-panel/instant-meeting/instant-meeting.component').then(m => m.InstantMeetingComponent),
+    canActivate: [roleGuard(['TUTOR', 'TEACHER'])],
+    title: 'Meeting | Jungle in English'
+  },
   
   // Page publique des clubs
   {
@@ -546,7 +573,7 @@ export const routes: Routes = [
       },
       {
         path: 'payments',
-        loadComponent: () => import('./pages/dashboard/payments/payments.component').then(m => m.PaymentsComponent),
+        loadComponent: () => import('./pages/academic-panel/payment-management/payment-management.component').then(m => m.PaymentManagementComponent),
         title: 'Manage Payments | Jungle in English Dashboard'
       },
       {
@@ -698,6 +725,12 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/academic-panel/exam-results-monitoring/exam-results-monitoring.component').then(m => m.ExamResultsMonitoringComponent),
         canActivate: [roleGuard(['ACADEMIC_OFFICE_AFFAIR'])],
         title: 'Exam Results Monitoring | Jungle in English Dashboard'
+      },
+      {
+        path: 'payment-management',
+        loadComponent: () => import('./pages/academic-panel/payment-management/payment-management.component').then(m => m.PaymentManagementComponent),
+        canActivate: [roleGuard(['ACADEMIC_OFFICE_AFFAIR', 'ADMIN'])],
+        title: 'Payment Management | Jungle in English Dashboard'
       },
       {
         path: 'form-elements',

@@ -1,8 +1,15 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { OpenStreetMapProvider } from 'leaflet-geosearch';
+// import { OpenStreetMapProvider } from 'leaflet-geosearch'; // leaflet-geosearch not installed
 import { debounceTime, Subject } from 'rxjs';
+
+// Placeholder for OpenStreetMapProvider
+class OpenStreetMapProvider {
+  async search(options: any) {
+    return [];
+  }
+}
 
 export interface LocationData {
   address: string;

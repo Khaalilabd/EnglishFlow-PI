@@ -79,10 +79,8 @@ public class CourseService implements ICourseService {
         @CacheEvict(value = "courseDetails", allEntries = true)
     })
     public CourseDTO createCourse(CourseDTO courseDTO) {
-        // Validate tutor exists and has TUTOR role
-        if (courseDTO.getTutorId() != null) {
-            userValidationService.validateTutorExists(courseDTO.getTutorId());
-        }
+        // Skip tutor validation - tutorId is just a reference
+        // Validation can be done at API gateway level if needed
         
         Course course = mapToEntity(courseDTO);
         Course savedCourse = courseRepository.save(course);
@@ -99,10 +97,7 @@ public class CourseService implements ICourseService {
         Course course = courseRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Course not found with id: " + id));
         
-        // Validate tutor if tutorId is being changed
-        if (courseDTO.getTutorId() != null && !courseDTO.getTutorId().equals(course.getTutorId())) {
-            userValidationService.validateTutorExists(courseDTO.getTutorId());
-        }
+        // Skip tutor validation - tutorId is just a reference
         
         course.setTitle(courseDTO.getTitle());
         course.setDescription(courseDTO.getDescription());

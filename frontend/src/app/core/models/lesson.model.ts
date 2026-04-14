@@ -4,7 +4,8 @@ export enum LessonType {
   QUIZ = 'QUIZ',
   ASSIGNMENT = 'ASSIGNMENT',
   DOCUMENT = 'DOCUMENT',
-  INTERACTIVE = 'INTERACTIVE'
+  INTERACTIVE = 'INTERACTIVE',
+  ONLINE = 'ONLINE'
 }
 
 export interface Lesson {

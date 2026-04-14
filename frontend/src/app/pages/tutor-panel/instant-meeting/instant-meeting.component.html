@@ -1,0 +1,352 @@
+<div class="fixed inset-0 bg-[#1a1a2e] flex flex-col overflow-hidden select-none font-sans" (click)="openMenuId = null">
+
+  <!-- ERROR -->
+  <div *ngIf="error" class="flex-1 flex items-center justify-center p-8">
+    <div class="bg-red-950/60 border border-red-700 rounded-3xl p-10 text-center max-w-md shadow-2xl">
+      <p class="text-white font-bold text-xl mb-2">Cannot Start Meeting</p>
+      <p class="text-red-300 text-sm leading-relaxed">{{error}}</p>
+    </div>
+  </div>
+
+  <!-- CONNECTING -->
+  <div *ngIf="connecting && !error" class="flex-1 flex items-center justify-center">
+    <div class="text-center">
+      <div class="relative w-20 h-20 mx-auto mb-6">
+        <div class="absolute inset-0 rounded-full border-4 border-teal-500/20 animate-ping"></div>
+        <div class="absolute inset-0 rounded-full border-4 border-t-teal-500 border-r-transparent border-b-transparent border-l-transparent animate-spin"></div>
+      </div>
+      <p class="text-white text-xl font-semibold">Starting your meeting...</p>
+      <p class="text-gray-400 text-sm mt-2">Accessing camera &amp; microphone</p>
+    </div>
+  </div>
+
+  <!-- MAIN UI -->
+  <ng-container *ngIf="!connecting && !error">
+
+    <!-- TOP BAR -->
+    <div class="flex items-center justify-between px-5 py-3 bg-[#16213e]/80 backdrop-blur border-b border-white/5 flex-shrink-0 z-20">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 bg-teal-600 rounded-xl flex items-center justify-center">
+          <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-white text-sm font-bold leading-none">EnglishFlow</p>
+          <p class="text-teal-400 text-xs font-mono">{{formattedDuration}}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 flex-1 mx-6 max-w-md">
+        <svg class="w-4 h-4 text-teal-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+        </svg>
+        <span class="text-gray-300 text-xs font-mono truncate flex-1">{{inviteLink}}</span>
+        <button (click)="copyInviteLink()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex-shrink-0"
+          [class]="copied ? 'bg-emerald-600 text-white' : 'bg-teal-600 hover:bg-teal-500 text-white'">
+          {{copied ? 'Copied!' : 'Copy Invite'}}
+        </button>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 rounded-xl border border-white/10">
+          <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+          <span class="text-white text-xs font-semibold">{{participantsArray.length + 1}} in call</span>
+        </div>
+        <button (click)="endMeeting()" class="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl text-sm font-bold transition-all">End</button>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div class="flex flex-1 overflow-hidden">
+
+      <!-- SCREEN SHARE MODE: 70/30 split -->
+      <ng-container *ngIf="anyoneSharing">
+        <div class="flex-1 flex overflow-hidden p-3 gap-3">
+
+          <!-- 70% main screen -->
+          <div class="relative bg-[#0f0f1a] rounded-2xl overflow-hidden flex items-center justify-center" style="flex:7">
+            <!-- My screen share -->
+            <video *ngIf="isScreenSharing" data-local-screen autoplay playsinline class="w-full h-full object-contain"></video>
+            <!-- Remote screen share -->
+            <ng-container *ngIf="!isScreenSharing && sharingParticipant">
+              <video [id]="'screen-' + sharingParticipant.socketId" autoplay playsinline class="w-full h-full object-contain"></video>
+            </ng-container>
+            <div class="absolute bottom-4 left-4">
+              <span class="bg-black/60 backdrop-blur text-white text-sm px-3 py-1.5 rounded-xl font-medium flex items-center gap-2">
+                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+                {{isScreenSharing ? userName : sharingParticipant?.name}} is sharing
+              </span>
+            </div>
+            <!-- PiP camera while sharing -->
+            <div *ngIf="isScreenSharing && videoEnabled" class="absolute bottom-4 right-4 w-36 h-24 rounded-xl overflow-hidden border-2 border-teal-500 shadow-2xl bg-black">
+              <video data-local-cam autoplay playsinline class="w-full h-full object-cover"></video>
+              <div class="absolute bottom-1 left-2"><span class="bg-black/70 text-white text-xs px-1.5 py-0.5 rounded">You</span></div>
+            </div>
+          </div>
+
+          <!-- 30% sidebar -->
+          <div class="flex flex-col gap-3 overflow-hidden" style="flex:3">
+            <!-- Self tile in sidebar -->
+            <div *ngIf="!isScreenSharing" class="relative bg-[#0f0f1a] rounded-2xl overflow-hidden flex items-center justify-center flex-1 min-h-0 border-2 border-teal-600/50">
+              <video data-local-cam autoplay playsinline class="w-full h-full object-cover" [style.display]="videoEnabled ? 'block' : 'none'"></video>
+              <div *ngIf="!videoEnabled" class="absolute inset-0 flex items-center justify-center">
+                <div class="w-14 h-14 rounded-full bg-teal-700 flex items-center justify-center text-xl font-bold text-white">{{getFirstLetter(userName)}}</div>
+              </div>
+              <div class="absolute bottom-2 left-2"><span class="bg-black/60 text-white text-xs px-2 py-0.5 rounded-lg">You (Host)</span></div>
+            </div>
+            <!-- Remote participants in sidebar -->
+            <div *ngFor="let p of sidebarParticipants"
+              class="relative bg-[#0f0f1a] rounded-2xl overflow-hidden flex items-center justify-center flex-1 min-h-0 group border-2"
+              [class]="p.role === 'tutor' ? 'border-teal-600/50' : 'border-indigo-600/50'">
+              <video [id]="'cam-' + p.socketId" autoplay playsinline class="w-full h-full object-cover" [style.display]="!p.isCameraOff ? 'block' : 'none'"></video>
+              <div *ngIf="p.isCameraOff" class="absolute inset-0 flex items-center justify-center">
+                <div class="w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold text-white"
+                  [class]="p.role === 'tutor' ? 'bg-teal-700' : 'bg-indigo-700'">{{getFirstLetter(p.name)}}</div>
+              </div>
+              <div class="absolute bottom-2 left-2 flex items-center gap-1">
+                <span class="bg-black/60 text-white text-xs px-2 py-0.5 rounded-lg truncate max-w-[110px]">{{p.name}}</span>
+                <span *ngIf="p.isMicMuted" class="text-xs">🔇</span>
+              </div>
+              <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="relative">
+                  <button (click)="$event.stopPropagation(); openMenuId = openMenuId === p.socketId ? null : p.socketId"
+                    class="p-1.5 bg-black/60 hover:bg-white/20 text-white rounded-lg transition-all">
+                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div *ngIf="openMenuId === p.socketId" class="absolute right-0 top-8 w-32 bg-[#1e2a3a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                    <button (click)="mutePeer(p.socketId); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-white hover:bg-amber-600/30 transition-colors text-left">🔇 Mute</button>
+                    <button (click)="kickPeer(p.socketId); openMenuId = null" class="w-full flex items-center gap-2 px-3 py-2.5 text-sm text-red-400 hover:bg-red-600/20 transition-colors text-left">✕ Kick</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div *ngIf="sidebarParticipants.length === 0 && isScreenSharing" class="flex-1 bg-[#0f0f1a] rounded-2xl flex items-center justify-center">
+              <p class="text-gray-600 text-xs text-center px-4">No other participants</p>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- NORMAL GRID MODE -->
+      <ng-container *ngIf="!anyoneSharing">
+        <div class="flex-1 p-3 overflow-auto">
+          <div class="grid gap-3 h-full" [class]="participantsArray.length === 0 ? 'grid-cols-1' : 'grid-cols-2'">
+
+            <!-- Local tile -->
+            <div class="relative bg-[#0f0f1a] rounded-2xl overflow-hidden flex items-center justify-center min-h-48 border-2 border-teal-600/60" (click)="openMenuId = null">
+              <!-- Video always in DOM, visibility via style.display -->
+              <video data-local-cam autoplay playsinline class="w-full h-full object-cover" [style.display]="videoEnabled ? 'block' : 'none'"></video>
+              <div *ngIf="!videoEnabled" class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div class="w-28 h-28 bg-gradient-to-br from-teal-500 to-teal-800 rounded-full flex items-center justify-center text-5xl font-bold text-white shadow-2xl">{{getFirstLetter(userName)}}</div>
+                <p class="text-gray-400 text-sm">Camera off</p>
+              </div>
+              <div class="absolute bottom-3 left-3">
+                <span class="bg-black/60 backdrop-blur text-white text-sm px-3 py-1 rounded-xl font-medium">{{userName}} (You · Host)</span>
+              </div>
+              <div *ngIf="!audioEnabled" class="absolute top-3 right-3">
+                <span class="bg-red-600/80 text-white text-xs px-2 py-1 rounded-lg">🔇 Muted</span>
+              </div>
+            </div>
+
+            <!-- Remote participant tiles -->
+            <div *ngFor="let p of participantsArray"
+              class="relative bg-[#0f0f1a] rounded-2xl overflow-hidden flex items-center justify-center min-h-48 border-2 group"
+              [class]="p.role === 'tutor' ? 'border-teal-600/60' : 'border-indigo-600/60'">
+              <!-- Video always in DOM -->
+              <video [id]="'cam-' + p.socketId" autoplay playsinline class="w-full h-full object-cover" [style.display]="!p.isCameraOff ? 'block' : 'none'"></video>
+              <div *ngIf="p.isCameraOff" class="absolute inset-0 flex flex-col items-center justify-center gap-3">
+                <div class="w-28 h-28 rounded-full flex items-center justify-center text-5xl font-bold text-white shadow-2xl"
+                  [class]="p.role === 'tutor' ? 'bg-gradient-to-br from-teal-500 to-teal-800' : 'bg-gradient-to-br from-indigo-500 to-indigo-800'">
+                  {{getFirstLetter(p.name)}}
+                </div>
+                <p class="text-gray-400 text-sm font-medium">{{p.name}}</p>
+              </div>
+              <div class="absolute bottom-3 left-3 flex items-center gap-2">
+                <span class="bg-black/60 backdrop-blur text-white text-sm px-3 py-1 rounded-xl font-medium">{{p.name}}</span>
+                <span *ngIf="p.isMicMuted" class="bg-red-600/80 text-white text-xs px-2 py-1 rounded-lg">🔇</span>
+              </div>
+              <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="relative">
+                  <button (click)="$event.stopPropagation(); openMenuId = openMenuId === p.socketId ? null : p.socketId"
+                    class="p-2 bg-black/60 hover:bg-white/20 text-white rounded-xl transition-all">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                    </svg>
+                  </button>
+                  <div *ngIf="openMenuId === p.socketId" class="absolute right-0 top-10 w-36 bg-[#1e2a3a] border border-white/10 rounded-xl shadow-2xl overflow-hidden z-50">
+                    <button (click)="mutePeer(p.socketId); openMenuId = null" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-white hover:bg-amber-600/30 transition-colors text-left">🔇 Mute</button>
+                    <button (click)="kickPeer(p.socketId); openMenuId = null" class="w-full flex items-center gap-2 px-4 py-3 text-sm text-red-400 hover:bg-red-600/20 transition-colors text-left">✕ Kick</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Waiting state -->
+            <div *ngIf="participantsArray.length === 0"
+              class="bg-[#0f0f1a]/40 border-2 border-dashed border-gray-700 rounded-2xl flex flex-col items-center justify-center min-h-48 gap-3">
+              <svg class="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              <p class="text-gray-600 text-sm">Waiting for students to join...</p>
+              <p class="text-gray-700 text-xs font-mono">{{inviteLink}}</p>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+
+      <!-- SIDE PANEL -->
+      <div *ngIf="showChat || showParticipants" class="w-80 flex-shrink-0 bg-[#16213e] border-l border-white/5 flex flex-col">
+        <ng-container *ngIf="showChat">
+          <div class="px-4 py-3 border-b border-white/5 flex items-center justify-between">
+            <h3 class="text-white font-bold text-sm">Meeting Chat</h3>
+            <button (click)="showChat = false" class="text-gray-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4 space-y-3">
+            <div *ngIf="chatMessages.length === 0" class="text-center text-gray-600 text-sm mt-12">No messages yet</div>
+            <div *ngFor="let msg of chatMessages" class="flex flex-col" [class.items-end]="msg.isMine" [class.items-start]="!msg.isMine">
+              <span class="text-gray-500 text-xs mb-1">{{msg.isMine ? 'You' : msg.senderName}} · {{msg.timestamp}}</span>
+              <div class="max-w-[85%] px-3 py-2 rounded-2xl text-sm" [class]="msg.isMine ? 'bg-teal-600 text-white rounded-br-sm' : 'bg-white/10 text-gray-200 rounded-bl-sm'">{{msg.message}}</div>
+            </div>
+          </div>
+          <div class="p-3 border-t border-white/5 flex gap-2">
+            <input type="text" [(ngModel)]="chatInput" (keyup.enter)="sendChat()" placeholder="Send a message..."
+              class="flex-1 bg-white/5 border border-white/10 text-white text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:border-teal-500 placeholder-gray-600">
+            <button (click)="sendChat()" class="p-2.5 bg-teal-600 hover:bg-teal-500 text-white rounded-xl">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
+            </button>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="showParticipants">
+          <div class="px-4 py-3 border-b border-white/5 flex items-center justify-between">
+            <h3 class="text-white font-bold text-sm">Participants ({{participantsArray.length + 1}})</h3>
+            <button (click)="showParticipants = false" class="text-gray-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </div>
+          <div class="flex-1 overflow-y-auto p-3 space-y-2">
+            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
+              <div class="w-9 h-9 bg-teal-700 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0">{{getFirstLetter(userName)}}</div>
+              <div class="flex-1 min-w-0"><p class="text-white text-sm font-medium truncate">{{userName}}</p><p class="text-teal-400 text-xs">Host · You</p></div>
+              <div class="flex gap-1 text-xs">
+                <span *ngIf="!audioEnabled" class="text-red-400">🔇</span>
+                <span *ngIf="!videoEnabled" class="text-red-400">📷</span>
+                <span *ngIf="isScreenSharing" class="text-teal-400">📺</span>
+              </div>
+            </div>
+            <div *ngFor="let p of participantsArray" class="flex items-center gap-2 p-3 bg-white/5 rounded-xl group">
+              <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                [class]="p.role === 'tutor' ? 'bg-teal-700' : 'bg-indigo-700'">{{getFirstLetter(p.name)}}</div>
+              <div class="flex-1 min-w-0">
+                <p class="text-white text-sm font-medium truncate">{{p.name}}</p>
+                <p class="text-gray-500 text-xs">{{p.role === 'tutor' ? 'Tutor' : 'Student'}}</p>
+              </div>
+              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button (click)="mutePeer(p.socketId)" [disabled]="p.isMicMuted"
+                  class="p-1.5 rounded-lg transition-all text-xs"
+                  [class]="!p.isMicMuted ? 'bg-amber-600/20 hover:bg-amber-600/40 text-amber-400' : 'bg-white/5 text-gray-600 cursor-not-allowed'">🔇</button>
+                <button (click)="kickPeer(p.socketId)" class="p-1.5 bg-red-600/20 hover:bg-red-600/40 text-red-400 rounded-lg transition-all">✕</button>
+              </div>
+            </div>
+            <div *ngIf="participantsArray.length === 0" class="text-center text-gray-600 text-sm py-6">No students have joined yet</div>
+          </div>
+        </ng-container>
+      </div>
+    </div>
+
+    <!-- CONTROLS BAR -->
+    <div class="flex items-center justify-center gap-3 px-6 py-4 bg-[#16213e]/90 backdrop-blur border-t border-white/5 flex-shrink-0 z-20">
+
+      <!-- Mic -->
+      <button (click)="toggleAudio()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+          [class]="audioEnabled ? 'bg-white/10 hover:bg-white/20' : 'bg-red-600 hover:bg-red-700'">
+          <svg *ngIf="audioEnabled" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>
+          </svg>
+          <svg *ngIf="!audioEnabled" class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium" [class]="audioEnabled ? 'text-gray-400' : 'text-red-400'">{{audioEnabled ? 'Mute' : 'Unmute'}}</span>
+      </button>
+
+      <!-- Deafen -->
+      <button (click)="toggleDeafen()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+          [class]="isDeafened ? 'bg-orange-600 hover:bg-orange-700' : 'bg-white/10 hover:bg-white/20'">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072M12 6a7 7 0 010 12M9 9a3 3 0 000 6"/>
+            <path *ngIf="isDeafened" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium" [class]="isDeafened ? 'text-orange-400' : 'text-gray-400'">{{isDeafened ? 'Undeafen' : 'Deafen'}}</span>
+      </button>
+
+      <!-- Camera -->
+      <button (click)="toggleVideo()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+          [class]="videoEnabled ? 'bg-white/10 hover:bg-white/20' : 'bg-red-600 hover:bg-red-700'">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium" [class]="videoEnabled ? 'text-gray-400' : 'text-red-400'">{{videoEnabled ? 'Stop Video' : 'Start Video'}}</span>
+      </button>
+
+      <!-- Screen Share -->
+      <button (click)="toggleScreenShare()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+          [class]="isScreenSharing ? 'bg-teal-600 hover:bg-teal-700' : 'bg-white/10 hover:bg-white/20'">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium" [class]="isScreenSharing ? 'text-teal-400' : 'text-gray-400'">{{isScreenSharing ? 'Stop Share' : 'Share Screen'}}</span>
+      </button>
+
+      <!-- Chat -->
+      <button (click)="toggleChat()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all relative"
+          [class]="showChat ? 'bg-teal-600 hover:bg-teal-700' : 'bg-white/10 hover:bg-white/20'">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+          </svg>
+          <span *ngIf="unreadCount > 0 && !showChat" class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+            {{unreadCount > 9 ? '9+' : unreadCount}}
+          </span>
+        </div>
+        <span class="text-xs font-medium text-gray-400">Chat</span>
+      </button>
+
+      <!-- Participants -->
+      <button (click)="toggleParticipants()" class="flex flex-col items-center gap-1.5">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center transition-all"
+          [class]="showParticipants ? 'bg-teal-600 hover:bg-teal-700' : 'bg-white/10 hover:bg-white/20'">
+          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <span class="text-xs font-medium text-gray-400">People</span>
+      </button>
+
+      <div class="w-px h-10 bg-white/10 mx-2"></div>
+
+      <!-- End call -->
+      <button (click)="endMeeting()" class="flex flex-col items-center gap-1.5">
+        <div class="w-14 h-12 bg-red-600 hover:bg-red-700 rounded-full flex items-center justify-center px-4 transition-all">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/>
+          </svg>
+        </div>
+        <span class="text-xs font-bold text-red-400">End Call</span>
+      </button>
+    </div>
+
+  </ng-container>
+</div>

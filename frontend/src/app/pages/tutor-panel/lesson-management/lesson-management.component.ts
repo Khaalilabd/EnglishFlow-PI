@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValuePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -7,6 +7,8 @@ import { EditorModule } from '@tinymce/tinymce-angular';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { OnlineLessonService, TutorAvailableSlots, AvailableTimeSlot } from '../../../core/services/online-lesson.service';
 import { Lesson, LessonType, CreateLessonRequest, UpdateLessonRequest } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
@@ -15,7 +17,7 @@ import * as mammoth from 'mammoth';
 @Component({
   selector: 'app-lesson-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, EditorModule],
+  imports: [CommonModule, FormsModule, EditorModule, KeyValuePipe],
   templateUrl: './lesson-management.component.html',
   styleUrl: './lesson-management.component.scss'
 })
@@ -26,6 +28,7 @@ export class LessonManagementComponent implements OnInit {
   chapter: Chapter | null = null;
   lessons: Lesson[] = [];
   loading = false;
+  availableQuizzes: any[] = [];
   
   // Modal states
   showCreateModal = false;
@@ -79,19 +82,38 @@ export class LessonManagementComponent implements OnInit {
   convertedFileName: string | null = null;
   showEditor = false;
   
+  // Online lesson time slot properties
+  tutorId: number = 0; // Will be set from logged-in user
+  availableSlots: TutorAvailableSlots | null = null;
+  selectedTimeSlot: AvailableTimeSlot | null = null;
+  loadingSlots = false;
+  noAvailabilityConfigured = false;
+  currentTimeAssignment: any = null;
+  loadingTimeAssignment = false;
+  
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private lessonService: LessonService,
     private chapterService: ChapterService,
     private courseService: CourseService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private onlineLessonService: OnlineLessonService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
     this.courseId = Number(this.route.snapshot.paramMap.get('courseId'));
     this.chapterId = Number(this.route.snapshot.paramMap.get('chapterId'));
+    
     this.lessonForm.chapterId = this.chapterId;
+    
+    // Get logged-in tutor ID
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser) {
+      this.tutorId = currentUser.id;
+    }
+    
     this.loadCourse();
     this.loadChapter();
     this.loadLessons();
@@ -103,7 +125,7 @@ export class LessonManagementComponent implements OnInit {
         this.course = course;
       },
       error: (error) => {
-        console.error('Error loading course:', error);
+        // Error loading course
       }
     });
   }
@@ -114,7 +136,7 @@ export class LessonManagementComponent implements OnInit {
         this.chapter = chapter;
       },
       error: (error) => {
-        console.error('Error loading chapter:', error);
+        // Error loading chapter
       }
     });
   }
@@ -127,7 +149,7 @@ export class LessonManagementComponent implements OnInit {
         this.loading = false;
       },
       error: (error) => {
-        console.error('Error loading lessons:', error);
+        alert('Failed to load lessons: ' + (error.error?.error || error.message || 'Unknown error'));
         this.loading = false;
       }
     });
@@ -147,7 +169,95 @@ export class LessonManagementComponent implements OnInit {
       chapterId: this.chapterId
     };
     this.selectedFile = null;
+    this.selectedTimeSlot = null;
+    this.availableSlots = null;
+    this.noAvailabilityConfigured = false;
+    this.showEditor = false;
+    this.convertedFileName = null;
+    this.conversionError = null;
     this.showCreateModal = true;
+  }
+
+  onLessonTypeChange(): void {
+    if (this.lessonForm.lessonType === LessonType.ONLINE) {
+      this.loadAvailableTimeSlots();
+    } else {
+      this.availableSlots = null;
+      this.selectedTimeSlot = null;
+      this.noAvailabilityConfigured = false;
+    }
+  }
+
+  loadAvailableTimeSlots(): void {
+    this.loadingSlots = true;
+    this.noAvailabilityConfigured = false;
+    
+    this.onlineLessonService.getAvailableSlots(this.tutorId).subscribe({
+      next: (slots) => {
+        this.availableSlots = slots;
+        this.loadingSlots = false;
+        
+        if (!slots.hasAvailability) {
+          this.noAvailabilityConfigured = true;
+        }
+      },
+      error: (error) => {
+        this.loadingSlots = false;
+        this.noAvailabilityConfigured = true;
+      }
+    });
+  }
+
+  selectTimeSlot(slot: AvailableTimeSlot): void {
+    if (!slot.booked) {
+      this.selectedTimeSlot = slot;
+    }
+  }
+
+  getAvailableSlotsByDay(): Map<string, AvailableTimeSlot[]> {
+    const slotsByDay = new Map<string, AvailableTimeSlot[]>();
+    
+    if (this.availableSlots) {
+      this.availableSlots.availableSlots.forEach(slot => {
+        if (!slotsByDay.has(slot.dayOfWeek)) {
+          slotsByDay.set(slot.dayOfWeek, []);
+        }
+        slotsByDay.get(slot.dayOfWeek)!.push(slot);
+      });
+    }
+    
+    return slotsByDay;
+  }
+
+  getDayName(day: string): string {
+    const days: { [key: string]: string } = {
+      'MONDAY': 'Monday',
+      'TUESDAY': 'Tuesday',
+      'WEDNESDAY': 'Wednesday',
+      'THURSDAY': 'Thursday',
+      'FRIDAY': 'Friday',
+      'SATURDAY': 'Saturday',
+      'SUNDAY': 'Sunday'
+    };
+    return days[day] || day;
+  }
+
+  getAvailableCountForDay(slots: AvailableTimeSlot[]): number {
+    return slots.filter(slot => !slot.booked).length;
+  }
+
+  getTimeSlotClasses(slot: AvailableTimeSlot): string {
+    const baseClasses = 'relative px-3 py-3 rounded-lg text-xs font-medium transition-all duration-200';
+    
+    if (slot.booked) {
+      return `${baseClasses} bg-red-50 dark:bg-red-900/20 border-2 border-red-300 dark:border-red-700 text-red-400 dark:text-red-500 cursor-not-allowed`;
+    }
+    
+    if (this.selectedTimeSlot === slot) {
+      return `${baseClasses} bg-gradient-to-br from-blue-600 to-cyan-600 text-white border-2 border-blue-700 shadow-lg transform scale-105 font-bold`;
+    }
+    
+    return `${baseClasses} bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-2 border-gray-300 dark:border-gray-600 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-md cursor-pointer`;
   }
 
   openEditModal(lesson: Lesson): void {
@@ -186,12 +296,28 @@ export class LessonManagementComponent implements OnInit {
   openPreviewModal(lesson: Lesson): void {
     this.selectedLesson = lesson;
     this.previewVideoUrl = null;
+    this.currentTimeAssignment = null;
     
     // Process video URL if it's a video lesson
     if (lesson.lessonType === LessonType.VIDEO && lesson.contentUrl) {
       if (lesson.contentUrl.includes('youtube') || lesson.contentUrl.includes('youtu.be') || lesson.contentUrl.includes('vimeo')) {
         this.previewVideoUrl = this.getEmbedUrl(lesson.contentUrl);
       }
+    }
+
+    // Load time assignment for ONLINE lessons
+    if (lesson.lessonType === LessonType.ONLINE && lesson.id) {
+      this.loadingTimeAssignment = true;
+      this.onlineLessonService.getTimeAssignment(lesson.id).subscribe({
+        next: (assignment) => {
+          this.currentTimeAssignment = assignment;
+          this.loadingTimeAssignment = false;
+        },
+        error: () => {
+          this.currentTimeAssignment = null;
+          this.loadingTimeAssignment = false;
+        }
+      });
     }
     
     this.showPreviewModal = true;
@@ -319,7 +445,6 @@ export class LessonManagementComponent implements OnInit {
         this.conversionError = 'Only DOCX files are supported. Please upload a .docx file.';
       }
     } catch (error) {
-      console.error('Conversion error:', error);
       this.conversionError = 'Failed to convert document. Please try again or upload a different file.';
     } finally {
       this.convertingDocument = false;
@@ -332,10 +457,6 @@ export class LessonManagementComponent implements OnInit {
     this.lessonForm.content = result.value;
     // Clear contentUrl since we're using HTML content instead
     this.lessonForm.contentUrl = '';
-    
-    if (result.messages.length > 0) {
-      console.warn('Conversion warnings:', result.messages);
-    }
   }
 
   changeFile(): void {
@@ -367,6 +488,8 @@ export class LessonManagementComponent implements OnInit {
         );
       case LessonType.INTERACTIVE:
         return !!(lesson.contentUrl && lesson.contentUrl.trim().length > 0);
+      case LessonType.ONLINE:
+        return true; // Online lessons can be published without additional content
       default:
         return false;
     }
@@ -398,54 +521,90 @@ export class LessonManagementComponent implements OnInit {
       return;
     }
 
-    console.log('Creating lesson with data:', this.lessonForm);
+    // Validate time slot for ONLINE lessons
+    if (this.lessonForm.lessonType === LessonType.ONLINE && !this.selectedTimeSlot) {
+      alert('Please select a time slot for the online lesson');
+      return;
+    }
+
     this.loading = true;
     
     // For DOCUMENT type lessons that have been converted to HTML, don't upload the file
-    const shouldUploadFile = this.selectedFile && 
-      !(this.lessonForm.lessonType === LessonType.DOCUMENT && this.showEditor && this.lessonForm.content);
+    const shouldUploadFile = !!(this.selectedFile && 
+      !(this.lessonForm.lessonType === LessonType.DOCUMENT && this.showEditor && this.lessonForm.content));
     
     // First create the lesson
     this.lessonService.createLesson(this.lessonForm).subscribe({
       next: (createdLesson) => {
-        // If there's a file to upload and it's not a converted document, upload it
-        if (shouldUploadFile && createdLesson.id) {
-          this.uploadingFile = true;
-          const uploadObservable = this.lessonForm.lessonType === LessonType.VIDEO
-            ? this.lessonService.uploadVideo(createdLesson.id, this.selectedFile!)
-            : this.lessonService.uploadDocument(createdLesson.id, this.selectedFile!);
-          
-          uploadObservable.subscribe({
-            next: (response) => {
-              this.uploadingFile = false;
-              this.uploadProgress = 100;
-              console.log('File uploaded successfully:', response.message);
-              this.loadLessons();
-              this.closeModals();
-              this.loading = false;
+        // If it's an ONLINE lesson, assign the time slot
+        if (this.lessonForm.lessonType === LessonType.ONLINE && this.selectedTimeSlot && createdLesson.id) {
+          this.onlineLessonService.assignTimeSlot(createdLesson.id, this.tutorId, {
+            dayOfWeek: this.selectedTimeSlot.dayOfWeek,
+            startTime: this.selectedTimeSlot.startTime,
+            endTime: this.selectedTimeSlot.endTime
+          }).subscribe({
+            next: () => {
+              this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
             },
             error: (error) => {
-              this.uploadingFile = false;
-              console.error('Error uploading file:', error);
-              alert('Lesson created but file upload failed: ' + (error.error?.error || 'Unknown error'));
-              this.loadLessons();
-              this.closeModals();
-              this.loading = false;
+              const errorMsg = error.error || 'Unknown error';
+              if (errorMsg.includes('already booked')) {
+                alert('This time slot is no longer available. It may have been booked by another lesson. Please select a different time slot.');
+                // Reload available slots to refresh the list
+                this.loadAvailableTimeSlots();
+              } else {
+                alert('Lesson created but failed to assign time slot: ' + errorMsg);
+              }
+              this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
             }
           });
         } else {
-          // No file to upload, just reload
-          this.loadLessons();
-          this.closeModals();
-          this.loading = false;
+          // Not an ONLINE lesson or no time slot, proceed normally
+          this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
         }
       },
       error: (error) => {
-        console.error('Error creating lesson:', error);
         alert('Error creating lesson: ' + (error.error?.message || 'Unknown error'));
         this.loading = false;
       }
     });
+  }
+
+  private finishLessonCreation(lessonId: number | undefined, shouldUploadFile: boolean): void {
+    if (!lessonId) {
+      this.loading = false;
+      return;
+    }
+    
+    // If there's a file to upload and it's not a converted document, upload it
+    if (shouldUploadFile) {
+      this.uploadingFile = true;
+      const uploadObservable = this.lessonForm.lessonType === LessonType.VIDEO
+        ? this.lessonService.uploadVideo(lessonId, this.selectedFile!)
+        : this.lessonService.uploadDocument(lessonId, this.selectedFile!);
+      
+      uploadObservable.subscribe({
+        next: (response) => {
+          this.uploadingFile = false;
+          this.uploadProgress = 100;
+          this.loadLessons();
+          this.closeModals();
+          this.loading = false;
+        },
+        error: (error) => {
+          this.uploadingFile = false;
+          alert('Lesson created but file upload failed: ' + (error.error?.error || 'Unknown error'));
+          this.loadLessons();
+          this.closeModals();
+          this.loading = false;
+        }
+      });
+    } else {
+      // No file to upload, just reload
+      this.loadLessons();
+      this.closeModals();
+      this.loading = false;
+    }
   }
 
   updateLesson(): void {
@@ -487,12 +646,10 @@ export class LessonManagementComponent implements OnInit {
         // Delete old file first
         this.lessonService.deleteContentFile(this.selectedLesson.id).subscribe({
           next: () => {
-            console.log('Old file deleted successfully');
             // Now proceed with update and new file upload
             this.proceedWithUpdate(updateRequest);
           },
           error: (error) => {
-            console.error('Error deleting old file:', error);
             alert('Failed to delete old file. Please try again.');
             this.loading = false;
           }
@@ -524,14 +681,12 @@ export class LessonManagementComponent implements OnInit {
               next: (response) => {
                 this.uploadingFile = false;
                 this.uploadProgress = 100;
-                console.log('File uploaded successfully:', response.message);
                 this.loadLessons();
                 this.closeModals();
                 this.loading = false;
               },
               error: (error) => {
                 this.uploadingFile = false;
-                console.error('Error uploading file:', error);
                 alert('Lesson updated but file upload failed: ' + (error.error?.error || 'Unknown error'));
                 this.loadLessons();
                 this.closeModals();
@@ -546,7 +701,6 @@ export class LessonManagementComponent implements OnInit {
           }
         },
         error: (error) => {
-          console.error('Error updating lesson:', error);
           alert('Error updating lesson: ' + (error.error?.message || 'Unknown error'));
           this.loading = false;
         }
@@ -597,6 +751,83 @@ export class LessonManagementComponent implements OnInit {
     });
   }
 
+  // Online lesson start logic
+  canStartLesson(assignment: any): boolean {
+    if (!assignment) return false;
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[assignment.dayOfWeek];
+    if (now.getDay() !== lessonDay) return false;
+
+    const [startH, startM] = assignment.startTime.split(':').map(Number);
+    const [endH, endM] = assignment.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Enable button 15 minutes before start time until end time
+    return nowMinutes >= startMinutes - 15 && nowMinutes <= endMinutes;
+  }
+
+  getTimeUntilEarlyStart(assignment: any): string {
+    if (!assignment) return '';
+    
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[assignment.dayOfWeek];
+    const currentDay = now.getDay();
+    
+    // Calculate days until lesson day
+    let daysUntil = lessonDay - currentDay;
+    if (daysUntil < 0) daysUntil += 7; // Next week
+    
+    const [startH, startM] = assignment.startTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const earlyStartMinutes = startMinutes - 15;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // If it's the same day
+    if (daysUntil === 0) {
+      const minutesUntilEarlyStart = earlyStartMinutes - nowMinutes;
+      
+      if (minutesUntilEarlyStart <= 0) {
+        // Already in or past early start window
+        return 'Available now';
+      }
+      
+      const hours = Math.floor(minutesUntilEarlyStart / 60);
+      const minutes = minutesUntilEarlyStart % 60;
+      
+      if (hours > 0) {
+        return `Available in ${hours}h ${minutes}m`;
+      } else {
+        return `Available in ${minutes}m`;
+      }
+    }
+    
+    // Different day
+    if (daysUntil === 1) {
+      return `Available tomorrow at ${assignment.startTime}`;
+    } else {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return `Available on ${dayNames[lessonDay]} at ${assignment.startTime}`;
+    }
+  }
+
+  startLesson(lesson: Lesson): void {
+    if (!lesson.id) return;
+    const roomId = `lesson-${lesson.id}-${Date.now()}`;
+    this.router.navigate(['/meeting', roomId], {
+      queryParams: { lessonId: lesson.id }
+    });
+  }
+
   goBack(): void {
     this.router.navigate(['/tutor-panel/courses', this.courseId, 'chapters']);
   }
@@ -620,7 +851,8 @@ export class LessonManagementComponent implements OnInit {
       [LessonType.DOCUMENT]: '📁',
       [LessonType.QUIZ]: '❓',
       [LessonType.ASSIGNMENT]: '📝',
-      [LessonType.INTERACTIVE]: '🎮'
+      [LessonType.INTERACTIVE]: '🎮',
+      [LessonType.ONLINE]: '🌐'
     };
     return icons[type] || '📚';
   }
@@ -632,7 +864,8 @@ export class LessonManagementComponent implements OnInit {
       [LessonType.DOCUMENT]: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
       [LessonType.QUIZ]: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
       [LessonType.ASSIGNMENT]: 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-300',
-      [LessonType.INTERACTIVE]: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300'
+      [LessonType.INTERACTIVE]: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+      [LessonType.ONLINE]: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300'
     };
     return colors[type] || 'bg-gray-100 text-gray-700';
   }

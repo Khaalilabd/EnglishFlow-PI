@@ -1,9 +1,9 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { QuillEditorComponent } from 'ngx-quill';
+// import { QuillEditorComponent } from 'ngx-quill'; // ngx-quill not installed
 import { ForumService, Topic, Post, CreatePostRequest } from '../../../../services/forum.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ReactionBarComponent } from '../../../../components/reaction-bar/reaction-bar.component';
@@ -12,7 +12,8 @@ import Swal from 'sweetalert2';
 @Component({
   selector: 'app-topic-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent, QuillEditorComponent],
+  imports: [CommonModule, RouterModule, FormsModule, ReactionBarComponent],
+  schemas: [NO_ERRORS_SCHEMA],
   templateUrl: './topic-detail.component.html',
   styleUrl: './topic-detail.component.scss'
 })

@@ -2,6 +2,9 @@ spring:
   application:
     name: exam-service
   
+  cache:
+    type: none
+  
   datasource:
     url: jdbc:postgresql://localhost:5432/englishflow_exams
     username: postgres

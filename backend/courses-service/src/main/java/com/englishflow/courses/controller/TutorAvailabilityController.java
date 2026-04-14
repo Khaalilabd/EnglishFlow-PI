@@ -16,6 +16,7 @@ import java.util.List;
 public class TutorAvailabilityController {
     
     private final ITutorAvailabilityService availabilityService;
+    private final com.englishflow.courses.service.TutorAvailabilitySlotService slotService;
     
     @PostMapping
     public ResponseEntity<TutorAvailabilityDTO> createOrUpdateAvailability(@RequestBody TutorAvailabilityDTO availabilityDTO) {
@@ -68,5 +69,11 @@ public class TutorAvailabilityController {
     public ResponseEntity<Void> deleteAvailability(@PathVariable Long id) {
         availabilityService.deleteAvailability(id);
         return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/tutor/{tutorId}/available-slots")
+    public ResponseEntity<com.englishflow.courses.dto.TutorAvailableSlotsDTO> getAvailableSlots(@PathVariable Long tutorId) {
+        com.englishflow.courses.dto.TutorAvailableSlotsDTO slots = slotService.getAvailableSlots(tutorId);
+        return ResponseEntity.ok(slots);
     }
 }

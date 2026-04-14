@@ -7,6 +7,7 @@ import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
 import { LessonProgressService } from '../../../core/services/lesson-progress.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { OnlineLessonService, LessonTimeAssignment } from '../../../core/services/online-lesson.service';
 import { Lesson } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
@@ -28,6 +29,7 @@ interface ChapterWithLessons {
 export class LessonViewerComponent implements OnInit, OnDestroy {
   lessonId!: number;
   courseId!: number;
+  lessonQuizId: number | null = null;
   lesson: Lesson | null = null;
   course: Course | null = null;
   chaptersWithLessons: ChapterWithLessons[] = [];
@@ -37,6 +39,13 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   documentUrl: SafeResourceUrl | null = null;
   isCompleted = false;
   sidebarCollapsed = false;
+  
+  // Online lesson properties
+  lessonTimeAssignment: LessonTimeAssignment | null = null;
+  loadingTimeAssignment = false;
+  activeMeetingRoomId: string | null = null;
+  checkingActiveMeeting = false;
+  private activeMeetingCheckInterval: any = null;
   
   private progressSubscription?: Subscription;
   private currentStudentId: number = 0;
@@ -49,7 +58,8 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     private courseService: CourseService,
     private progressService: LessonProgressService,
     private authService: AuthService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private onlineLessonService: OnlineLessonService
   ) {}
 
   ngOnInit(): void {
@@ -74,6 +84,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
+    }
+    
+    // Clear active meeting check interval
+    if (this.activeMeetingCheckInterval) {
+      clearInterval(this.activeMeetingCheckInterval);
     }
   }
 
@@ -130,10 +145,61 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
         } else {
           this.documentUrl = null;
         }
+        
+        // Load time assignment for ONLINE lessons
+        if (lesson.lessonType === 'ONLINE' && lesson.id) {
+          this.loadTimeAssignment(lesson.id);
+        }
       },
       error: (error) => {
         console.error('Error loading lesson:', error);
         this.loading = false;
+      }
+    });
+  }
+  
+  loadTimeAssignment(lessonId: number): void {
+    this.loadingTimeAssignment = true;
+    this.onlineLessonService.getTimeAssignment(lessonId).subscribe({
+      next: (assignment) => {
+        this.lessonTimeAssignment = assignment;
+        this.loadingTimeAssignment = false;
+        
+        // Start checking for active meeting every 10 seconds
+        this.startActiveMeetingCheck(lessonId);
+      },
+      error: () => {
+        this.lessonTimeAssignment = null;
+        this.loadingTimeAssignment = false;
+      }
+    });
+  }
+
+  startActiveMeetingCheck(lessonId: number): void {
+    // Clear any existing interval
+    if (this.activeMeetingCheckInterval) {
+      clearInterval(this.activeMeetingCheckInterval);
+    }
+    
+    // Check immediately
+    this.checkActiveMeeting(lessonId);
+    
+    // Then check every 10 seconds
+    this.activeMeetingCheckInterval = setInterval(() => {
+      this.checkActiveMeeting(lessonId);
+    }, 10000);
+  }
+
+  checkActiveMeeting(lessonId: number): void {
+    this.checkingActiveMeeting = true;
+    this.onlineLessonService.checkActiveMeeting(lessonId).subscribe({
+      next: (response) => {
+        this.activeMeetingRoomId = response.active ? response.roomId : null;
+        this.checkingActiveMeeting = false;
+      },
+      error: () => {
+        this.activeMeetingRoomId = null;
+        this.checkingActiveMeeting = false;
       }
     });
   }
@@ -447,4 +513,105 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     if (!this.lesson?.content) return '';
     return this.sanitizer.bypassSecurityTrustHtml(this.lesson.content);
   }
+
+  onQuizCompleted(): void {
+    // Mark lesson as complete when quiz is completed
+    this.markAsComplete();
+  }
+
+  // Online lesson helper methods
+  getDayName(dayOfWeek: string): string {
+    const days: { [key: string]: string } = {
+      'MONDAY': 'Monday',
+      'TUESDAY': 'Tuesday',
+      'WEDNESDAY': 'Wednesday',
+      'THURSDAY': 'Thursday',
+      'FRIDAY': 'Friday',
+      'SATURDAY': 'Saturday',
+      'SUNDAY': 'Sunday'
+    };
+    return days[dayOfWeek] || dayOfWeek;
+  }
+
+  canJoinLesson(): boolean {
+    if (!this.lesson || this.lesson.lessonType !== 'ONLINE') return false;
+    if (!this.lessonTimeAssignment) return false;
+    if (!this.courseId || !this.currentStudentId) return false;
+    if (!this.activeMeetingRoomId) return false; // Only allow join if meeting is active
+
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[this.lessonTimeAssignment.dayOfWeek];
+    if (now.getDay() !== lessonDay) return false;
+
+    const [startH, startM] = this.lessonTimeAssignment.startTime.split(':').map(Number);
+    const [endH, endM] = this.lessonTimeAssignment.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Enable button 15 minutes before start time until end time
+    return nowMinutes >= startMinutes - 15 && nowMinutes <= endMinutes;
+  }
+
+  getTimeUntilStart(): string {
+    if (!this.lessonTimeAssignment) return '';
+    
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[this.lessonTimeAssignment.dayOfWeek];
+    const currentDay = now.getDay();
+    
+    // Calculate days until lesson day
+    let daysUntil = lessonDay - currentDay;
+    if (daysUntil < 0) daysUntil += 7; // Next week
+    
+    const [startH, startM] = this.lessonTimeAssignment.startTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const earlyStartMinutes = startMinutes - 15;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // If it's the same day
+    if (daysUntil === 0) {
+      const minutesUntilEarlyStart = earlyStartMinutes - nowMinutes;
+      
+      if (minutesUntilEarlyStart <= 0) {
+        // Already in or past early start window
+        return 'Available now';
+      }
+      
+      const hours = Math.floor(minutesUntilEarlyStart / 60);
+      const minutes = minutesUntilEarlyStart % 60;
+      
+      if (hours > 0) {
+        return `Available in ${hours}h ${minutes}m`;
+      } else {
+        return `Available in ${minutes}m`;
+      }
+    }
+    
+    // Different day
+    if (daysUntil === 1) {
+      return `Available tomorrow at ${this.lessonTimeAssignment.startTime}`;
+    } else {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return `Available on ${dayNames[lessonDay]} at ${this.lessonTimeAssignment.startTime}`;
+    }
+  }
+
+  joinLesson(): void {
+    if (!this.lesson?.id || !this.activeMeetingRoomId) return;
+
+    // Use the actual room ID from the active meeting
+    this.router.navigate(['/join', this.activeMeetingRoomId], {
+      queryParams: { lessonId: this.lesson.id }
+    });
+  }
+
 }

@@ -6,5 +6,6 @@ public enum LessonType {
     QUIZ,
     ASSIGNMENT,
     DOCUMENT,
-    INTERACTIVE
+    INTERACTIVE,
+    ONLINE
 }

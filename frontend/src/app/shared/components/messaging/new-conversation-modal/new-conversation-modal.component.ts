@@ -11,6 +11,7 @@ interface User {
   lastName: string;
   email: string;
   profilePhotoUrl?: string;
+  selected?: boolean;
 }
 
 @Component({
@@ -29,6 +30,14 @@ export class NewConversationModalComponent implements OnInit {
   searchQuery: string = '';
   loading: boolean = false;
   error: string = '';
+  isGroupMode: boolean = false;
+  showGroupForm: boolean = false;
+  selectedUsers: User[] = [];
+  groupName: string = '';
+  groupTitle: string = '';
+  groupDescription: string = '';
+  groupPhotoPreview: string | null = null;
+  groupPhotoFile: File | null = null;
 
   constructor(
     private authService: AuthService,
@@ -92,6 +101,85 @@ export class NewConversationModalComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  proceedToGroupForm(): void {
+    this.showGroupForm = true;
+  }
+
+  createGroup(): void {
+    if (!this.groupTitle.trim() || this.selectedUsers.length < 2) {
+      return;
+    }
+
+    this.loading = true;
+    this.error = '';
+
+    const request = {
+      participantIds: this.selectedUsers.map(u => u.id),
+      type: ConversationType.GROUP,
+      name: this.groupTitle
+    };
+
+    this.messagingService.createConversation(request).subscribe({
+      next: (conversation) => {
+        this.conversationCreated.emit(conversation.id);
+        this.onClose();
+      },
+      error: (err) => {
+        console.error('Error creating group conversation:', err);
+        this.error = 'Impossible de créer la conversation de groupe';
+        this.loading = false;
+      }
+    });
+  }
+
+  toggleUserSelection(user: User): void {
+    user.selected = !user.selected;
+    if (user.selected) {
+      this.selectedUsers.push(user);
+    } else {
+      this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id);
+    }
+  }
+
+  removeGroupPhoto(): void {
+    this.groupPhotoPreview = null;
+    this.groupPhotoFile = null;
+  }
+
+  onGroupPhotoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.groupPhotoFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.groupPhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeSelectedUser(user: User): void {
+    this.selectedUsers = this.selectedUsers.filter(u => u.id !== user.id);
+    user.selected = false;
+  }
+
+  backToUserSelection(): void {
+    this.showGroupForm = false;
+    this.groupTitle = '';
+    this.groupDescription = '';
+    this.groupPhotoPreview = null;
+    this.groupPhotoFile = null;
+  }
+
+  toggleGroupMode(): void {
+    this.isGroupMode = !this.isGroupMode;
+    if (!this.isGroupMode) {
+      this.selectedUsers = [];
+      this.showGroupForm = false;
+      this.filteredUsers.forEach(u => u.selected = false);
+    }
   }
 
   getUserAvatar(user: User): string {

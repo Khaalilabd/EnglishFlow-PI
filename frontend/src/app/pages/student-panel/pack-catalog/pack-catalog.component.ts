@@ -8,11 +8,12 @@ import { CourseCategoryService } from '../../../core/services/course-category.se
 import { AuthService } from '../../../core/services/auth.service';
 import { Pack } from '../../../core/models/pack.model';
 import { CourseCategory } from '../../../core/models/course-category.model';
+import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
 
 @Component({
   selector: 'app-pack-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, PaymentModalComponent],
   templateUrl: './pack-catalog.component.html',
   styleUrls: ['./pack-catalog.component.scss']
 })
@@ -21,15 +22,19 @@ export class PackCatalogComponent implements OnInit {
   filteredPacks: Pack[] = [];
   categories: CourseCategory[] = [];
   enrolledPackIds: Set<number> = new Set();
-  
+
   loading = true;
   enrolling = false;
-  
+
   searchTerm = '';
   selectedCategory = '';
   selectedLevel = '';
-  
+
   levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+
+  // Payment modal
+  showPaymentModal = false;
+  selectedPack: Pack | null = null;
 
   constructor(
     private packService: PackService,
@@ -47,12 +52,8 @@ export class PackCatalogComponent implements OnInit {
 
   loadCategories(): void {
     this.categoryService.getActiveCategories().subscribe({
-      next: (categories) => {
-        this.categories = categories;
-      },
-      error: (error) => {
-        console.error('Error loading categories:', error);
-      }
+      next: (categories) => { this.categories = categories; },
+      error: (error) => { console.error('Error loading categories:', error); }
     });
   }
 
@@ -60,56 +61,40 @@ export class PackCatalogComponent implements OnInit {
     this.loading = true;
     this.packService.getAllPacks().subscribe({
       next: (packs: Pack[]) => {
-        // Only show ACTIVE packs with open enrollment
-        this.packs = packs.filter((p: Pack) => p.status === 'ACTIVE' && p.isEnrollmentOpen);
+        // Show all ACTIVE packs — isEnrollmentOpen may be null/undefined when no date restrictions are set
+        this.packs = packs
+          .filter((p: Pack) => p.status === 'ACTIVE')
+          .map(p => ({ ...p, price: Number(p.price) }));
         this.applyFilters();
         this.loading = false;
       },
-      error: (error: any) => {
-        console.error('Error loading packs:', error);
-        this.loading = false;
-      }
+      error: (error: any) => { console.error('Error loading packs:', error); this.loading = false; }
     });
   }
 
   loadEnrolledPacks(): void {
     const currentUser = this.authService.currentUserValue;
     if (!currentUser) return;
-
     this.packEnrollmentService.getByStudentId(currentUser.id).subscribe({
-      next: (enrollments) => {
-        this.enrolledPackIds = new Set(enrollments.map(e => e.packId));
-      },
-      error: (error) => {
-        console.error('Error loading enrollments:', error);
-      }
+      next: (enrollments) => { this.enrolledPackIds = new Set(enrollments.map(e => e.packId)); },
+      error: () => { /* non-critical — just means enrolled state won't show */ }
     });
   }
 
   applyFilters(): void {
     this.filteredPacks = this.packs.filter(pack => {
-      const matchesSearch = !this.searchTerm || 
+      const matchesSearch = !this.searchTerm ||
         pack.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         pack.description?.toLowerCase().includes(this.searchTerm.toLowerCase());
-      
       const matchesCategory = !this.selectedCategory || pack.category === this.selectedCategory;
       const matchesLevel = !this.selectedLevel || pack.level === this.selectedLevel;
-      
       return matchesSearch && matchesCategory && matchesLevel;
     });
   }
 
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onCategoryChange(): void {
-    this.applyFilters();
-  }
-
-  onLevelChange(): void {
-    this.applyFilters();
-  }
+  onSearchChange(): void { this.applyFilters(); }
+  onCategoryChange(): void { this.applyFilters(); }
+  onLevelChange(): void { this.applyFilters(); }
 
   clearFilters(): void {
     this.searchTerm = '';
@@ -130,43 +115,27 @@ export class PackCatalogComponent implements OnInit {
 
   enrollInPack(pack: Pack, event: Event): void {
     event.stopPropagation();
-    
     if (!pack.id) return;
-    
     const currentUser = this.authService.currentUserValue;
-    if (!currentUser) {
-      this.router.navigate(['/login']);
-      return;
-    }
+    if (!currentUser) { this.router.navigate(['/login']); return; }
+    if (currentUser.role !== 'STUDENT') { alert('Only students can enroll in packs'); return; }
+    if (this.isEnrolled(pack.id)) { this.router.navigate(['/user-panel/my-packs']); return; }
+    // Open payment modal
+    this.selectedPack = pack;
+    this.showPaymentModal = true;
+  }
 
-    if (currentUser.role !== 'STUDENT') {
-      alert('Only students can enroll in packs');
-      return;
-    }
+  onPaymentModalClosed(): void {
+    this.showPaymentModal = false;
+    this.selectedPack = null;
+  }
 
-    if (this.isEnrolled(pack.id)) {
-      this.router.navigate(['/user-panel/my-packs']);
-      return;
+  onEnrolled(): void {
+    if (this.selectedPack?.id) {
+      this.enrolledPackIds.add(this.selectedPack.id);
     }
-
-    if (confirm(`Enroll in "${pack.name}" for $${pack.price}?`)) {
-      this.enrolling = true;
-      this.packEnrollmentService.enrollStudent(currentUser.id, pack.id).subscribe({
-        next: () => {
-          this.enrolling = false;
-          this.enrolledPackIds.add(pack.id!);
-          alert('🎉 Enrollment successful! Redirecting to My Packs...');
-          setTimeout(() => {
-            this.router.navigate(['/user-panel/my-packs']);
-          }, 1000);
-        },
-        error: (error: any) => {
-          console.error('Error enrolling:', error);
-          this.enrolling = false;
-          alert('❌ Enrollment failed. Please try again.');
-        }
-      });
-    }
+    this.showPaymentModal = false;
+    this.selectedPack = null;
   }
 
   getCategoryIcon(categoryName: string): string {
