@@ -14,6 +14,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -54,7 +55,8 @@ class ModerationControllerTest {
         topic1.setId(1L);
         topic1.setTitle("Topic 1");
 
-        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic1));
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic1), pageable, 1);
         when(topicService.getAllTopicsForModeration(any(), any(), any(), any(), any(Pageable.class)))
                 .thenReturn(page);
 

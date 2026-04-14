@@ -12,7 +12,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -46,7 +48,8 @@ class SearchControllerTest {
         topic2.setId(2L);
         topic2.setTitle("JavaScript Basics");
 
-        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic1, topic2));
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic1, topic2), pageable, 2);
         when(searchService.searchTopics(eq("Java"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/community/search/topics")
@@ -66,7 +69,8 @@ class SearchControllerTest {
     @Test
     @WithMockUser
     void searchTopics_NoResults_ShouldReturnEmptyPage() throws Exception {
-        Page<TopicDTO> emptyPage = new PageImpl<>(Arrays.asList());
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Page<TopicDTO> emptyPage = new PageImpl<>(Arrays.asList(), pageable, 0);
         when(searchService.searchTopics(eq("NonExistent"), any(Pageable.class))).thenReturn(emptyPage);
 
         mockMvc.perform(get("/community/search/topics")
@@ -86,7 +90,8 @@ class SearchControllerTest {
         topic.setId(3L);
         topic.setTitle("Advanced Topic");
 
-        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic));
+        Pageable pageable = PageRequest.of(1, 10, Sort.by("createdAt").descending());
+        Page<TopicDTO> page = new PageImpl<>(Arrays.asList(topic), pageable, 1);
         when(searchService.searchTopics(eq("Advanced"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/community/search/topics")

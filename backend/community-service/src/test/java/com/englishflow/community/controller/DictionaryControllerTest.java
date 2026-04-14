@@ -2,11 +2,16 @@ package com.englishflow.community.controller;
 
 import com.englishflow.community.dto.DictionaryResponse;
 import com.englishflow.community.dto.EnrichedDictionaryResponse;
+import com.englishflow.community.security.InternalServiceAuthenticationFilter;
+import com.englishflow.community.security.JwtAuthenticationFilter;
 import com.englishflow.community.service.DictionaryService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.ArgumentMatchers.eq;
@@ -14,7 +19,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(DictionaryController.class)
+@WebMvcTest(value = DictionaryController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+                classes = {JwtAuthenticationFilter.class, InternalServiceAuthenticationFilter.class}))
 class DictionaryControllerTest {
 
     @Autowired
@@ -24,6 +31,7 @@ class DictionaryControllerTest {
     private DictionaryService dictionaryService;
 
     @Test
+    @WithMockUser
     void lookupWord_ShouldReturnDictionaryResponse() throws Exception {
         DictionaryResponse response = new DictionaryResponse();
         response.setWord("hello");
@@ -40,6 +48,7 @@ class DictionaryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void lookupWordEnriched_WithoutContext_ShouldReturnEnrichedResponse() throws Exception {
         EnrichedDictionaryResponse response = new EnrichedDictionaryResponse();
         DictionaryResponse basicData = new DictionaryResponse();
@@ -56,6 +65,7 @@ class DictionaryControllerTest {
     }
 
     @Test
+    @WithMockUser
     void lookupWordEnriched_WithContext_ShouldReturnEnrichedResponse() throws Exception {
         EnrichedDictionaryResponse response = new EnrichedDictionaryResponse();
         DictionaryResponse basicData = new DictionaryResponse();

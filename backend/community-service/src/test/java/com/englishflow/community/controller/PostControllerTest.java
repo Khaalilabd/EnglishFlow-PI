@@ -19,6 +19,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -59,6 +60,8 @@ class PostControllerTest {
         CreatePostRequest request = new CreatePostRequest();
         request.setTopicId(1L);
         request.setContent("Test post content");
+        request.setUserId(100L);
+        request.setUserName("Test User");
 
         Topic topic = new Topic();
         topic.setId(1L);
@@ -94,6 +97,8 @@ class PostControllerTest {
         CreatePostRequest request = new CreatePostRequest();
         request.setTopicId(1L);
         request.setContent("Test post content");
+        request.setUserId(100L);
+        request.setUserName("Test User");
 
         Topic topic = new Topic();
         topic.setId(1L);
@@ -127,7 +132,8 @@ class PostControllerTest {
         post2.setId(2L);
         post2.setContent("Post 2");
 
-        Page<PostDTO> page = new PageImpl<>(Arrays.asList(post1, post2));
+        Pageable pageable = PageRequest.of(0, 20);
+        Page<PostDTO> page = new PageImpl<>(Arrays.asList(post1, post2), pageable, 2);
         when(postService.getPostsByTopic(eq(1L), eq("helpful"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/community/posts/topic/1")
@@ -147,7 +153,10 @@ class PostControllerTest {
     @WithMockUser
     void updatePost_ShouldReturnUpdatedPost() throws Exception {
         CreatePostRequest request = new CreatePostRequest();
+        request.setTopicId(1L);
         request.setContent("Updated content");
+        request.setUserId(100L);
+        request.setUserName("Test User");
 
         PostDTO updated = new PostDTO();
         updated.setId(1L);

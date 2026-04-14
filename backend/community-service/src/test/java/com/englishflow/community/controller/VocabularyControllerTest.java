@@ -79,7 +79,8 @@ class VocabularyControllerTest {
                 VocabularyWord.MasteryLevel.NEW, 0, null, LocalDateTime.now()
         );
 
-        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word1));
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word1), pageable, 1);
         when(vocabularyService.getUserVocabulary(eq(100L), eq(0), eq(20), eq("createdAt")))
                 .thenReturn(page);
 
@@ -104,7 +105,8 @@ class VocabularyControllerTest {
                 VocabularyWord.MasteryLevel.LEARNING, 3, null, LocalDateTime.now()
         );
 
-        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word));
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word), pageable, 1);
         when(vocabularyService.getUserVocabularyByLevel(eq(100L), eq("LEARNING"), eq(0), eq(20), eq("createdAt")))
                 .thenReturn(page);
 
@@ -126,7 +128,8 @@ class VocabularyControllerTest {
                 VocabularyWord.MasteryLevel.NEW, 0, null, LocalDateTime.now()
         );
 
-        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word));
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        Page<VocabularyWordDTO> page = new PageImpl<>(Arrays.asList(word), pageable, 1);
         when(vocabularyService.searchVocabulary(eq(100L), eq("elo"), eq(0), eq(20)))
                 .thenReturn(page);
 

@@ -133,15 +133,35 @@ class SearchServiceTest {
     @Test
     void searchTopics_WithPagination_ShouldRespectPageable() {
         Pageable pageable = PageRequest.of(1, 10);
-        Page<Topic> topicPage = new PageImpl<>(Arrays.asList(topic1), pageable, 15);
+        // Create 10 topics for page 1 (second page)
+        java.util.List<Topic> topics = new ArrayList<>();
+        for (int i = 10; i < 20; i++) {
+            Topic topic = new Topic();
+            topic.setId((long) i);
+            topic.setTitle("Test Topic " + i);
+            topic.setContent("Content " + i);
+            topic.setUserId(100L);
+            topic.setUserName("User " + i);
+            topic.setSubCategory(subCategory);
+            topic.setViewsCount(0);
+            topic.setReactionsCount(0);
+            topic.setIsPinned(false);
+            topic.setIsLocked(false);
+            topic.setPosts(new ArrayList<>());
+            topic.setCreatedAt(LocalDateTime.now());
+            topic.setUpdatedAt(LocalDateTime.now());
+            topics.add(topic);
+        }
+        // Page 1 with 10 items, total 25 items across all pages
+        Page<Topic> topicPage = new PageImpl<>(topics, pageable, 25);
 
         when(topicRepository.searchByKeyword(eq("test"), any(Pageable.class))).thenReturn(topicPage);
 
         Page<TopicDTO> result = searchService.searchTopics("test", pageable);
 
         assertNotNull(result);
-        assertEquals(1, result.getContent().size());
-        assertEquals(15, result.getTotalElements());
+        assertEquals(10, result.getContent().size());
+        assertEquals(25, result.getTotalElements());
         assertEquals(1, result.getNumber());
         verify(topicRepository).searchByKeyword(eq("test"), any(Pageable.class));
     }
