@@ -16,21 +16,18 @@ export interface Event {
   longitude?: number;
   maxParticipants: number;
   currentParticipants?: number;
+  participationFee?: number;
   description?: string;
   creatorId?: number;
   clubId?: number;
   clubName?: string;
   image?: string;
-  gallery?: string[]; // Array of image URLs for gallery
+  gallery?: string[];
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   createdAt?: string;
   updatedAt?: string;
-  
-  // Sponsor information
-  sponsorIds?: number[]; // Array of sponsor IDs
-  sponsors?: EventSponsor[]; // Array of sponsor details
-  
-  // Backward compatibility (deprecated)
+  sponsorIds?: number[];
+  sponsors?: EventSponsor[];
   eventDate?: string;
 }
 
@@ -50,6 +47,8 @@ export interface Participant {
   userEmail?: string;
   userFirstName?: string;
   userLastName?: string;
+  userProfilePhoto?: string;
+  clubRole?: string;
 }
 
 export interface JoinEventRequest {

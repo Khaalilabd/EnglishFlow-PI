@@ -149,6 +149,9 @@
       </div>
       
       <div class="card-footer">
+        <button class="btn-details" (click)="openDetails(sponsor)">
+          🏛️ Clubs
+        </button>
         <button class="btn-edit" (click)="editSponsor(sponsor)">
           ✏️ Edit
         </button>
@@ -186,6 +189,9 @@
       </div>
       
       <div class="list-actions">
+        <button class="btn-details" (click)="openDetails(sponsor)">
+          🏛️ Clubs
+        </button>
         <button class="btn-edit" (click)="editSponsor(sponsor)">
           ✏️ Edit
         </button>
@@ -209,7 +215,73 @@
   </div>
 </div>
 
-<!-- Modal -->
+<!-- Details Popup — Sponsored Clubs -->
+<div class="modal-overlay" *ngIf="showDetailsPopup" (click)="closeDetails()">
+  <div class="modal-container" style="max-width:600px" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>🏛️ Sponsored Clubs</h2>
+        <p style="font-size:0.85rem;color:#666;margin:4px 0 0">{{ detailsSponsor?.name }}</p>
+      </div>
+      <button class="btn-close" (click)="closeDetails()">✕</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Loading -->
+      <div *ngIf="loadingClubs" style="text-align:center;padding:2rem">
+        <div class="spinner"></div>
+        <p>Loading clubs...</p>
+      </div>
+
+      <!-- Empty -->
+      <div *ngIf="!loadingClubs && sponsoredClubs.length === 0"
+           style="text-align:center;padding:2rem;color:#888">
+        <div style="font-size:3rem;margin-bottom:0.75rem">🏛️</div>
+        <p>No club sponsorships yet.</p>
+      </div>
+
+      <!-- Club list -->
+      <div *ngIf="!loadingClubs && sponsoredClubs.length > 0" style="display:flex;flex-direction:column;gap:0.75rem">
+        <div *ngFor="let req of sponsoredClubs"
+             style="display:flex;align-items:center;gap:1rem;padding:1rem;background:#f9fafb;border-radius:12px;border:1px solid #e5e7eb">
+          <!-- Club icon -->
+          <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#2D5757,#3D3D60);display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0">
+            🏛️
+          </div>
+          <!-- Info -->
+          <div style="flex:1;min-width:0">
+            <p style="font-weight:700;color:#1f2937;margin:0;font-size:0.95rem">{{ req.clubName }}</p>
+            <p style="font-size:0.8rem;color:#6b7280;margin:2px 0 0">
+              {{ req.createdAt | date:'mediumDate' }}
+            </p>
+          </div>
+          <!-- Amount -->
+          <div style="text-align:right;flex-shrink:0">
+            <p style="font-size:1.2rem;font-weight:900;color:#2D5757;margin:0">{{ req.contributionAmount }} DT</p>
+          </div>
+          <!-- Status -->
+          <span style="padding:4px 10px;border-radius:999px;font-size:0.75rem;font-weight:700;flex-shrink:0"
+                [ngClass]="getStatusClass(req.status)">
+            {{ req.status }}
+          </span>
+        </div>
+
+        <!-- Total -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.75rem 1rem;background:linear-gradient(135deg,#2D5757,#3D3D60);border-radius:12px;color:white;margin-top:0.5rem">
+          <span style="font-weight:600">Total committed to clubs</span>
+          <span style="font-size:1.3rem;font-weight:900">{{ totalSponsoredClubs }} DT</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeDetails()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit/Create Modal -->
 <div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
   <div class="modal-container" (click)="$event.stopPropagation()">
     <div class="modal-header">

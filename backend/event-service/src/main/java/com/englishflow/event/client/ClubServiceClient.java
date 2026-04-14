@@ -2,10 +2,13 @@ package com.englishflow.event.client;
 
 import com.englishflow.event.config.FeignConfig;
 import com.englishflow.event.dto.ClubDTO;
+import com.englishflow.event.dto.ExpenseDTO;
 import com.englishflow.event.dto.MemberDTO;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 
@@ -14,7 +17,13 @@ public interface ClubServiceClient {
     
     @GetMapping("/members/user/{userId}")
     List<MemberDTO> getMembersByUserId(@PathVariable("userId") Long userId);
+
+    @GetMapping("/members/club/{clubId}")
+    List<MemberDTO> getMembersByClubId(@PathVariable("clubId") Integer clubId);
     
     @GetMapping("/clubs/{clubId}")
     ClubDTO getClubById(@PathVariable("clubId") Integer clubId);
+
+    @PostMapping("/expenses/income")
+    ExpenseDTO createIncomeEntry(@RequestBody ExpenseDTO expenseDTO);
 }

@@ -3,6 +3,7 @@ package com.englishflow.auth.service;
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.dto.LoginRequest;
 import com.englishflow.auth.dto.RegisterRequest;
+import com.englishflow.auth.dto.SponsorRegisterRequest;
 import com.englishflow.auth.dto.PasswordResetRequest;
 import com.englishflow.auth.dto.PasswordResetConfirm;
 import com.englishflow.auth.dto.RefreshTokenRequest;
@@ -46,6 +47,51 @@ public class AuthService {
     private final MetricsService metricsService;
     private final TwoFactorAuthService twoFactorAuthService;
     private final GamificationIntegrationService gamificationIntegrationService;
+
+    @Transactional
+    public AuthResponse registerSponsor(SponsorRegisterRequest request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new com.englishflow.auth.exception.EmailAlreadyExistsException(request.getEmail());
+        }
+
+        User user = new User();
+        user.setEmail(request.getEmail());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setPhone(request.getPhone());
+        user.setCin(request.getCin());
+        user.setRole(User.Role.SPONSOR);
+        user.setActive(false); // inactive until admin approves sponsor request
+        user.setRegistrationFeePaid(false);
+        user.setProfileCompleted(true);
+
+        if (request.getDateOfBirth() != null) user.setDateOfBirth(request.getDateOfBirth());
+        if (request.getAddress()     != null) user.setAddress(request.getAddress());
+        if (request.getCity()        != null) user.setCity(request.getCity());
+        if (request.getPostalCode()  != null) user.setPostalCode(request.getPostalCode());
+        // Store nationality in bio field (no dedicated column)
+        if (request.getNationality() != null) user.setBio("Nationality: " + request.getNationality());
+
+        user = userRepository.save(user);
+        
+        // Note: No activation email sent for sponsors
+        // Sponsors are activated when admin approves their sponsorship request
+        // The activation will be done by sponsors-service when calling /users/{id}/activate
+        log.info("Sponsor account created (inactive): {}", user.getEmail());
+        
+        metricsService.recordRegistration();
+
+        return AuthResponse.builder()
+                .token(null)
+                .id(user.getId())
+                .email(user.getEmail())
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .role(user.getRole().name())
+                .profileCompleted(user.isProfileCompleted())
+                .build();
+    }
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {

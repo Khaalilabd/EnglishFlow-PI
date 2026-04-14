@@ -1,201 +1,271 @@
-<div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
-  <!-- Header -->
-  <div class="flex items-center gap-3 mb-6">
-    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] flex items-center justify-center shadow-md">
-      <svg class="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-      </svg>
+<div>
+  <!-- Loading -->
+  @if (loading) {
+    <div class="flex flex-col items-center justify-center py-16 gap-3">
+      <div class="w-10 h-10 rounded-full border-2 border-orange-200 border-t-orange-500 animate-spin"></div>
+      <p class="text-sm text-gray-500">Loading requests...</p>
     </div>
-    <div class="flex-1">
-      <div class="flex items-center gap-2">
-        <h2 class="text-xl font-bold text-[#2D5757]">Membership Requests</h2>
-        <span *ngIf="requests.length > 0" class="flex items-center justify-center min-w-[24px] h-6 px-2 bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-gray-900 text-xs font-bold rounded-full shadow-sm">
-          {{ requests.length }}
-        </span>
-      </div>
-      <p class="text-xs text-gray-500">Review and approve new members</p>
-    </div>
-  </div>
-
-  <!-- Loading State -->
-  <div *ngIf="loading" class="flex items-center justify-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
-  </div>
+  }
 
   <!-- Empty State -->
-  <div *ngIf="!loading && requests.length === 0" class="text-center py-12">
-    <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-      <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    </div>
-    <p class="text-sm text-gray-500 font-medium">No pending requests</p>
-    <p class="text-xs text-gray-400 mt-1">New membership requests will appear here</p>
-  </div>
-
-  <!-- Requests List -->
-  <div *ngIf="!loading && requests.length > 0" class="space-y-3">
-    <div *ngFor="let request of requests" class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-4 border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all">
-      <div class="flex items-start gap-4">
-        <!-- User Avatar -->
-        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center flex-shrink-0 shadow-md">
-          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        </div>
-        
-        <!-- User Details -->
-        <div class="flex-1 min-w-0">
-          <h4 class="text-base font-bold text-[#2D5757] mb-1">
-            {{ request.userName || 'User #' + request.userId }}
-          </h4>
-          <p *ngIf="request.userEmail" class="text-sm text-gray-600 mb-2">
-            {{ request.userEmail }}
-          </p>
-          <div class="flex items-center gap-2 mb-3">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span class="text-xs text-gray-500 font-medium">{{ formatDate(request.requestedAt) }}</span>
-          </div>
-          
-          <!-- Message -->
-          <div *ngIf="request.message" class="bg-white rounded-lg p-3 border-l-4 border-[#F6BD60] shadow-sm">
-            <p class="text-xs font-bold text-[#F6BD60] uppercase tracking-wide mb-1">Message:</p>
-            <p class="text-sm text-gray-700 leading-relaxed">{{ request.message }}</p>
-          </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="flex flex-col gap-2 flex-shrink-0">
-          <button 
-            (click)="viewRequest(request)"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm"
-            title="View details">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            View
-          </button>
-          <button 
-            (click)="approveRequest(request)"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm"
-            title="Approve">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-            </svg>
-            Approve
-          </button>
-          <button 
-            (click)="rejectRequest(request)"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg hover:shadow-lg transition-all font-semibold text-sm"
-            title="Reject">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Reject
-          </button>
-        </div>
+  @if (!loading && requests.length === 0) {
+    <div class="flex flex-col items-center justify-center py-16 gap-4">
+      <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-orange-50 to-amber-50 border-2 border-orange-100 flex items-center justify-center">
+        <svg class="w-10 h-10 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+        </svg>
+      </div>
+      <div class="text-center">
+        <p class="text-base font-semibold text-gray-700">No pending requests</p>
+        <p class="text-sm text-gray-400 mt-1">New join requests will appear here</p>
       </div>
     </div>
-  </div>
+  }
+
+  <!-- Requests Grid -->
+  @if (!loading && requests.length > 0) {
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      @for (request of requests; track request.id) {
+        <div class="group relative bg-white rounded-2xl border border-gray-100 hover:border-orange-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+
+          <!-- Top accent line -->
+          <div class="h-1 w-full bg-gradient-to-r from-orange-400 to-amber-400"></div>
+
+          <div class="p-5">
+            <!-- User info row -->
+            <div class="flex items-start gap-3 mb-4">
+              <!-- Avatar -->
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center text-white font-bold text-lg flex-shrink-0 shadow-sm">
+                {{ (request.userName || 'U')[0].toUpperCase() }}
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-bold text-gray-900 truncate">
+                  {{ request.userName || 'User #' + request.userId }}
+                </p>
+                @if (request.userEmail) {
+                  <p class="text-xs text-gray-500 truncate">{{ request.userEmail }}</p>
+                }
+                <div class="flex items-center gap-1 mt-1">
+                  <svg class="w-3 h-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span class="text-xs text-gray-400">{{ formatDate(request.requestedAt) }}</span>
+                </div>
+              </div>
+              <!-- Status badge -->
+              <span class="flex-shrink-0 inline-flex items-center gap-1 px-2 py-1 bg-amber-50 text-amber-700 border border-amber-200 rounded-full text-xs font-semibold">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                Pending
+              </span>
+            </div>
+
+            <!-- Message preview -->
+            @if (request.message) {
+              <div class="mb-4 px-3 py-2.5 bg-gray-50 rounded-xl border-l-3 border-l-[#F6BD60] border border-gray-100">
+                <p class="text-xs text-gray-600 line-clamp-2 leading-relaxed">{{ request.message }}</p>
+              </div>
+            }
+
+            <!-- Action buttons -->
+            <div class="flex items-center gap-2">
+              <button
+                (click)="viewRequest(request)"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-[#2D5757] bg-[#2D5757]/8 hover:bg-[#2D5757]/15 rounded-xl transition-all duration-200"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                Details
+              </button>
+              <button
+                (click)="approveRequest(request)"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:shadow-md hover:shadow-emerald-500/25 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                Approve
+              </button>
+              <button
+                (click)="openRejectModal(request)"
+                class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-white bg-gradient-to-r from-red-500 to-rose-600 hover:shadow-md hover:shadow-red-500/25 rounded-xl transition-all duration-200 hover:scale-105"
+              >
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
 </div>
 
-<!-- View Request Modal -->
-<div *ngIf="selectedRequest" class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
-  <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
-    
-    <!-- Modal Header -->
-    <div class="flex items-center justify-between p-6 border-b border-gray-100">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center shadow-md">
-          <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+<!-- ===== VIEW DETAILS MODAL ===== -->
+@if (selectedRequest) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeModal()">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto" (click)="$event.stopPropagation()">
+
+      <!-- Modal Header -->
+      <div class="relative overflow-hidden rounded-t-3xl">
+        <div class="h-24 bg-gradient-to-br from-[#2D5757] to-[#3D3D60]">
+          <div class="absolute inset-0 opacity-10">
+            <div class="absolute top-2 left-8 w-20 h-20 rounded-full border-4 border-white"></div>
+            <div class="absolute -bottom-4 right-12 w-28 h-28 rounded-full border-4 border-white"></div>
+          </div>
+        </div>
+        <!-- Avatar overlapping header -->
+        <div class="absolute bottom-0 left-6 translate-y-1/2">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#F6BD60] to-[#e5ac4f] flex items-center justify-center text-gray-900 font-black text-2xl shadow-xl border-4 border-white">
+            {{ (selectedRequest.userName || 'U')[0].toUpperCase() }}
+          </div>
+        </div>
+        <!-- Close button -->
+        <button (click)="closeModal()" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 text-white transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-[#2D5757]">{{ selectedRequest.userName || 'User #' + selectedRequest.userId }}</h3>
-          <p class="text-xs text-gray-500">{{ selectedRequest.userEmail }}</p>
-        </div>
-      </div>
-      <button (click)="closeModal()" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors text-gray-400 hover:text-gray-600">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
-    </div>
-
-    <!-- Modal Body -->
-    <div class="p-6 space-y-4">
-
-      <!-- Date -->
-      <div class="flex items-center gap-2 text-sm text-gray-500">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        {{ formatDate(selectedRequest.requestedAt) }}
+        </button>
       </div>
 
-      <!-- Message -->
-      <div class="bg-gray-50 rounded-xl p-4 border-l-4 border-[#F6BD60]">
-        <div class="flex items-center gap-2 mb-2">
-          <svg class="w-4 h-4 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3-3-3z" />
+      <!-- User info (below header) -->
+      <div class="pt-12 px-6 pb-4">
+        <h3 class="text-xl font-black text-gray-900">{{ selectedRequest.userName || 'User #' + selectedRequest.userId }}</h3>
+        @if (selectedRequest.userEmail) {
+          <p class="text-sm text-gray-500">{{ selectedRequest.userEmail }}</p>
+        }
+        <div class="flex items-center gap-1.5 mt-1">
+          <svg class="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
           </svg>
-          <p class="text-xs font-bold text-[#F6BD60] uppercase tracking-wide">Message</p>
+          <span class="text-xs text-gray-400">{{ formatDate(selectedRequest.requestedAt) }}</span>
         </div>
-        <p *ngIf="selectedRequest.message" class="text-sm text-gray-700 leading-relaxed">{{ selectedRequest.message }}</p>
-        <p *ngIf="!selectedRequest.message" class="text-sm text-gray-400 italic">No message provided.</p>
       </div>
 
-      <!-- Motivation Letter -->
-      <div class="bg-gray-50 rounded-xl p-4 border-l-4 border-[#2D5757]">
-        <div class="flex items-center gap-2 mb-2">
-          <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      <!-- Modal Body -->
+      <div class="px-6 pb-6 space-y-4">
+
+        <!-- Message -->
+        <div class="rounded-2xl overflow-hidden border border-gray-100">
+          <div class="flex items-center gap-2 px-4 py-3 bg-amber-50 border-b border-amber-100">
+            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-3 3-3-3z"/>
+            </svg>
+            <span class="text-xs font-bold text-amber-700 uppercase tracking-wide">Message</span>
+          </div>
+          <div class="px-4 py-3 bg-white">
+            @if (selectedRequest.message) {
+              <p class="text-sm text-gray-700 leading-relaxed">{{ selectedRequest.message }}</p>
+            } @else {
+              <p class="text-sm text-gray-400 italic">No message provided.</p>
+            }
+          </div>
+        </div>
+
+        <!-- Motivation Letter -->
+        <div class="rounded-2xl overflow-hidden border border-gray-100">
+          <div class="flex items-center gap-2 px-4 py-3 bg-[#2D5757]/5 border-b border-[#2D5757]/10">
+            <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+            </svg>
+            <span class="text-xs font-bold text-[#2D5757] uppercase tracking-wide">Motivation Letter</span>
+          </div>
+          <div class="px-4 py-3 bg-white">
+            @if (selectedRequest.motivationLetter) {
+              <p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ selectedRequest.motivationLetter }}</p>
+            } @else {
+              <p class="text-sm text-gray-400 italic">No motivation letter provided.</p>
+            }
+          </div>
+        </div>
+
+        <!-- Skills -->
+        @if (selectedRequest.studentSkills) {
+          <div class="rounded-2xl overflow-hidden border border-gray-100">
+            <div class="flex items-center gap-2 px-4 py-3 bg-violet-50 border-b border-violet-100">
+              <svg class="w-4 h-4 text-violet-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+              </svg>
+              <span class="text-xs font-bold text-violet-700 uppercase tracking-wide">Skills</span>
+            </div>
+            <div class="px-4 py-3 bg-white flex flex-wrap gap-2">
+              @for (skill of selectedRequest.studentSkills.split(','); track skill) {
+                <span class="px-3 py-1 bg-violet-50 text-violet-700 border border-violet-200 rounded-full text-xs font-semibold">
+                  {{ skill.trim() }}
+                </span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="flex gap-3 px-6 pb-6">
+        <button
+          (click)="approveRequest(selectedRequest); closeModal()"
+          class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 rounded-2xl hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-200 hover:scale-105"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
           </svg>
-          <p class="text-xs font-bold text-[#2D5757] uppercase tracking-wide">Motivation Letter</p>
-        </div>
-        <p *ngIf="selectedRequest.motivationLetter" class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{{ selectedRequest.motivationLetter }}</p>
-        <p *ngIf="!selectedRequest.motivationLetter" class="text-sm text-gray-400 italic">No motivation letter provided.</p>
-      </div>
-
-      <!-- Skills -->
-      <div class="bg-gray-50 rounded-xl p-4 border-l-4 border-purple-400">
-        <div class="flex items-center gap-2 mb-2">
-          <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+          Approve
+        </button>
+        <button
+          (click)="openRejectModal(selectedRequest); closeModal()"
+          class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-rose-600 rounded-2xl hover:shadow-lg hover:shadow-red-500/30 transition-all duration-200 hover:scale-105"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
           </svg>
-          <p class="text-xs font-bold text-purple-500 uppercase tracking-wide">Skills</p>
-        </div>
-        <div *ngIf="selectedRequest.studentSkills" class="flex flex-wrap gap-2">
-          <span *ngFor="let skill of selectedRequest.studentSkills.split(',')"
-                class="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-            {{ skill.trim() }}
-          </span>
-        </div>
-        <p *ngIf="!selectedRequest.studentSkills" class="text-sm text-gray-400 italic">No skills provided.</p>
+          Reject
+        </button>
       </div>
-    </div>
-
-    <!-- Modal Footer -->
-    <div class="flex gap-3 p-6 border-t border-gray-100">
-      <button (click)="approveRequest(selectedRequest); closeModal()"
-              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-        </svg>
-        Approve
-      </button>
-      <button (click)="rejectRequest(selectedRequest); closeModal()"
-              class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold text-sm">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Reject
-      </button>
     </div>
   </div>
-</div>
+}
+
+<!-- ===== REJECT REASON MODAL ===== -->
+@if (rejectingRequest) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeRejectModal()">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md" (click)="$event.stopPropagation()">
+      <div class="p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-bold text-gray-900">Reject Request</h3>
+            <p class="text-xs text-gray-500">{{ rejectingRequest.userName || 'User #' + rejectingRequest.userId }}</p>
+          </div>
+        </div>
+        <label class="block text-xs font-semibold text-gray-700 mb-2">Reason (optional)</label>
+        <textarea
+          [(ngModel)]="rejectComment"
+          rows="3"
+          placeholder="Explain why this request is being rejected..."
+          class="w-full px-4 py-3 text-sm border-2 border-gray-200 rounded-xl focus:border-red-400 focus:ring-2 focus:ring-red-100 outline-none transition-all resize-none"
+        ></textarea>
+        <div class="flex gap-3 mt-4">
+          <button
+            (click)="closeRejectModal()"
+            class="flex-1 px-4 py-2.5 text-sm font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="confirmReject()"
+            class="flex-1 px-4 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-red-500 to-rose-600 rounded-xl hover:shadow-md transition-all"
+          >
+            Confirm Reject
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

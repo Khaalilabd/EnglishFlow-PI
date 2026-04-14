@@ -1,298 +1,372 @@
-<div class="p-6">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Manage Events</h1>
-    <p class="text-gray-600 dark:text-gray-400 mt-1">View and manage all created events</p>
-  </div>
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
 
-  <!-- Loading State -->
-  <div *ngIf="loading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#F6BD60]"></div>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="error" class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
-    <p class="text-red-800 dark:text-red-200">{{ error }}</p>
-  </div>
-
-  <!-- Events Grid -->
-  <div *ngIf="!loading && !error">
-    <div *ngIf="allEvents.length === 0" class="text-center py-12">
-      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-      </svg>
-      <h3 class="mt-4 text-lg font-medium text-gray-900 dark:text-white">No events found</h3>
-      <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">There are no created events yet.</p>
-    </div>
-
-    <div *ngIf="allEvents.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <div *ngFor="let event of allEvents" class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300">
-        <!-- Event Image -->
-        <div class="h-48 relative" [ngClass]="event.status === 'APPROVED' ? 'bg-gradient-to-br from-[#124559] to-[#0d2d3a]' : 'bg-gradient-to-br from-[#C84630] to-[#a83820]'">
-          <div *ngIf="event.image" class="w-full h-full">
-            <img [src]="event.image" [alt]="event.title" class="w-full h-full object-cover">
-          </div>
-          <div *ngIf="!event.image" class="flex items-center justify-center h-full">
-            <span class="text-6xl">{{ getEventIcon(event.type) }}</span>
-          </div>
-          <!-- Type Badge -->
-          <div class="absolute top-4 right-4">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-gray-800">
-              {{ event.type }}
-            </span>
-          </div>
-          <!-- Status Badge -->
-          <div class="absolute top-4 left-4">
-            <span *ngIf="event.status === 'APPROVED'" class="px-3 py-1 rounded-full text-xs font-semibold bg-[#F6BD60] text-gray-900 dark:bg-[#F6BD60] dark:text-gray-900">
-              APPROVED
-            </span>
-            <span *ngIf="event.status === 'REJECTED'" class="px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300">
-              REJECTED
-            </span>
-          </div>
-        </div>
-
-        <!-- Event Info -->
-        <div class="p-6">
-          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">{{ event.title }}</h3>
-          <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">{{ event.description }}</p>
-
-          <!-- Event Stats -->
-          <div class="space-y-2 mb-4 text-sm text-gray-600 dark:text-gray-400">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-              <span>{{ formatDate(event.startDate || '') }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <span>{{ event.location }}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <span *ngIf="event.status === 'APPROVED'">{{ event.currentParticipants || 0 }} / {{ event.maxParticipants }} participants</span>
-              <span *ngIf="event.status === 'REJECTED'">{{ event.maxParticipants }} max participants</span>
-            </div>
-          </div>
-
-          <!-- Creator Info -->
-          <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-            <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Created by</p>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ event.creatorName || 'User ID: ' + event.creatorId }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" *ngIf="event.creatorEmail">{{ event.creatorEmail }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">{{ formatDate(event.createdAt!) }}</p>
-          </div>
-
-          <!-- Action Buttons -->
-          <div class="space-y-2">
-            <button
-              (click)="viewEventDetails(event)"
-              class="w-full bg-gradient-to-r from-[#124559] to-[#0d2d3a] hover:from-[#0d2d3a] hover:to-[#01161e] text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              View Details
-            </button>
-            <button
-              (click)="deleteEvent(event.id!)"
-              class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors duration-200 flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-              Delete Event
-            </button>
-          </div>
-        </div>
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-5 flex items-center justify-between">
+      <div>
+        <h1 class="text-xl font-black text-gray-800">Manage Events</h1>
+        <p class="text-sm text-gray-400 mt-0.5">View and manage all created events</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1.5 bg-[#2D5757]/10 text-[#2D5757] text-xs font-bold rounded-full">
+          {{ filteredEvents.length }} events
+        </span>
       </div>
     </div>
-  </div>
-</div>
 
-<!-- Event Details Modal -->
-<div *ngIf="showDetailsModal && selectedEvent" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" (click)="closeDetailsModal()">
-  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden" (click)="$event.stopPropagation()">
-    <!-- Modal Header -->
-    <div class="bg-gradient-to-r from-[#124559] to-[#0d2d3a] p-6 text-white">
-      <div class="flex justify-between items-start">
-        <div class="flex-1">
-          <div class="flex items-center gap-3 mb-2">
-            <span class="text-4xl">{{ getEventIcon(selectedEvent.type) }}</span>
-            <div>
-              <h2 class="text-2xl font-bold">{{ selectedEvent.title }}</h2>
-              <span *ngIf="selectedEvent.status === 'APPROVED'" class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-[#F6BD60] text-gray-900">
-                APPROVED
-              </span>
-              <span *ngIf="selectedEvent.status === 'REJECTED'" class="inline-block mt-1 px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800">
-                REJECTED
-              </span>
-            </div>
-          </div>
-        </div>
-        <button (click)="closeDetailsModal()" class="text-white hover:text-gray-200 transition-colors">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <!-- Search / Filter / Sort Bar -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-5 py-4">
+      <div class="flex flex-col md:flex-row gap-3">
+        <!-- Search -->
+        <div class="relative flex-1">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
           </svg>
+          <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()"
+            placeholder="Search by title, location, creator..."
+            class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] outline-none transition-all"/>
+        </div>
+        <!-- Filter Type -->
+        <select [(ngModel)]="filterType" (ngModelChange)="applyFilters()"
+          class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] outline-none bg-white text-gray-700">
+          <option value="">All Types</option>
+          <option value="WORKSHOP">🛠️ Workshop</option>
+          <option value="SEMINAR">📚 Seminar</option>
+          <option value="SOCIAL">🎉 Social</option>
+        </select>
+        <!-- Filter Status -->
+        <select [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()"
+          class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] outline-none bg-white text-gray-700">
+          <option value="">All Statuses</option>
+          <option value="APPROVED">✅ Approved</option>
+          <option value="REJECTED">❌ Rejected</option>
+        </select>
+        <!-- Sort -->
+        <select [(ngModel)]="sortBy" (ngModelChange)="applyFilters()"
+          class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] outline-none bg-white text-gray-700">
+          <option value="date_desc">📅 Date (newest)</option>
+          <option value="date_asc">📅 Date (oldest)</option>
+          <option value="title_asc">🔤 Title A→Z</option>
+          <option value="title_desc">🔤 Title Z→A</option>
+        </select>
+        <!-- Reset -->
+        <button (click)="resetFilters()" *ngIf="searchQuery || filterType || filterStatus || sortBy !== 'date_desc'"
+          class="px-4 py-2 text-sm font-semibold text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all whitespace-nowrap">
+          ✕ Reset
         </button>
       </div>
     </div>
 
-    <!-- Modal Body -->
-    <div class="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
-      <!-- Event Image -->
-      <div *ngIf="selectedEvent.image" class="mb-6">
-        <img [src]="selectedEvent.image" [alt]="selectedEvent.title" class="w-full h-64 object-cover rounded-lg">
+    <!-- Loading -->
+    <div *ngIf="loading" class="flex justify-center py-16">
+      <div class="w-10 h-10 border-2 border-[#2D5757] border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <!-- Error -->
+    <div *ngIf="error" class="bg-white rounded-2xl border-l-4 border-[#C84630] p-5 shadow-sm">
+      <p class="text-sm text-[#C84630] font-semibold">{{ error }}</p>
+    </div>
+
+    <!-- Empty -->
+    <div *ngIf="!loading && !error && filteredEvents.length === 0"
+      class="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center py-16 gap-3">
+      <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+        <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
       </div>
+      <p class="text-sm font-semibold text-gray-500">No events found</p>
+    </div>
 
-      <!-- Event Description -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Description</h3>
-        <p class="text-gray-700 dark:text-gray-300">{{ selectedEvent.description || 'No description provided' }}</p>
-      </div>
+    <!-- Events Grid -->
+    <div *ngIf="!loading && !error && filteredEvents.length > 0"
+      class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div *ngFor="let event of filteredEvents"
+        class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group">
 
-      <!-- Event Details Grid -->
-      <div class="mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Event Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Type -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Type</p>
-            <div class="flex items-center gap-2">
-              <span class="text-2xl">{{ getEventIcon(selectedEvent.type) }}</span>
-              <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ selectedEvent.type }}</p>
+        <!-- Image / Banner -->
+        <div class="relative h-44 overflow-hidden">
+          <img *ngIf="event.image" [src]="event.image" [alt]="event.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"/>
+          <div *ngIf="!event.image" class="w-full h-full bg-gradient-to-br from-[#2D5757] via-[#3D3D60] to-[#2D5757] flex items-center justify-center">
+            <span class="text-5xl">{{ getEventIcon(event.type) }}</span>
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+          <!-- Badges top -->
+          <div class="absolute top-3 left-3 flex items-center gap-2">
+            <span class="px-2.5 py-1 rounded-full text-xs font-bold shadow-sm"
+              [ngClass]="{
+                'bg-emerald-500 text-white': event.status === 'APPROVED',
+                'bg-amber-500 text-white': event.status === 'PENDING',
+                'bg-[#C84630] text-white': event.status === 'REJECTED'
+              }">
+              {{ event.status }}
+            </span>
+          </div>
+          <div class="absolute top-3 right-3">
+            <span class="px-2.5 py-1 bg-white/90 text-gray-700 rounded-full text-xs font-bold shadow-sm">
+              {{ getEventIcon(event.type) }} {{ event.type }}
+            </span>
+          </div>
+
+          <!-- Title overlay -->
+          <div class="absolute bottom-0 left-0 right-0 px-4 py-3">
+            <h3 class="text-sm font-black text-white truncate">{{ event.title }}</h3>
+          </div>
+        </div>
+
+        <!-- Body -->
+        <div class="p-4 space-y-3">
+
+          <!-- Stats row -->
+          <div class="grid grid-cols-2 gap-2">
+            <div class="bg-gray-50 rounded-xl p-2.5">
+              <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Start</p>
+              <p class="text-xs font-bold text-gray-700 mt-0.5">{{ formatDate(event.startDate || '') }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-xl p-2.5">
+              <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wide">Participants</p>
+              <p class="text-xs font-bold text-gray-700 mt-0.5">{{ event.currentParticipants || 0 }} / {{ event.maxParticipants }}</p>
             </div>
           </div>
 
-          <!-- Date & Time -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Date & Time</p>
-            <div class="space-y-2">
-              <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
-                <div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">Start</p>
-                  <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatDate(selectedEvent.startDate || '') }}</p>
-                </div>
-              </div>
-              <div class="flex items-center gap-2">
-                <svg class="w-5 h-5 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                <div>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">End</p>
-                  <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatDate(selectedEvent.endDate || '') }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Location -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Location</p>
-            <div class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedEvent.location }}</p>
-            </div>
-          </div>
-
-          <!-- Participants -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Participants</p>
-            <div class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-              <p class="text-sm font-semibold text-gray-900 dark:text-white">
-                <span *ngIf="selectedEvent.status === 'APPROVED'">{{ selectedEvent.currentParticipants || 0 }} / {{ selectedEvent.maxParticipants }}</span>
-                <span *ngIf="selectedEvent.status === 'REJECTED'">{{ selectedEvent.maxParticipants }} max</span>
-              </p>
-            </div>
+          <!-- Location / Format -->
+          <div class="flex items-center gap-2 text-xs text-gray-500">
+            <svg *ngIf="event.format !== 'ONLINE'" class="w-3.5 h-3.5 flex-shrink-0 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            <span *ngIf="event.format !== 'ONLINE'" class="truncate">{{ event.location }}</span>
+            <span *ngIf="event.format === 'ONLINE'" class="flex items-center gap-1.5">
+              <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse shrink-0"></span>
+              <span class="font-semibold text-blue-600">Online Event</span>
+            </span>
           </div>
 
           <!-- Creator -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Created by</p>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ selectedEvent.creatorName || 'User ID: ' + selectedEvent.creatorId }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" *ngIf="selectedEvent.creatorEmail">{{ selectedEvent.creatorEmail }}</p>
+          <div class="flex items-center gap-2 pt-1 border-t border-gray-50">
+            <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+              {{ (event.creatorName || 'U').charAt(0).toUpperCase() }}
+            </div>
+            <div class="min-w-0">
+              <p class="text-xs font-semibold text-gray-700 truncate">{{ event.creatorName || 'User #' + event.creatorId }}</p>
+              <p class="text-[10px] text-gray-400">{{ formatDate(event.createdAt!) }}</p>
+            </div>
           </div>
 
-          <!-- Created At -->
-          <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Created on</p>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatDate(selectedEvent.createdAt!) }}</p>
-          </div>
-
-          <!-- Updated At -->
-          <div *ngIf="selectedEvent.updatedAt" class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg md:col-span-2">
-            <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Last updated</p>
-            <p class="text-sm font-semibold text-gray-900 dark:text-white">{{ formatDate(selectedEvent.updatedAt!) }}</p>
+          <!-- Actions -->
+          <div class="flex gap-2 pt-1">
+            <button (click)="viewEventDetails(event)"
+              class="flex-1 flex items-center justify-center gap-1.5 py-2 bg-[#2D5757] text-white rounded-xl text-xs font-bold hover:bg-[#2D5757]/90 transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+              </svg>
+              Details
+            </button>
+            <button (click)="deleteEvent(event.id!)"
+              class="p-2 rounded-xl border border-[#C84630]/30 text-[#C84630] hover:bg-[#C84630]/5 transition-all">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Sponsors Section -->
-      <div *ngIf="selectedEvent.sponsors && selectedEvent.sponsors.length > 0" class="mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Event Sponsors</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div *ngFor="let sponsor of selectedEvent.sponsors" class="sponsor-card">
-            <div class="flex items-center gap-3">
-              <img *ngIf="sponsor.logo" [src]="sponsor.logo" [alt]="sponsor.name" class="sponsor-logo">
-              <div *ngIf="!sponsor.logo" class="sponsor-logo-placeholder">
-                {{ sponsor.name.charAt(0).toUpperCase() }}
-              </div>
-              <div class="flex-1">
-                <p class="sponsor-name">{{ sponsor.name }}</p>
-                <span class="level-badge" [ngClass]="'level-' + (sponsor.level || 'BRONZE').toLowerCase()">
-                  {{ sponsor.level || 'BRONZE' }}
-                </span>
-                <p class="sponsor-amount" *ngIf="sponsor.contributionAmount">
-                  💰 {{ sponsor.contributionAmount }} DT
-                </p>
-              </div>
+  </div>
+</div>
+
+<!-- ── DETAILS MODAL ─────────────────────────────────────── -->
+<div *ngIf="showDetailsModal && selectedEvent"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4"
+  style="background: rgba(0,0,0,.5); backdrop-filter: blur(4px)"
+  (click)="closeDetailsModal()">
+
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+    (click)="$event.stopPropagation()">
+
+    <!-- Hero -->
+    <div class="relative h-48 flex-shrink-0 overflow-hidden">
+      <img *ngIf="selectedEvent.image" [src]="selectedEvent.image" [alt]="selectedEvent.title" class="w-full h-full object-cover"/>
+      <div *ngIf="!selectedEvent.image" class="w-full h-full bg-gradient-to-br from-[#2D5757] via-[#3D3D60] to-[#2D5757] flex items-center justify-center">
+        <span class="text-6xl">{{ getEventIcon(selectedEvent.type) }}</span>
+      </div>
+      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+
+      <!-- Close -->
+      <button (click)="closeDetailsModal()"
+        class="absolute top-3 right-3 w-8 h-8 bg-white/20 hover:bg-white/30 rounded-xl flex items-center justify-center text-white transition-all backdrop-blur-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+
+      <!-- Status badge -->
+      <div class="absolute top-3 left-3">
+        <span class="px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
+          [ngClass]="{
+            'bg-emerald-500 text-white': selectedEvent.status === 'APPROVED',
+            'bg-amber-500 text-white': selectedEvent.status === 'PENDING',
+            'bg-[#C84630] text-white': selectedEvent.status === 'REJECTED'
+          }">
+          {{ selectedEvent.status }}
+        </span>
+      </div>
+
+      <!-- Title -->
+      <div class="absolute bottom-0 left-0 right-0 px-6 py-4">
+        <h2 class="text-xl font-black text-white">{{ selectedEvent.title }}</h2>
+        <div class="flex items-center gap-2 mt-1">
+          <p class="text-sm text-white/70">{{ getEventIcon(selectedEvent.type) }} {{ selectedEvent.type }}</p>
+          <span *ngIf="selectedEvent.format === 'ONLINE'"
+            class="px-2 py-0.5 bg-blue-500/80 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+            🌐 Online
+          </span>
+          <span *ngIf="selectedEvent.format === 'IN_PERSON'"
+            class="px-2 py-0.5 bg-green-500/80 text-white text-xs font-bold rounded-full backdrop-blur-sm">
+            📍 In Person
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="overflow-y-auto flex-1 p-6 space-y-5">
+
+      <!-- Stats grid -->
+      <div class="grid grid-cols-2 gap-3">
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Start Date</p>
+          <p class="text-sm font-bold text-gray-800">{{ formatDate(selectedEvent.startDate || '') }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">End Date</p>
+          <p class="text-sm font-bold text-gray-800">{{ formatDate(selectedEvent.endDate || '') }}</p>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">Participants</p>
+          <p class="text-sm font-bold text-gray-800">{{ selectedEvent.currentParticipants || 0 }} / {{ selectedEvent.maxParticipants }}</p>
+          <div class="mt-1.5 w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-[#2D5757] to-[#3D3D60] rounded-full transition-all"
+              [style.width.%]="((selectedEvent.currentParticipants || 0) / selectedEvent.maxParticipants) * 100"></div>
+          </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-3">
+          <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-1">
+            {{ selectedEvent.format === 'ONLINE' ? 'Format' : 'Location' }}
+          </p>
+          <div *ngIf="selectedEvent.format === 'ONLINE'" class="flex items-center gap-2 mt-1">
+            <span class="w-2 h-2 bg-blue-500 rounded-full animate-pulse shrink-0"></span>
+            <p class="text-sm font-bold text-blue-600">Online Event</p>
+          </div>
+          <p *ngIf="selectedEvent.format !== 'ONLINE'" class="text-sm font-bold text-gray-800 truncate">{{ selectedEvent.location }}</p>
+        </div>
+        <!-- Participation Fee -->
+        <div class="col-span-2 rounded-xl p-3 border"
+          [ngClass]="(selectedEvent.participationFee || 0) > 0 ? 'bg-[#2D5757]/5 border-[#2D5757]/20' : 'bg-green-50 border-green-100'">
+          <p class="text-[10px] font-bold uppercase tracking-wide mb-1"
+            [ngClass]="(selectedEvent.participationFee || 0) > 0 ? 'text-[#2D5757]' : 'text-green-600'">
+            💰 Participation Fee
+          </p>
+          <p class="text-lg font-black"
+            [ngClass]="(selectedEvent.participationFee || 0) > 0 ? 'text-[#2D5757]' : 'text-green-600'">
+            {{ (selectedEvent.participationFee || 0) > 0 ? (selectedEvent.participationFee + ' DT') : 'Free' }}
+          </p>
+          <p class="text-xs mt-0.5"
+            [ngClass]="(selectedEvent.participationFee || 0) > 0 ? 'text-[#2D5757]/60' : 'text-green-500'">
+            {{ (selectedEvent.participationFee || 0) > 0 ? 'Required per participant' : 'No fee required to join' }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div class="bg-gray-50 rounded-xl p-4">
+        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-2">Description</p>
+        <p class="text-sm text-gray-600 leading-relaxed">{{ selectedEvent.description || 'No description provided.' }}</p>
+      </div>
+
+      <!-- Creator -->
+      <div class="flex items-center gap-3 p-4 bg-gray-50 rounded-xl">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center text-white font-bold flex-shrink-0">
+          {{ (selectedEvent.creatorName || 'U').charAt(0).toUpperCase() }}
+        </div>
+        <div class="min-w-0">
+          <p class="text-xs text-gray-400">Created by</p>
+          <p class="text-sm font-bold text-gray-800">{{ selectedEvent.creatorName || 'User #' + selectedEvent.creatorId }}</p>
+          <p class="text-xs text-gray-400" *ngIf="selectedEvent.creatorEmail">{{ selectedEvent.creatorEmail }}</p>
+        </div>
+        <div class="ml-auto text-right">
+          <p class="text-xs text-gray-400">Created on</p>
+          <p class="text-xs font-semibold text-gray-600">{{ formatDate(selectedEvent.createdAt!) }}</p>
+        </div>
+      </div>
+
+      <!-- Sponsors -->
+      <div *ngIf="selectedEvent.sponsors && selectedEvent.sponsors.length > 0">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Sponsors</p>
+        <div class="flex flex-wrap gap-2">
+          <div *ngFor="let sponsor of selectedEvent.sponsors"
+            class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+            <img *ngIf="sponsor.logo" [src]="sponsor.logo" [alt]="sponsor.name" class="w-7 h-7 rounded-lg object-cover">
+            <div *ngIf="!sponsor.logo" class="w-7 h-7 rounded-lg bg-[#F6BD60]/20 flex items-center justify-center text-xs font-bold text-amber-700">
+              {{ sponsor.name.charAt(0) }}
             </div>
+            <span class="text-xs font-semibold text-gray-700">{{ sponsor.name }}</span>
           </div>
         </div>
       </div>
 
       <!-- Gallery -->
-      <div *ngIf="selectedEvent.gallery && selectedEvent.gallery.length > 0" class="mb-6">
-        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Gallery</h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div *ngFor="let image of selectedEvent.gallery" class="relative">
-            <img [src]="image" alt="Gallery image" class="w-full h-32 object-cover rounded-lg">
+      <div *ngIf="selectedEvent.gallery && selectedEvent.gallery.length > 0">
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">Gallery</p>
+        <div class="grid grid-cols-3 gap-2">
+          <div *ngFor="let img of selectedEvent.gallery" class="aspect-video rounded-xl overflow-hidden">
+            <img [src]="img" alt="Gallery" class="w-full h-full object-cover hover:scale-105 transition-transform"/>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Modal Footer -->
-    <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 flex justify-end gap-3">
-      <button
-        (click)="closeDetailsModal()"
-        class="bg-gray-600 hover:bg-gray-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200">
+    <!-- Footer -->
+    <div class="flex-shrink-0 px-6 py-4 border-t border-gray-100 flex items-center gap-2">
+
+      <!-- View Full Page -->
+      <a [routerLink]="['/user-panel/events', selectedEvent.id]" target="_blank"
+        class="flex items-center gap-1.5 px-4 py-2 bg-[#2D5757] text-white rounded-xl text-sm font-bold hover:bg-[#2D5757]/90 transition-all whitespace-nowrap">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+        </svg>
+        View Full Page
+      </a>
+
+      <!-- Live Session — ONLINE only -->
+      <a *ngIf="selectedEvent.format === 'ONLINE'"
+        [routerLink]="['/live', selectedEvent.id]"
+        [queryParams]="{ ghost: true, returnTo: '/dashboard/events/manage' }"
+        class="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all whitespace-nowrap shadow-sm">
+        <span class="w-2 h-2 bg-white rounded-full animate-pulse shrink-0"></span>
+        🎥 Live Session
+      </a>
+
+      <!-- Spacer -->
+      <div class="flex-1"></div>
+
+      <!-- Close -->
+      <button (click)="closeDetailsModal()"
+        class="px-4 py-2 border border-gray-200 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-50 transition-all whitespace-nowrap">
         Close
       </button>
-      <button
-        (click)="deleteEvent(selectedEvent.id!); closeDetailsModal()"
-        class="bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-200 flex items-center gap-2">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+
+      <!-- Delete -->
+      <button (click)="deleteEvent(selectedEvent.id!); closeDetailsModal()"
+        class="flex items-center gap-1.5 px-4 py-2 bg-[#C84630] text-white rounded-xl text-sm font-bold hover:bg-[#C84630]/90 transition-all whitespace-nowrap">
+        <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
         </svg>
-        Delete Event
+        Delete
       </button>
     </div>
   </div>
 </div>
-
-

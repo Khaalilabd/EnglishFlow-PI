@@ -1,5 +1,6 @@
 package com.englishflow.sponsors.service;
 
+import com.englishflow.sponsors.client.ClubServiceClient;
 import com.englishflow.sponsors.dto.SponsorDTO;
 import com.englishflow.sponsors.entity.Sponsor;
 import com.englishflow.sponsors.exception.SponsorNotFoundException;
@@ -7,11 +8,13 @@ import com.englishflow.sponsors.mapper.SponsorMapper;
 import com.englishflow.sponsors.repository.SponsorRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +27,12 @@ public class SponsorService {
     private final SponsorRepository sponsorRepository;
     private final SponsorMapper sponsorMapper;
     private final WebSocketNotificationService webSocketNotificationService;
+    private final EmailService emailService;
+    private final RestTemplate restTemplate;
+    private final ClubServiceClient clubServiceClient;
+
+    @Value("${auth.service.url:http://localhost:8081}")
+    private String authServiceUrl;
     
     @Cacheable(value = "sponsors", key = "'all'")
     @Transactional(readOnly = true)
@@ -52,6 +61,13 @@ public class SponsorService {
                 .collect(Collectors.toList());
     }
     
+    @Transactional(readOnly = true)
+    public List<SponsorDTO> getSponsorsByUserId(Long userId) {
+        return sponsorRepository.findByUserId(userId).stream()
+                .map(sponsorMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
     @Cacheable(value = "sponsorsByStatus", key = "'approved'")
     @Transactional(readOnly = true)
     public List<SponsorDTO> getApprovedSponsors() {
@@ -77,7 +93,69 @@ public class SponsorService {
         Sponsor sponsor = sponsorRepository.findById(id)
                 .orElseThrow(() -> new SponsorNotFoundException(id));
         sponsor.setStatus(Sponsor.SponsorStatus.APPROVED);
-        return sponsorMapper.toDTO(sponsorRepository.save(sponsor));
+        SponsorDTO result = sponsorMapper.toDTO(sponsorRepository.save(sponsor));
+
+        // Activate the user account in auth-service
+        if (result.getUserId() != null) {
+            try {
+                restTemplate.postForEntity(
+                    authServiceUrl + "/users/" + result.getUserId() + "/activate",
+                    null, Void.class
+                );
+                log.info("User {} activated after sponsor approval", result.getUserId());
+            } catch (Exception e) {
+                log.error("Failed to activate user {} after sponsor approval: {}", result.getUserId(), e.getMessage());
+            }
+        }
+
+        // Notify sponsor by email
+        if (result.getContactEmail() != null) {
+            String firstName = result.getApplicantFirstName() != null ? result.getApplicantFirstName() : "Sponsor";
+
+            if (result.getClubId() != null && result.getClubName() != null) {
+                // Club sponsorship approved — use the amount directly (no 30% recalculation)
+                double allocation = result.getContributionAmount() != null ? result.getContributionAmount() : 0.0;
+                double total = allocation; // the amount IS already the club allocation
+
+                // ── Add to club treasury ──────────────────────────────────
+                clubServiceClient.createSponsorshipExpense(
+                    result.getClubId(), allocation, result.getName()
+                );
+
+                // Email to sponsor
+                emailService.sendClubSponsorApprovedEmail(
+                    result.getContactEmail(), firstName,
+                    result.getClubName(), allocation, allocation
+                );
+
+                // Email to club president
+                try {
+                    Long presidentUserId = clubServiceClient.getClubPresidentUserId(result.getClubId());
+                    if (presidentUserId != null) {
+                        var presidentInfo = restTemplate.getForObject(
+                            authServiceUrl + "/users/" + presidentUserId, java.util.Map.class
+                        );
+                        if (presidentInfo != null) {
+                            String presidentEmail = (String) presidentInfo.get("email");
+                            String presidentFirstName = (String) presidentInfo.getOrDefault("firstName", "President");
+                            if (presidentEmail != null) {
+                                emailService.sendClubPresidentFundingEmail(
+                                    presidentEmail, presidentFirstName,
+                                    result.getClubName(), result.getName(), allocation
+                                );
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to notify club president for club {}: {}", result.getClubId(), e.getMessage());
+                }
+            } else {
+                // General sponsorship approved
+                emailService.sendSponsorApprovedEmail(result.getContactEmail(), firstName, result.getName());
+            }
+        }
+
+        return result;
     }
 
     @Caching(evict = {
@@ -89,7 +167,15 @@ public class SponsorService {
         Sponsor sponsor = sponsorRepository.findById(id)
                 .orElseThrow(() -> new SponsorNotFoundException(id));
         sponsor.setStatus(Sponsor.SponsorStatus.REJECTED);
-        return sponsorMapper.toDTO(sponsorRepository.save(sponsor));
+        SponsorDTO result = sponsorMapper.toDTO(sponsorRepository.save(sponsor));
+
+        // Notify sponsor by email
+        if (result.getContactEmail() != null && result.getClubId() != null && result.getClubName() != null) {
+            String firstName = result.getApplicantFirstName() != null ? result.getApplicantFirstName() : "Sponsor";
+            emailService.sendClubSponsorRejectedEmail(result.getContactEmail(), firstName, result.getClubName());
+        }
+
+        return result;
     }
 
     @Caching(evict = {
@@ -107,6 +193,22 @@ public class SponsorService {
         log.info("Sponsor created successfully with id: {}, contribution: {}, level: {}", 
                 savedSponsor.getId(), savedSponsor.getContributionAmount(), savedSponsor.getLevel());
         
+        // Send confirmation email to the applicant
+        if (result.getContactEmail() != null) {
+            String firstName = result.getApplicantFirstName() != null ? result.getApplicantFirstName() : "Sponsor";
+            // Club sponsorship request
+            if (result.getClubId() != null && result.getClubName() != null) {
+                emailService.sendClubSponsorRequestReceivedEmail(
+                    result.getContactEmail(), firstName,
+                    result.getClubName(),
+                    result.getContributionAmount() != null ? result.getContributionAmount() : 0.0
+                );
+            } else {
+                // General sponsorship application
+                emailService.sendSponsorRequestReceivedEmail(result.getContactEmail(), firstName, result.getName());
+            }
+        }
+
         // Send WebSocket notification
         webSocketNotificationService.notifySponsorCreated(result);
         

@@ -68,6 +68,9 @@ public class MembershipRequest {
 
     @Column
     private LocalDateTime paymentConfirmedAt;
+
+    @Column
+    private LocalDateTime paymentDeadline; // 3 jours après approbation
     
     @PrePersist
     protected void onCreate() {

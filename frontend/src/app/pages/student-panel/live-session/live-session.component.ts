@@ -8,6 +8,8 @@ import { WebRTCService, RemoteParticipant } from '../../../core/services/webrtc.
 import { AuthService } from '../../../core/services/auth.service';
 import { EventService } from '../../../core/services/event.service';
 import { MemberService } from '../../../core/services/member.service';
+import { SponsorService } from '../../../core/services/sponsor.service';
+import { Sponsor } from '../../../core/models/sponsor.model';
 
 type Tab = 'chat' | 'qa' | 'poll' | 'hands' | 'whiteboard';
 
@@ -29,10 +31,19 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
 
   eventId!: number;
   eventTitle = '';
+  eventClubId: number | null = null;
   activeTab: Tab = 'chat';
   loading = true;
   isModerator = false;
   showVideo = false;
+
+  myRank = '';
+  moderatorTransferMessage = '';
+  isGhost = false;
+  returnTo: string | null = null;
+
+  // Club sponsors
+  clubSponsors: Sponsor[] = [];
 
   // Video/Audio
   localStream: MediaStream | null = null;
@@ -45,12 +56,20 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
 
   currentUserId!: number;
   currentUserName!: string;
+  myProfilePhoto: string | null = null;
+
+  getPhotoUrl(photo: string | null | undefined): string | null {
+    if (!photo) return null;
+    if (photo.startsWith('http')) return photo;
+    return `http://localhost:8081${photo}`;
+  }
 
   // Chat
   messages: ChatMessage[] = [];
   chatInput = '';
   targetLang = '';
   private shouldScrollChat = false;
+  unreadChatCount = 0;
 
   // Poll
   poll: Poll | null = null;
@@ -58,11 +77,13 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   newPollOptions = ['', ''];
   newPollMultiple = false;
   showCreatePoll = false;
+  hasNewPoll = false;
 
   // Q&A
   questions: Question[] = [];
   questionInput = '';
   questionAnonymous = false;
+  unreadQaCount = 0;
 
   // Hand raise
   handQueue: HandRaise[] = [];
@@ -432,8 +453,21 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   ];
 
   // Grid layout (Google Meet style)
+  // Roles that are invisible in the session (ghost observers)
+  private readonly GHOST_ROLES = ['ACADEMIC_OFFICE_AFFAIR', 'SPONSOR'];
+
+  // Visible users in the grid (excludes ghost roles)
+  get visibleUsers() {
+    return this.connectedUsers.filter(u => !this.GHOST_ROLES.includes(u.systemRole ?? ''));
+  }
+
+  // Ghost observers — only moderator can see them in the participants list
+  get ghostObservers() {
+    return this.connectedUsers.filter(u => this.GHOST_ROLES.includes(u.systemRole ?? ''));
+  }
+
   get gridClass(): string {
-    const total = this.participants.length + this.connectedUsers.length + 1;
+    const total = this.participants.length + this.visibleUsers.length + 1;
     if (total === 1) return 'grid-cols-1';
     if (total <= 4) return 'grid-cols-2';
     if (total <= 6) return 'grid-cols-3';
@@ -456,6 +490,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   private pendingScreenShareAssign = false;
 
   private subs = new Subscription();
+  private hasLeft = false;
 
   constructor(
     private route: ActivatedRoute,
@@ -464,54 +499,114 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
     public webrtc: WebRTCService,
     private authService: AuthService,
     private eventService: EventService,
-    private memberService: MemberService
+    private memberService: MemberService,
+    private sponsorService: SponsorService
   ) {}
 
   async ngOnInit() {
     this.eventId = Number(this.route.snapshot.paramMap.get('id'));
+    this.isGhost = this.route.snapshot.queryParamMap.get('ghost') === 'true';
+    this.returnTo = this.route.snapshot.queryParamMap.get('returnTo') || null;
+    const isGhost = this.isGhost;
     const user = this.authService.currentUserValue;
     this.currentUserId = user?.id!;
     this.currentUserName = `${user?.firstName || ''} ${user?.lastName || ''}`.trim();
+    this.myProfilePhoto = user?.profilePhoto ? this.getPhotoUrl(user.profilePhoto) : null;
 
-    // Load event info + check moderator role
-    this.eventService.getEventById(this.eventId).subscribe(e => {
+    // First determine rank, then connect with rank included in JOIN message
+    this.eventService.getEventById(this.eventId).subscribe(async e => {
       this.eventTitle = e.title;
+      this.eventClubId = e.clubId ?? null;
 
-      // Creator is always moderator
-      if (e.creatorId === this.currentUserId) {
-        this.isModerator = true;
-        return;
-      }
-
-      // Check club membership rank
+      // Load club sponsors if event belongs to a club
       if (e.clubId) {
-        this.memberService.getUserMembershipInClub(e.clubId, this.currentUserId).subscribe({
-          next: (membership) => {
-            const moderatorRanks = ['EVENT_MANAGER', 'PRESIDENT', 'VICE_PRESIDENT'];
-            this.isModerator = !!membership && moderatorRanks.includes(membership.rank);
+        this.sponsorService.getAllSponsors().subscribe({
+          next: (allSponsors) => {
+            // Find users who have a club sponsorship for this club
+            const clubSponsorUserIds = allSponsors
+              .filter(s => s.clubId === e.clubId && s.status === 'APPROVED')
+              .map(s => s.userId)
+              .filter((id): id is number => !!id);
+
+            // Get their platform sponsor entry (no clubId) — that's where logo/name is stored
+            const platformSponsors = allSponsors.filter(s =>
+              !s.clubId &&
+              s.status === 'APPROVED' &&
+              s.userId != null &&
+              clubSponsorUserIds.includes(s.userId as number)
+            );
+
+            // Fallback: if no platform entry found, use the club entries directly
+            this.clubSponsors = platformSponsors.length > 0
+              ? platformSponsors
+              : allSponsors.filter(s => s.clubId === e.clubId && s.status === 'APPROVED');
           },
-          error: () => this.isModerator = false
+          error: () => {}
         });
       }
-    });
 
-    await this.liveService.connect(this.eventId, this.currentUserId, this.currentUserName);
-    this.loading = false;
+      if (!isGhost) {
+        // Only CREATOR and EVENT_MANAGER can moderate
+        if (e.creatorId === this.currentUserId) {
+          this.myRank = 'CREATOR';
+          this.isModerator = true;
+        } else if (e.clubId) {
+          await new Promise<void>(resolve => {
+            this.memberService.getUserMembershipInClub(e.clubId!, this.currentUserId).subscribe({
+              next: (membership) => {
+                if (membership?.rank === 'EVENT_MANAGER') {
+                  this.myRank = 'EVENT_MANAGER';
+                  this.isModerator = true;
+                }
+                resolve();
+              },
+              error: () => resolve()
+            });
+          });
+        }
+      }
 
-    // Subscribe WebRTC signaling immediately so we receive offers even before enabling camera
-    this.webrtc.subscribeSignaling(
-      this.liveService.stompClient!,
-      this.eventId,
-      this.currentUserId,
-      this.currentUserName
-    );
+      // Ghost mode: connect without broadcasting presence (invisible observer)
+      // Moderators broadcast as MODERATOR, ghost users (ACADEMIC_MANAGER, SPONSOR) broadcast their real role
+      const systemRole = this.isModerator ? 'MODERATOR' : (user?.role ?? 'STUDENT');
+      const profilePhoto = this.myProfilePhoto ?? undefined;
+      await this.liveService.connect(this.eventId, this.currentUserId, this.currentUserName, systemRole, profilePhoto);
+      this.loading = false;
 
+      // Subscribe WebRTC signaling
+      this.webrtc.subscribeSignaling(
+        this.liveService.stompClient!,
+        this.eventId,
+        this.currentUserId,
+        this.currentUserName
+      );
+    }); // end getEventById subscribe
+
+    // Setup all reactive subscriptions
     this.subs.add(this.liveService.messages$.subscribe(m => {
-      this.messages = m;
+      const prevCount = this.messages.length;
+      this.messages = m.filter(msg => !msg.isSystem);
       this.shouldScrollChat = true;
+      if (this.activeTab !== 'chat' && this.messages.length > prevCount) {
+        this.unreadChatCount += this.messages.length - prevCount;
+      }
     }));
-    this.subs.add(this.liveService.poll$.subscribe(p => this.poll = p));
-    this.subs.add(this.liveService.questions$.subscribe(q => this.questions = q));
+    this.subs.add(this.liveService.poll$.subscribe(p => {
+      const hadPoll = !!this.poll;
+      this.poll = p;
+      // Show dot if new poll created and not on poll tab
+      if (p && !hadPoll && this.activeTab !== 'poll') {
+        this.hasNewPoll = true;
+      }
+    }));
+    this.subs.add(this.liveService.questions$.subscribe(q => {
+      const prevCount = this.questions.length;
+      this.questions = q;
+      // Increment unread Q&A count when moderator posts a new question and user is not on qa tab
+      if (q.length > prevCount && this.activeTab !== 'qa') {
+        this.unreadQaCount += q.length - prevCount;
+      }
+    }));
     this.subs.add(this.liveService.handQueue$.subscribe(q => {
       this.handQueue = q;
       this.myHandRaised = q.some(h => h.userId === this.currentUserId);
@@ -576,7 +671,9 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
         this.pendingScreenShareAssign = true;
       }
     }));
-    this.subs.add(this.liveService.connectedUsers$.subscribe(u => this.connectedUsers = u));
+    this.subs.add(this.liveService.connectedUsers$.subscribe(u => {
+      this.connectedUsers = u;
+    }));
   }
 
   ngAfterViewChecked() {
@@ -600,7 +697,14 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   ngOnDestroy() {
     this.subs.unsubscribe();
     this.webrtc.leave();
-    this.liveService.disconnect(this.currentUserId, this.currentUserName);
+    // Only disconnect if leave() wasn't already called (avoids double disconnect)
+    if (!this.hasLeft) {
+      if (this.isGhost) {
+        this.liveService.disconnect();
+      } else {
+        this.liveService.disconnect(this.currentUserId, this.currentUserName);
+      }
+    }
   }
 
   // ── CHAT ──────────────────────────────────────────────────────
@@ -784,6 +888,10 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
 
   switchTab(tabId: string): void {
     this.activeTab = tabId as Tab;
+    // Reset unread badges when switching to the tab
+    if (tabId === 'chat') this.unreadChatCount = 0;
+    if (tabId === 'poll') this.hasNewPoll = false;
+    if (tabId === 'qa') this.unreadQaCount = 0;
     // Moderator switching to whiteboard forces all participants to follow
     if (this.isModerator && tabId === 'whiteboard') {
       this.liveService.broadcastTabSwitch('whiteboard');
@@ -865,7 +973,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
           this.liveService.stompClient!,
           this.eventId,
           this.currentUserId,
-          this.currentUserName
+          this.currentUserName,
+          this.myProfilePhoto ?? undefined
         );
       }
       await this.webrtc.startScreenShare();
@@ -882,7 +991,8 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
         this.liveService.stompClient!,
         this.eventId,
         this.currentUserId,
-        this.currentUserName
+        this.currentUserName,
+        this.myProfilePhoto ?? undefined
       );
     }
   }
@@ -892,6 +1002,54 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   }
 
   leave() {
-    this.router.navigate(['/user-panel/events']);
+    if (this.hasLeft) return;
+    this.hasLeft = true;
+
+    // Cleanup: disconnect from WebRTC and WebSocket
+    try {
+      this.webrtc.leave();
+    } catch (e) {
+      console.error('[LiveSession] Error leaving WebRTC:', e);
+    }
+
+    try {
+      if (this.isGhost) {
+        this.liveService.disconnect();
+      } else {
+        this.liveService.disconnect(this.currentUserId, this.currentUserName);
+      }
+    } catch (e) {
+      console.error('[LiveSession] Error disconnecting from live service:', e);
+    }
+
+    // Determine redirect destination
+    const user = this.authService.currentUserValue;
+    const role = user?.role ?? 'STUDENT';
+    let destination = '/user-panel/events';
+
+    if (this.isGhost) {
+      // Ghost mode observers
+      if (role === 'SPONSOR') {
+        destination = this.eventClubId 
+          ? `/sponsor-panel/clubs/${this.eventClubId}` 
+          : '/sponsor-panel/my-impact';
+      } else if (role === 'ACADEMIC_OFFICE_AFFAIR') {
+        destination = this.returnTo || '/dashboard/events/manage';
+      } else {
+        destination = this.returnTo || '/dashboard';
+      }
+    } else {
+      // Normal participants and moderators
+      destination = `/user-panel/events/${this.eventId}`;
+    }
+
+    console.log('[LiveSession] Leaving session, redirecting to:', destination);
+    
+    // Force full page reload to ensure clean state
+    setTimeout(() => {
+      window.location.href = destination;
+    }, 100);
   }
+
+
 }

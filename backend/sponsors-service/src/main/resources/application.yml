@@ -3,7 +3,7 @@ spring:
     name: sponsors-service
   
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/englishflow_sponsors_db}
+    url: ${DB_URL:jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:englishflow_sponsors_db}}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -16,13 +16,43 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
   
   cloud:
     config:
       enabled: false
 
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
+
+auth:
+  service:
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}
+
+club:
+  service:
+    url: ${CLUB_SERVICE_URL:http://localhost:8085}
+
 server:
-  port: ${PORT:8091}
+  port: ${PORT:8089}
 
 eureka:
   client:
@@ -58,6 +88,9 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false
 
 logging:
   level:

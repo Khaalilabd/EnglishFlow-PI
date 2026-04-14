@@ -26,6 +26,10 @@ export class AuthService {
     }
   }
 
+  registerSponsor(request: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/register-sponsor`, request);
+  }
+
   register(request: RegisterRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/register`, request).pipe(
       tap(response => {

@@ -67,6 +67,11 @@ public class SponsorController {
         return ResponseEntity.ok(updatedSponsor);
     }
     
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<SponsorDTO>> getSponsorsByUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(sponsorService.getSponsorsByUserId(userId));
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<List<SponsorDTO>> getPendingSponsors() {
         return ResponseEntity.ok(sponsorService.getPendingSponsors());

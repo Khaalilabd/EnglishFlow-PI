@@ -27,6 +27,7 @@ import { ActivateComponent } from './auth/activate/activate.component';
 import { OAuth2CallbackComponent } from './auth/oauth2-callback/oauth2-callback.component';
 import { StudentLayoutComponent } from './shared/layout/student-layout/student-layout.component';
 import { TutorLayoutComponent } from './shared/layout/tutor-layout/tutor-layout.component';
+import { SponsorLayoutComponent } from './shared/layout/sponsor-layout/sponsor-layout.component';
 import { authGuard } from './core/guards/auth.guard';
 import { TutorApplicationComponent } from './pages/tutor-application/tutor-application.component';
 import { LessonManagementComponent } from './pages/tutor-panel/lesson-management/lesson-management.component';
@@ -78,12 +79,20 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Read Ebook | Jungle in English'
   },
+
+  // Live Session - Standalone (no sidebar, full screen)
+  {
+    path: 'live/:id',
+    loadComponent: () => import('./pages/student-panel/live-session/live-session.component').then(m => m.LiveSessionComponent),
+    canActivate: [authGuard],
+    title: 'Live Session | Jungle in English'
+  },
   
   // Student Panel avec layout et sidebar - Protégé pour STUDENT uniquement
   {
     path: 'user-panel',
     component: StudentLayoutComponent,
-    canActivate: [roleGuard(['STUDENT'])],
+    canActivate: [roleGuard(['STUDENT', 'ACADEMIC_OFFICE_AFFAIR', 'ADMIN'])],
     children: [
       {
         path: '',
@@ -242,7 +251,7 @@ export const routes: Routes = [
       },
       {
         path: 'events/:id',
-        loadComponent: () => import('./pages/student-panel/events/events.component').then(m => m.EventsComponent),
+        loadComponent: () => import('./pages/student-panel/event-details/event-details.component').then(m => m.EventDetailsComponent),
         title: 'Event Details | Jungle in English'
       },
       {
@@ -254,6 +263,11 @@ export const routes: Routes = [
         path: 'club-payment/:requestId',
         loadComponent: () => import('./pages/student-panel/club-payment/club-payment.component').then(m => m.ClubPaymentComponent),
         title: 'Club Payment | Jungle in English'
+      },
+      {
+        path: 'event-payment/:participantId',
+        loadComponent: () => import('./pages/student-panel/event-payment/event-payment.component').then(m => m.EventPaymentComponent),
+        title: 'Event Payment | Jungle in English'
       },
       {
         path: 'progress',
@@ -473,6 +487,50 @@ export const routes: Routes = [
         path: 'create-exam',
         loadComponent: () => import('./pages/academic-panel/exam-builder/exam-builder.component').then(m => m.ExamBuilderComponent),
         title: 'Create Exam | Jungle in English'
+      }
+    ]
+  },
+
+  // Sponsor Panel
+  {
+    path: 'sponsor-panel',
+    component: SponsorLayoutComponent,
+    canActivate: [roleGuard(['SPONSOR'])],
+    children: [
+      {
+        path: '',
+        redirectTo: 'dashboard',
+        pathMatch: 'full'
+      },
+      {
+        path: 'dashboard',
+        loadComponent: () => import('./pages/sponsor-panel/sponsor-panel.component').then(m => m.SponsorPanelComponent),
+        title: 'Sponsor Dashboard | Jungle in English'
+      },
+      {
+        path: 'clubs',
+        loadComponent: () => import('./pages/sponsor-panel/sponsor-clubs/sponsor-clubs.component').then(m => m.SponsorClubsComponent),
+        title: 'Browse Clubs | Jungle in English'
+      },
+      {
+        path: 'clubs/:id',
+        loadComponent: () => import('./pages/sponsor-panel/sponsor-club-detail/sponsor-club-detail.component').then(m => m.SponsorClubDetailComponent),
+        title: 'Club Details | Jungle in English'
+      },
+      {
+        path: 'my-impact',
+        loadComponent: () => import('./pages/sponsor-panel/my-impact/my-impact.component').then(m => m.MyImpactComponent),
+        title: 'My Impact | Jungle in English'
+      },
+      {
+        path: 'company-profile',
+        loadComponent: () => import('./pages/sponsor-panel/company-profile/company-profile.component').then(m => m.CompanyProfileComponent),
+        title: 'Company Profile | Jungle in English'
+      },
+      {
+        path: 'sponsorship-level',
+        loadComponent: () => import('./pages/sponsor-panel/sponsorship-level/sponsorship-level.component').then(m => m.SponsorshipLevelComponent),
+        title: 'Sponsorship Level | Jungle in English'
       }
     ]
   },
@@ -901,6 +959,13 @@ export const routes: Routes = [
     path: 'apply-tutor',
     component: TutorApplicationComponent,
     title: 'Become a Tutor | Jungle in English'
+  },
+
+  // Sponsor Application Form - Public route
+  {
+    path: 'apply-sponsor',
+    loadComponent: () => import('./pages/apply-sponsor/apply-sponsor.component').then(m => m.ApplySponsorComponent),
+    title: 'Become a Sponsor | Jungle in English'
   },
   
   // Page 404 - DOIT ÊTRE EN DERNIER

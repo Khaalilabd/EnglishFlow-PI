@@ -1,0 +1,121 @@
+<div class="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-lg w-full max-w-md p-8">
+
+    <!-- Loading -->
+    @if (loading) {
+      <div class="text-center py-10">
+        <div class="animate-spin rounded-full h-12 w-12 border-2 border-[#2D5757] border-t-transparent mx-auto mb-4"></div>
+        <p class="text-gray-500">Loading...</p>
+      </div>
+    }
+
+    <!-- Error -->
+    @if (error && !loading) {
+      <div class="text-center py-10">
+        <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">✗</div>
+        <p class="text-red-600 font-semibold">{{ error }}</p>
+        <button (click)="goToEvents()" class="mt-4 px-6 py-2.5 bg-gray-100 rounded-xl text-gray-700 hover:bg-gray-200 transition font-semibold text-sm">
+          Back to Events
+        </button>
+      </div>
+    }
+
+    <!-- Already paid -->
+    @if (paymentStatus === 'already_paid' && !loading) {
+      <div class="text-center py-6">
+        <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">✓</div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Payment already confirmed</h2>
+        <p class="text-gray-500 mb-6">You are already registered for this event.</p>
+        <button (click)="goToEvents()" class="px-6 py-2.5 bg-[#2D5757] text-white rounded-xl hover:bg-[#2D5757]/90 transition font-bold text-sm">
+          View Events
+        </button>
+      </div>
+    }
+
+    <!-- Payment confirmed -->
+    @if (paymentStatus === 'confirmed' && !loading) {
+      <div class="text-center py-6">
+        <div class="w-16 h-16 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🎉</div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Payment confirmed!</h2>
+        <p class="text-gray-500 mb-6">You are now registered for the event. See you there!</p>
+        <button (click)="goToEvents()" class="px-6 py-2.5 bg-[#2D5757] text-white rounded-xl hover:bg-[#2D5757]/90 transition font-bold text-sm">
+          View Events
+        </button>
+      </div>
+    }
+
+    <!-- Payment failed -->
+    @if (paymentStatus === 'failed' && !loading) {
+      <div class="text-center py-6">
+        <div class="w-16 h-16 bg-red-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">✗</div>
+        <h2 class="text-xl font-bold text-gray-800 mb-2">Payment failed</h2>
+        <p class="text-gray-500 mb-6">The payment could not be processed. Please try again.</p>
+        <button (click)="paymentStatus = null" class="px-6 py-2.5 bg-[#2D5757] text-white rounded-xl hover:bg-[#2D5757]/90 transition font-bold text-sm">
+          Try Again
+        </button>
+      </div>
+    }
+
+    <!-- Payment form -->
+    @if (!loading && !error && !paymentStatus && participant) {
+      <!-- Header -->
+      <div class="text-center mb-8">
+        <div class="w-16 h-16 bg-[#2D5757]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+          </svg>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">Complete Registration</h1>
+        <p class="text-gray-500 mt-1">
+          Your registration for
+          <span class="font-semibold text-[#2D5757]">{{ participant.eventTitle }}</span>
+          has been accepted
+        </p>
+      </div>
+
+      <!-- Amount -->
+      <div class="bg-gray-50 rounded-2xl p-5 mb-6 text-center border border-gray-100">
+        <p class="text-sm text-gray-400 font-semibold uppercase tracking-wide mb-1">Participation Fee</p>
+        <p class="text-4xl font-black text-[#2D5757]">
+          {{ participant.participationFee }}
+          <span class="text-xl font-normal text-gray-400">DT</span>
+        </p>
+        @if (participant.paymentDeadline) {
+          <p class="text-xs text-orange-500 font-semibold mt-2">
+            ⏰ Pay before {{ participant.paymentDeadline | date:'mediumDate' }}
+          </p>
+        }
+      </div>
+
+      <!-- Payment methods -->
+      <p class="text-sm font-bold text-gray-700 mb-3">Payment Method</p>
+      <div class="space-y-3">
+        <button
+          (click)="payWithKonnect()"
+          [disabled]="processing"
+          class="w-full flex items-center gap-4 p-4 border-2 border-gray-200 rounded-2xl hover:border-[#2D5757] hover:bg-[#2D5757]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+          <div class="w-12 h-12 bg-[#2D5757]/10 rounded-xl flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+          </div>
+          <div class="text-left">
+            <p class="font-bold text-gray-800">Bank Transfer</p>
+            <p class="text-sm text-gray-400">Via Konnect — Bank card, e-DINAR</p>
+          </div>
+          <svg class="w-5 h-5 text-gray-300 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+          </svg>
+        </button>
+      </div>
+
+      @if (processing) {
+        <div class="mt-4 text-center text-sm text-gray-500 flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-[#2D5757] border-t-transparent"></div>
+          Redirecting to payment gateway...
+        </div>
+      }
+    }
+
+  </div>
+</div>

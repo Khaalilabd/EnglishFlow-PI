@@ -1,6 +1,7 @@
 package com.englishflow.club.service;
 
 import com.englishflow.club.client.AuthServiceClient;
+import com.englishflow.club.dto.ExpenseDTO;
 import com.englishflow.club.dto.MembershipRequestDTO;
 import com.englishflow.club.dto.UserInfoDTO;
 import com.englishflow.club.entity.Club;
@@ -37,6 +38,7 @@ public class MembershipRequestService {
     private final WebSocketNotificationService wsNotificationService;
     private final AuthServiceClient authServiceClient;
     private final ClubHistoryService clubHistoryService;
+    private final ExpenseService expenseService;
     
     @Transactional
     public MembershipRequestDTO createRequest(Integer clubId, Long userId, String message, String motivationLetter, String studentSkills) {
@@ -178,13 +180,29 @@ public class MembershipRequestService {
         if (request.getClub().isFull()) {
             throw new ClubFullException(request.getClub().getMaxMembers());
         }
-        
-        // Update request status
-        request.setStatus(MembershipRequestStatus.PAYMENT_PENDING);
+
+        Double fee = request.getClub().getRegistrationFee();
+        boolean hasFee = fee != null && fee > 0;
+
+        // Set status and deadline
         request.setReviewedAt(LocalDateTime.now());
         request.setReviewedBy(reviewerId);
-        
-        MembershipRequest updatedRequest = requestRepository.save(request);
+        if (hasFee) {
+            request.setStatus(MembershipRequestStatus.PAYMENT_PENDING);
+            request.setPaymentDeadline(LocalDateTime.now().plusDays(3));
+        } else {
+            request.setStatus(MembershipRequestStatus.APPROVED);
+        }
+        requestRepository.save(request);
+
+        // Add member immediately (provisional access if fee required)
+        memberService.addMemberToClub(request.getClub().getId(), request.getUserId());
+        log.info("User {} added to club {} - hasFee: {}, deadline: {}", request.getUserId(), request.getClub().getId(), hasFee, request.getPaymentDeadline());
+
+        if (!hasFee) {
+            log.info("Membership request {} approved directly (no fee)", requestId);
+            return toDTO(request);
+        }
         
         // Get user info to send payment email
         UserInfoDTO userInfo = authServiceClient.getUserInfo(request.getUserId());
@@ -205,7 +223,7 @@ public class MembershipRequestService {
         }
         
         log.info("Membership request {} set to PAYMENT_PENDING", requestId);
-        return toDTO(updatedRequest);
+        return toDTO(request);
     }
     
     @Transactional(readOnly = true)
@@ -233,8 +251,8 @@ public class MembershipRequestService {
 
         MembershipRequest updatedRequest = requestRepository.save(request);
 
-        // Add user as member after payment confirmed
-        memberService.addMemberToClub(request.getClub().getId(), request.getUserId());
+        // User was already added as provisional member during approveRequest()
+        // No need to add again, just confirm the payment status
 
         // Log history
         clubHistoryService.logHistory(
@@ -247,6 +265,25 @@ public class MembershipRequestService {
             paymentToken,
             request.getUserId()
         );
+
+        // Auto-create income entry in treasury
+        try {
+            Double fee = request.getClub().getRegistrationFee();
+            if (fee != null && fee > 0) {
+                ExpenseDTO incomeEntry = ExpenseDTO.builder()
+                        .clubId(request.getClub().getId())
+                        .designation("Registration fee from member #" + request.getUserId())
+                        .amount(fee)
+                        .expenseDate(LocalDateTime.now())
+                        .createdBy(request.getUserId())
+                        .notes("REGISTRATION_FEE_INCOME | payment: " + paymentToken)
+                        .source("REGISTRATION_FEE")
+                        .build();
+                expenseService.createIncomeEntry(incomeEntry);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to create income entry for membership payment: {}", e.getMessage());
+        }
 
         log.info("Payment confirmed for membership request {}, user {} added to club {}", 
             requestId, request.getUserId(), request.getClub().getId());
@@ -314,6 +351,7 @@ public class MembershipRequestService {
                 .paymentMethod(request.getPaymentMethod())
                 .paymentToken(request.getPaymentToken())
                 .paymentConfirmedAt(request.getPaymentConfirmedAt())
+                .paymentDeadline(request.getPaymentDeadline())
                 .build();
     }
 }

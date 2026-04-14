@@ -22,6 +22,11 @@ export class ClubRequestsAdminComponent implements OnInit {
   selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
+
+  // Search / Filter / Sort
+  searchQuery = '';
+  filterCategory = '';
+  sortBy: 'date_asc' | 'date_desc' | 'name_asc' | 'name_desc' = 'date_desc';
   
   // Modal pour approve/reject
   showReviewModal = false;
@@ -61,9 +66,48 @@ export class ClubRequestsAdminComponent implements OnInit {
   }
 
   categorizeClubs() {
-    this.pendingClubs = this.allClubs.filter(c => c.status === ClubStatus.PENDING);
-    this.approvedClubs = this.allClubs.filter(c => c.status === ClubStatus.APPROVED);
-    this.rejectedClubs = this.allClubs.filter(c => c.status === ClubStatus.REJECTED);
+    this.pendingClubs = this.filterAndSort(this.allClubs.filter(c => c.status === ClubStatus.PENDING));
+    this.approvedClubs = this.filterAndSort(this.allClubs.filter(c => c.status === ClubStatus.APPROVED));
+    this.rejectedClubs = this.filterAndSort(this.allClubs.filter(c => c.status === ClubStatus.REJECTED));
+  }
+
+  filterAndSort(clubs: Club[]): Club[] {
+    let result = [...clubs];
+
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(c =>
+        c.name?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q)
+      );
+    }
+
+    if (this.filterCategory) {
+      result = result.filter(c => c.category === this.filterCategory);
+    }
+
+    result.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'date_asc':  return new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
+        case 'date_desc': return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+        case 'name_asc':  return (a.name || '').localeCompare(b.name || '');
+        case 'name_desc': return (b.name || '').localeCompare(a.name || '');
+        default: return 0;
+      }
+    });
+
+    return result;
+  }
+
+  applyFilters() {
+    this.categorizeClubs();
+  }
+
+  resetFilters() {
+    this.searchQuery = '';
+    this.filterCategory = '';
+    this.sortBy = 'date_desc';
+    this.categorizeClubs();
   }
 
   openReviewModal(club: Club, action: 'approve' | 'reject') {

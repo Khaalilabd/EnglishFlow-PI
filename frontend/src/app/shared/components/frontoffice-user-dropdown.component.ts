@@ -264,6 +264,8 @@ export class FrontofficeUserDropdownComponent implements OnInit {
       return 'Tutor Panel';
     } else if (this.currentUser?.role === 'ACADEMIC_OFFICE_AFFAIR') {
       return 'Academic Support Panel';
+    } else if (this.currentUser?.role === 'SPONSOR') {
+      return 'Sponsor Panel';
     } else if (this.currentUser?.role === 'STUDENT') {
       return 'Student Panel';
     }
@@ -277,6 +279,8 @@ export class FrontofficeUserDropdownComponent implements OnInit {
       return '/tutor-panel';
     } else if (this.currentUser?.role === 'ACADEMIC_OFFICE_AFFAIR') {
       return '/dashboard';
+    } else if (this.currentUser?.role === 'SPONSOR') {
+      return '/sponsor-panel/dashboard';
     } else if (this.currentUser?.role === 'STUDENT') {
       return '/user-panel';
     }

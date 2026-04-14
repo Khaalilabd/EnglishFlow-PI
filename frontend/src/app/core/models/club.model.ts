@@ -112,23 +112,30 @@ export interface MembershipRequest {
   id?: number;
   clubId: number;
   clubName?: string;
+  registrationFee?: number;
   userId: number;
   userName?: string;
   userEmail?: string;
   status: MembershipRequestStatus;
   message?: string;
-  motivationLetter?: string; // Lettre de motivation
-  studentSkills?: string; // Compétences de l'étudiant
+  motivationLetter?: string;
+  studentSkills?: string;
   requestedAt?: string;
   reviewedAt?: string;
   reviewedBy?: number;
   reviewComment?: string;
+  paymentMethod?: string;
+  paymentToken?: string;
+  paymentConfirmedAt?: string;
+  paymentDeadline?: string;
 }
 
 export enum MembershipRequestStatus {
   PENDING = 'PENDING',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  REJECTED = 'REJECTED',
+  EXPIRED = 'EXPIRED'
 }
 
 export interface CreateMembershipRequest {

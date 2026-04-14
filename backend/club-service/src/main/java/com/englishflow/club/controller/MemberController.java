@@ -111,6 +111,15 @@ public class MemberController {
         memberService.removeMemberByUserAndClub(clubId, userId);
         return ResponseEntity.noContent().build();
     }
+
+    @PostMapping("/club/{clubId}/transfer-presidency")
+    public ResponseEntity<Void> transferPresidencyAndLeave(
+            @PathVariable Integer clubId,
+            @RequestParam Long currentPresidentId,
+            @RequestParam Long newPresidentUserId) {
+        memberService.transferPresidencyAndLeave(clubId, currentPresidentId, newPresidentUserId);
+        return ResponseEntity.noContent().build();
+    }
     
     @GetMapping("/club/{clubId}/count")
     public ResponseEntity<Long> getClubMemberCount(@PathVariable Integer clubId) {

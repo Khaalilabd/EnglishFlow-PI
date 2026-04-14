@@ -31,4 +31,5 @@ public class MembershipRequestDTO {
     private String paymentMethod;
     private String paymentToken;
     private LocalDateTime paymentConfirmedAt;
+    private LocalDateTime paymentDeadline;
 }

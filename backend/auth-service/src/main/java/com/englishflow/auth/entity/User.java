@@ -99,7 +99,8 @@ public class User {
         ADMIN,
         TUTOR,
         STUDENT,
-        ACADEMIC_OFFICE_AFFAIR
+        ACADEMIC_OFFICE_AFFAIR,
+        SPONSOR
     }
 
     // Helper methods for permissions

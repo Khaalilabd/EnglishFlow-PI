@@ -25,5 +25,6 @@ public interface EventMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "currentParticipants", ignore = true)
     @Mapping(target = "creatorId", ignore = true)
+    @Mapping(target = "status", ignore = true)
     void updateEntityFromDTO(EventDTO eventDTO, @MappingTarget Event event);
 }

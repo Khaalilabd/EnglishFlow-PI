@@ -8,6 +8,7 @@ export interface RemoteParticipant {
   stream: MediaStream | null;
   audioEnabled: boolean;
   videoEnabled: boolean;
+  profilePhoto?: string;
 }
 
 interface WebRTCSignal {
@@ -20,6 +21,7 @@ interface WebRTCSignal {
   sdpMid?: string;
   sdpMLineIndex?: number;
   userName?: string;
+  profilePhoto?: string;
 }
 
 const ICE_SERVERS: RTCConfiguration = {
@@ -83,7 +85,7 @@ export class WebRTCService {
 
   // ── JOIN WITH CAMERA ──────────────────────────────────────────
 
-  async join(client: Client, eventId: number, userId: number, userName: string): Promise<void> {
+  async join(client: Client, eventId: number, userId: number, userName: string, profilePhoto?: string): Promise<void> {
     this.subscribeSignaling(client, eventId, userId, userName);
 
     const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
@@ -109,17 +111,17 @@ export class WebRTCService {
     });
 
     console.log(`[WebRTC] sending join broadcast`);
-    this.send({ type: 'join', userName });
+    this.send({ type: 'join', userName, profilePhoto });
   }
 
   // ── JOIN FOR SCREEN SHARE (no camera) ────────────────────────
 
-  async joinScreenShareOnly(client: Client, eventId: number, userId: number, userName: string): Promise<void> {
+  async joinScreenShareOnly(client: Client, eventId: number, userId: number, userName: string, profilePhoto?: string): Promise<void> {
     this.subscribeSignaling(client, eventId, userId, userName);
     // Broadcast join so participants create peer connections with us
     // We don't request camera — screen track will be added in startScreenShare
     console.log(`[WebRTC] sending join broadcast (screen share only)`);
-    this.send({ type: 'join', userName });
+    this.send({ type: 'join', userName, profilePhoto });
     // Small delay to let participants respond with offers
     await new Promise(resolve => setTimeout(resolve, 500));
   }
@@ -133,7 +135,7 @@ export class WebRTCService {
     switch (signal.type) {
       case 'join':
         console.log(`[WebRTC] peer ${signal.fromUserId} joined, creating offer`);
-        await this.createOffer(signal.fromUserId, signal.userName || 'Unknown');
+        await this.createOffer(signal.fromUserId, signal.userName || 'Unknown', signal.profilePhoto);
         break;
       case 'offer':
         console.log(`[WebRTC] got offer from ${signal.fromUserId}`);
@@ -152,15 +154,15 @@ export class WebRTCService {
     }
   }
 
-  private async createOffer(toUserId: number, userName: string): Promise<void> {
-    const pc = this.createPeerConnection(toUserId, userName);
+  private async createOffer(toUserId: number, userName: string, profilePhoto?: string): Promise<void> {
+    const pc = this.createPeerConnection(toUserId, userName, profilePhoto);
     const offer = await pc.createOffer();
     await pc.setLocalDescription(offer);
     this.send({ type: 'offer', toUserId, sdp: offer.sdp });
   }
 
   private async handleOffer(signal: WebRTCSignal): Promise<void> {
-    const pc = this.createPeerConnection(signal.fromUserId, signal.userName || 'Unknown');
+    const pc = this.createPeerConnection(signal.fromUserId, signal.userName || 'Unknown', signal.profilePhoto);
     await pc.setRemoteDescription(new RTCSessionDescription({ type: 'offer', sdp: signal.sdp }));
     const answer = await pc.createAnswer();
     await pc.setLocalDescription(answer);
@@ -185,7 +187,7 @@ export class WebRTCService {
 
   // ── PEER CONNECTION ───────────────────────────────────────────
 
-  private createPeerConnection(userId: number, userName: string): RTCPeerConnection {
+  private createPeerConnection(userId: number, userName: string, profilePhoto?: string): RTCPeerConnection {
     if (this.peers.has(userId)) return this.peers.get(userId)!;
 
     const pc = new RTCPeerConnection(ICE_SERVERS);
@@ -213,7 +215,7 @@ export class WebRTCService {
       if (!stream) return;
       // Run inside Angular zone so change detection fires automatically
       this.zone.run(() => {
-        this.upsertParticipant(userId, userName, stream);
+        this.upsertParticipant(userId, userName, stream, profilePhoto);
         this.assignVideoStream(userId, stream, 0);
       });
     };
@@ -227,7 +229,7 @@ export class WebRTCService {
       });
     };
 
-    this.upsertParticipant(userId, userName, null);
+    this.upsertParticipant(userId, userName, null, profilePhoto);
     return pc;
   }
 
@@ -246,16 +248,16 @@ export class WebRTCService {
     }
   }
 
-  private upsertParticipant(userId: number, userName: string, stream: MediaStream | null): void {
+  private upsertParticipant(userId: number, userName: string, stream: MediaStream | null, profilePhoto?: string): void {
     const current = this.participants$.value;
     const idx = current.findIndex(p => p.userId === userId);
     if (idx >= 0) {
       // Create new object to trigger Angular change detection
       const updated = [...current];
-      updated[idx] = { ...current[idx], stream: stream ?? current[idx].stream };
+      updated[idx] = { ...current[idx], stream: stream ?? current[idx].stream, profilePhoto: profilePhoto ?? current[idx].profilePhoto };
       this.participants$.next(updated);
     } else {
-      this.participants$.next([...current, { userId, userName, stream, audioEnabled: true, videoEnabled: true }]);
+      this.participants$.next([...current, { userId, userName, stream, audioEnabled: true, videoEnabled: true, profilePhoto }]);
     }
   }
 

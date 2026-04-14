@@ -4,7 +4,6 @@ import com.englishflow.event.enums.EventFormat;
 import com.englishflow.event.enums.EventStatus;
 import com.englishflow.event.enums.EventType;
 import com.englishflow.event.validation.ValidEventDates;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,11 +31,9 @@ public class EventDTO {
     private String meetingLink; // Deprecated — online events use the integrated Live Session
     
     @NotNull(message = "Start date is required")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime startDate;
     
     @NotNull(message = "End date is required")
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime endDate;
     
     @NotBlank(message = "Location is required")
@@ -51,6 +48,8 @@ public class EventDTO {
     private Integer maxParticipants;
     
     private Integer currentParticipants;
+
+    private Double participationFee = 0.0;
     
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;

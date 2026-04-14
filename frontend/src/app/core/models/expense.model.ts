@@ -7,6 +7,7 @@ export interface Expense {
   createdBy: number;
   createdByName?: string;
   notes?: string;
+  source?: 'REGISTRATION_FEE' | 'SPONSORSHIP' | 'EVENT_FEE' | 'OTHER';
   createdAt?: string;
   updatedAt?: string;
 }

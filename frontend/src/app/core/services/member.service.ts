@@ -80,4 +80,12 @@ export class MemberService {
   getUserMembershipInClub(clubId: number, userId: number): Observable<Member | null> {
     return this.http.get<Member | null>(`${this.apiUrl}/club/${clubId}/user/${userId}`);
   }
+
+  transferPresidencyAndLeave(clubId: number, currentPresidentId: number, newPresidentUserId: number): Observable<void> {
+    return this.http.post<void>(
+      `${this.apiUrl}/club/${clubId}/transfer-presidency`,
+      null,
+      { params: { currentPresidentId: currentPresidentId.toString(), newPresidentUserId: newPresidentUserId.toString() } }
+    );
+  }
 }

@@ -52,7 +52,16 @@ export class RegisterComponent {
   cityTouched = false;
   postalCodeTouched = false;
   bioTouched = false;
+  englishLevelTouched = false;
 
+  englishLevels = [
+    { value: 'A1', label: 'A1 - Beginner' },
+    { value: 'A2', label: 'A2 - Elementary' },
+    { value: 'B1', label: 'B1 - Intermediate' },
+    { value: 'B2', label: 'B2 - Upper Intermediate' },
+    { value: 'C1', label: 'C1 - Advanced' },
+    { value: 'C2', label: 'C2 - Proficient' }
+  ];
   experienceYears = Array.from({length: 31}, (_, i) => i); // 0-30 years
 
   constructor(
@@ -83,6 +92,7 @@ export class RegisterComponent {
       
       // Step 3: Profile & Experience
       bio: ['', Validators.maxLength(500)],
+      englishLevel: ['', Validators.required], // Required for students
       yearsOfExperience: [null]
     }, {
       validators: CustomValidators.passwordMatchValidator('password', 'confirmPassword')
@@ -116,6 +126,8 @@ export class RegisterComponent {
     } else if (this.currentStep === 2) {
       this.cin?.markAsTouched();
       this.dateOfBirth?.markAsTouched();
+    } else if (this.currentStep === 3) {
+      this.englishLevel?.markAsTouched();
     }
     
     if (this.currentStep < this.totalSteps && this.isStepValid(this.currentStep)) {
@@ -144,7 +156,7 @@ export class RegisterComponent {
       case 2:
         return !!(this.cin?.valid && this.dateOfBirth?.valid);
       case 3:
-        return !!this.recaptchaToken; // Only require reCAPTCHA
+        return !!(this.englishLevel?.valid && this.recaptchaToken); // Require reCAPTCHA
       default:
         return false;
     }
@@ -225,6 +237,7 @@ export class RegisterComponent {
   get city() { return this.registerForm.get('city'); }
   get postalCode() { return this.registerForm.get('postalCode'); }
   get bio() { return this.registerForm.get('bio'); }
+  get englishLevel() { return this.registerForm.get('englishLevel'); }
   get yearsOfExperience() { return this.registerForm.get('yearsOfExperience'); }
   
   // Toggle password visibility methods
@@ -340,6 +353,9 @@ export class RegisterComponent {
         if (this.dateOfBirth?.errors?.['minAge']) errors.push('You must be at least 13 years old');
       }
     } else if (this.currentStep === 3) {
+      if (this.englishLevel?.invalid && this.englishLevel?.touched) {
+        errors.push('Please select your English level');
+      }
       if (!this.recaptchaToken) {
         errors.push('Please complete the reCAPTCHA verification');
       }

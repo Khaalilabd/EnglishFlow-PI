@@ -13,6 +13,8 @@ public enum ClubHistoryType {
     ACHIEVEMENT_EARNED,
     CONTRIBUTION,
     EXPENSE_ADDED,       // Dépense ajoutée
+    EXPENSE_UPDATED,     // Dépense mise à jour
+    EXPENSE_DELETED,     // Dépense supprimée
     PAYMENT_CONFIRMED,   // Paiement d'inscription confirmé
     TASK_CREATED,        // Tâche créée
     TASK_UPDATED,        // Tâche mise à jour

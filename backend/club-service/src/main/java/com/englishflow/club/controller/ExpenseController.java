@@ -57,6 +57,13 @@ public class ExpenseController {
         ExpenseDTO createdExpense = expenseService.createExpense(expenseDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdExpense);
     }
+
+    @PostMapping("/income")
+    public ResponseEntity<ExpenseDTO> createIncomeEntry(@RequestBody ExpenseDTO expenseDTO) {
+        log.info("POST /expenses/income - Creating income entry for club {}", expenseDTO.getClubId());
+        ExpenseDTO created = expenseService.createIncomeEntry(expenseDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+    }
     
     @PutMapping("/{id}")
     public ResponseEntity<ExpenseDTO> updateExpense(

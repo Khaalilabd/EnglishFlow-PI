@@ -22,13 +22,14 @@ import { CdkDragDrop, moveItemInArray, transferArrayItem, DragDropModule } from 
 import { ClubExpensesComponent } from '../../clubs/club-expenses/club-expenses.component';
 import { ClubTasksComponent } from '../../clubs/club-tasks/club-tasks.component';
 import { ClubMembershipRequestsComponent } from '../../clubs/club-membership-requests/club-membership-requests.component';
+import { ClubsDetailsComponent } from '../clubs-details/clubs-details.component';
 import { ClubWebSocketService } from '../../../services/club-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
 
 @Component({
   selector: 'app-student-clubs',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, RouterLink, ClubExpensesComponent, ClubTasksComponent, ClubMembershipRequestsComponent],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, DragDropModule, RouterLink, ClubsDetailsComponent],
   templateUrl: './clubs.component.html',
   styleUrls: ['./clubs.component.scss']
 })
@@ -41,6 +42,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
   categories = Object.values(ClubCategory);
   selectedCategory: ClubCategory | null = null;
   currentUserId: number | null = null;
+  isAcademicManager = false;
   searchQuery: string = ''; // Dynamic search
   viewMode: 'grid' | 'list' = 'grid'; // View mode toggle
   
@@ -69,12 +71,17 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // Details view (not modal)
   showDetailsView = false;
   selectedClub: Club | null = null;
+  activeTab: 'overview' | 'members' | 'join-requests' | 'tasks' | 'expenses' | 'history' = 'overview';
   showDescription = true;  // Section description ouverte par défaut
   showObjective = false;    // Section objectif fermée par défaut
   showMembershipRequests = false; // Section membership requests fermée par défaut
   showSkills = false;       // Section skills fermée par défaut
   showTasks = false;        // Section tasks fermée par défaut
   actualMemberCount = 0;   // Nombre réel de membres
+  membersLoaded = false;   // Track if members have been loaded
+  memberSearchQuery = '';
+  memberViewMode: 'grid' | 'list' = 'grid';
+  memberFilter: 'all' | 'active' | 'pending' = 'all';
 
   // Task management
   clubTasks: { [clubId: number]: Task[] } = {};
@@ -136,8 +143,17 @@ export class ClubsComponent implements OnInit, OnDestroy {
   joinSkillsList: string[] = []; // Liste des compétences
   newJoinSkill: string = ''; // Nouvelle compétence à ajouter
 
+  // Manage Members Modal (List of all members)
+  showManageMembersModal = false;
+  
+  // Manage Single Member Modal
+  showManageSingleMemberModal = false;
+  selectedMemberToManage: any = null;
+  selectedNewRole: string = '';
+
   // User's pending membership requests
   userPendingRequests: Set<number> = new Set(); // Set of club IDs with pending requests
+  userPaymentPendingRequestsMap: { [clubId: number]: MembershipRequest } = {}; // Full request objects for PAYMENT_PENDING
 
   // Helper method to filter pending requests by club ID
   getPendingRequestsForClub(clubId: number): ClubUpdateRequest[] {
@@ -244,6 +260,14 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.subscriptions.unsubscribe();
     this.clubWsService.disconnect();
   }
+
+  setActiveTab(tab: 'overview' | 'members' | 'join-requests' | 'tasks' | 'expenses' | 'history') {
+    this.activeTab = tab;
+    if (tab === 'members' && !this.membersLoaded && this.selectedClub?.id) {
+      this.loadClubMembers(this.selectedClub.id);
+      this.membersLoaded = true;
+    }
+  }
   
   private async initializeWebSocket() {
     try {
@@ -273,13 +297,18 @@ export class ClubsComponent implements OnInit, OnDestroy {
   loadAndDisplayClub(clubId: number) {
     this.loading = true;
     this.error = null;
+    this.activeTab = 'overview'; // Reset tab on club change
+    this.membersLoaded = false;  // Reset members loaded flag
+    this.memberSearchQuery = '';
+    this.memberFilter = 'all';
 
     // Load club details and user roles in parallel
     forkJoin({
       club: this.clubService.getClubById(clubId),
-      members: this.currentUserId ? this.memberService.getMembersByUser(this.currentUserId) : of([])
+      members: this.currentUserId ? this.memberService.getMembersByUser(this.currentUserId) : of([]),
+      userRequests: this.currentUserId ? this.membershipRequestService.getUserRequests(this.currentUserId) : of([])
     }).subscribe({
-      next: ({ club, members }) => {
+      next: ({ club, members, userRequests }) => {
         this.selectedClub = club;
         this.showDetailsView = true;
         
@@ -292,6 +321,18 @@ export class ClubsComponent implements OnInit, OnDestroy {
           });
           console.log('📊 Final clubRoles map:', this.clubRoles);
         }
+
+        // Process user pending/payment-pending requests
+        this.userPendingRequests.clear();
+        this.userPaymentPendingRequestsMap = {};
+        userRequests
+          .filter((req: any) => req.status === 'PENDING' || req.status === 'PAYMENT_PENDING')
+          .forEach((req: any) => {
+            this.userPendingRequests.add(req.clubId);
+            if (req.status === 'PAYMENT_PENDING') {
+              this.userPaymentPendingRequestsMap[req.clubId] = req;
+            }
+          });
         
         // Set myClubs to include this club for loadPendingRequests to work
         this.myClubs = [club];
@@ -299,14 +340,25 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.loading = false;
         
         // Load tasks, member count, events, and pending requests after displaying
-        this.loadTasksForClub(club.id!);
+        if (this.isClubMember(club.id!)) {
+          this.loadTasksForClub(club.id!);
+        }
         this.loadActualMemberCount(club.id!);
         this.loadClubEventsForClub(club.id!);
         this.loadPendingRequests();
         this.loadMembershipRequestsCount(club.id!);
+        this.loadPaymentPendingCount(club.id!);
         
-        // Load total expenses if user is TREASURER
-        if (this.getUserRole(club.id!) === 'TREASURER') {
+        // Load members for the members tab (after roles are set)
+        const userRole = this.getUserRole(club.id!);
+        console.log('🔑 User role for club:', userRole);
+        // Auto-load members for management roles (needed for Join Rate chart)
+        if (userRole === 'PRESIDENT' || userRole === 'VICE_PRESIDENT' || userRole === 'SECRETARY') {
+          this.loadClubMembers(club.id!);
+        }
+        
+        // Load total expenses if user has financial access
+        if (this.getUserRole(club.id!) === 'TREASURER' || this.getUserRole(club.id!) === 'PRESIDENT' || this.getUserRole(club.id!) === 'VICE_PRESIDENT' || this.getUserRole(club.id!) === 'SECRETARY') {
           this.loadTotalExpenses(club.id!);
         }
       },
@@ -337,12 +389,29 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.membershipRequestService.getPendingRequestsForClub(clubId).subscribe({
       next: (requests: MembershipRequest[]) => {
         this.clubMembershipRequestsCount[clubId] = requests.length;
-        console.log(`✅ Membership requests count for club ${clubId}: ${requests.length}`);
       },
       error: (err: any) => {
-        console.error('❌ Error loading membership requests count:', err);
         this.clubMembershipRequestsCount[clubId] = 0;
       }
+    });
+  }
+
+  loadPaymentPendingCount(clubId: number) {
+    // Load only the count of PAYMENT_PENDING requests for the counter display
+    // Full details are loaded when Members tab is opened
+    this.membershipRequestService.getRequestsByClub(clubId).subscribe({
+      next: (requests: any[]) => {
+        const pending = requests.filter((r: any) => r.status === 'PAYMENT_PENDING');
+        // Only update count if members tab hasn't been loaded yet (avoid overwriting full data)
+        if (!this.membersLoaded) {
+          this.paymentPendingRequests = pending.map((r: any) => ({
+            ...r,
+            rank: r.rank || r.role || 'MEMBER',
+            user: { firstName: r.userName || '', lastName: '', email: r.userEmail || '', image: null }
+          }));
+        }
+      },
+      error: () => {}
     });
   }
 
@@ -354,6 +423,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
     const user = this.authService.currentUserValue;
     if (user && user.id !== undefined && user.id !== null) {
       this.currentUserId = user.id;
+      this.isAcademicManager = user.role === 'ACADEMIC_OFFICE_AFFAIR' || user.role === 'ADMIN';
     } else {
       console.error('No user found or user has no ID');
       this.error = 'User not authenticated. Please log in again.';
@@ -413,11 +483,16 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
     this.membershipRequestService.getUserRequests(this.currentUserId).subscribe({
       next: (requests) => {
-        // Store club IDs with PENDING status
         this.userPendingRequests.clear();
+        this.userPaymentPendingRequestsMap = {};
         requests
-          .filter(req => req.status === 'PENDING')
-          .forEach(req => this.userPendingRequests.add(req.clubId));
+          .filter(req => req.status === 'PENDING' || (req.status as string) === 'PAYMENT_PENDING')
+          .forEach(req => {
+            this.userPendingRequests.add(req.clubId);
+            if ((req.status as string) === 'PAYMENT_PENDING') {
+              this.userPaymentPendingRequestsMap[req.clubId] = req;
+            }
+          });
         
         console.log('📋 User pending membership requests:', Array.from(this.userPendingRequests));
       },
@@ -499,6 +574,8 @@ export class ClubsComponent implements OnInit, OnDestroy {
     return labels[role] || labels['MEMBER'];
   }
 
+  membershipFilter: 'all' | 'joined' | 'not-joined' = 'all';
+
   categorizeClubs() {
     // Afficher tous les clubs approuvés
     this.myClubs = this.allClubs;
@@ -507,20 +584,34 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   applyFilter() {
     let clubs = this.myClubs;
-    
+
+    // Filter by membership
+    if (this.membershipFilter === 'joined') {
+      clubs = clubs.filter(club => this.isClubMember(club.id!));
+    } else if (this.membershipFilter === 'not-joined') {
+      clubs = clubs.filter(club => !this.isClubMember(club.id!));
+    }
+
     // Filter by category
     if (this.selectedCategory !== null) {
       clubs = clubs.filter(club => club.category === this.selectedCategory);
     }
-    
+
     // Filter by search query (only by club name)
     if (this.searchQuery.trim()) {
       const query = this.searchQuery.toLowerCase().trim();
-      clubs = clubs.filter(club => 
-        club.name.toLowerCase().includes(query)
-      );
+      clubs = clubs.filter(club => club.name.toLowerCase().includes(query));
     }
-    
+
+    // Sort: joined clubs first (only when showing all)
+    if (this.membershipFilter === 'all') {
+      clubs = [...clubs].sort((a, b) => {
+        const aJoined = this.isClubMember(a.id!) ? 0 : 1;
+        const bJoined = this.isClubMember(b.id!) ? 0 : 1;
+        return aJoined - bJoined;
+      });
+    }
+
     this.filteredClubs = clubs;
   }
 
@@ -717,6 +808,13 @@ export class ClubsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Called after president transfers presidency — member already removed on backend, just refresh UI
+  onLeftClubAsPresident(clubId: number) {
+    delete this.clubRoles[clubId];
+    this.clubService.notifyClubMembershipChanged();
+    this.loadClubs();
+  }
+
   getCategoryBadgeClass(category: string): string {
     const classes: { [key: string]: string } = {
       'CONVERSATION': 'text-blue-800 bg-blue-100 dark:text-blue-200 dark:bg-blue-900',
@@ -881,83 +979,86 @@ export class ClubsComponent implements OnInit, OnDestroy {
     this.loadingMembers = true;
     this.paymentPendingRequests = [];
 
-    // Load payment pending requests in parallel
-    this.membershipRequestService.getRequestsByClub(clubId).subscribe({
-      next: (requests: any[]) => {
-        const pending = requests.filter((r: any) => r.status === 'PAYMENT_PENDING');
-        this.paymentPendingRequests = pending;
-      },
-      error: () => { this.paymentPendingRequests = []; }
-    });
-
-    this.memberService.getMembersByClub(clubId).subscribe({
-      next: (members) => {
+    // Load payment pending requests and members in parallel
+    forkJoin({
+      requests: this.membershipRequestService.getRequestsByClub(clubId),
+      members: this.memberService.getMembersByClub(clubId)
+    }).subscribe({
+      next: ({ requests, members }) => {
         console.log('📋 Raw members from API:', members);
-        console.log('📋 Members data loaded:', members.length, 'members');
-        
-        // Log each member's rank
-        members.forEach(m => {
-          console.log(`  Member ID ${m.id}, User ID ${m.userId}: rank = "${m.rank}"`);
-        });
-        
+
+        // Filter payment pending requests
+        const pending = requests.filter((r: any) => r.status === 'PAYMENT_PENDING');
+
         // Extract all unique user IDs
-        const userIds = [...new Set(members.map(m => m.userId))];
-        console.log('🔍 Fetching user details for IDs:', userIds);
-        
-        // Fetch user details for all members
-        this.userService.getUsersByIds(userIds).subscribe({
+        const memberUserIds = members.map(m => m.userId);
+        const pendingUserIds = pending.map((r: any) => r.userId);
+        const allUserIds = [...new Set([...memberUserIds, ...pendingUserIds])];
+
+        if (allUserIds.length === 0) {
+          this.clubMembers = [];
+          this.loadingMembers = false;
+          return;
+        }
+
+        // Fetch each user individually using the working /public endpoint
+        const userRequests = allUserIds.map(id => this.userService.getUserById(id));
+
+        forkJoin(userRequests).subscribe({
           next: (users) => {
-            console.log('👤 Users fetched from API:', users);
-            
-            // Create a map of userId -> user details
             const userMap = new Map(users.map(u => [u.id, u]));
-            console.log('🗺️ User map created:', userMap);
-            
-            // Merge member data with user details
+
             this.clubMembers = members.map(member => {
               const user = userMap.get(member.userId);
-              console.log(`  Looking up user ${member.userId}:`, user);
-              
-              const mergedMember = {
+              return {
                 ...member,
                 firstName: user?.firstName || '',
                 lastName: user?.lastName || '',
-                image: user?.image || null,
-                email: user?.email || ''
+                image: user?.profilePhoto || (user as any)?.profilePicture || user?.image || null,
+                profilePicture: user?.profilePhoto || (user as any)?.profilePicture || user?.image || null,
+                email: user?.email || '',
+                role: member.rank
               };
-              console.log(`  ✅ Merged member ${mergedMember.id}:`, {
-                userId: member.userId,
-                firstName: mergedMember.firstName,
-                lastName: mergedMember.lastName,
-                email: mergedMember.email,
-                rank: mergedMember.rank
-              });
-              return mergedMember;
             });
-            
+
+            this.paymentPendingRequests = pending.map((request: any) => {
+              const user = userMap.get(request.userId);
+              return {
+                ...request,
+                rank: request.rank || request.role || 'MEMBER',
+                user: {
+                  id: user?.id || request.userId,
+                  firstName: user?.firstName || '',
+                  lastName: user?.lastName || '',
+                  image: user?.profilePhoto || (user as any)?.profilePicture || user?.image || null,
+                  profilePicture: user?.profilePhoto || (user as any)?.profilePicture || user?.image || null,
+                  email: user?.email || ''
+                }
+              };
+            });
+
             this.loadingMembers = false;
-            console.log('📋 Final club members with user details:', this.clubMembers);
+            console.log('📋 Final club members:', this.clubMembers);
           },
           error: (err) => {
             console.error('❌ Error loading user details:', err);
-            console.error('❌ Error status:', err.status);
-            console.error('❌ Error message:', err.message);
-            
-            // Fallback: show members without full user details
+            // Fallback: show members with rank only
             this.clubMembers = members.map(member => ({
               ...member,
               firstName: '',
               lastName: '',
               image: null,
-              email: ''
+              profilePicture: null,
+              email: '',
+              role: member.rank
             }));
             this.loadingMembers = false;
           }
         });
       },
       error: (err) => {
+        console.error('❌ Error loading club members:', err);
         this.loadingMembers = false;
-        this.notificationService.error('Load Failed', 'Failed to load club members.');
       }
     });
   }
@@ -1041,6 +1142,75 @@ export class ClubsComponent implements OnInit, OnDestroy {
     }
   }
 
+  // Manage Members Modal Methods (List of all members)
+  openManageMembersModal() {
+    if (this.selectedClub && this.selectedClub.id) {
+      // Load members before opening modal
+      this.loadClubMembers(this.selectedClub.id);
+    }
+    this.showManageMembersModal = true;
+  }
+
+  closeManageMembersModal() {
+    this.showManageMembersModal = false;
+  }
+
+  // Manage Single Member Modal Methods
+  openManageSingleMemberModal(member: any) {
+    this.selectedMemberToManage = member;
+    this.selectedNewRole = member.role;
+    this.showManageSingleMemberModal = true;
+  }
+
+  closeManageSingleMemberModal() {
+    this.showManageSingleMemberModal = false;
+    this.selectedMemberToManage = null;
+    this.selectedNewRole = '';
+  }
+
+  confirmRoleChange() {
+    if (!this.selectedMemberToManage || !this.selectedNewRole || !this.selectedClub) return;
+
+    if (this.selectedNewRole === this.selectedMemberToManage.role) {
+      this.notificationService.warning('No Change', 'The selected role is the same as the current role.');
+      return;
+    }
+
+    if (!this.currentUserId) {
+      this.notificationService.error('Authentication Error', 'User not authenticated. Please refresh the page.');
+      return;
+    }
+
+    this.memberService.updateMemberRole(this.selectedMemberToManage.id, this.selectedNewRole, this.currentUserId).subscribe({
+      next: () => {
+        this.notificationService.success('Role Updated', `Role updated to ${this.getRoleLabel(this.selectedNewRole)}!`);
+        this.closeManageSingleMemberModal();
+        this.loadClubMembers(this.selectedClub!.id!);
+        this.loadUserRoles();
+      },
+      error: (err) => {
+        const msg = err.error?.message || err.error || 'Failed to update role.';
+        this.notificationService.error(`Error ${err.status}`, msg);
+      }
+    });
+  }
+
+  confirmRemoveMember() {
+    if (!this.selectedMemberToManage || !this.selectedClub) return;
+
+    this.memberService.removeMemberFromClub(this.selectedClub.id!, this.selectedMemberToManage.userId).subscribe({
+      next: () => {
+        this.notificationService.success('Member Removed', 'Member removed successfully!');
+        this.closeManageSingleMemberModal();
+        this.loadClubMembers(this.selectedClub!.id!);
+        this.loadActualMemberCount(this.selectedClub!.id!);
+      },
+      error: () => {
+        this.notificationService.error('Remove Failed', 'Failed to remove member. Please try again.');
+      }
+    });
+  }
+
   getAvailableRoles(): string[] {
     return [
       'PRESIDENT',
@@ -1052,6 +1222,50 @@ export class ClubsComponent implements OnInit, OnDestroy {
       'PARTNERSHIP_MANAGER',
       'MEMBER'
     ];
+  }
+
+  // Returns roles that have at least one member (active or pending), respecting search & filter
+  getMemberRoleSections(searchQuery: string, filter: 'all' | 'active' | 'pending'): string[] {
+    const roleOrder = ['PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 'COMMUNICATION_MANAGER', 'EVENT_MANAGER', 'PARTNERSHIP_MANAGER', 'MEMBER'];
+    const rolesWithMembers = new Set<string>();
+
+    if (filter === 'all' || filter === 'active') {
+      this.clubMembers.forEach(m => {
+        if (!searchQuery || this.memberMatchesSearch(m.firstName + ' ' + m.lastName, m.email, searchQuery)) {
+          rolesWithMembers.add(m.rank || 'MEMBER');
+        }
+      });
+    }
+    if (filter === 'all' || filter === 'pending') {
+      this.paymentPendingRequests.forEach(r => {
+        if (!searchQuery || this.memberMatchesSearch((r.user?.firstName || '') + ' ' + (r.user?.lastName || r.userName || ''), r.user?.email || r.userEmail, searchQuery)) {
+          rolesWithMembers.add(r.rank || 'MEMBER');
+        }
+      });
+    }
+    return roleOrder.filter(role => rolesWithMembers.has(role));
+  }
+
+  getMembersByRole(role: string, searchQuery: string): any[] {
+    // Exclude members who are in paymentPendingRequests (shown separately as pending)
+    const pendingUserIds = new Set(this.paymentPendingRequests.map(r => r.userId));
+    return this.clubMembers.filter(m =>
+      !pendingUserIds.has(m.userId) &&
+      (m.rank || 'MEMBER') === role &&
+      (!searchQuery || this.memberMatchesSearch(m.firstName + ' ' + m.lastName, m.email, searchQuery))
+    );
+  }
+
+  getPendingByRole(role: string, searchQuery: string): any[] {
+    return this.paymentPendingRequests.filter(r =>
+      (r.rank || 'MEMBER') === role &&
+      (!searchQuery || this.memberMatchesSearch((r.user?.firstName || '') + ' ' + (r.user?.lastName || r.userName || ''), r.user?.email || r.userEmail, searchQuery))
+    );
+  }
+
+  private memberMatchesSearch(name: string, email: string, query: string): boolean {
+    const q = query.toLowerCase();
+    return name.toLowerCase().includes(q) || (email || '').toLowerCase().includes(q);
   }
 
   formatDate(dateString: string): string {
@@ -1242,6 +1456,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.closeJoinClubModal();
         // Reload user's pending requests to update the UI
         this.loadUserPendingMembershipRequests();
+        this.loadClubs();
       },
       error: (err) => {
         const errorMessage = err.error?.message || err.error || 'Failed to send request. You may already have a pending request or be a member.';
@@ -1863,12 +2078,13 @@ export class ClubsComponent implements OnInit, OnDestroy {
   // ==================== CLUB HISTORY METHODS ====================
   
   openHistoryModal(club: Club) {
-    console.log('🔍 Opening history modal for club:', club);
-    console.log('📝 Club name:', club.name);
-    console.log('📝 Club ID:', club.id);
-    
     this.selectedClubForHistory = club;
     this.showHistoryModal = true;
+    this.loadClubHistory(club.id!);
+  }
+
+  loadHistoryForTab(club: Club) {
+    this.selectedClubForHistory = club;
     this.loadClubHistory(club.id!);
   }
 

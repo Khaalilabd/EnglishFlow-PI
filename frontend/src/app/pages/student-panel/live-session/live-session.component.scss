@@ -201,3 +201,20 @@
   75%       { transform: rotate(15deg); }
 }
 .hand-raised { animation: hand-bounce 0.6s ease-in-out 2; }
+
+// ── SPONSOR TICKER ────────────────────────────────────────────
+@keyframes ticker-scroll {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.sponsor-ticker {
+  animation: ticker-scroll 25s linear infinite;
+  width: max-content;
+  padding-left: 110px; // offset for the label
+  &:hover { animation-play-state: paused; }
+}
+
+.ticker-bar {
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}

@@ -9,6 +9,11 @@ export interface Sponsor {
   level?: SponsorLevel;
   status?: 'PENDING' | 'APPROVED' | 'REJECTED';
   contributionAmount?: number;
+  userId?: number;
+  applicantFirstName?: string;
+  applicantLastName?: string;
+  clubId?: number;
+  clubName?: string;
   createdAt?: string;
   updatedAt?: string;
 }

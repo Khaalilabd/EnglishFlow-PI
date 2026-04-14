@@ -5,6 +5,38 @@
     <p class="text-gray-600">Review and manage event creation requests from club members</p>
   </div>
 
+  <!-- Search / Filter / Sort Bar -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 px-5 py-4 mb-6">
+    <div class="flex flex-col md:flex-row gap-3">
+      <div class="relative flex-1">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="applyFilters()"
+          placeholder="Search by title or location..."
+          class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#124559]/20 focus:border-[#124559] outline-none transition-all"/>
+      </div>
+      <select [(ngModel)]="filterType" (ngModelChange)="applyFilters()"
+        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#124559]/20 focus:border-[#124559] outline-none bg-white text-gray-700">
+        <option value="">All Types</option>
+        <option value="WORKSHOP">🛠️ Workshop</option>
+        <option value="SEMINAR">📚 Seminar</option>
+        <option value="SOCIAL">🎉 Social</option>
+      </select>
+      <select [(ngModel)]="sortBy" (ngModelChange)="applyFilters()"
+        class="px-3 py-2 text-sm border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#124559]/20 focus:border-[#124559] outline-none bg-white text-gray-700">
+        <option value="date_desc">📅 Date (newest)</option>
+        <option value="date_asc">📅 Date (oldest)</option>
+        <option value="title_asc">🔤 Title A→Z</option>
+        <option value="title_desc">🔤 Title Z→A</option>
+      </select>
+      <button *ngIf="searchQuery || filterType || sortBy !== 'date_desc'" (click)="resetFilters()"
+        class="px-4 py-2 text-sm font-semibold text-gray-500 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all whitespace-nowrap">
+        ✕ Reset
+      </button>
+    </div>
+  </div>
+
   <!-- Tabs -->
   <div class="mb-6 border-b border-gray-200">
     <nav class="-mb-px flex space-x-8">

@@ -1,11 +1,14 @@
 package com.englishflow.event.service;
 
 import com.englishflow.event.dto.EventDTO;
+import com.englishflow.event.dto.MemberDTO;
 import com.englishflow.event.entity.Event;
+import com.englishflow.event.entity.Participant;
 import com.englishflow.event.enums.EventType;
 import com.englishflow.event.exception.ResourceNotFoundException;
 import com.englishflow.event.mapper.EventMapper;
 import com.englishflow.event.repository.EventRepository;
+import com.englishflow.event.repository.ParticipantRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 public class EventService {
     
     private final EventRepository eventRepository;
+    private final com.englishflow.event.repository.ParticipantRepository participantRepository;
     private final PermissionService permissionService;
     private final EventMapper eventMapper;
     private final com.englishflow.event.client.ClubServiceClient clubServiceClient;
@@ -187,39 +191,71 @@ public class EventService {
         log.info("Creating new event: {}", eventDTO.getTitle());
         permissionService.checkEventCreationPermission(eventDTO.getCreatorId());
         
-        // Récupérer le club de l'utilisateur
-        try {
-            var memberships = clubServiceClient.getMembersByUserId(eventDTO.getCreatorId());
-            if (!memberships.isEmpty()) {
-                // Prendre le premier club où l'utilisateur a un rôle autorisé
-                var membership = memberships.stream()
-                    .filter(m -> m.getRank() != null && 
-                        (m.getRank().name().equals("PRESIDENT") || 
-                         m.getRank().name().equals("VICE_PRESIDENT") || 
-                         m.getRank().name().equals("EVENT_MANAGER")))
-                    .findFirst();
-                
-                if (membership.isPresent()) {
-                    Integer clubId = membership.get().getClubId();
-                    eventDTO.setClubId(clubId);
-                    
-                    // Récupérer le nom du club
-                    try {
-                        var club = clubServiceClient.getClubById(clubId);
-                        eventDTO.setClubName(club.getName());
-                        log.info("Event will be created for club: {} (ID: {})", club.getName(), clubId);
-                    } catch (Exception e) {
-                        log.warn("Could not fetch club name for clubId: {}", clubId, e);
+        // Récupérer le club de l'utilisateur (utiliser clubId du frontend si fourni)
+        if (eventDTO.getClubId() != null) {
+            try {
+                var club = clubServiceClient.getClubById(eventDTO.getClubId());
+                eventDTO.setClubName(club.getName());
+                log.info("Event will be created for club: {} (ID: {})", club.getName(), eventDTO.getClubId());
+            } catch (Exception e) {
+                log.warn("Could not fetch club name for clubId: {}", eventDTO.getClubId(), e);
+            }
+        } else {
+            try {
+                var memberships = clubServiceClient.getMembersByUserId(eventDTO.getCreatorId());
+                if (!memberships.isEmpty()) {
+                    var membership = memberships.stream()
+                        .filter(m -> m.getRank() != null &&
+                            (m.getRank().name().equals("PRESIDENT") ||
+                             m.getRank().name().equals("VICE_PRESIDENT") ||
+                             m.getRank().name().equals("EVENT_MANAGER")))
+                        .findFirst();
+
+                    if (membership.isPresent()) {
+                        Integer clubId = membership.get().getClubId();
+                        eventDTO.setClubId(clubId);
+                        try {
+                            var club = clubServiceClient.getClubById(clubId);
+                            eventDTO.setClubName(club.getName());
+                            log.info("Event will be created for club: {} (ID: {})", club.getName(), clubId);
+                        } catch (Exception e) {
+                            log.warn("Could not fetch club name for clubId: {}", clubId, e);
+                        }
                     }
                 }
+            } catch (Exception e) {
+                log.warn("Could not fetch club information for user: {}", eventDTO.getCreatorId(), e);
             }
-        } catch (Exception e) {
-            log.warn("Could not fetch club information for user: {}", eventDTO.getCreatorId(), e);
         }
         
         Event event = eventMapper.toEntity(eventDTO);
         event.setCurrentParticipants(0);
         Event savedEvent = eventRepository.save(event);
+
+        // Auto-register VICE_PRESIDENT, TREASURER, EVENT_MANAGER as default participants
+        if (savedEvent.getClubId() != null) {
+            try {
+                List<MemberDTO> clubMembers = clubServiceClient.getMembersByClubId(savedEvent.getClubId());
+                List<String> autoRegisterRanks = java.util.Arrays.asList("VICE_PRESIDENT", "TREASURER", "EVENT_MANAGER");
+                for (MemberDTO member : clubMembers) {
+                    if (member.getRank() != null && autoRegisterRanks.contains(member.getRank().name())) {
+                        Long memberId = member.getUserId();
+                        if (!participantRepository.existsByEventIdAndUserId(savedEvent.getId(), memberId)) {
+                            Participant p = new Participant();
+                            p.setEvent(savedEvent);
+                            p.setUserId(memberId);
+                            p.setClubRole(member.getRank().name());
+                            participantRepository.save(p);
+                            savedEvent.setCurrentParticipants(savedEvent.getCurrentParticipants() + 1);
+                        }
+                    }
+                }
+                eventRepository.save(savedEvent);
+                log.info("Auto-registered {} default participants for event {}", savedEvent.getCurrentParticipants(), savedEvent.getId());
+            } catch (Exception e) {
+                log.warn("Could not auto-register club members for event {}: {}", savedEvent.getId(), e.getMessage());
+            }
+        }
         
         // 🔔 Envoyer notification WebSocket
         wsNotificationService.notifyEventCreated(
@@ -242,8 +278,21 @@ public class EventService {
         log.info("Updating event id: {}", id);
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + id));
-        
+
+        // Block modification if event is ongoing or ended
+        LocalDateTime now = LocalDateTime.now();
+        if (!event.getStartDate().isAfter(now)) {
+            throw new com.englishflow.event.exception.UnauthorizedException(
+                "Cannot modify an event that has already started or ended"
+            );
+        }
+
         eventMapper.updateEntityFromDTO(eventDTO, event);
+
+        // Reset status to PENDING so Academic Affairs can review the modification
+        event.setStatus(com.englishflow.event.enums.EventStatus.PENDING);
+        log.info("Event {} status reset to PENDING after modification", id);
+
         Event updatedEvent = eventRepository.save(event);
         
         // 🔔 Envoyer notification WebSocket

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Club Sponsorship Approved</title></head>
+<body style="margin:0;padding:0;font-family:Arial,sans-serif;background-color:#f7f7f7;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f7f7f7;padding:40px 0;">
+  <tr><td align="center">
+    <table width="600" cellpadding="0" cellspacing="0" style="background-color:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+      <tr>
+        <td style="background:linear-gradient(135deg,#F6BD60 0%,#C84630 100%);padding:50px 30px;text-align:center;">
+          <div style="font-size:52px;margin-bottom:12px;">✅</div>
+          <h1 style="color:#fff;margin:0;font-size:28px;font-weight:bold;">Club Sponsorship Approved!</h1>
+          <p style="color:#fff;margin:12px 0 0 0;font-size:16px;opacity:0.9;">Your contribution has been allocated</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:40px 30px;">
+          <h2 style="color:#2D5757;margin:0 0 20px 0;font-size:22px;">Congratulations, <span th:text="${firstName}">Sponsor</span>!</h2>
+          <p style="color:#333;font-size:16px;line-height:1.7;margin:0 0 20px 0;">
+            Your club sponsorship request for <strong th:text="${clubName}">Club Name</strong> has been <strong style="color:#2D5757;">officially approved</strong> by our Academic Manager.
+          </p>
+          <div style="background:#D1FAE5;border-left:4px solid #10B981;padding:20px;border-radius:8px;margin:25px 0;">
+            <p style="margin:0 0 12px 0;color:#065F46;font-size:16px;font-weight:600;">💰 Allocation Summary</p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="color:#065F46;font-size:15px;padding:4px 0;">Club:</td>
+                <td style="color:#065F46;font-size:15px;font-weight:bold;text-align:right;" th:text="${clubName}">Club Name</td>
+              </tr>
+              <tr>
+                <td style="color:#065F46;font-size:15px;padding:4px 0;">Amount Allocated to Club:</td>
+                <td style="color:#065F46;font-size:18px;font-weight:bold;text-align:right;"><span th:text="${clubAllocation}">0</span> DT ✅</td>
+              </tr>
+            </table>
+          </div>
+          <table width="100%" cellpadding="0" cellspacing="0">
+            <tr>
+              <td align="center" style="padding:20px 0;">
+                <a th:href="${panelLink}" href="#"
+                   style="display:inline-block;background:linear-gradient(135deg,#2D5757 0%,#3D3D60 100%);color:#F7EDE2;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:16px;font-weight:bold;">
+                  🏛️ View My Clubs
+                </a>
+              </td>
+            </tr>
+          </table>
+          <p style="margin-top:20px;color:#333;font-size:15px;">Best regards,<br><strong>The Jungle in English Team</strong></p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background-color:#F7EDE2;padding:25px 30px;text-align:center;">
+          <p style="color:#2D5757;font-size:14px;margin:0 0 6px 0;"><strong>Jungle in English</strong></p>
+          <p style="color:#888;font-size:12px;margin:0;">© 2026 Jungle in English. All rights reserved.</p>
+        </td>
+      </tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

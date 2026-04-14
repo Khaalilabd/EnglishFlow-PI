@@ -359,4 +359,29 @@ public class EmailService {
         
         mailSender.send(message);
     }
+
+    @Async("emailTaskExecutor")
+    public CompletableFuture<Void> sendEventPaymentConfirmedEmail(String to, String firstName, String eventTitle, Double amount, String eventLink) {
+        log.info("Sending event payment confirmed email to: {}", to);
+        try {
+            Context context = new Context();
+            context.setVariable("firstName", firstName);
+            context.setVariable("eventTitle", eventTitle);
+            context.setVariable("amount", amount);
+            context.setVariable("eventLink", eventLink);
+            context.setVariable("frontendUrl", frontendUrl);
+
+            String htmlContent = templateEngine.process("event-payment-confirmed-email", context);
+            sendHtmlEmail(to, "✅ Registration Confirmed — " + eventTitle, htmlContent);
+            log.info("Event payment confirmed email sent to: {}", to);
+            metricsService.recordEmailSent();
+            return CompletableFuture.completedFuture(null);
+        } catch (MessagingException e) {
+            log.error("Failed to send event payment confirmed email to: {}", to, e);
+            metricsService.recordEmailFailed();
+            return CompletableFuture.failedFuture(
+                new com.englishflow.auth.exception.EmailSendException("Failed to send event payment confirmed email to: " + to, e)
+            );
+        }
+    }
 }

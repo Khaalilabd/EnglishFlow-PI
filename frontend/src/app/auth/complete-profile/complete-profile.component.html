@@ -185,6 +185,43 @@
                 <span *ngIf="f['dateOfBirth'].errors?.['minAge']">You must be at least 13 years old</span>
               </div>
             </div>
+
+            <!-- English Level -->
+            <div class="mb-3">
+              <label class="block text-sm font-semibold text-gray-700 mb-2">English Level <span class="text-red-500">*</span></label>
+              <div class="relative">
+                <select 
+                  formControlName="englishLevel"
+                  (focus)="onFieldFocus('englishLevel')"
+                  (blur)="onFieldBlur('englishLevel')"
+                  [class.border-red-500]="shouldShowFieldError('englishLevel', englishLevelTouched)"
+                  [class.border-green-500]="isFieldValid('englishLevel') && hasValue('englishLevel')"
+                  [disabled]="loading"
+                  class="w-full pl-11 pr-11 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary focus:bg-white transition-all text-sm appearance-none">
+                  <option value="">Select your level</option>
+                  <option *ngFor="let level of englishLevels" [value]="level.value">
+                    {{ level.label }}
+                  </option>
+                </select>
+                <div class="absolute left-4 bottom-3 pointer-events-none">
+                  <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <div class="absolute right-4 bottom-3 pointer-events-none">
+                  <svg *ngIf="isFieldValid('englishLevel') && hasValue('englishLevel')" class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <svg *ngIf="!hasValue('englishLevel')" class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+              <div *ngIf="shouldShowFieldError('englishLevel', englishLevelTouched)" class="mt-2 text-red-600 text-xs font-medium flex items-start gap-1">
+                <span>📊</span>
+                <span *ngIf="f['englishLevel'].errors?.['required']">Please select your level</span>
+              </div>
+            </div>
           </div>
 
           <!-- Optional Information -->

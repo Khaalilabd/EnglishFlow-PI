@@ -1175,3 +1175,17 @@
     grid-template-columns: 1fr !important;
   }
 }
+
+.btn-details {
+  padding: 0.4rem 0.9rem;
+  background: linear-gradient(135deg, #2D5757, #3D3D60);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+
+  &:hover { opacity: 0.85; }
+}

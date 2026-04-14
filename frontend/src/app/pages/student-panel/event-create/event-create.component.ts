@@ -5,9 +5,12 @@ import { Router } from '@angular/router';
 import { EventService, Event } from '../../../core/services/event.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { SponsorService } from '../../../core/services/sponsor.service';
+import { MemberService, ClubWithRole } from '../../../core/services/member.service';
 import { Sponsor } from '../../../core/models/sponsor.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
+
+const EVENT_ALLOWED_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'EVENT_MANAGER'];
 
 @Component({
   selector: 'app-event-create',
@@ -18,8 +21,10 @@ import { LocationSearchComponent, LocationData } from '../../../shared/component
 export class EventCreateComponent implements OnInit {
   step = 1;
   loading = false;
+  loadingClubs = true;
   availableSponsors: Sponsor[] = [];
   selectedSponsorIds: number[] = [];
+  eligibleClubs: ClubWithRole[] = []; // clubs where user has permission
 
   form: Partial<Event> = {
     title: '',
@@ -31,18 +36,33 @@ export class EventCreateComponent implements OnInit {
     location: '',
     maxParticipants: 10,
     description: '',
-    gallery: []
+    gallery: [],
+    clubId: undefined
   };
 
   constructor(
     private eventService: EventService,
     private authService: AuthService,
     private sponsorService: SponsorService,
+    private memberService: MemberService,
     private notificationService: NotificationService,
     private router: Router
   ) {}
 
   ngOnInit() {
+    const user = this.authService.currentUserValue;
+    if (user?.id) {
+      this.memberService.getUserClubsWithStatus(user.id).subscribe({
+        next: (clubs) => {
+          this.eligibleClubs = clubs.filter(c =>
+            c.status === 'APPROVED' && EVENT_ALLOWED_ROLES.includes(c.userRole)
+          );
+          this.loadingClubs = false;
+        },
+        error: () => { this.loadingClubs = false; }
+      });
+    }
+
     this.sponsorService.getAllSponsors().subscribe({
       next: (s) => this.availableSponsors = s,
       error: () => {}
@@ -94,7 +114,7 @@ export class EventCreateComponent implements OnInit {
   }
 
   isStep1Valid(): boolean {
-    return !!(this.form.title?.trim() && this.form.type && this.form.startDate && this.form.endDate);
+    return !!(this.form.title?.trim() && this.form.type && this.form.startDate && this.form.endDate && this.form.clubId);
   }
 
   nextStep() {

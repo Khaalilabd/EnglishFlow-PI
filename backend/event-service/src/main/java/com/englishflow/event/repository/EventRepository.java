@@ -1,6 +1,7 @@
 package com.englishflow.event.repository;
 
 import com.englishflow.event.entity.Event;
+import com.englishflow.event.enums.EventStatus;
 import com.englishflow.event.enums.EventType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -25,4 +26,6 @@ public interface EventRepository extends JpaRepository<Event, Integer> {
     List<Event> findByLocationContainingIgnoreCase(String location);
     
     List<Event> findByCreatorId(Long creatorId);
+
+    List<Event> findByStartDateBetweenAndStatus(LocalDateTime start, LocalDateTime end, EventStatus status);
 }

@@ -3,10 +3,14 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { EventService, Event } from '../../../core/services/event.service';
+import { AuthService } from '../../../core/services/auth.service';
 import { SponsorService } from '../../../core/services/sponsor.service';
+import { MemberService, ClubWithRole } from '../../../core/services/member.service';
 import { Sponsor } from '../../../core/models/sponsor.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
+
+const EVENT_ALLOWED_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'EVENT_MANAGER'];
 
 @Component({
   selector: 'app-event-edit',
@@ -18,15 +22,19 @@ export class EventEditComponent implements OnInit {
   step = 1;
   loading = false;
   loadingEvent = true;
+  loadingClubs = true;
   availableSponsors: Sponsor[] = [];
   selectedSponsorIds: number[] = [];
+  eligibleClubs: ClubWithRole[] = [];
   eventId!: number;
 
   form: Partial<Event> = {};
 
   constructor(
     private eventService: EventService,
+    private authService: AuthService,
     private sponsorService: SponsorService,
+    private memberService: MemberService,
     private notificationService: NotificationService,
     private router: Router,
     private route: ActivatedRoute
@@ -36,6 +44,15 @@ export class EventEditComponent implements OnInit {
     this.eventId = Number(this.route.snapshot.paramMap.get('id'));
     this.eventService.getEventById(this.eventId).subscribe({
       next: (event) => {
+        // Block editing if event has already started or ended
+        const now = new Date();
+        const startDate = new Date(event.startDate);
+        if (startDate <= now) {
+          this.notificationService.error('Not Allowed', 'You cannot edit an event that has already started or ended.');
+          this.router.navigate(['/user-panel/events', this.eventId]);
+          return;
+        }
+
         this.form = { ...event };
         if (this.form.startDate) this.form.startDate = new Date(this.form.startDate).toISOString().slice(0, 16);
         if (this.form.endDate) this.form.endDate = new Date(this.form.endDate).toISOString().slice(0, 16);
@@ -44,6 +61,19 @@ export class EventEditComponent implements OnInit {
       },
       error: () => { this.notificationService.error('Error', 'Event not found'); this.router.navigate(['/user-panel/events']); }
     });
+
+    const user = this.authService.currentUserValue;
+    if (user?.id) {
+      this.memberService.getUserClubsWithStatus(user.id).subscribe({
+        next: (clubs) => {
+          this.eligibleClubs = clubs.filter(c =>
+            c.status === 'APPROVED' && EVENT_ALLOWED_ROLES.includes(c.userRole)
+          );
+          this.loadingClubs = false;
+        },
+        error: () => { this.loadingClubs = false; }
+      });
+    }
 
     this.sponsorService.getAllSponsors().subscribe({
       next: (s) => this.availableSponsors = s,
@@ -94,7 +124,7 @@ export class EventEditComponent implements OnInit {
 
     this.eventService.updateEvent(this.eventId, this.form as Event).subscribe({
       next: () => {
-        this.notificationService.success('Event Updated', 'Your changes have been submitted for approval!');
+        this.notificationService.success('Event Updated', 'Your changes have been submitted for approval. The event is now pending review by Academic Affairs.');
         this.router.navigate(['/user-panel/events']);
       },
       error: (err) => {

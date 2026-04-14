@@ -10,4 +10,5 @@ import java.util.List;
 public interface SponsorRepository extends JpaRepository<Sponsor, Long> {
     List<Sponsor> findByLevel(Sponsor.SponsorLevel level);
     List<Sponsor> findByStatus(Sponsor.SponsorStatus status);
+    List<Sponsor> findByUserId(Long userId);
 }

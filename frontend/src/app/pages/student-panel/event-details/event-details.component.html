@@ -1,0 +1,693 @@
+﻿@if (event) {
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- NAVBAR (back + tabs + actions) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+      <div class="flex items-center gap-2">
+
+        <!-- Back button — left -->
+        <button (click)="goBack()"
+          class="flex-shrink-0 p-2.5 text-[#2D5757] hover:bg-gray-100 rounded-xl transition-all group"
+          title="Back to Events">
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+        </button>
+
+        <div class="w-px h-6 bg-gray-200 flex-shrink-0"></div>
+
+        <!-- Tabs (centered) -->
+        <nav class="flex items-center justify-center gap-1 flex-1 overflow-x-auto scrollbar-hide">
+          <button (click)="activeTab = 'overview'"
+            class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+            [ngClass]="activeTab === 'overview' ? 'bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white shadow-md' : 'text-gray-500 hover:text-[#2D5757] hover:bg-gray-100'">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Overview
+          </button>
+
+          @if (canViewParticipants) {
+            <button (click)="activeTab = 'participants'"
+              class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+              [ngClass]="activeTab === 'participants' ? 'bg-gradient-to-r from-[#C84630] to-[#a83820] text-white shadow-md' : 'text-gray-500 hover:text-[#C84630] hover:bg-gray-100'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Participants
+              <span class="px-1.5 py-0.5 rounded-full text-xs font-bold"
+                [ngClass]="activeTab === 'participants' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'">
+                {{ event.currentParticipants || 0 }}
+              </span>
+            </button>
+          }
+
+          <button (click)="activeTab = 'feedbacks'"
+            class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+            [ngClass]="activeTab === 'feedbacks' ? 'bg-gradient-to-r from-[#F6BD60] to-[#e5ac4f] text-white shadow-md' : 'text-gray-500 hover:text-[#F6BD60] hover:bg-gray-100'">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+            </svg>
+            Feedbacks
+          </button>
+        </nav>
+
+        <!-- Actions (always visible, no scroll) -->
+        <div class="flex items-center gap-1 flex-shrink-0 border-l border-gray-100 pl-2 ml-1">
+          @if (event && currentUserId && event.creatorId === currentUserId && getStatus() === 'upcoming') {
+            <a [routerLink]="['/user-panel/events/edit', event.id]"
+              class="p-2.5 rounded-xl text-gray-400 hover:text-[#F6BD60] hover:bg-[#F6BD60]/10 transition-all"
+              title="Edit Event">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </a>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HERO CARD (Event Image) -->
+    <div class="relative rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+      <div class="relative h-56 overflow-hidden">
+        @if (event.image) {
+          <img [src]="event.image" [alt]="event.title" class="w-full h-full object-cover"/>
+        } @else {
+          <div class="w-full h-full bg-gradient-to-br from-[#2D5757] via-[#3D3D60] to-[#2D5757]">
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-4 left-8 w-32 h-32 rounded-full border-4 border-white"></div>
+              <div class="absolute top-12 left-24 w-20 h-20 rounded-full border-4 border-white"></div>
+              <div class="absolute bottom-4 right-8 w-40 h-40 rounded-full border-4 border-white"></div>
+            </div>
+          </div>
+        }
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+        
+        <!-- Event Type Badge -->
+        <div class="absolute top-4 left-4 flex items-center gap-2">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 rounded-full shadow-sm">
+            <span class="text-sm">{{ getEventIcon(event.type) }}</span>
+            <span class="text-xs font-bold text-[#2D5757]">{{ event.type }}</span>
+          </div>
+          <span class="px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
+            [ngClass]="{
+              'bg-emerald-500 text-white': event.status === 'APPROVED',
+              'bg-amber-500 text-white': event.status === 'PENDING',
+              'bg-[#C84630] text-white': event.status === 'REJECTED'
+            }">
+            @if (event.status === 'APPROVED') { ✅ Approved }
+            @else if (event.status === 'PENDING') { ⏳ Pending }
+            @else if (event.status === 'REJECTED') { ❌ Rejected }
+          </span>
+        </div>
+
+        <!-- Event Format Badge -->
+        <div class="absolute top-4 right-4">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 rounded-full shadow-sm">
+            <svg class="w-3.5 h-3.5" [ngClass]="event.format === 'ONLINE' ? 'text-blue-600' : 'text-green-600'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              @if (event.format === 'ONLINE') {
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"/>
+              } @else {
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              }
+            </svg>
+            <span class="text-xs font-bold" [ngClass]="event.format === 'ONLINE' ? 'text-blue-700' : 'text-green-700'">
+              {{ event.format === 'ONLINE' ? 'Online' : 'In Person' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Event Title -->
+        <div class="absolute bottom-0 left-0 right-0 px-6 py-5">
+          <h1 class="text-2xl font-black text-white tracking-tight">{{ event.title }}</h1>
+          @if (event.clubName) {
+            <p class="text-sm text-white/80 mt-1">Organized by {{ event.clubName }}</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    @if (activeTab === 'overview') {
+      
+      <!-- Countdown Timer -->
+      @if (!isStarted() && event.status !== 'PENDING') {
+        <div class="bg-gradient-to-r from-[#2D5757] to-[#3D3D60] rounded-2xl p-6 shadow-sm">
+          <p class="text-xs font-bold text-white/60 uppercase tracking-widest mb-4">Event starts in</p>
+          <div class="grid grid-cols-4 gap-3">
+            @for (unit of [{v: countdown.days, l: 'Days'}, {v: countdown.hours, l: 'Hours'}, {v: countdown.minutes, l: 'Min'}, {v: countdown.seconds, l: 'Sec'}]; track unit.l) {
+              <div class="countdown-unit">
+                <div class="value">{{ unit.v }}</div>
+                <div class="label">{{ unit.l }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Stats Row -->
+      <div class="grid gap-4" [ngClass]="canViewParticipants ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-1 sm:grid-cols-3'">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-[#F7EDE2] flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Start</span>
+          </div>
+          <p class="text-sm font-black text-gray-800 leading-snug">{{ formatDate(event.startDate) }}</p>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-[#C84630]/10 flex items-center justify-center flex-shrink-0">
+              <svg class="w-4 h-4 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">End</span>
+          </div>
+          <p class="text-sm font-black text-gray-800 leading-snug">{{ formatDate(event.endDate) }}</p>
+        </div>
+
+        @if (canViewParticipants) {
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer"
+            (click)="activeTab = 'participants'">
+            <div class="flex items-center gap-3 mb-3">
+              <div class="w-9 h-9 rounded-xl bg-[#3D3D60]/10 flex items-center justify-center flex-shrink-0">
+                <svg class="w-4 h-4 text-[#3D3D60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Participants</span>
+            </div>
+            <p class="text-2xl font-black text-gray-800">{{ event.currentParticipants || 0 }}<span class="text-sm font-medium text-gray-400">/{{ event.maxParticipants }}</span></p>
+            <div class="mt-2 w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#2D5757] to-[#3D3D60]" [style.width.%]="fillPercent()"></div>
+            </div>
+            <p class="text-[10px] text-[#2D5757] font-semibold mt-1">click to view </p>
+          </div>
+        }
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-9 h-9 rounded-xl bg-[#F6BD60]/20 flex items-center justify-center flex-shrink-0">
+              <span class="text-base">{{ getEventIcon(event.type) }}</span>
+            </div>
+            <span class="text-xs font-bold text-gray-400 uppercase tracking-wide">Type</span>
+          </div>
+          <p class="text-sm font-black text-gray-800">{{ event.type }}</p>
+          <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-xs font-bold"
+            [ngClass]="event.format === 'ONLINE' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'">
+            {{ event.format === 'ONLINE' ? ' Online' : ' In Person' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Main Content Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <!-- LEFT: About + Sponsors + Gallery -->
+        <div class="lg:col-span-2 space-y-5">
+
+            <!-- About -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+                <div class="w-8 h-8 rounded-xl bg-[#F7EDE2] flex items-center justify-center">
+                  <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-800">About this Event</h3>
+              </div>
+              <div class="px-6 py-5">
+                <p class="text-sm text-gray-600 leading-relaxed">{{ event.description || 'No description available.' }}</p>
+              </div>
+            </div>
+
+            <!-- Sponsors -->
+            @if (event.sponsors && event.sponsors.length > 0) {
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-[#F6BD60]/20 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                      </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-gray-800">Event Sponsors</h3>
+                  </div>
+                  <span class="px-2.5 py-1 bg-[#F6BD60]/20 text-amber-700 text-xs font-bold rounded-full">{{ event.sponsors.length }}</span>
+                </div>
+                <div class="px-6 py-5">
+                  <div class="flex flex-wrap gap-3">
+                    @for (sponsor of event.sponsors; track sponsor.id) {
+                      <div class="sponsor-chip">
+                        @if (sponsor.logo) {
+                          <img [src]="sponsor.logo" [alt]="sponsor.name" class="w-9 h-9 rounded-lg object-cover flex-shrink-0">
+                        } @else {
+                          <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-[#2D5757] to-[#3D3D60] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+                            {{ sponsor.name.charAt(0) }}
+                          </div>
+                        }
+                        <div>
+                          <p class="text-sm font-semibold text-gray-800">{{ sponsor.name }}</p>
+                          @if (canViewSponsors) {
+                            <p class="text-xs text-gray-400">{{ sponsor.level }}</p>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+            <!-- Gallery -->
+            @if (event.gallery && event.gallery.length > 0) {
+              <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-xl bg-[#C84630]/10 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                      </svg>
+                    </div>
+                    <h3 class="text-sm font-bold text-gray-800">Gallery</h3>
+                  </div>
+                  <span class="px-2.5 py-1 bg-[#C84630]/10 text-[#C84630] text-xs font-bold rounded-full">{{ event.gallery.length }}</span>
+                </div>
+                <div class="px-6 py-5">
+                  <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    @for (img of event.gallery; track $index) {
+                      <div class="gallery-item" (click)="openImage(img)">
+                        <img [src]="img" [alt]="'Photo ' + ($index + 1)">
+                        <div class="gallery-overlay">
+                          <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                          </svg>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+
+          </div>
+
+          <!-- RIGHT: Actions + Location + Details -->
+          <div class="space-y-5">
+
+            <!-- Action Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Actions</h3>
+              @if (!isRegistered() && !isCreator() && getStatus() !== 'ended' && event.status === 'APPROVED') {
+                <button (click)="join()" [disabled]="isFull()" class="btn-primary mb-2">
+                  {{ isFull() ? ' Event Full' : '+ Join Event' }}
+                </button>
+              }
+              @if (isRegistered() && !isCreator()) {
+                <div class="flex items-center justify-center gap-2 py-2.5 bg-green-50 text-green-700 rounded-xl text-sm font-semibold border border-green-200 mb-3">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                  </svg>
+                  You're registered
+                </div>
+                <button (click)="leave()" class="btn-danger">Leave Event</button>
+              }
+              @if (isCreator()) {
+                <div class="flex items-center justify-center gap-2 py-2.5 bg-[#F6BD60]/10 text-amber-700 rounded-xl text-sm font-semibold border border-[#F6BD60]/40 mb-3">
+                   You created this event
+                </div>
+                @if (canViewParticipants) {
+                  <button (click)="activeTab = 'participants'" class="btn-ghost flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    View Participants
+                  </button>
+                }
+              }
+            </div>
+
+            <!-- Location Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div class="flex items-center gap-3 px-5 py-4 border-b border-gray-50">
+                <div class="w-8 h-8 rounded-xl bg-[#C84630]/10 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-800">{{ event.format === 'ONLINE' ? 'Online Event' : 'Location' }}</h3>
+              </div>
+              @if (event.format === 'ONLINE') {
+                <div class="p-5">
+                  @if (eventStatus === 'ongoing' && (isRegistered() || isCreator() || isAcademicManager)) {
+                    <!-- Event is live now — show the button prominently -->
+                    <div class="bg-blue-50 rounded-xl p-5 text-center border border-blue-200">
+                      <div class="text-3xl mb-2">🎥</div>
+                      <p class="text-sm text-blue-700 font-semibold mb-3">This event is live now!</p>
+                      <a [routerLink]="['/live', event.id]"
+                        class="inline-flex items-center justify-center gap-2 w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm hover:bg-blue-700 transition-all shadow-sm">
+                        <span class="w-2 h-2 rounded-full bg-red-400 animate-pulse"></span>
+                        Join Live Session
+                      </a>
+                    </div>
+                  } @else if (eventStatus === 'upcoming') {
+                    <!-- Not started yet -->
+                    <div class="bg-blue-50 rounded-xl p-5 text-center border border-blue-100">
+                      <div class="text-3xl mb-2">💻</div>
+                      <p class="text-sm text-blue-700 font-semibold mb-1">This event takes place online</p>
+                      <p class="text-xs text-blue-400">A live session link will be available when the event starts</p>
+                    </div>
+                  } @else if (eventStatus === 'ongoing' && !(isRegistered() || isCreator() || isAcademicManager)) {
+                    <!-- Ongoing but no permission -->
+                    <div class="bg-blue-50 rounded-xl p-5 text-center border border-blue-100">
+                      <div class="text-3xl mb-2">💻</div>
+                      <p class="text-sm text-blue-700 font-semibold mb-1">This event is live now</p>
+                      <p class="text-xs text-blue-400">Join the event to access the live session</p>
+                    </div>
+                  } @else {
+                    <!-- Ended -->
+                    <div class="bg-gray-50 rounded-xl p-5 text-center border border-gray-100">
+                      <div class="text-3xl mb-2">💻</div>
+                      <p class="text-sm text-gray-500 font-semibold">This online event has ended</p>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div style="height: 200px;">
+                  <app-location-map [latitude]="event.latitude" [longitude]="event.longitude"
+                    [address]="event.location" [height]="200" [zoom]="15"/>
+                </div>
+                <div class="px-5 py-3 flex items-start gap-2 border-t border-gray-50">
+                  <svg class="w-4 h-4 text-[#C84630] shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                  <span class="text-xs text-gray-500 leading-relaxed">{{ event.location }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Details Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+              <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Details</h3>
+              <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">Type</span>
+                  <span class="text-xs font-bold text-[#2D5757] bg-[#2D5757]/10 px-2.5 py-1 rounded-lg">{{ getEventIcon(event.type) }} {{ event.type }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">Format</span>
+                  <span class="text-xs font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-lg">
+                    {{ event.format === 'ONLINE' ? ' Online' : ' In Person' }}
+                  </span>
+                </div>
+                @if (event.clubName) {
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Club</span>
+                    <span class="text-xs font-bold text-[#3D3D60] bg-[#3D3D60]/10 px-2.5 py-1 rounded-lg">{{ event.clubName }}</span>
+                  </div>
+                }
+                <div class="flex items-center justify-between">
+                  <span class="text-xs text-gray-400">Max Participants</span>
+                  <span class="text-xs font-bold text-gray-700 bg-gray-100 px-2.5 py-1 rounded-lg">{{ event.maxParticipants }}</span>
+                </div>
+              </div>
+            </div>
+
+        </div>
+
+      </div>
+    }
+    
+    <!-- ── PARTICIPANTS TAB ───────────────────────────────── -->
+    @if (activeTab === 'participants') {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">Event Participants</h2>
+            <p class="text-sm text-gray-400 mt-1">{{ event.currentParticipants || 0 }} / {{ event.maxParticipants }} registered</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-10 h-10 rounded-xl bg-[#3D3D60]/10 flex items-center justify-center">
+              <svg class="w-5 h-5 text-[#3D3D60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress bar -->
+        <div class="mb-6">
+          <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+            <div class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#2D5757] to-[#3D3D60]"
+              [style.width.%]="fillPercent()"></div>
+          </div>
+          <div class="flex justify-between mt-2">
+            <span class="text-xs text-gray-400">{{ event.currentParticipants || 0 }} registered</span>
+            <span class="text-xs text-gray-400">{{ event.maxParticipants - (event.currentParticipants || 0) }} spots left</span>
+          </div>
+        </div>
+
+        @if (!isCreator() && (event.currentParticipants || 0) > 0) {
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6">
+            <div class="flex items-start gap-3">
+              <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <div>
+                <p class="text-sm font-semibold text-blue-800">Participant List</p>
+                <p class="text-xs text-blue-600 mt-1">You can see all participants who joined this event.</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (loadingParticipants) {
+          <div class="flex justify-center py-12">
+            <div class="w-8 h-8 border-2 border-[#2D5757] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        } @else if (eventParticipants.length === 0) {
+          <div class="flex flex-col items-center py-12 gap-3 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+            <p class="text-sm text-gray-400">No participants yet</p>
+          </div>
+        } @else {
+          <div class="space-y-2">
+            @for (p of eventParticipants; track p.id) {
+              <div class="participant-row">
+                @if (p.userProfilePhoto) {
+                  <img [src]="p.userProfilePhoto" [alt]="p.userFirstName" class="w-10 h-10 rounded-xl object-cover flex-shrink-0 border-2 border-white shadow-sm">
+                } @else {
+                  <div class="avatar">{{ (p.userFirstName || p.userEmail || 'U').charAt(0).toUpperCase() }}</div>
+                }
+                <div class="min-w-0 flex-1">
+                  <p class="text-sm font-semibold text-gray-800 truncate">{{ p.userFirstName }} {{ p.userLastName }}</p>
+                  <p class="text-xs text-gray-400 truncate">{{ p.userEmail }}</p>
+                </div>
+                <div class="flex items-center gap-1.5 flex-shrink-0">
+                  @if (p.clubRole) {
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                      [ngClass]="{
+                        'bg-purple-100 text-purple-700': p.clubRole === 'VICE_PRESIDENT',
+                        'bg-emerald-100 text-emerald-700': p.clubRole === 'TREASURER',
+                        'bg-blue-100 text-blue-700': p.clubRole === 'EVENT_MANAGER'
+                      }">
+                      {{ p.clubRole === 'VICE_PRESIDENT' ? 'VP' : p.clubRole === 'TREASURER' ? 'Treasurer' : 'Event Mgr' }}
+                    </span>
+                  }
+                  @if (p.userId === currentUserId) {
+                    <span class="px-2.5 py-1 bg-[#F6BD60]/20 text-amber-700 text-xs font-bold rounded-full">You</span>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── FEEDBACKS TAB ──────────────────────────────────── -->
+    @if (activeTab === 'feedbacks') {
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-lg font-bold text-gray-800">Event Feedback</h2>
+            <p class="text-sm text-gray-400 mt-1">Share your experience with this event</p>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-[#F6BD60]/20 flex items-center justify-center">
+            <svg class="w-5 h-5 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Feedback Form -->
+        @if (showFeedbackForm()) {
+          <div class="mb-8 p-6 bg-gradient-to-br from-[#F7EDE2] to-white rounded-2xl border border-gray-100">
+            <h3 class="text-sm font-bold text-gray-800 mb-4">Rate this Event</h3>
+            <div class="flex justify-center mb-5">
+              <app-star-rating [rating]="feedbackForm.rating" [readonly]="false" [showValue]="false"
+                [size]="'large'" [allowHalf]="true" (ratingChange)="setRating($event)"/>
+            </div>
+            <textarea [(ngModel)]="feedbackForm.comment" rows="3" maxlength="500"
+              placeholder="Share your experience..."
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-[#2D5757]/20 focus:border-[#2D5757] outline-none resize-none mb-3 transition-all"></textarea>
+            <label class="flex items-center gap-3 mb-5 cursor-pointer p-3 rounded-xl hover:bg-white transition-all">
+              <input type="checkbox" [(ngModel)]="feedbackForm.anonymous" class="w-4 h-4 rounded accent-[#2D5757]">
+              <span class="text-sm text-gray-600">Submit anonymously</span>
+            </label>
+            <button (click)="submitFeedback()" [disabled]="feedbackForm.rating === 0 || submittingFeedback"
+              class="btn-primary flex items-center justify-center gap-2">
+              @if (submittingFeedback) {
+                <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              }
+              {{ submittingFeedback ? 'Submitting...' : 'Submit Feedback' }}
+            </button>
+          </div>
+        }
+
+        <!-- Feedback Stats -->
+        @if (showFeedbackStats() && feedbackStats && feedbackStats.totalFeedbacks > 0) {
+          <div class="mb-8">
+            <h3 class="text-sm font-bold text-gray-800 mb-4">Overall Rating</h3>
+            <div class="flex items-center gap-4 mb-5 p-5 bg-gray-50 rounded-xl">
+              <app-star-rating [rating]="feedbackStats.averageRating" [readonly]="true" [showValue]="true" [size]="'large'"/>
+              <span class="text-sm text-gray-400">{{ feedbackStats.totalFeedbacks }} review{{ feedbackStats.totalFeedbacks !== 1 ? 's' : '' }}</span>
+            </div>
+            <div class="space-y-2.5 mb-5">
+              @for (r of [5,4,3,2,1]; track r) {
+                <div class="rating-bar">
+                  <span class="text-xs text-gray-400 w-4 text-right">{{ r }}</span>
+                  <svg class="w-3 h-3 text-[#F6BD60] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                  </svg>
+                  <div class="bar-track">
+                    <div class="bar-fill" [style.width.%]="getDistributionPct(r)"></div>
+                  </div>
+                  <span class="text-xs text-gray-400 w-5 text-right">{{ feedbackStats.ratingDistribution[r] || 0 }}</span>
+                </div>
+              }
+            </div>
+            @if (isCreator() || isAcademicManager) {
+              <button (click)="openFeedbackComments()" class="btn-ghost flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                </svg>
+                View all comments ({{ feedbackStats.totalFeedbacks }})
+              </button>
+            }
+          </div>
+        }
+
+        <!-- Already submitted feedback -->
+        @if (hasGivenFeedback && !showFeedbackForm() && userFeedback) {
+          <div class="p-6 bg-green-50 border border-green-200 rounded-2xl">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+                <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+              <div>
+                <p class="font-bold text-gray-800 text-sm">Your Feedback</p>
+                <p class="text-xs text-gray-400">{{ formatDate(userFeedback.createdAt!) }}</p>
+              </div>
+            </div>
+            <div class="p-4 bg-white rounded-xl">
+              <app-star-rating [rating]="userFeedback.rating" [readonly]="true" [showValue]="true" [size]="'medium'"/>
+              @if (userFeedback.comment) {
+                <p class="mt-3 text-sm text-gray-600 italic">"{{ userFeedback.comment }}"</p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- No feedback yet -->
+        @if (!showFeedbackForm() && !hasGivenFeedback && (!feedbackStats || feedbackStats.totalFeedbacks === 0)) {
+          <div class="flex flex-col items-center py-12 gap-3 text-center">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+              </svg>
+            </div>
+            <p class="text-sm text-gray-400">No feedback yet</p>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>
+}<!-- end @if event -->
+
+<!-- ── MODALS ──────────────────────────────────────────────── -->
+
+@if (showFeedbackCommentsModal) {
+  <div class="modal-backdrop" (click)="showFeedbackCommentsModal = false">
+    <div class="modal-box max-w-lg" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">All Feedback <span class="text-gray-400 font-normal text-sm">({{ feedbackComments.length }})</span></h2>
+        <button (click)="showFeedbackCommentsModal = false" class="p-2 rounded-xl hover:bg-gray-100 transition-all text-gray-400">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="max-h-96 overflow-y-auto px-6 py-4 space-y-4">
+        @if (loadingFeedbackComments) {
+          <div class="flex justify-center py-8">
+            <div class="w-8 h-8 border-2 border-[#2D5757] border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        }
+        @for (f of feedbackComments; track f.id) {
+          <div class="p-4 bg-gray-50 rounded-xl">
+            <div class="flex items-start justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2D5757] to-[#3D3D60] text-white flex items-center justify-center text-xs font-bold">
+                  {{ f.anonymous ? '?' : (f.userFirstName || 'U').charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <p class="text-sm font-semibold text-gray-800">{{ f.anonymous ? 'Anonymous' : (f.userFirstName + ' ' + f.userLastName) }}</p>
+                  <p class="text-xs text-gray-400">{{ formatDate(f.createdAt!) }}</p>
+                </div>
+              </div>
+              <app-star-rating [rating]="f.rating" [readonly]="true" [showValue]="false" [size]="'small'"/>
+            </div>
+            @if (f.comment) {
+              <p class="text-sm text-gray-600 italic">"{{ f.comment }}"</p>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+@if (selectedGalleryImage) {
+  <div class="modal-backdrop" (click)="selectedGalleryImage = null">
+    <div class="max-w-4xl w-full p-4" (click)="$event.stopPropagation()">
+      <div class="relative">
+        <img [src]="selectedGalleryImage" class="w-full h-auto rounded-2xl shadow-2xl">
+        <button (click)="selectedGalleryImage = null"
+          class="absolute top-4 right-4 p-2 bg-white/90 rounded-xl hover:bg-white transition-all text-gray-700">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+}

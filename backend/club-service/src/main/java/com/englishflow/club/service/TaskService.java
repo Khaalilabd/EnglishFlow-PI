@@ -25,8 +25,16 @@ public class TaskService {
     
     @Transactional(readOnly = true)
     public List<TaskDTO> getTasksByClubId(Integer clubId, Long userId) {
+        return getTasksByClubId(clubId, userId, null);
+    }
+    
+    @Transactional(readOnly = true)
+    public List<TaskDTO> getTasksByClubId(Integer clubId, Long userId, String userRole) {
+        // Academic managers can always view tasks
+        boolean isAcademicManager = "ACADEMIC_OFFICE_AFFAIR".equals(userRole) || "ADMIN".equals(userRole);
+        
         // Check if user is a member of the club
-        if (!memberService.isMember(clubId, userId)) {
+        if (!isAcademicManager && !memberService.isMember(clubId, userId)) {
             throw new RuntimeException("Only club members can view tasks");
         }
         

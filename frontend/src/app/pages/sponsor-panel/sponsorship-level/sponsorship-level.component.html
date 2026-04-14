@@ -1,0 +1,169 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-5xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Sponsorship Level 🏆</h1>
+      <p class="text-gray-500 text-sm mt-1">Your current tier and what you unlock at each level.</p>
+    </div>
+
+    @if (loading) {
+      <div class="flex justify-center py-16">
+        <div class="animate-spin rounded-full h-10 w-10 border-2 border-[#B37D05] border-t-transparent"></div>
+      </div>
+    }
+
+    @if (!loading) {
+
+      <!-- Current Level Hero -->
+      <div class="bg-gradient-to-r from-[#7A5200] to-[#B37D05] rounded-2xl p-6 text-white shadow-lg">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+
+          <!-- Badge -->
+          <div class="flex-shrink-0 w-24 h-24 rounded-2xl flex items-center justify-center text-5xl bg-white/10 border border-white/20 shadow-lg">
+            {{ currentLevel.emoji }}
+          </div>
+
+          <!-- Info -->
+          <div class="flex-1 text-center md:text-left">
+            <p class="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Current Level</p>
+            <h2 class="text-4xl font-black mb-2">{{ currentLevel.name }}</h2>
+            <p class="text-white/60 text-sm">Total platform contribution:
+              <span class="font-black text-[#F6BD60] text-lg ml-1">{{ totalContribution }} DT</span>
+            </p>
+          </div>
+
+          <!-- Next level -->
+          @if (nextLevel) {
+            <div class="flex-shrink-0 w-full md:w-64 bg-white/10 border border-white/20 rounded-2xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <p class="text-white/60 text-xs font-semibold">Next: {{ nextLevel.emoji }} {{ nextLevel.name }}</p>
+              </div>
+              <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden mb-2">
+                <div class="h-2 rounded-full bg-[#F6BD60] transition-all duration-700"
+                  [style.width.%]="progressToNext">
+                </div>
+              </div>
+              <div class="flex justify-between text-xs text-white/50 mb-3">
+                <span>{{ progressToNext }}%</span>
+                <span>{{ amountToNext }} DT to go</span>
+              </div>
+              <button (click)="router.navigate(['/sponsor-panel/clubs'])"
+                class="w-full py-2 bg-[#F6BD60] text-gray-900 rounded-xl text-xs font-black hover:opacity-90 transition-all active:scale-95">
+                Sponsor More →
+              </button>
+            </div>
+          } @else {
+            <div class="flex-shrink-0 w-full md:w-56 bg-[#F6BD60]/20 border border-[#F6BD60]/40 rounded-2xl p-4 text-center">
+              <div class="text-3xl mb-1">🎉</div>
+              <p class="text-[#F6BD60] font-black">Maximum Level!</p>
+              <p class="text-white/50 text-xs mt-1">Highest tier reached.</p>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Level Comparison -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="px-6 py-4 border-b border-gray-100">
+          <h3 class="text-base font-bold text-gray-800">Level Comparison</h3>
+        </div>
+        <div class="grid grid-cols-3 divide-x divide-gray-100">
+          @for (level of levels; track level.name) {
+            <div class="p-5 flex flex-col gap-4 relative"
+              [ngClass]="isCurrentLevel(level) ? 'bg-[#B37D05]/5' : ''">
+
+              @if (isCurrentLevel(level)) {
+                <div class="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#B37D05] to-[#F6BD60]"></div>
+              }
+
+              <div class="text-center">
+                <div class="text-4xl mb-2">{{ level.emoji }}</div>
+                <p class="font-black text-lg text-gray-800">{{ level.name }}</p>
+                <p class="text-xs text-gray-400 mt-0.5">
+                  @if (level.max) { {{ level.min }}–{{ level.max }} DT }
+                  @else { {{ level.min }}+ DT }
+                </p>
+                <div class="mt-2">
+                  @if (isCurrentLevel(level)) {
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#B37D05] text-white text-xs font-bold rounded-full">
+                      <span class="w-1.5 h-1.5 bg-[#F6BD60] rounded-full animate-pulse"></span>
+                      Current
+                    </span>
+                  } @else if (isUnlocked(level)) {
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
+                      ✓ Unlocked
+                    </span>
+                  } @else {
+                    <span class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-400 text-xs font-bold rounded-full">
+                      🔒 Locked
+                    </span>
+                  }
+                </div>
+              </div>
+
+              <ul class="space-y-2">
+                @for (perk of level.perks; track perk) {
+                  <li class="flex items-start gap-2 text-xs leading-relaxed"
+                    [ngClass]="isUnlocked(level) ? 'text-gray-700' : 'text-gray-300'">
+                    <span class="mt-0.5 flex-shrink-0">{{ isUnlocked(level) ? '✅' : '⬜' }}</span>
+                    {{ perk }}
+                  </li>
+                }
+              </ul>
+
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-base font-bold text-gray-800 mb-4">📋 Sponsorship History</h3>
+
+        @if (sponsors.length === 0) {
+          <div class="text-center py-10">
+            <div class="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl">📭</div>
+            <p class="text-gray-500 font-semibold">No sponsorship requests yet.</p>
+            <button (click)="router.navigate(['/sponsor-panel/clubs'])"
+              class="mt-4 px-5 py-2.5 bg-gradient-to-r from-[#7A5200] to-[#B37D05] text-white rounded-xl text-sm font-bold hover:opacity-90 transition-all">
+              Sponsor a Club
+            </button>
+          </div>
+        } @else {
+          <div class="space-y-3">
+            @for (s of sponsors; track s.id) {
+              <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-sm transition-all">
+                <div class="flex-shrink-0 w-16 text-center">
+                  <p class="text-xl font-black text-[#B37D05]">{{ s.contributionAmount }}</p>
+                  <p class="text-xs text-gray-400">DT</p>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold text-gray-800 truncate">
+                    @if (s.clubId) { 🏛️ {{ s.clubName }} }
+                    @else { 🌐 Platform Sponsorship }
+                  </p>
+                  <p class="text-xs text-gray-400 mt-0.5">{{ formatDate(s.createdAt || '') }}</p>
+                </div>
+                <div class="flex-shrink-0 text-sm font-black">
+                  @if (!s.clubId) {
+                    @if ((s.contributionAmount || 0) >= 1000) { <span class="text-yellow-600">🥇 Gold</span> }
+                    @else if ((s.contributionAmount || 0) >= 500) { <span class="text-gray-500">🥈 Silver</span> }
+                    @else { <span class="text-amber-700">🥉 Bronze</span> }
+                  } @else {
+                    <span class="text-xs text-gray-400 font-semibold">Club allocation</span>
+                  }
+                </div>
+                <span class="flex-shrink-0 px-2.5 py-1 text-xs font-bold rounded-full"
+                  [ngClass]="getStatusClass(s.status || '')">
+                  {{ s.status }}
+                </span>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    }
+  </div>
+</div>

@@ -1,164 +1,175 @@
-<!-- ***** Header Area Start ***** -->
-<header class="modern-header">
-  <nav class="modern-nav">
-    <div class="nav-container">
-      <a routerLink="/" class="nav-logo">
-        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
-        <span class="logo-text">JUNGLE IN ENGLISH</span>
-      </a>
-      <div class="nav-menu" [class.active]="mobileMenuOpen">
-        <ul class="nav-links">
-          <li><a routerLink="/" class="nav-link">Home</a></li>
-          <li><a href="/#services" class="nav-link">Services</a></li>
-          <li><a href="/#courses" class="nav-link">Courses</a></li>
-          <li><a routerLink="/clubs" class="nav-link">Clubs</a></li>
-          <li><a href="/#team" class="nav-link">Team</a></li>
-          <li><a routerLink="/events" class="nav-link">Events</a></li>
-          <li><a href="/#contact" class="nav-link">Contact</a></li>
-          <li><a routerLink="/become-sponsor" class="nav-link active" style="color: #F6BD60;">Be Our Sponsor</a></li>
-        </ul>
-        <div class="nav-actions">
-          @if (!authService.isAuthenticated) {
-            <a routerLink="/login" class="btn-login">Login</a>
-            <a routerLink="/register" class="btn-register">Get Started</a>
-          } @else {
-            <div class="nav-user-section">
-              <app-frontoffice-notification-dropdown />
-              <app-frontoffice-user-dropdown />
-            </div>
-          }
+<div class="careers-page">
+  <!-- ***** Modern Header Area Start ***** -->
+  <header class="modern-header">
+    <nav class="modern-nav">
+      <div class="nav-container">
+        <!-- Logo -->
+        <a routerLink="/" class="nav-logo">
+          <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
+          <span class="logo-text">JUNGLE IN ENGLISH</span>
+        </a>
+
+        <!-- Desktop Navigation -->
+        <div class="nav-menu" [class.active]="mobileMenuOpen">
+          <ul class="nav-links">
+            <li><a routerLink="/" class="nav-link">Home</a></li>
+            <li><a routerLink="/" fragment="services" class="nav-link">Services</a></li>
+            <li><a routerLink="/" fragment="courses" class="nav-link">Courses</a></li>
+            <li><a routerLink="/" fragment="clubs" class="nav-link">Clubs</a></li>
+            <li><a routerLink="/" fragment="team" class="nav-link">Team</a></li>
+            <li><a routerLink="/careers" class="nav-link">Careers</a></li>
+            <li><a routerLink="/" fragment="events" class="nav-link">Events</a></li>
+            <li><a routerLink="/" fragment="contact" class="nav-link">Contact</a></li>
+          </ul>
+
+          <!-- Auth Buttons / User Menu -->
+          <div class="nav-actions">
+            @if (!(isAuthenticated$ | async)) {
+              <!-- Guest Actions -->
+              <a routerLink="/login" class="btn-login">Login</a>
+              <a routerLink="/register" class="btn-register">Get Started</a>
+            } @else {
+              <!-- Authenticated User Actions -->
+              <div class="nav-user-section">
+                <app-frontoffice-notification-dropdown />
+                <app-frontoffice-user-dropdown />
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+  <!-- ***** Modern Header Area End ***** -->
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-title">Partner With Us</h1>
+      <p class="hero-subtitle">Support the next generation of English learners and make a lasting impact on education. Join our community of sponsors who believe in empowering students worldwide.</p>
+      <button class="btn-apply-hero" (click)="scrollToForm()">
+        Become a Sponsor
+        <span class="arrow">→</span>
+      </button>
+      
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">Active Sponsors</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">5K+</span>
+          <span class="stat-label">Students Supported</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Impact Transparency</span>
         </div>
       </div>
-      <button class="mobile-toggle" (click)="toggleMobileMenu()" [class.active]="mobileMenuOpen">
-        <span></span><span></span><span></span>
+    </div>
+  </section>
+
+  <!-- Benefits Section -->
+  <section class="benefits-section">
+    <div class="section-header">
+      <h2>Why Sponsor With Us?</h2>
+      <p>Discover the benefits of partnering with Jungle in English</p>
+    </div>
+    
+    <div class="benefits-grid">
+      <div class="benefit-card">
+        <div class="benefit-icon">🎯</div>
+        <h3>Brand Visibility</h3>
+        <p>Get featured on our website, social media, and events with thousands of engaged students and educators</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🤝</div>
+        <h3>Community Impact</h3>
+        <p>Make a real difference in students' lives and contribute to quality English education</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">📊</div>
+        <h3>Transparent Reporting</h3>
+        <p>Receive detailed reports on how your contribution is making an impact</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🏆</div>
+        <h3>Recognition Tiers</h3>
+        <p>Bronze, Silver, and Gold sponsorship levels with increasing benefits and visibility</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">🌍</div>
+        <h3>Global Reach</h3>
+        <p>Connect with an international community of learners and educators</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">💼</div>
+        <h3>Networking</h3>
+        <p>Join exclusive sponsor events and connect with other education-focused organizations</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sponsorship Requirements Section -->
+  <section class="requirements-section" id="sponsor-form">
+    <div class="section-header">
+      <h2>What We're Looking For</h2>
+      <p>Requirements to become a sponsor</p>
+    </div>
+    
+    <div class="requirements-content">
+      <div class="requirements-list">
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Company or organization with valid registration</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Commitment to supporting education and student development</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Alignment with our values of inclusivity and excellence</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Minimum contribution: Bronze (0-499 DT), Silver (500-999 DT), Gold (1000+ DT)</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Willingness to be featured in our promotional materials</span>
+        </div>
+        <div class="requirement-item">
+          <span class="check-icon">✓</span>
+          <span>Long-term partnership mindset for sustained impact</span>
+        </div>
+      </div>
+      
+      <div class="requirements-cta">
+        <h3>Ready to Partner?</h3>
+        <p>The application process takes about 5-10 minutes to complete</p>
+        <button class="btn-apply" (click)="applyNow()">Start Your Application</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Final CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2>Make an Impact Today</h2>
+      <p>Join our community of sponsors and help shape the future of English education. Your support creates opportunities for thousands of students.</p>
+      <button class="btn-apply-large" (click)="scrollToForm()">
+        Start Your Sponsorship
+        <span class="arrow">→</span>
       </button>
-    </div>
-  </nav>
-</header>
-<!-- ***** Header Area End ***** -->
-
-<div class="sponsor-page">
-
-  <!-- Hero -->
-  <section style="background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%); padding: 60px 2rem; text-align: center;">
-    <div style="max-width: 700px; margin: 0 auto;">
-      <span style="background: rgba(246,189,96,0.2); color: #F6BD60; padding: 6px 16px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">Partnership Opportunity</span>
-      <h1 style="color: #F7EDE2; font-size: 2.5rem; font-weight: 900; margin: 16px 0 12px;">Become Our Sponsor</h1>
-      <p style="color: rgba(247,237,226,0.8); font-size: 1rem; line-height: 1.7;">
-        Partner with Jungle in English and support the next generation of English learners.
-      </p>
+      <p class="cta-note">✓ Quick 5-minute application • ✓ Flexible contribution levels • ✓ Immediate impact</p>
     </div>
   </section>
-
-  <!-- Form Section -->
-  <section style="padding: 60px 2rem; background: #f8f9fa;">
-    <div style="max-width: 600px; margin: 0 auto;">
-
-      @if (success) {
-        <div style="background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 16px; padding: 40px; text-align: center;">
-          <div style="font-size: 3rem; margin-bottom: 16px;">🎉</div>
-          <h3 style="color: #065f46; font-size: 1.3rem; font-weight: 700; margin-bottom: 8px;">Application Submitted!</h3>
-          <p style="color: #047857; margin-bottom: 20px;">Thank you for your interest. We'll be in touch within 48 hours.</p>
-          <button (click)="success = false" style="padding: 10px 24px; background: #2D5757; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">Submit Another</button>
-        </div>
-      } @else {
-        <div style="background: white; border-radius: 16px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.06);">
-          <h2 style="color: #2D5757; font-size: 1.5rem; font-weight: 800; margin-bottom: 4px;">Sponsor Application</h2>
-          <p style="color: #888; font-size: 0.9rem; margin-bottom: 32px;">Fill in the details below and our team will contact you.</p>
-
-          @if (error) {
-            <div style="background: #fee2e2; border: 1px solid #fca5a5; border-radius: 8px; padding: 12px 16px; color: #dc2626; font-size: 0.9rem; margin-bottom: 20px;">{{ error }}</div>
-          }
-
-          <form (ngSubmit)="submit()" #sponsorForm="ngForm" style="display: flex; flex-direction: column; gap: 20px;">
-
-            <!-- Logo Upload -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 8px;">Logo</label>
-              @if (!sponsor.logo) {
-                <input type="file" id="logoInput" accept="image/*" (change)="onLogoSelected($event)" style="display: none;">
-                <label for="logoInput" style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 32px; border: 2px dashed #d1d5db; border-radius: 12px; cursor: pointer; background: #f9fafb; transition: border-color 0.2s;">
-                  <span style="font-size: 2rem;">📷</span>
-                  <span style="font-size: 0.9rem; font-weight: 600; color: #374151;">Click to upload logo</span>
-                  <span style="font-size: 0.8rem; color: #9ca3af;">PNG, JPG or JPEG (MAX. 5MB)</span>
-                </label>
-              } @else {
-                <div style="position: relative; display: inline-block;">
-                  <img [src]="sponsor.logo" alt="Logo preview" style="height: 80px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                  <button type="button" (click)="removeLogo()" style="position: absolute; top: -8px; right: -8px; width: 24px; height: 24px; background: #ef4444; color: white; border: none; border-radius: 50%; cursor: pointer; font-size: 0.75rem; display: flex; align-items: center; justify-content: center;">✕</button>
-                </div>
-              }
-            </div>
-
-            <!-- Name -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Name *</label>
-              <input [(ngModel)]="sponsor.name" name="name" type="text" placeholder="Enter sponsor name" required
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
-            </div>
-
-            <!-- Description -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Description</label>
-              <textarea [(ngModel)]="sponsor.description" name="description" rows="3" placeholder="Enter description"
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; resize: vertical; box-sizing: border-box;"></textarea>
-            </div>
-
-            <!-- Contribution Amount -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Contribution Amount (DT) *</label>
-              <input [(ngModel)]="sponsor.contributionAmount" name="contributionAmount" type="number" min="0" step="0.01" placeholder="0" required
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
-              <p style="font-size: 0.8rem; color: #6b7280; margin-top: 6px;">
-                💡 Level is calculated automatically:
-                <span style="color: #CD7F32; font-weight: 600;">0-499 DT = Bronze</span> ·
-                <span style="color: #888; font-weight: 600;">500-999 DT = Silver</span> ·
-                <span style="color: #D4A017; font-weight: 600;">1000+ DT = Gold</span>
-              </p>
-              @if (sponsor.contributionAmount) {
-                <p style="font-size: 0.85rem; font-weight: 700; color: #2D5757; margin-top: 4px;">
-                  Your level: {{ getAutoLevel() }}
-                </p>
-              }
-            </div>
-
-            <!-- Website -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Website</label>
-              <input [(ngModel)]="sponsor.website" name="website" type="url" placeholder="https://example.com"
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
-            </div>
-
-            <!-- Contact Email -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Contact Email *</label>
-              <input [(ngModel)]="sponsor.contactEmail" name="contactEmail" type="email" placeholder="contact@example.com" required
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
-            </div>
-
-            <!-- Contact Phone -->
-            <div>
-              <label style="display: block; font-size: 0.85rem; font-weight: 600; color: #374151; margin-bottom: 6px;">Contact Phone</label>
-              <input [(ngModel)]="sponsor.contactPhone" name="contactPhone" type="tel" placeholder="+216 XX XXX XXX"
-                style="width: 100%; padding: 10px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px; font-size: 0.9rem; outline: none; box-sizing: border-box;">
-            </div>
-
-            <!-- Submit -->
-            <button type="submit" [disabled]="sponsorForm.invalid || loading"
-              style="padding: 14px; background: linear-gradient(135deg, #2D5757, #3D3D60); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer;"
-              [style.opacity]="sponsorForm.invalid || loading ? '0.6' : '1'">
-              {{ loading ? 'Submitting...' : 'Submit Application' }}
-            </button>
-
-          </form>
-        </div>
-      }
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer style="background: #2D5757; color: #F7EDE2; text-align: center; padding: 24px; font-size: 0.85rem;">
-    © 2026 Jungle in English. All rights reserved.
-  </footer>
-
 </div>

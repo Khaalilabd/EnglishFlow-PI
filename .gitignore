@@ -29,6 +29,8 @@
 
 # Backend - Spring Boot
 /backend/**/*.log
+/backend/**/logs/*.json
+/backend/**/logs/*.gz
 /backend/**/*.jar
 /backend/**/*.war
 

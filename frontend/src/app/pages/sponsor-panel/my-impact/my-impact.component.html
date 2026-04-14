@@ -1,0 +1,194 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">My Impact 🌍</h1>
+      <p class="text-gray-500 text-sm mt-1">Track how your sponsorship is making a difference.</p>
+    </div>
+
+    @if (loading) {
+      <div class="flex justify-center py-16">
+        <div class="animate-spin rounded-full h-10 w-10 border-2 border-[#B37D05] border-t-transparent"></div>
+      </div>
+    }
+
+    @if (!loading) {
+
+      <!-- KPI Cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 border-l-4 border-l-[#B37D05]">
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Platform Contribution</p>
+          <p class="text-3xl font-black text-[#B37D05]">{{ totalInvested }}</p>
+          <p class="text-xs text-gray-400 mt-1">DT invested</p>
+          <p class="text-xs text-green-600 font-semibold mt-1">✅ Approved</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 border-l-4 border-l-[#F6BD60]">
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Club Budget (30%)</p>
+          <p class="text-3xl font-black text-[#F6BD60]">{{ clubBudgetTotal }}</p>
+          <p class="text-xs text-gray-400 mt-1">DT reserved</p>
+          <p class="text-xs text-orange-500 font-semibold mt-1">{{ totalAllocatedToClubs }} DT allocated</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 border-l-4 border-l-[#3D3D60]">
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Clubs Sponsored</p>
+          <p class="text-3xl font-black text-[#3D3D60]">{{ clubsSponsored }}</p>
+          <p class="text-xs text-gray-400 mt-1">Active partnerships</p>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 border-l-4 border-l-[#C84630]">
+          <p class="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">Events</p>
+          <p class="text-3xl font-black text-[#C84630]">{{ eventsCount }}</p>
+          <p class="text-xs text-gray-400 mt-1">Across all clubs</p>
+        </div>
+      </div>
+
+      <!-- Budget allocation bar -->
+      <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+        <div class="flex items-center justify-between mb-1">
+          <p class="text-sm font-bold text-gray-700">Club Budget Allocation</p>
+          <p class="text-sm font-black text-[#B37D05]">{{ totalAllocatedToClubs }} / {{ clubBudgetTotal }} DT</p>
+        </div>
+        <p class="text-xs text-gray-400 mb-3">30% of your {{ totalInvested }} DT platform contribution reserved for clubs</p>
+        <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+          <div class="h-2.5 rounded-full transition-all duration-700"
+            [ngClass]="globalUsagePercent > 80 ? 'bg-gradient-to-r from-[#C84630] to-red-500' : 'bg-gradient-to-r from-[#B37D05] to-[#F6BD60]'"
+            [style.width.%]="globalUsagePercent">
+          </div>
+        </div>
+        <div class="flex justify-between text-xs text-gray-400 mt-1.5">
+          <span>{{ globalUsagePercent }}% allocated</span>
+          <span class="font-semibold text-gray-600">{{ totalRemaining }} DT remaining</span>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      @if (clubImpacts.length === 0) {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+          <div class="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 text-3xl">🤝</div>
+          <p class="text-lg font-bold text-gray-700 mb-2">No active club sponsorships</p>
+          <p class="text-sm text-gray-400 mb-6">Start sponsoring a club to see your impact here.</p>
+          <button (click)="router.navigate(['/sponsor-panel/clubs'])"
+            class="px-6 py-2.5 bg-gradient-to-r from-[#7A5200] to-[#B37D05] text-white rounded-xl font-bold text-sm hover:opacity-90 transition-all hover:shadow-md">
+            Sponsor a Club →
+          </button>
+        </div>
+      }
+
+      <!-- Per-club cards -->
+      @for (impact of clubImpacts; track impact.club.id) {
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+
+          <!-- Club header — clickable to toggle -->
+          <div class="bg-gradient-to-r from-[#7A5200] to-[#B37D05] p-5 flex items-center justify-between cursor-pointer select-none"
+            (click)="toggleClub(impact.club.id!)">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center text-2xl">
+                @if (impact.club.image) {
+                  <img [src]="impact.club.image" [alt]="impact.club.name" class="w-full h-full object-cover">
+                } @else {
+                  {{ getCategoryIcon(impact.club.category) }}
+                }
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-white">{{ impact.club.name }}</h3>
+                <p class="text-white/60 text-xs">{{ getCategoryIcon(impact.club.category) }} {{ impact.club.category }}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <button (click)="$event.stopPropagation(); router.navigate(['/sponsor-panel/clubs', impact.club.id])"
+                class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl transition-colors">
+                View Details →
+              </button>
+              <!-- Chevron -->
+              <div class="w-8 h-8 bg-white/10 rounded-xl flex items-center justify-center transition-transform duration-300"
+                [ngClass]="isExpanded(impact.club.id!) ? 'rotate-180' : ''">
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collapsible content -->
+          @if (isExpanded(impact.club.id!)) {
+            <div class="p-5 space-y-5">
+
+              <!-- Budget stats -->
+              <div class="grid grid-cols-3 gap-3">
+                <div class="bg-gray-50 rounded-xl p-4 text-center border border-gray-100">
+                  <p class="text-xs text-gray-400 font-semibold mb-1">Allocated</p>
+                  <p class="text-2xl font-black text-[#B37D05]">{{ impact.allocated }}</p>
+                  <p class="text-xs text-gray-400">DT</p>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-4 text-center border border-orange-100">
+                  <p class="text-xs text-orange-400 font-semibold mb-1">Used</p>
+                  <p class="text-2xl font-black text-orange-600">{{ impact.used | number:'1.0-0' }}</p>
+                  <p class="text-xs text-orange-400">DT</p>
+                </div>
+                <div class="rounded-xl p-4 text-center border"
+                  [ngClass]="impact.remaining > 0 ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'">
+                  <p class="text-xs font-semibold mb-1" [ngClass]="impact.remaining > 0 ? 'text-green-500' : 'text-red-500'">Remaining</p>
+                  <p class="text-2xl font-black" [ngClass]="impact.remaining > 0 ? 'text-green-600' : 'text-red-600'">{{ impact.remaining | number:'1.0-0' }}</p>
+                  <p class="text-xs" [ngClass]="impact.remaining > 0 ? 'text-green-400' : 'text-red-400'">DT</p>
+                </div>
+              </div>
+
+              <!-- Progress -->
+              <div>
+                <div class="flex justify-between text-xs text-gray-400 mb-1.5">
+                  <span>Budget usage</span>
+                  <span class="font-bold" [ngClass]="impact.usagePercent > 80 ? 'text-[#C84630]' : 'text-[#B37D05]'">{{ impact.usagePercent }}%</span>
+                </div>
+                <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                  <div class="h-2 rounded-full transition-all duration-700"
+                    [ngClass]="impact.usagePercent > 80 ? 'bg-gradient-to-r from-[#C84630] to-red-500' : 'bg-gradient-to-r from-[#B37D05] to-[#F6BD60]'"
+                    [style.width.%]="impact.usagePercent">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Events -->
+              @if (impact.events.length > 0) {
+                <div>
+                  <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-3">📅 Club Events ({{ impact.events.length }})</p>
+                  <div class="space-y-2">
+                    @for (event of impact.events; track event.id) {
+                      <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-white hover:shadow-sm transition-all">
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <p class="text-sm font-bold text-gray-800 truncate">{{ event.title }}</p>
+                            <span class="px-2 py-0.5 text-xs font-bold rounded-full"
+                              [ngClass]="getEventStatusClass(event.status || '')">{{ event.status }}</span>
+                            @if (isOnline(event)) {
+                              <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-bold rounded-full">🌐 Online</span>
+                            } @else {
+                              <span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-bold rounded-full">📍 In Person</span>
+                            }
+                          </div>
+                          <p class="text-xs text-gray-400 mt-0.5">{{ event.startDate | date:'mediumDate' }}</p>
+                          @if (!isOnline(event) && event.location) {
+                            <p class="text-xs text-gray-500 mt-0.5">📍 {{ event.location }}</p>
+                          }
+                        </div>
+                        @if (isOnline(event)) {
+                          <button (click)="joinLive(event.id!, impact.club.id!)"
+                            class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold rounded-xl hover:opacity-90 transition-all hover:shadow-md active:scale-95 flex-shrink-0">
+                            <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                            🎥 Live
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <p class="text-xs text-gray-400 text-center py-4">No events organized yet for this club.</p>
+              }
+
+            </div>
+          }
+        </div>
+      }
+
+    }
+  </div>
+</div>

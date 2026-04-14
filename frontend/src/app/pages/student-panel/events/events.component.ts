@@ -381,51 +381,25 @@ export class EventsComponent implements OnInit, OnDestroy {
     this.eventService.getAllEvents().subscribe({
       next: (events) => {
         console.log('📋 All events from API:', events);
-        console.log('📊 Events by status:', events.reduce((acc: any, e) => {
-          acc[e.status || 'UNKNOWN'] = (acc[e.status || 'UNKNOWN'] || 0) + 1;
-          return acc;
-        }, {}));
-        
+
         // Filter to show only APPROVED events in the public lists
-        // Creator can see their own events in "My Events" section, not in public lists
-        const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED'
-        );
-        console.log('✅ Filtered APPROVED events:', filteredEvents.length, filteredEvents);
-        
-        this.events = this.filterAvailableEvents(filteredEvents);
-        this.pastEvents = this.filterPastEvents(filteredEvents); // New: Filter past events
-        console.log('📅 Available events (within 3 days):', this.events.length, this.events);
-        console.log('🕐 Past events:', this.pastEvents.length, this.pastEvents);
-        this.filteredEvents = [...this.events]; // Initialize filtered events
-        this.filteredPastEvents = [...this.pastEvents]; // Initialize filtered past events
-        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
+        const approvedEvents = events.filter(event => event.status === 'APPROVED');
+
+        // "All Events" = tous les événements approuvés (upcoming + ongoing + past)
+        this.events = approvedEvents;
+        this.upcomingEvents = this.filterUpcomingEvents(approvedEvents);
+        this.pastEvents = this.filterPastEvents(approvedEvents);
+
+        this.filteredEvents = [...this.events];
+        this.filteredUpcomingEvents = [...this.upcomingEvents];
+        this.filteredPastEvents = [...this.pastEvents];
+
+        this.addPendingEventsToFilteredLists();
         this.loading = false;
       },
       error: (error) => {
         console.error('Error loading events:', error);
         this.loading = false;
-      }
-    });
-
-    // Load upcoming events (within 3 days)
-    this.eventService.getUpcomingEvents().subscribe({
-      next: (events) => {
-        console.log('🔜 Upcoming events from API:', events);
-        
-        // Filter to show only APPROVED events in the public lists
-        const filteredEvents = events.filter(event => 
-          event.status === 'APPROVED'
-        );
-        console.log('✅ Filtered APPROVED upcoming events:', filteredEvents.length, filteredEvents);
-        
-        this.upcomingEvents = this.filterUpcomingEvents(filteredEvents);
-        console.log('📅 Upcoming events (more than 3 days):', this.upcomingEvents.length, this.upcomingEvents);
-        this.filteredUpcomingEvents = [...this.upcomingEvents]; // Initialize filtered upcoming events
-        this.addPendingEventsToFilteredLists(); // Add pending events after initialization
-      },
-      error: (error) => {
-        console.error('Error loading upcoming events:', error);
       }
     });
 
@@ -708,12 +682,16 @@ export class EventsComponent implements OnInit, OnDestroy {
     }
 
     this.eventService.joinEvent(eventId, this.currentUserId).subscribe({
-      next: () => {
+      next: (participant: any) => {
+        // If event has a participation fee, redirect to payment page
+        if (participant?.paymentStatus === 'PAYMENT_PENDING' && participant?.id) {
+          this.notificationService.info('Payment Required', 'Please complete the payment to confirm your registration.');
+          this.router.navigate(['/user-panel/event-payment', participant.id]);
+          return;
+        }
         this.notificationService.success('Joined Event', 'Successfully joined the event!');
-        // Notify that event participation has changed
         this.eventService.notifyEventParticipationChanged();
         if (this.showDetailsView && this.selectedEvent?.id === eventId) {
-          // Reload the event details
           this.loadAndDisplayEvent(eventId);
         } else {
           this.loadEvents();
@@ -836,22 +814,30 @@ export class EventsComponent implements OnInit, OnDestroy {
 
   private addPendingEventsToFilteredLists() {
     if (this.currentUserId && this.myEvents.length > 0) {
-      const pendingEvents = this.myEvents.filter(event => 
+      const myEventIds = new Set(this.myEvents.map(e => e.id));
+
+      const pendingEvents = this.myEvents.filter(event =>
         event.status === 'PENDING' && event.creatorId === this.currentUserId
       );
-      
-      // Add to filteredEvents (all tab)
+
+      // Add pending events if not already present
       pendingEvents.forEach(pendingEvent => {
         if (!this.filteredEvents.some(e => e.id === pendingEvent.id)) {
           this.filteredEvents.push(pendingEvent);
         }
-      });
-      
-      // Add to filteredUpcomingEvents (upcoming tab)
-      pendingEvents.forEach(pendingEvent => {
         if (!this.filteredUpcomingEvents.some(e => e.id === pendingEvent.id)) {
           this.filteredUpcomingEvents.push(pendingEvent);
         }
+      });
+
+      // Sort filteredEvents: joined/created events first, then the rest by startDate
+      this.filteredEvents.sort((a, b) => {
+        const aIsMyEvent = myEventIds.has(a.id);
+        const bIsMyEvent = myEventIds.has(b.id);
+        if (aIsMyEvent && !bIsMyEvent) return -1;
+        if (!aIsMyEvent && bIsMyEvent) return 1;
+        // Same priority → sort by startDate ascending
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
       });
     }
   }

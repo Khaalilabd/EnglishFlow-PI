@@ -21,8 +21,9 @@ public class TaskController {
     @GetMapping("/club/{clubId}")
     public ResponseEntity<List<TaskDTO>> getTasksByClubId(
             @PathVariable Integer clubId,
-            @RequestParam Long userId) {
-        return ResponseEntity.ok(taskService.getTasksByClubId(clubId, userId));
+            @RequestParam Long userId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        return ResponseEntity.ok(taskService.getTasksByClubId(clubId, userId, userRole));
     }
     
     @GetMapping("/club/{clubId}/status/{status}")

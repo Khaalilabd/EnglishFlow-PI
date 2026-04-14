@@ -15,6 +15,7 @@ export interface ChatMessage {
   targetLang?: string;
   moderated?: boolean;
   sentAt?: string;
+  isSystem?: boolean;
 }
 
 export interface PollOption {
@@ -78,6 +79,8 @@ export interface ConnectedUser {
   userId: number;
   userName: string;
   joinedAt: string;
+  systemRole?: string;
+  profilePhoto?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -102,7 +105,7 @@ export class LiveSessionService {
 
   constructor(private http: HttpClient) {}
 
-  connect(eventId: number, userId?: number, userName?: string): Promise<void> {
+  connect(eventId: number, userId?: number, userName?: string, systemRole?: string, profilePhoto?: string): Promise<void> {
     this.currentEventId = eventId;
     this.currentUserId = userId ?? null;
     return new Promise((resolve, reject) => {
@@ -113,9 +116,8 @@ export class LiveSessionService {
           this.connected$.next(true);
           this.subscribeAll(eventId);
           this.loadHistory(eventId);
-          // Announce presence
           if (userId && userName) {
-            this.send(`/app/session/${eventId}/presence`, { userId, userName, action: 'JOIN' });
+            this.send(`/app/session/${eventId}/presence`, { userId, userName, action: 'JOIN', systemRole: systemRole ?? 'STUDENT', profilePhoto: profilePhoto ?? null });
           }
           resolve();
         },
@@ -158,14 +160,13 @@ export class LiveSessionService {
       this.whiteboard$.next(JSON.parse(m.body));
     });
 
-    // Presence tracking
     this.client!.subscribe(`${base}/presence`, (m: IMessage) => {
-      const data: { userId: number; userName: string; action: 'JOIN' | 'LEAVE'; joinedAt: string } = JSON.parse(m.body);
-      if (data.userId === this.currentUserId) return; // ignore self
+      const data: { userId: number; userName: string; action: 'JOIN' | 'LEAVE'; joinedAt: string; systemRole?: string; profilePhoto?: string } = JSON.parse(m.body);
+      if (data.userId === this.currentUserId) return;
       const current = this.connectedUsers$.value;
       if (data.action === 'JOIN') {
         if (!current.find(u => u.userId === data.userId)) {
-          this.connectedUsers$.next([...current, { userId: data.userId, userName: data.userName, joinedAt: data.joinedAt }]);
+          this.connectedUsers$.next([...current, { userId: data.userId, userName: data.userName, joinedAt: data.joinedAt, systemRole: data.systemRole, profilePhoto: data.profilePhoto }]);
         }
       } else {
         this.connectedUsers$.next(current.filter(u => u.userId !== data.userId));
@@ -174,14 +175,12 @@ export class LiveSessionService {
   }
 
   private loadHistory(eventId: number): void {
-    this.http.get<ChatMessage[]>(`${this.apiBase}/${eventId}/session/chat`)
-      .subscribe(msgs => this.messages$.next(msgs));
+    this.messages$.next([]);
     this.http.get<Question[]>(`${this.apiBase}/${eventId}/session/questions`)
       .subscribe(qs => this.questions$.next(qs));
     this.http.get<Poll>(`${this.apiBase}/${eventId}/session/polls/active?userId=${this.currentUserId ?? 0}`)
       .subscribe({ next: p => this.poll$.next(p), error: () => {} });
-    // Load already-connected participants
-    this.http.get<{ userId: number; userName: string; joinedAt: string }[]>(
+    this.http.get<{ userId: number; userName: string; joinedAt: string; systemRole?: string; profilePhoto?: string }[]>(
       `${this.apiBase}/${eventId}/session/participants`
     ).subscribe({
       next: list => {
@@ -189,7 +188,7 @@ export class LiveSessionService {
         const merged = [...current];
         list.forEach(u => {
           if (u.userId !== this.currentUserId && !merged.find(x => x.userId === u.userId)) {
-            merged.push({ userId: u.userId, userName: u.userName, joinedAt: u.joinedAt });
+            merged.push({ userId: u.userId, userName: u.userName, joinedAt: u.joinedAt, systemRole: u.systemRole, profilePhoto: u.profilePhoto });
           }
         });
         this.connectedUsers$.next(merged);
@@ -204,6 +203,10 @@ export class LiveSessionService {
 
   sendMessage(msg: ChatMessage): void {
     this.send(`/app/session/${this.currentEventId}/chat`, msg);
+  }
+
+  sendSystemMessageLocal(msg: ChatMessage): void {
+    this.messages$.next([...this.messages$.value, { ...msg, id: Date.now() }]);
   }
 
   raiseHand(userId: number, userName: string): void {
@@ -273,6 +276,7 @@ export class LiveSessionService {
     this.client = null;
     this.connected$.next(false);
     this.connectedUsers$.next([]);
+    this.messages$.next([]);
     this.currentEventId = null;
   }
 }

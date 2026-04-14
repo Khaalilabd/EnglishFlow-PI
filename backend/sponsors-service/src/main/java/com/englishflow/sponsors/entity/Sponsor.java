@@ -33,6 +33,23 @@ public class Sponsor {
     private String contactEmail;
     private String contactPhone;
 
+    // Link to the user account
+    @Column
+    private Long userId;
+
+    @Column
+    private String applicantFirstName;
+
+    @Column
+    private String applicantLastName;
+
+    // Target club for this sponsorship
+    @Column
+    private Integer clubId;
+
+    @Column
+    private String clubName;
+
     @Enumerated(EnumType.STRING)
     private SponsorLevel level;
 

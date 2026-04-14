@@ -2,12 +2,14 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { SponsorService } from '../../../core/services/sponsor.service';
 import { Sponsor, SponsorLevel, CreateSponsorRequest } from '../../../core/models/sponsor.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { SponsorWebSocketService } from '../../../services/sponsor-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
 import { Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-sponsors-list',
@@ -33,12 +35,19 @@ export class SponsorsListComponent implements OnInit, OnDestroy {
   private wsSubscription?: Subscription;
   private dataSyncSubscription?: Subscription;
 
+  // Details popup
+  showDetailsPopup = false;
+  detailsSponsor: Sponsor | null = null;
+  sponsoredClubs: Sponsor[] = [];
+  loadingClubs = false;
+
   constructor(
     private sponsorService: SponsorService,
     private notificationService: NotificationService,
     private router: Router,
     private sponsorWsService: SponsorWebSocketService,
-    private dataSyncService: DataSyncService
+    private dataSyncService: DataSyncService,
+    private http: HttpClient
   ) {}
 
   async ngOnInit() {
@@ -112,6 +121,9 @@ export class SponsorsListComponent implements OnInit, OnDestroy {
 
   applyFilters() {
     this.filteredSponsors = this.sponsors.filter(sponsor => {
+      // Only show main sponsor profiles (not club sponsorship requests)
+      if (sponsor.clubId) return false;
+
       const matchesSearch = !this.searchTerm || 
         sponsor.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
         (sponsor.contactEmail && sponsor.contactEmail.toLowerCase().includes(this.searchTerm.toLowerCase()));
@@ -123,11 +135,11 @@ export class SponsorsListComponent implements OnInit, OnDestroy {
   }
 
   getCountByLevel(level: string): number {
-    return this.sponsors.filter(s => s.level === level).length;
+    return this.sponsors.filter(s => s.level === level && !s.clubId).length;
   }
 
   getTotalContribution(): number {
-    return this.sponsors.reduce((sum, s) => sum + (s.contributionAmount || 0), 0);
+    return this.sponsors.filter(s => !s.clubId).reduce((sum, s) => sum + (s.contributionAmount || 0), 0);
   }
 
   toggleViewMode() {
@@ -249,6 +261,41 @@ export class SponsorsListComponent implements OnInit, OnDestroy {
       level: SponsorLevel.BRONZE,
       contributionAmount: 0
     };
+  }
+
+  openDetails(sponsor: Sponsor) {
+    this.detailsSponsor = sponsor;
+    this.sponsoredClubs = [];
+    this.showDetailsPopup = true;
+
+    if (!sponsor.userId) return;
+    this.loadingClubs = true;
+    this.http.get<Sponsor[]>(`${environment.apiUrl}/sponsors/user/${sponsor.userId}`).subscribe({
+      next: (all) => {
+        this.sponsoredClubs = all.filter(s => s.clubId);
+        this.loadingClubs = false;
+      },
+      error: () => { this.loadingClubs = false; }
+    });
+  }
+
+  get totalSponsoredClubs(): number {
+    return this.sponsoredClubs.reduce((sum, s) => sum + (s.contributionAmount || 0), 0);
+  }
+
+  closeDetails() {
+    this.showDetailsPopup = false;
+    this.detailsSponsor = null;
+    this.sponsoredClubs = [];
+  }
+
+  getStatusClass(status?: string): string {
+    const map: Record<string, string> = {
+      PENDING:  'bg-yellow-100 text-yellow-700',
+      APPROVED: 'bg-green-100 text-green-700',
+      REJECTED: 'bg-red-100 text-red-700'
+    };
+    return map[status || ''] || 'bg-gray-100 text-gray-600';
   }
 
   deleteSponsor(sponsor: Sponsor) {

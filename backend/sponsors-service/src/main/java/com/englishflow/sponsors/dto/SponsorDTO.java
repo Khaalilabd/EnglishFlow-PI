@@ -30,6 +30,14 @@ public class SponsorDTO {
     private String contactEmail;
     
     private String contactPhone;
+
+    private Long userId;
+    private String applicantFirstName;
+    private String applicantLastName;
+
+    private Integer clubId;
+    private String clubName;
+
     private Sponsor.SponsorLevel level;
     private Sponsor.SponsorStatus status;
     

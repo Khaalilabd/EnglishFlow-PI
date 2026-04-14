@@ -127,6 +127,8 @@ export class UserDropdownComponent {
       case 'TUTOR':
       case 'TEACHER':
         return '/tutor-panel/settings';
+      case 'SPONSOR':
+        return '/sponsor-panel/company-profile';
       case 'ADMIN':
       case 'ACADEMIC_OFFICE_AFFAIR':
         return '/dashboard/settings';
@@ -143,6 +145,8 @@ export class UserDropdownComponent {
       case 'TUTOR':
       case 'TEACHER':
         return '/tutor-panel/profile';
+      case 'SPONSOR':
+        return '/sponsor-panel/company-profile';
       case 'ADMIN':
       case 'ACADEMIC_OFFICE_AFFAIR':
         return '/dashboard/profile';

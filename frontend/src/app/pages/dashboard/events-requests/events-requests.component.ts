@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { EventService, Event } from '../../../core/services/event.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -9,7 +10,7 @@ import { DataSyncService } from '../../../services/data-sync.service';
 @Component({
   selector: 'app-events-requests',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './events-requests.component.html',
   styleUrls: ['./events-requests.component.scss']
 })
@@ -22,6 +23,11 @@ export class EventsRequestsComponent implements OnInit, OnDestroy {
   selectedTab: 'pending' | 'approved' | 'rejected' = 'pending';
   loading = false;
   error: string | null = null;
+
+  // Search / Filter / Sort
+  searchQuery = '';
+  filterType = '';
+  sortBy: 'date_asc' | 'date_desc' | 'title_asc' | 'title_desc' = 'date_desc';
   
   private wsSubscriptions = new Subscription();
 
@@ -88,9 +94,48 @@ export class EventsRequestsComponent implements OnInit, OnDestroy {
   }
 
   categorizeEvents() {
-    this.pendingEvents = this.allEvents.filter(e => e.status === 'PENDING');
-    this.approvedEvents = this.allEvents.filter(e => e.status === 'APPROVED');
-    this.rejectedEvents = this.allEvents.filter(e => e.status === 'REJECTED');
+    this.pendingEvents = this.filterAndSort(this.allEvents.filter(e => e.status === 'PENDING'));
+    this.approvedEvents = this.filterAndSort(this.allEvents.filter(e => e.status === 'APPROVED'));
+    this.rejectedEvents = this.filterAndSort(this.allEvents.filter(e => e.status === 'REJECTED'));
+  }
+
+  filterAndSort(events: Event[]): Event[] {
+    let result = [...events];
+
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(e =>
+        e.title?.toLowerCase().includes(q) ||
+        e.location?.toLowerCase().includes(q)
+      );
+    }
+
+    if (this.filterType) {
+      result = result.filter(e => e.type === this.filterType);
+    }
+
+    result.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'date_asc':  return new Date(a.startDate || '').getTime() - new Date(b.startDate || '').getTime();
+        case 'date_desc': return new Date(b.startDate || '').getTime() - new Date(a.startDate || '').getTime();
+        case 'title_asc': return (a.title || '').localeCompare(b.title || '');
+        case 'title_desc': return (b.title || '').localeCompare(a.title || '');
+        default: return 0;
+      }
+    });
+
+    return result;
+  }
+
+  applyFilters() {
+    this.categorizeEvents();
+  }
+
+  resetFilters() {
+    this.searchQuery = '';
+    this.filterType = '';
+    this.sortBy = 'date_desc';
+    this.categorizeEvents();
   }
 
   approveEvent(eventId: number) {

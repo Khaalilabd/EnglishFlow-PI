@@ -18,7 +18,7 @@ export class LoginComponent implements OnInit {
   loginForm: FormGroup;
   loading = false;
   errorMessage = '';
-  selectedRole: 'STUDENT' | 'TEACHER' = 'STUDENT';
+  selectedRole: 'STUDENT' | 'TEACHER' | 'SPONSOR' = 'STUDENT';
   recaptchaToken: string | null = null;
   siteKey = '6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI'; // Google test key
   showPassword = false;
@@ -117,10 +117,10 @@ export class LoginComponent implements OnInit {
           });
         } else {
           // Profil complet, rediriger selon le rôle
-          if (response.role === 'ADMIN') {
-            this.router.navigate(['/dashboard']); // Admin dashboard
+          if (response.role === 'ADMIN' || response.role === 'ACADEMIC_OFFICE_AFFAIR') {
+            this.router.navigate(['/dashboard']);
           } else {
-            this.router.navigate(['/']); // Landing page for students and tutors
+            this.router.navigate(['/']); // Landing page for students, tutors and sponsors
           }
         }
       },

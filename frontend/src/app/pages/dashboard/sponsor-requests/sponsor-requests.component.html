@@ -4,10 +4,40 @@
     <div>
       <h1 class="text-2xl font-bold text-gray-900">Sponsor Requests</h1>
       <p class="text-sm text-gray-500 mt-1">Review and manage sponsorship applications</p>
+      @if (!loading && filteredRequests.length > 0) {
+        <p class="text-xs text-gray-400 mt-0.5">{{ filteredRequests.length }} request{{ filteredRequests.length > 1 ? 's' : '' }}</p>
+      }
     </div>
     <button (click)="loadRequests()" class="px-4 py-2 bg-[#2D5757] text-white rounded-lg text-sm font-semibold hover:bg-[#3D3D60] transition-colors">
       Refresh
     </button>
+  </div>
+
+  <!-- Search & Sort -->
+  <div class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        (ngModelChange)="applyFilters()"
+        placeholder="Search by name, email or club..."
+        class="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5757]/30 focus:border-[#2D5757]"
+      />
+    </div>
+    <select
+      [(ngModel)]="sortBy"
+      (ngModelChange)="applyFilters()"
+      class="px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#2D5757]/30 focus:border-[#2D5757] bg-white"
+    >
+      <option value="name_asc">Name A → Z</option>
+      <option value="name_desc">Name Z → A</option>
+      <option value="amount_desc">Amount ↓</option>
+      <option value="amount_asc">Amount ↑</option>
+      <option value="level">Level (Gold first)</option>
+    </select>
   </div>
 
   <!-- Loading -->
@@ -15,7 +45,7 @@
     <div class="flex items-center justify-center py-16">
       <div class="animate-spin rounded-full h-10 w-10 border-2 border-[#2D5757] border-t-transparent"></div>
     </div>
-  } @else if (requests.length === 0) {
+  } @else if (filteredRequests.length === 0) {
     <div class="bg-white rounded-2xl border border-gray-100 p-16 text-center">
       <div class="text-5xl mb-4">📭</div>
       <h3 class="text-lg font-semibold text-gray-700 mb-2">No pending requests</h3>
@@ -23,7 +53,7 @@
     </div>
   } @else {
     <div class="space-y-4">
-      @for (req of requests; track req.id) {
+      @for (req of filteredRequests; track req.id) {
         <div class="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md transition-shadow">
           <div class="flex items-start gap-4">
             <!-- Logo -->
@@ -42,6 +72,11 @@
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold" [ngClass]="getLevelClass(req.level)">
                   {{ getLevelBadge(req.level) }}
                 </span>
+                @if (req.clubName) {
+                  <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    🏛️ {{ req.clubName }}
+                  </span>
+                }
                 <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-orange-50 text-orange-600 border border-orange-200">
                   ⏳ Pending
                 </span>
@@ -50,7 +85,6 @@
               @if (req.description) {
                 <p class="text-sm text-gray-500 mb-3 line-clamp-2">{{ req.description }}</p>
               }
-
               <div class="flex flex-wrap gap-4 text-sm text-gray-500">
                 @if (req.contactEmail) {
                   <span class="flex items-center gap-1">

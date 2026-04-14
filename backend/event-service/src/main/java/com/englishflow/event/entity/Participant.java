@@ -29,10 +29,29 @@ public class Participant {
     private Event event;
     
     @Column(nullable = false)
-    private Long userId; // Reference to User (Student) from auth-service
+    private Long userId;
+
+    @Column
+    private String clubRole;
     
     @Column(nullable = false)
     private LocalDateTime joinDate;
+
+    // ── Payment fields ──────────────────────────────────────────
+    @Column
+    private String paymentStatus; // PAYMENT_PENDING | PAID
+
+    @Column(length = 50)
+    private String paymentMethod; // KONNECT
+
+    @Column(length = 500)
+    private String paymentToken;
+
+    @Column
+    private LocalDateTime paymentConfirmedAt;
+
+    @Column
+    private LocalDateTime paymentDeadline;
     
     @PrePersist
     protected void onCreate() {

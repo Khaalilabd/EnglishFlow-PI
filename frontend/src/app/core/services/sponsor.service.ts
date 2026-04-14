@@ -50,6 +50,22 @@ export class SponsorService {
     );
   }
 
+  getSponsorsByUser(userId: number): Observable<Sponsor[]> {
+    return this.http.get<Sponsor[]>(`${this.apiUrl}/user/${userId}`);
+  }
+
+  createClubSponsorRequest(request: {
+    name: string; description?: string; logo?: string; website?: string;
+    contactEmail?: string; contactPhone?: string;
+    contributionAmount: number; userId: number;
+    applicantFirstName: string; applicantLastName: string;
+    clubId: number; clubName: string;
+  }): Observable<Sponsor> {
+    return this.http.post<Sponsor>(this.apiUrl, request).pipe(
+      tap(() => this.invalidateCache())
+    );
+  }
+
   updateSponsor(id: number, sponsor: CreateSponsorRequest): Observable<Sponsor> {
     return this.http.put<Sponsor>(`${this.apiUrl}/${id}`, sponsor).pipe(
       tap(() => this.invalidateCache())

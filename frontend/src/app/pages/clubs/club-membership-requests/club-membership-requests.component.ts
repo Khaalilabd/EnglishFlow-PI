@@ -1,30 +1,38 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MembershipRequest } from '../../../core/models/club.model';
 import { MembershipRequestService } from '../../../core/services/membership-request.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { ClubWebSocketService } from '../../../services/club-websocket.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-club-membership-requests',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './club-membership-requests.component.html',
-  styleUrls: ['./club-membership-requests.component.scss']
+  styleUrls: ['./club-membership-requests.component.scss'],
 })
 export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
   @Input() clubId!: number;
-  
+
   requests: MembershipRequest[] = [];
   loading = false;
   currentUserId: number | null = null;
   selectedRequest: MembershipRequest | null = null;
+
+  // Reject modal
+  rejectingRequest: MembershipRequest | null = null;
+  rejectComment = '';
+
   private wsSubscription?: Subscription;
 
   constructor(
     private requestService: MembershipRequestService,
     private authService: AuthService,
+    private notificationService: NotificationService,
     private clubWebsocket: ClubWebSocketService
   ) {}
 
@@ -41,7 +49,7 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
   }
 
   loadCurrentUser(): void {
-    this.authService.currentUser$.subscribe(user => {
+    this.authService.currentUser$.subscribe((user) => {
       if (user && user.id) {
         this.currentUserId = user.id;
       }
@@ -50,7 +58,6 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
 
   loadRequests(): void {
     if (!this.clubId) return;
-    
     this.loading = true;
     this.requestService.getPendingRequestsForClub(this.clubId).subscribe({
       next: (requests) => {
@@ -60,20 +67,19 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error loading membership requests:', err);
         this.loading = false;
-      }
+      },
     });
   }
 
   subscribeToWebSocket(): void {
     if (!this.clubId) return;
-
     this.wsSubscription = this.clubWebsocket.subscribeToClub(this.clubId).subscribe({
       next: (notification: any) => {
         if (notification && notification.type === 'MEMBERSHIP_REQUEST') {
           this.loadRequests();
         }
       },
-      error: (err: any) => console.error('WebSocket error:', err)
+      error: (err: any) => console.error('WebSocket error:', err),
     });
   }
 
@@ -87,37 +93,41 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
 
   approveRequest(request: MembershipRequest): void {
     if (!this.currentUserId || !request.id) return;
-
-    if (confirm(`Approuver la demande de ${request.userName || 'cet utilisateur'} ?`)) {
-      this.requestService.approveRequest(request.id, this.currentUserId).subscribe({
-        next: () => {
-          alert('Demande approuvée avec succès !');
-          this.loadRequests();
-        },
-        error: (err) => {
-          console.error('Error approving request:', err);
-          alert(err.error?.message || 'Erreur lors de l\'approbation');
-        }
-      });
-    }
+    this.requestService.approveRequest(request.id, this.currentUserId).subscribe({
+      next: () => {
+        this.notificationService.success('Request Approved', `${request.userName || 'User'} has been approved and added to the club.`);
+        this.loadRequests();
+      },
+      error: (err) => {
+        this.notificationService.error('Approval Failed', err.error?.message || 'Failed to approve request.');
+      },
+    });
   }
 
-  rejectRequest(request: MembershipRequest): void {
-    if (!this.currentUserId || !request.id) return;
+  openRejectModal(request: MembershipRequest): void {
+    this.rejectingRequest = request;
+    this.rejectComment = '';
+  }
 
-    const comment = prompt(`Rejeter la demande de ${request.userName || 'cet utilisateur'} ?\nRaison (optionnelle):`);
-    if (comment !== null) {
-      this.requestService.rejectRequest(request.id, this.currentUserId, comment || undefined).subscribe({
+  closeRejectModal(): void {
+    this.rejectingRequest = null;
+    this.rejectComment = '';
+  }
+
+  confirmReject(): void {
+    if (!this.currentUserId || !this.rejectingRequest?.id) return;
+    this.requestService
+      .rejectRequest(this.rejectingRequest.id, this.currentUserId, this.rejectComment || undefined)
+      .subscribe({
         next: () => {
-          alert('Demande rejetée');
+          this.notificationService.success('Request Rejected', `The request from ${this.rejectingRequest?.userName || 'user'} has been rejected.`);
+          this.closeRejectModal();
           this.loadRequests();
         },
         error: (err) => {
-          console.error('Error rejecting request:', err);
-          alert(err.error?.message || 'Erreur lors du rejet');
-        }
+          this.notificationService.error('Rejection Failed', err.error?.message || 'Failed to reject request.');
+        },
       });
-    }
   }
 
   formatDate(dateString?: string): string {
@@ -128,7 +138,7 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
       month: 'short',
       year: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
     });
   }
 }

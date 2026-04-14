@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { ClubService } from '../../../core/services/club.service';
 import { UserService } from '../../../core/services/user.service';
@@ -15,23 +16,30 @@ import { map, switchMap } from 'rxjs/operators';
 @Component({
   selector: 'app-clubs-manage',
   standalone: true,
-  imports: [CommonModule, FormsModule, ClubMembershipRequestsComponent],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './clubs-manage.component.html',
   styleUrl: './clubs-manage.component.scss'
 })
 export class ClubsManageComponent implements OnInit, OnDestroy {
   clubs: Club[] = [];
+  filteredClubs: Club[] = [];
   selectedClub: Club | null = null;
   clubMembers: Member[] = [];
   loading = false;
   loadingMembers = false;
   error: string | null = null;
   showMembersModal = false;
-  showMembersSection = true; // Pour gérer l'expansion de la section membres dans la modal
+  showMembersSection = true;
   showSuspendModal = false;
   clubToSuspend: Club | null = null;
   suspensionReason = '';
-  currentUserId = 1; // TODO: Récupérer l'ID de l'utilisateur connecté
+  currentUserId = 1;
+
+  // Search / Filter / Sort
+  searchQuery = '';
+  filterCategory = '';
+  filterStatus = '';
+  sortBy: 'date_asc' | 'date_desc' | 'name_asc' | 'name_desc' = 'date_desc';
   
   private wsSubscriptions = new Subscription();
 
@@ -107,6 +115,7 @@ export class ClubsManageComponent implements OnInit, OnDestroy {
           };
         });
         
+        this.applyFilters();
         this.loading = false;
       },
       error: (err) => {
@@ -115,6 +124,47 @@ export class ClubsManageComponent implements OnInit, OnDestroy {
         this.loading = false;
       }
     });
+  }
+
+  applyFilters() {
+    let result = [...this.clubs];
+
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(c =>
+        c.name?.toLowerCase().includes(q) ||
+        c.description?.toLowerCase().includes(q) ||
+        c.creatorName?.toLowerCase().includes(q)
+      );
+    }
+
+    if (this.filterCategory) {
+      result = result.filter(c => c.category === this.filterCategory);
+    }
+
+    if (this.filterStatus) {
+      result = result.filter(c => c.status === this.filterStatus);
+    }
+
+    result.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'date_asc':  return new Date(a.createdAt || '').getTime() - new Date(b.createdAt || '').getTime();
+        case 'date_desc': return new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime();
+        case 'name_asc':  return (a.name || '').localeCompare(b.name || '');
+        case 'name_desc': return (b.name || '').localeCompare(a.name || '');
+        default: return 0;
+      }
+    });
+
+    this.filteredClubs = result;
+  }
+
+  resetFilters() {
+    this.searchQuery = '';
+    this.filterCategory = '';
+    this.filterStatus = '';
+    this.sortBy = 'date_desc';
+    this.applyFilters();
   }
 
   viewClubDetails(club: Club) {
@@ -259,6 +309,26 @@ export class ClubsManageComponent implements OnInit, OnDestroy {
             errorMessage += 'Please try again.';
           }
           this.notificationService.error('Activation Failed', errorMessage);
+        }
+      });
+    }
+  }
+
+  deleteClub(club: Club) {
+    if (confirm(`Are you sure you want to permanently delete "${club.name}"? This action cannot be undone.`)) {
+      this.clubService.deleteClub(club.id!).subscribe({
+        next: () => {
+          this.notificationService.success('Club Deleted', 'Club has been deleted successfully!');
+          this.loadClubs();
+        },
+        error: (err: any) => {
+          let errorMessage = 'Failed to delete club. ';
+          if (err.error?.message) {
+            errorMessage += err.error.message;
+          } else {
+            errorMessage += 'Please try again.';
+          }
+          this.notificationService.error('Delete Failed', errorMessage);
         }
       });
     }

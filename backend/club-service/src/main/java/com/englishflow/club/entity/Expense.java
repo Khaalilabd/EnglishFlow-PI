@@ -40,6 +40,9 @@ public class Expense {
     
     @Column(length = 500)
     private String notes; // Notes additionnelles
+
+    @Column(length = 50)
+    private String source; // REGISTRATION_FEE | SPONSORSHIP | OTHER
     
     @Column(nullable = false)
     private LocalDateTime createdAt;

@@ -10,5 +10,11 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 public interface ParticipantMapper {
     
     @Mapping(source = "event.id", target = "eventId")
+    @Mapping(source = "event.title", target = "eventTitle")
+    @Mapping(source = "event.participationFee", target = "participationFee")
+    @Mapping(target = "userEmail", ignore = true)
+    @Mapping(target = "userFirstName", ignore = true)
+    @Mapping(target = "userLastName", ignore = true)
+    @Mapping(target = "userProfilePhoto", ignore = true)
     ParticipantDTO toDTO(Participant participant);
 }

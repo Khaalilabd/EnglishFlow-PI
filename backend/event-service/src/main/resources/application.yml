@@ -7,12 +7,11 @@ spring:
       write-dates-as-timestamps: false
     deserialization:
       adjust-dates-to-context-time-zone: false
-    date-format: yyyy-MM-dd'T'HH:mm:ss
-  
+
   cloud:
     config:
       enabled: false
-  
+
   datasource:
     url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:englishflow_event_db}
     username: ${DB_USERNAME:postgres}
@@ -24,7 +23,7 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
       max-lifetime: 1800000
-  
+
   jpa:
     hibernate:
       ddl-auto: ${JPA_DDL_AUTO:update}
@@ -41,11 +40,27 @@ spring:
           in_clause_parameter_padding: true
     generate-ddl: true
     open-in-view: false
-  
+
   cache:
     type: caffeine
     caffeine:
       spec: maximumSize=500,expireAfterWrite=300s
+
+# Twilio SMS Configuration
+twilio:
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  phone-number: ${TWILIO_PHONE_NUMBER:}
+
+# Konnect Payment Configuration
+konnect:
+  api-url: https://api.preprod.konnect.network/api/v2/payments/init-payment
+  api-key: ${KONNECT_API_KEY:69d1070fcd2bd9f6adb45cd4:wHR0Qb4vprpg49tiiJ6zgSNrZb3d}
+  wallet-id: ${KONNECT_WALLET_ID:69d10712cd2bd9f6adb45cfe}
+
+app:
+  frontend:
+    url: ${FRONTEND_URL:http://localhost:4200}
 
 server:
   port: ${SERVER_PORT:8088}

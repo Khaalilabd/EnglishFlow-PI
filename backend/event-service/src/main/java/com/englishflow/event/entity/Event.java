@@ -64,6 +64,9 @@ public class Event {
     
     @Column(nullable = false)
     private Integer currentParticipants = 0;
+
+    @Column
+    private Double participationFee = 0.0;
     
     @Column(length = 1000)
     private String description;

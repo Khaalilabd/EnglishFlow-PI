@@ -1,3 +1,144 @@
+// ============================================
+// CLUB DASHBOARD STYLES
+// ============================================
+
+// Dashboard background with gradient
+.bg-gradient-dashboard {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+// Dashboard cards hover effects
+.bg-white.rounded-lg,
+.bg-white.rounded-xl {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+// Stats cards with gradient backgrounds
+.bg-gradient-to-br {
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+  
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// Compact icon containers
+.w-9.h-9.rounded-lg,
+.w-8.h-8.rounded-lg {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.1) rotate(5deg);
+  }
+}
+
+// Progress bars with smooth animation
+.progress-bar-container {
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+  
+  > div {
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+// Collapsible sections with smooth transitions
+.collapsible-header {
+  transition: background-color 0.2s ease;
+  
+  svg {
+    transition: transform 0.3s ease;
+  }
+}
+
+// Event cards in sidebar
+.bg-gradient-to-br.from-purple-50 {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  }
+}
+
+// Skill cards
+.bg-white.rounded-lg.p-3 {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// Dashboard header with image overlay
+.relative.h-32.overflow-hidden {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(45, 87, 87, 0.9) 0%, rgba(61, 61, 96, 0.9) 100%);
+    mix-blend-mode: multiply;
+  }
+  
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+// Smooth scrollbar for events sidebar
+.events-sidebar-scroll {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #9333ea;
+    border-radius: 10px;
+    
+    &:hover {
+      background: #7e22ce;
+    }
+  }
+}
+
+// Badge animations
+span[class*="rounded-full"] {
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// Card borders with subtle glow on hover
+[class*="border-"][class*="/30"] {
+  transition: all 0.3s ease;
+}
+
 .card {
   transition: transform 0.2s, box-shadow 0.2s;
 

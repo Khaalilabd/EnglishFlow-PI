@@ -130,6 +130,19 @@
           Student Panel
         </app-dropdown-item-two>
       </li>
+      <!-- Sponsor Panel Link - Show for sponsors -->
+      <li *ngIf="currentUser?.role === 'SPONSOR'">
+        <app-dropdown-item-two 
+          (itemClick)="closeDropdown()" 
+          tag="a" 
+          to="/sponsor-panel/dashboard"
+          className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
+          <svg class="fill-gray-500 group-hover:fill-gray-700 dark:fill-gray-400 dark:group-hover:fill-gray-300" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.59 20 4 16.41 4 12C4 7.59 7.59 4 12 4C16.41 4 20 7.59 20 12C20 16.41 16.41 20 12 20ZM12 6C9.79 6 8 7.79 8 10C8 12.21 9.79 14 12 14C14.21 14 16 12.21 16 10C16 7.79 14.21 6 12 6ZM12 12C10.9 12 10 11.1 10 10C10 8.9 10.9 8 12 8C13.1 8 14 8.9 14 10C14 11.1 13.1 12 12 12ZM6 18.39C7.5 16.89 9.62 16 12 16C14.38 16 16.5 16.89 18 18.39C16.5 19.89 14.38 20.78 12 20.78C9.62 20.78 7.5 19.89 6 18.39Z"/>
+          </svg>
+          Sponsor Panel
+        </app-dropdown-item-two>
+      </li>
       <li>
         <app-dropdown-item-two (itemClick)="closeDropdown()" tag="a" to="/support"
           className="flex items-center gap-3 px-3 py-2 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">

@@ -3,6 +3,7 @@ package com.englishflow.auth.controller;
 import com.englishflow.auth.dto.AuthResponse;
 import com.englishflow.auth.dto.LoginRequest;
 import com.englishflow.auth.dto.RegisterRequest;
+import com.englishflow.auth.dto.SponsorRegisterRequest;
 import com.englishflow.auth.dto.PasswordResetRequest;
 import com.englishflow.auth.dto.PasswordResetConfirm;
 import com.englishflow.auth.dto.RefreshTokenRequest;
@@ -36,6 +37,23 @@ public class AuthController {
         
         authService.register(request);
         return ResponseEntity.ok(Map.of("message", "Registration successful! Please check your email to activate your account."));
+    }
+
+    /**
+     * Dedicated endpoint for sponsor self-registration — no reCAPTCHA required.
+     * Account is created inactive; it becomes active only after admin approval.
+     */
+    @PostMapping("/register-sponsor")
+    public ResponseEntity<Map<String, Object>> registerSponsor(@Valid @RequestBody SponsorRegisterRequest request) {
+        AuthResponse response = authService.registerSponsor(request);
+        return ResponseEntity.ok(Map.of(
+            "message", "Sponsor registration successful!",
+            "id", response.getId(),
+            "email", response.getEmail(),
+            "firstName", response.getFirstName(),
+            "lastName", response.getLastName(),
+            "role", response.getRole()
+        ));
     }
 
     @GetMapping("/activate")

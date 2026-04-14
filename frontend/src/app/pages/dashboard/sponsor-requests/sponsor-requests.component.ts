@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { SponsorService } from '../../../core/services/sponsor.service';
-import { Sponsor } from '../../../core/models/sponsor.model';
+import { FormsModule } from '@angular/forms';
 import { NotificationService } from '../../../core/services/notification.service';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -9,12 +8,15 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-sponsor-requests',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './sponsor-requests.component.html'
 })
 export class SponsorRequestsComponent implements OnInit {
   requests: any[] = [];
+  filteredRequests: any[] = [];
   loading = false;
+  searchQuery = '';
+  sortBy: 'name_asc' | 'name_desc' | 'amount_asc' | 'amount_desc' | 'level' = 'name_asc';
   private apiUrl = `${environment.apiUrl}/sponsors`;
 
   constructor(
@@ -27,9 +29,33 @@ export class SponsorRequestsComponent implements OnInit {
   loadRequests() {
     this.loading = true;
     this.http.get<any[]>(`${this.apiUrl}/pending`).subscribe({
-      next: (data) => { this.requests = data; this.loading = false; },
+      next: (data) => { this.requests = data; this.applyFilters(); this.loading = false; },
       error: () => { this.loading = false; }
     });
+  }
+
+  applyFilters() {
+    const q = this.searchQuery.trim().toLowerCase();
+    let result = q
+      ? this.requests.filter(r =>
+          r.name?.toLowerCase().includes(q) ||
+          r.contactEmail?.toLowerCase().includes(q) ||
+          r.clubName?.toLowerCase().includes(q)
+        )
+      : [...this.requests];
+
+    const levelOrder: Record<string, number> = { GOLD: 1, SILVER: 2, BRONZE: 3 };
+    result.sort((a, b) => {
+      switch (this.sortBy) {
+        case 'name_asc':    return (a.name || '').localeCompare(b.name || '');
+        case 'name_desc':   return (b.name || '').localeCompare(a.name || '');
+        case 'amount_asc':  return (a.contributionAmount || 0) - (b.contributionAmount || 0);
+        case 'amount_desc': return (b.contributionAmount || 0) - (a.contributionAmount || 0);
+        case 'level':       return (levelOrder[a.level] || 99) - (levelOrder[b.level] || 99);
+        default:            return 0;
+      }
+    });
+    this.filteredRequests = result;
   }
 
   approve(id: number) {

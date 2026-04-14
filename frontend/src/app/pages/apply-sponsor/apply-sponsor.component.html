@@ -1,0 +1,257 @@
+<div class="application-container">
+  <!-- Back to Home Button -->
+  <button class="btn-back-home" (click)="goHome()" title="Back to Home">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    <span>Back to Home</span>
+  </button>
+
+  <div class="application-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-icon">🤝</div>
+      <h1>Become a Sponsor</h1>
+      <p>Partner with Jungle in English and support the next generation of English learners</p>
+    </div>
+
+    <!-- Success Message -->
+    @if (success) {
+      <div class="success-state">
+        <div class="success-icon">🎉</div>
+        <h3>Application Submitted Successfully!</h3>
+        <p>Thank you for your interest in sponsoring Jungle in English. Our team will review your application and contact you within 48 hours.</p>
+        <div class="success-actions">
+          <button class="btn-primary" (click)="resetForm()">Submit Another Application</button>
+          <button class="btn-secondary" (click)="goHome()">Return to Home</button>
+        </div>
+      </div>
+    } @else {
+
+      <!-- Step Indicator -->
+      <div class="stepper">
+        <div class="step" [class.active]="currentStep === 1" [class.done]="currentStep > 1">
+          <div class="step-circle">
+            @if (currentStep > 1) { <span>✓</span> } @else { <span>1</span> }
+          </div>
+          <span class="step-label">Personal Info</span>
+        </div>
+        <div class="step-line" [class.done]="currentStep > 1"></div>
+        <div class="step" [class.active]="currentStep === 2" [class.done]="currentStep > 2">
+          <div class="step-circle">
+            @if (currentStep > 2) { <span>✓</span> } @else { <span>2</span> }
+          </div>
+          <span class="step-label">Company Info</span>
+        </div>
+        <div class="step-line" [class.done]="currentStep > 2"></div>
+        <div class="step" [class.active]="currentStep === 3">
+          <div class="step-circle"><span>3</span></div>
+          <span class="step-label">Account</span>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      @if (error) {
+        <div class="message error">{{ error }}</div>
+      }
+
+      <!-- ===== STEP 1: Personal Info ===== -->
+      @if (currentStep === 1) {
+        <div class="form-step">
+          <h2>Personal Information</h2>
+          <p class="form-intro">Tell us about yourself so we can get in touch.</p>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>First Name *</label>
+              <input [(ngModel)]="personal.firstName" name="firstName" type="text" placeholder="John" required>
+            </div>
+            <div class="form-group">
+              <label>Last Name *</label>
+              <input [(ngModel)]="personal.lastName" name="lastName" type="text" placeholder="Doe" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Email *</label>
+              <input [(ngModel)]="personal.email" name="email" type="email" placeholder="john@example.com" required>
+            </div>
+            <div class="form-group">
+              <label>Phone *</label>
+              <input [(ngModel)]="personal.phone" name="phone" type="tel" placeholder="+216 XX XXX XXX" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>CIN *</label>
+              <input [(ngModel)]="personal.cin" name="cin" type="text" placeholder="00000000" required>
+            </div>
+            <div class="form-group">
+              <label>Date of Birth *</label>
+              <input [(ngModel)]="personal.dateOfBirth" name="dateOfBirth" type="date" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Address *</label>
+            <input [(ngModel)]="personal.address" name="address" type="text" placeholder="123 Main Street" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>City *</label>
+              <input [(ngModel)]="personal.city" name="city" type="text" placeholder="Tunis" required>
+            </div>
+            <div class="form-group">
+              <label>Postal Code *</label>
+              <input [(ngModel)]="personal.postalCode" name="postalCode" type="text" placeholder="1000" required>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="goHome()">Cancel</button>
+            <button type="button" class="btn-primary btn-large" (click)="nextStep()">
+              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ===== STEP 2: Company / Sponsor Info ===== -->
+      @if (currentStep === 2) {
+        <div class="form-step">
+          <h2>Company Information</h2>
+          <p class="form-intro">Tell us about your company and sponsorship details.</p>
+
+          <!-- Logo Upload -->
+          <div class="form-group">
+            <label>Company Logo</label>
+            @if (!sponsor.logo) {
+              <input type="file" id="logoInput" accept="image/*" (change)="onLogoSelected($event)" style="display: none;">
+              <label for="logoInput" class="upload-drop-zone">
+                <span class="upload-icon">📷</span>
+                <span class="upload-title">Click to upload your company logo</span>
+                <span class="upload-hint">PNG, JPG or JPEG (MAX. 5MB)</span>
+              </label>
+            } @else {
+              <div class="logo-preview">
+                <img [src]="sponsor.logo" alt="Company Logo">
+                <button type="button" class="btn-remove-logo" (click)="removeLogo()">✕</button>
+              </div>
+            }
+          </div>
+
+          <div class="form-group">
+            <label>Company Name *</label>
+            <input [(ngModel)]="sponsor.name" name="companyName" type="text" placeholder="Acme Corp" required>
+          </div>
+
+          <div class="form-group">
+            <label>Company Description</label>
+            <textarea [(ngModel)]="sponsor.description" name="description" rows="4"
+              placeholder="Tell us about your company and why you want to sponsor us"></textarea>
+          </div>
+
+          <!-- Contribution Amount -->
+          <div class="form-group">
+            <label>Contribution Amount (DT) *</label>
+            <input [(ngModel)]="sponsor.contributionAmount" name="contributionAmount" type="number"
+              min="1" step="1" placeholder="Enter your contribution amount in DT" required>
+            <p class="field-hint">
+              💡 Level is calculated automatically:
+              <span class="level-bronze">0–499 DT = 🥉 Bronze</span> ·
+              <span class="level-silver">500–999 DT = 🥈 Silver</span> ·
+              <span class="level-gold">1000+ DT = 🥇 Gold</span>
+            </p>
+            @if (sponsor.contributionAmount && +sponsor.contributionAmount > 0) {
+              <p class="auto-level">Your sponsorship level: {{ getAutoLevel() }}</p>
+            }
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Company Email *</label>
+              <input [(ngModel)]="sponsor.contactEmail" name="contactEmail" type="email" placeholder="contact@company.com" required>
+            </div>
+            <div class="form-group">
+              <label>Company Website</label>
+              <input [(ngModel)]="sponsor.website" name="website" type="url" placeholder="https://www.company.com">
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="prevStep()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn-primary btn-large" (click)="nextStep()">
+              Next
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- ===== STEP 3: Account Credentials ===== -->
+      @if (currentStep === 3) {
+        <div class="form-step">
+          <h2>Create Your Account</h2>
+          <p class="form-intro">Set up your login credentials to manage your sponsorship.</p>
+
+          <div class="form-group">
+            <label>Email *</label>
+            <input [(ngModel)]="account.email" name="accountEmail" type="email" placeholder="you@example.com" required>
+          </div>
+
+          <div class="form-group">
+            <label>Password *</label>
+            <div class="input-password">
+              <input [(ngModel)]="account.password" name="password"
+                [type]="showPassword ? 'text' : 'password'"
+                placeholder="Minimum 8 characters" required>
+              <button type="button" class="toggle-password" (click)="showPassword = !showPassword">
+                {{ showPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Confirm Password *</label>
+            <div class="input-password">
+              <input [(ngModel)]="account.confirmPassword" name="confirmPassword"
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                placeholder="Repeat your password" required>
+              <button type="button" class="toggle-password" (click)="showConfirmPassword = !showConfirmPassword">
+                {{ showConfirmPassword ? '🙈' : '👁️' }}
+              </button>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="prevStep()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              Back
+            </button>
+            <button type="button" class="btn-primary btn-large" (click)="submit()" [disabled]="loading">
+              {{ loading ? 'Submitting...' : 'Submit Application' }}
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

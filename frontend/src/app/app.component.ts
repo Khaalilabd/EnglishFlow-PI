@@ -9,6 +9,8 @@ import { slideAnimation } from './auth/auth-animations';
 import { PlacementTestService } from './core/services/placement-test.service';
 import { AuthService } from './core/services/auth.service';
 
+declare var $: any;
+
 @Component({
   selector: 'app-root',
   standalone: true,

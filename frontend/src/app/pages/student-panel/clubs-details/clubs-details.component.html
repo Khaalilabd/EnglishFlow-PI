@@ -1,0 +1,799 @@
+﻿<div class="min-h-screen bg-gray-50 p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- NAVBAR (back + tabs + actions) -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 px-4 py-3">
+      <div class="flex items-center gap-2">
+
+        <!-- Back button — left -->
+        <button (click)="back.emit()"
+          class="flex-shrink-0 p-2.5 text-[#2D5757] hover:bg-gray-100 rounded-xl transition-all group"
+          title="Back to Clubs">
+          <svg class="w-4 h-4 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+        </button>
+
+        <div class="w-px h-6 bg-gray-200 flex-shrink-0"></div>
+
+        <!-- Tabs (centered) -->
+        <nav class="flex items-center justify-center gap-1 flex-1 overflow-x-auto scrollbar-hide">
+          <button (click)="setTab('overview')"
+            class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+            [ngClass]="activeTab === 'overview' ? 'bg-gradient-to-r from-[#2D5757] to-[#3D3D60] text-white shadow-md' : 'text-gray-500 hover:text-[#2D5757] hover:bg-gray-100'">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+            </svg>
+            Overview
+          </button>
+
+          @if (isAcademicManager || (currentRole !== 'MEMBER' && !isPaymentPending)) {
+            <button (click)="setTab('members')"
+              class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+              [ngClass]="activeTab === 'members' ? 'bg-gradient-to-r from-[#C84630] to-[#a83820] text-white shadow-md' : 'text-gray-500 hover:text-[#C84630] hover:bg-gray-100'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Members
+              <span class="px-1.5 py-0.5 rounded-full text-xs font-bold"
+                [ngClass]="activeTab === 'members' ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600'">
+                {{ actualMemberCount }}
+              </span>
+            </button>
+          }
+
+          @if (isAcademicManager || ((currentRole === 'PRESIDENT' || currentRole === 'VICE_PRESIDENT' || currentRole === 'SECRETARY') && !isPaymentPending)) {
+            <button (click)="setTab('join-requests')"
+              class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+              [ngClass]="activeTab === 'join-requests' ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md' : 'text-gray-500 hover:text-orange-500 hover:bg-gray-100'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+              </svg>
+              Join Requests
+              @if (getMembershipRequestsCount(selectedClub.id!) > 0) {
+                <span class="px-1.5 py-0.5 rounded-full text-xs font-bold animate-pulse"
+                  [ngClass]="activeTab === 'join-requests' ? 'bg-white/20 text-white' : 'bg-orange-500 text-white'">
+                  {{ getMembershipRequestsCount(selectedClub.id!) }}
+                </span>
+              }
+            </button>
+          }
+
+          @if (isAcademicManager || isClubMember(selectedClub.id!)) {
+            <button (click)="setTab('tasks')"
+              class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+              [ngClass]="activeTab === 'tasks' ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-md' : 'text-gray-500 hover:text-violet-600 hover:bg-gray-100'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+              </svg>
+              Tasks
+            </button>
+          }
+
+          @if (isAcademicManager || (currentRole !== 'MEMBER' && !isPaymentPending)) {
+            <button (click)="setTab('expenses')"
+              class="flex items-center gap-2.5 px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200"
+              [ngClass]="activeTab === 'expenses' ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-md' : 'text-gray-500 hover:text-emerald-600 hover:bg-gray-100'">
+              <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              Expenses
+            </button>
+          }
+        </nav>
+
+        <!-- Actions (always visible, no scroll) -->
+        <div class="flex items-center gap-1 flex-shrink-0 border-l border-gray-100 pl-2 ml-1">
+          @if (isAcademicManager || ((currentRole === 'PRESIDENT' || currentRole === 'VICE_PRESIDENT' || currentRole === 'SECRETARY') && !isPaymentPending)) {
+            <button (click)="onHistoryTabClick()"
+              class="p-2.5 rounded-xl transition-all"
+              [ngClass]="activeTab === 'history' ? 'text-[#2D5757] bg-[#2D5757]/10' : 'text-gray-400 hover:text-[#2D5757] hover:bg-gray-100'"
+              title="History">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </button>
+          }
+          @if (currentRole === 'PRESIDENT' && !isPaymentPending) {
+            <a [routerLink]="['/user-panel/clubs', selectedClub.id, 'edit']"
+              class="p-2.5 rounded-xl text-gray-400 hover:text-[#F6BD60] hover:bg-[#F6BD60]/10 transition-all"
+              title="Edit Club">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+              </svg>
+            </a>
+          }
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Suspension Alert -->
+    @if (selectedClub.status === ClubStatus.SUSPENDED && selectedClub.suspensionReason && isClubMember(selectedClub.id!)) {
+      <div class="bg-white rounded-2xl p-6 border-l-4 border-[#C84630] shadow-sm">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-[#C84630]/10 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-3 mb-2">
+              <h3 class="text-base font-bold text-gray-800">Club Suspended</h3>
+              <span class="px-2.5 py-1 bg-[#C84630] text-white text-xs font-bold rounded-full">Members Only</span>
+            </div>
+            <p class="text-sm text-gray-600 mb-3">This club has been temporarily suspended by the Academic Affairs Office.</p>
+            <div class="bg-gray-50 rounded-xl p-4 border border-gray-200">
+              <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Reason:</p>
+              <p class="text-sm text-gray-700">{{ selectedClub.suspensionReason }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Payment Pending Banner -->
+    @if (userPaymentPendingRequest && isClubMember(selectedClub.id!)) {
+      <div class="bg-white rounded-2xl p-5 border-l-4 shadow-sm"
+        [ngClass]="getPaymentDaysRemaining() <= 1 ? 'border-[#C84630]' : 'border-amber-400'">
+        <div class="flex items-center gap-4">
+          <div class="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
+            [ngClass]="getPaymentDaysRemaining() <= 1 ? 'bg-[#C84630]/10' : 'bg-amber-50'">
+            <svg class="w-5 h-5" [ngClass]="getPaymentDaysRemaining() <= 1 ? 'text-[#C84630]' : 'text-amber-500'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="text-sm font-bold text-gray-800">
+              Registration Fee Required
+              <span class="ml-2 px-2 py-0.5 rounded-full text-xs font-bold"
+                [ngClass]="getPaymentDaysRemaining() <= 1 ? 'bg-[#C84630] text-white' : 'bg-amber-100 text-amber-700'">
+                {{ getPaymentDaysRemaining() }} day{{ getPaymentDaysRemaining() !== 1 ? 's' : '' }} left
+              </span>
+            </p>
+            <p class="text-xs text-gray-500 mt-0.5">
+              Pay <strong>{{ userPaymentPendingRequest.registrationFee | number:'1.2-2' }} TND</strong> before
+              {{ userPaymentPendingRequest.paymentDeadline | date:'MMM d, y · h:mm a' }}
+              or you will be removed from the club.
+            </p>
+          </div>
+          <a [routerLink]="['/user-panel/club-payment', userPaymentPendingRequest.id]"
+            class="flex-shrink-0 px-4 py-2 rounded-xl text-sm font-bold text-white transition-all"
+            [ngClass]="getPaymentDaysRemaining() <= 1 ? 'bg-[#C84630] hover:bg-[#C84630]/90' : 'bg-amber-500 hover:bg-amber-600'">
+            Pay Now
+          </a>
+        </div>
+      </div>
+    }
+
+    <!-- HERO CARD -->
+    <div class="relative rounded-2xl overflow-hidden shadow-lg border border-gray-100">
+      <div class="relative h-56 overflow-hidden">
+        @if (selectedClub.image) {
+          <img [src]="selectedClub.image" [alt]="selectedClub.name" class="w-full h-full object-cover"/>
+        } @else {
+          <div class="w-full h-full bg-gradient-to-br from-[#2D5757] via-[#3D3D60] to-[#2D5757]">
+            <div class="absolute inset-0 opacity-10">
+              <div class="absolute top-4 left-8 w-32 h-32 rounded-full border-4 border-white"></div>
+              <div class="absolute top-12 left-24 w-20 h-20 rounded-full border-4 border-white"></div>
+              <div class="absolute bottom-4 right-8 w-40 h-40 rounded-full border-4 border-white"></div>
+            </div>
+          </div>
+        }
+        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/20 to-transparent"></div>
+        <div class="absolute top-4 left-4 flex items-center gap-2">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 rounded-full shadow-sm">
+            <span class="text-sm">{{ getCategoryIcon(selectedClub.category) }}</span>
+            <span class="text-xs font-bold text-[#2D5757]">{{ getCategoryLabel(selectedClub.category) }}</span>
+          </div>
+          <span class="px-3 py-1.5 rounded-full text-xs font-bold shadow-sm"
+            [ngClass]="{
+              'bg-emerald-500 text-white': selectedClub.status === ClubStatus.APPROVED,
+              'bg-amber-500 text-white': selectedClub.status === ClubStatus.PENDING,
+              'bg-[#C84630] text-white': selectedClub.status === ClubStatus.SUSPENDED
+            }">
+            @if (selectedClub.status === ClubStatus.APPROVED) { ✅ Active }
+            @else if (selectedClub.status === ClubStatus.PENDING) { ⏳ Pending }
+            @else if (selectedClub.status === ClubStatus.SUSPENDED) { 🚫 Suspended }
+          </span>
+        </div>
+        <div class="absolute top-4 right-4 flex flex-col items-end gap-2">
+          @if (isClubMember(selectedClub.id!)) {
+            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-[#F6BD60] rounded-full shadow-sm">
+              <span class="text-sm">{{ getRoleIcon(getUserRole(selectedClub.id!)) }}</span>
+              <span class="text-xs font-bold text-gray-900">{{ getRoleLabel(getUserRole(selectedClub.id!)) }}</span>
+            </div>
+          }
+          @if (selectedClub.registrationFee && selectedClub.registrationFee > 0) {
+            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-white/95 rounded-full shadow-sm">
+              <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-xs font-bold text-emerald-700">{{ selectedClub.registrationFee | number:'1.2-2' }} TND</span>
+            </div>
+          }
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 px-6 py-5">
+          <h1 class="text-2xl font-black text-white tracking-tight">{{ selectedClub.name }}</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- OVERVIEW TAB -->
+    @if (activeTab === 'overview') {
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- LEFT: About + Objective + Events -->
+        <div class="lg:col-span-2 space-y-5">
+
+          <!-- About -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+              <div class="w-8 h-8 rounded-xl bg-[#F7EDE2] flex items-center justify-center">
+                <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              <h3 class="text-sm font-bold text-gray-800">About</h3>
+            </div>
+            <div class="px-6 py-5">
+              <p class="text-sm text-gray-600 leading-relaxed">{{ selectedClub.description }}</p>
+            </div>
+          </div>
+
+          <!-- Objective -->
+          @if (selectedClub.objective) {
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+              <div class="flex items-center gap-3 px-6 py-4 border-b border-gray-50">
+                <div class="w-8 h-8 rounded-xl bg-[#F6BD60]/20 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-[#F6BD60]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-800">Objective</h3>
+              </div>
+              <div class="px-6 py-5">
+                <p class="text-sm text-gray-600 leading-relaxed">{{ selectedClub.objective }}</p>
+              </div>
+            </div>
+          }
+
+          <!-- Upcoming Events -->
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-xl bg-[#C84630]/10 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-[#C84630]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-bold text-gray-800">Upcoming Events</h3>
+              </div>
+              @if (clubEvents.length > 0) {
+                <span class="px-2.5 py-1 bg-[#C84630]/10 text-[#C84630] text-xs font-bold rounded-full">{{ clubEvents.length }}</span>
+              }
+            </div>
+            <div class="px-6 py-4">
+              @if (loadingEvents) {
+                <div class="flex justify-center py-8">
+                  <div class="animate-spin rounded-full h-7 w-7 border-2 border-gray-200 border-t-[#2D5757]"></div>
+                </div>
+              } @else if (clubEvents.length === 0) {
+                <div class="flex flex-col items-center py-8 gap-2 text-center">
+                  <span class="text-3xl">📅</span>
+                  <p class="text-sm text-gray-400">No upcoming events scheduled.</p>
+                </div>
+              } @else {
+                <div class="space-y-1">
+                  @for (event of clubEvents; track event.id) {
+                    <div class="flex items-center gap-4 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group">
+                      <div class="flex-shrink-0 w-11 h-11 rounded-xl bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex flex-col items-center justify-center text-white shadow-sm">
+                        <span class="text-sm font-black leading-none">{{ event.startDate || event.eventDate | date:'d' }}</span>
+                        <span class="text-[9px] uppercase tracking-wider opacity-80 font-semibold">{{ event.startDate || event.eventDate | date:'MMM' }}</span>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-gray-800 truncate group-hover:text-[#2D5757] transition-colors">{{ event.title }}</p>
+                        <p class="text-xs text-gray-400 mt-0.5">{{ event.startDate || event.eventDate | date:'EEEE · h:mm a' }}</p>
+                      </div>
+                      <svg class="w-4 h-4 text-gray-300 group-hover:text-[#2D5757] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Stats + Role + Members + Actions -->
+        <div class="space-y-5">
+
+          <!-- Stats cards -->
+          <div [ngClass]="isManagementRole ? 'grid grid-cols-2 gap-3' : 'grid grid-cols-1 gap-3'">
+            @if (isManagementRole) {
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+              <div class="w-10 h-10 rounded-xl bg-[#F7EDE2] flex items-center justify-center mb-3">
+                <svg class="w-5 h-5 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <p class="text-2xl font-black text-gray-800">{{ actualMemberCount }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">Members
+                @if (paymentPendingRequests.length > 0) {
+                  <span class="ml-1 px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">
+                    {{ paymentPendingRequests.length }} awaiting payment
+                  </span>
+                }
+              </p>
+              <div class="mt-2 w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 bg-gradient-to-r from-[#2D5757] to-[#3D3D60]"
+                  [style.width.%]="(actualMemberCount / selectedClub.maxMembers) * 100"></div>
+              </div>
+              <p class="text-[10px] text-gray-400 mt-1">{{ actualMemberCount }}/{{ selectedClub.maxMembers }}</p>
+            </div>
+            }
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow">
+              <div class="w-10 h-10 rounded-xl bg-[#F6BD60]/20 flex items-center justify-center mb-3">
+                <span class="text-xl">{{ getCategoryIcon(selectedClub.category) }}</span>
+              </div>
+              <p class="text-sm font-black text-gray-800 leading-tight">{{ getCategoryLabel(selectedClub.category) }}</p>
+              <p class="text-xs text-gray-500 mt-0.5">Category</p>
+              <div class="mt-2">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold"
+                  [ngClass]="{
+                    'bg-emerald-100 text-emerald-700': selectedClub.status === ClubStatus.APPROVED,
+                    'bg-amber-100 text-amber-700': selectedClub.status === ClubStatus.PENDING,
+                    'bg-red-100 text-[#C84630]': selectedClub.status === ClubStatus.SUSPENDED
+                  }">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                    [ngClass]="{
+                      'bg-emerald-500': selectedClub.status === ClubStatus.APPROVED,
+                      'bg-amber-500': selectedClub.status === ClubStatus.PENDING,
+                      'bg-[#C84630]': selectedClub.status === ClubStatus.SUSPENDED
+                    }"></span>
+                  {{ selectedClub.status === ClubStatus.APPROVED ? 'Active' : selectedClub.status === ClubStatus.PENDING ? 'Pending' : 'Suspended' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Member Join Trend (management roles only) -->
+          @if (isManagementRole) {
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
+            <div class="flex items-center justify-between mb-4">
+              <div>
+                <h3 class="text-sm font-bold text-gray-800">Join Rate</h3>
+                <p class="text-xs text-gray-400 mt-0.5">Last 7 days</p>
+              </div>
+              <div class="w-8 h-8 rounded-xl bg-[#F7EDE2] flex items-center justify-center">
+                <svg class="w-4 h-4 text-[#2D5757]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Bar chart -->
+            <div class="flex items-end gap-1.5" style="height: 64px;">
+              @for (day of getMemberJoinTrend(); track day.label) {
+                <div class="flex-1 flex flex-col items-center justify-end" style="height: 64px;">
+                  <div class="w-full rounded-t-md transition-all duration-500"
+                    [style.height]="(day.count === 0 ? 5 : (day.count / maxJoinCount) * 60) + 'px'"
+                    [ngClass]="day.count > 0 ? 'bg-gradient-to-t from-[#2D5757] to-[#3D3D60]' : 'bg-gray-100'"
+                    [title]="day.count + ' member(s)'">
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Labels -->
+            <div class="flex gap-1.5 mt-1">
+              @for (day of getMemberJoinTrend(); track day.label) {
+                <div class="flex-1 text-center">
+                  <span class="text-[9px] text-gray-400 font-medium">{{ day.label }}</span>
+                </div>
+              }
+            </div>
+
+            <!-- Total this week -->
+            <div class="mt-3 pt-3 border-t border-gray-50 flex items-center justify-between">
+              <span class="text-xs text-gray-500">Total this week</span>
+              <span class="text-sm font-black text-[#2D5757]">
+                {{ getMemberJoinTrend().reduce(sumFn, 0) }} joined
+              </span>
+            </div>
+          </div>
+          }
+
+          <!-- Actions -->
+          @if (!isAcademicManager) {
+          <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-3 hover:shadow-md transition-shadow">
+            @if (!isClubMember(selectedClub.id!) && selectedClub.status === ClubStatus.APPROVED) {
+              @if (hasPendingRequest(selectedClub.id!)) {
+                <div class="w-full px-4 py-3 bg-amber-50 border border-amber-200 text-amber-700 rounded-xl text-sm font-semibold text-center flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  Request Pending
+                </div>
+              } @else {
+                <button (click)="joinClub.emit(selectedClub.id!)"
+                  class="w-full px-4 py-3 bg-[#2D5757] text-white rounded-xl text-sm font-bold hover:bg-[#2D5757]/90 hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/>
+                  </svg>
+                  Join Club
+                </button>
+              }
+            }
+            @if (isClubMember(selectedClub.id!)) {
+              <button (click)="onLeaveClub()"
+                class="w-full px-4 py-3 bg-red-50 border border-red-200 text-[#C84630] rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+                Leave Club
+              </button>
+            }
+          </div>
+          }
+
+        </div>
+      </div>
+    }
+
+    <!-- MEMBERS TAB -->
+    @if (activeTab === 'members') {
+      <div class="space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+            </svg>
+            <input type="text" [value]="memberSearchQuery"
+              (input)="memberSearchQuery = $any($event.target).value"
+              placeholder="Search members..."
+              class="w-full pl-9 pr-4 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-[#2D5757] focus:ring-2 focus:ring-[#2D5757]/10 outline-none transition-all bg-white"/>
+          </div>
+          <div class="flex gap-2">
+            <button (click)="memberFilter = 'all'"
+              class="px-4 py-2.5 text-xs font-semibold rounded-xl transition-all"
+              [ngClass]="memberFilter === 'all' ? 'bg-[#2D5757] text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'">All</button>
+            <button (click)="memberFilter = 'active'"
+              class="px-4 py-2.5 text-xs font-semibold rounded-xl transition-all"
+              [ngClass]="memberFilter === 'active' ? 'bg-[#2D5757] text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'">Active</button>
+            <button (click)="memberFilter = 'pending'"
+              class="px-4 py-2.5 text-xs font-semibold rounded-xl transition-all"
+              [ngClass]="memberFilter === 'pending' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'">Pending</button>
+          </div>
+        </div>
+
+        @if (loadingMembers) {
+          <div class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-[#2D5757]"></div>
+          </div>
+        } @else {
+          @for (role of getMemberRoleSections(memberSearchQuery, memberFilter); track role) {
+            <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div class="flex items-center gap-2 px-5 py-3 bg-gray-50 border-b border-gray-100">
+                <span class="text-base">{{ getRoleIcon(role) }}</span>
+                <span class="text-sm font-bold text-gray-700">{{ getRoleLabel(role) }}</span>
+                <span class="ml-auto px-2 py-0.5 bg-gray-200 text-gray-600 text-xs font-bold rounded-full">
+                  {{ getMembersByRole(role, memberSearchQuery).length + getPendingByRole(role, memberSearchQuery).length }}
+                </span>
+              </div>
+              @for (member of sortedMembersByRole(role, memberSearchQuery); track member.id) {
+                @if (memberFilter === 'all' || memberFilter === 'active') {
+                  <div class="flex items-center gap-4 px-5 py-4 border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition-colors">
+                    @if (member.image || member.profilePicture) {
+                      <img [src]="member.image || member.profilePicture" class="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm flex-shrink-0"/>
+                    } @else {
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center border-2 border-white shadow-sm flex-shrink-0">
+                        <span class="text-white text-sm font-bold">{{ (member.firstName || '?')[0] }}</span>
+                      </div>
+                    }
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-gray-800 truncate">{{ member.firstName }} {{ member.lastName }}</p>
+                      <p class="text-xs text-gray-400 truncate">{{ member.email }}</p>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0" [ngClass]="getRoleBadgeClass(member.rank || 'MEMBER')">
+                      {{ getRoleLabel(member.rank || 'MEMBER') }}
+                    </span>
+                    @if (getUserRole(selectedClub.id!) === 'PRESIDENT' && (member.rank || 'MEMBER') !== 'PRESIDENT') {
+                      <button (click)="openManageMember(member)"
+                        class="flex-shrink-0 p-2 text-gray-400 hover:text-[#2D5757] hover:bg-gray-100 rounded-xl transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+              }
+              @for (req of sortedPendingByRole(role, memberSearchQuery); track req.id) {
+                @if (memberFilter === 'all' || memberFilter === 'pending') {
+                  <div class="flex items-center gap-4 px-5 py-4 border-b border-gray-50 last:border-0 bg-amber-50/40 hover:bg-amber-50/60 transition-colors">
+                    @if (req.user?.image || req.user?.profilePicture) {
+                      <img [src]="req.user.image || req.user.profilePicture" class="w-10 h-10 rounded-full object-cover border-2 border-amber-200 shadow-sm flex-shrink-0"/>
+                    } @else {
+                      <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-500 flex items-center justify-center border-2 border-amber-200 shadow-sm flex-shrink-0">
+                        <span class="text-white text-sm font-bold">{{ (req.user?.firstName || '?')[0] }}</span>
+                      </div>
+                    }
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-gray-800 truncate">{{ req.user?.firstName }} {{ req.user?.lastName }}</p>
+                      <p class="text-xs text-gray-400 truncate">{{ req.user?.email }}</p>
+                    </div>
+                    <!-- Role badge -->
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold flex-shrink-0" [ngClass]="getRoleBadgeClass(req.rank || 'MEMBER')">
+                      {{ getRoleLabel(req.rank || 'MEMBER') }}
+                    </span>
+                    <!-- Payment pending badge -->
+                    <span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 flex-shrink-0">💳 Pending</span>
+                    <!-- Manage button -->
+                    @if (currentRole === 'PRESIDENT') {
+                      <button (click)="openManageMember({ id: req.id, userId: req.userId, firstName: req.user?.firstName, lastName: req.user?.lastName, email: req.user?.email, image: req.user?.image, profilePicture: req.user?.profilePicture, rank: req.rank || 'MEMBER' })"
+                        class="flex-shrink-0 p-2 text-gray-400 hover:text-[#2D5757] hover:bg-gray-100 rounded-xl transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                        </svg>
+                      </button>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+          @if (getMemberRoleSections(memberSearchQuery, memberFilter).length === 0) {
+            <div class="flex flex-col items-center justify-center py-16 gap-3 bg-white rounded-2xl border border-gray-100">
+              <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              <p class="text-sm text-gray-400">No members found</p>
+            </div>
+          }
+        }
+      </div>
+    }
+
+    <!-- JOIN REQUESTS TAB -->
+    @if (activeTab === 'join-requests') {
+      <app-club-membership-requests [clubId]="selectedClub.id!"></app-club-membership-requests>
+    }
+
+    <!-- TASKS TAB -->
+    @if (activeTab === 'tasks') {
+      <app-club-tasks
+        [clubId]="selectedClub.id!"
+        [userId]="currentUserId ?? 0"
+        [canManage]="!isPaymentPending && getUserRole(selectedClub.id!) !== 'MEMBER'">
+      </app-club-tasks>
+    }
+
+    <!-- EXPENSES TAB -->
+    @if (activeTab === 'expenses') {
+      <app-club-expenses
+        [clubId]="selectedClub.id!"
+        [currentUserId]="currentUserId ?? 0"
+        [isTreasurer]="getUserRole(selectedClub.id!) === 'TREASURER' || getUserRole(selectedClub.id!) === 'PRESIDENT' || getUserRole(selectedClub.id!) === 'VICE_PRESIDENT' || getUserRole(selectedClub.id!) === 'SECRETARY'">
+      </app-club-expenses>
+    }
+
+    <!-- HISTORY TAB -->
+    @if (activeTab === 'history') {
+      <div class="space-y-3">
+        @if (loadingHistory) {
+          <div class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-8 w-8 border-2 border-gray-200 border-t-[#2D5757]"></div>
+          </div>
+        } @else if (clubHistory.length === 0) {
+          <div class="flex flex-col items-center justify-center py-16 gap-3 bg-white rounded-2xl border border-gray-100">
+            <div class="w-16 h-16 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-500">No history available</p>
+            <p class="text-xs text-gray-400">Club activity will appear here</p>
+          </div>
+        } @else {
+          <!-- Timeline -->
+          <div class="relative">
+            <!-- Vertical line -->
+            <div class="absolute left-8 top-0 bottom-0 w-px bg-gray-100"></div>
+
+            <div class="space-y-3">
+              @for (item of clubHistory; track item.id) {
+                <div class="relative flex items-start gap-4 pl-4">
+                  <!-- Icon bubble on timeline -->
+                  <div class="flex-shrink-0 w-9 h-9 rounded-full bg-white border-2 border-gray-100 flex items-center justify-center text-base z-10 shadow-sm">
+                    {{ getHistoryIcon(item.type) }}
+                  </div>
+
+                  <!-- Card -->
+                  <div class="flex-1 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:shadow-md transition-shadow">
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <span class="text-sm font-bold text-gray-800">{{ item.action }}</span>
+                        <span class="px-2 py-0.5 rounded-full text-xs font-bold" [ngClass]="getHistoryTypeBadgeClass(item.type)">
+                          {{ item.type.replace('_', ' ') }}
+                        </span>
+                      </div>
+                      <span class="text-xs text-gray-400 whitespace-nowrap flex-shrink-0">{{ formatHistoryDate(item.createdAt ?? '') }}</span>
+                    </div>
+
+                    @if (item.description) {
+                      <p class="text-sm text-gray-600 leading-relaxed mb-2">{{ item.description }}</p>
+                    }
+
+                    @if (item.oldValue || item.newValue) {
+                      <div class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-xl text-xs mb-2">
+                        @if (item.oldValue) {
+                          <span class="text-gray-400 line-through">{{ item.oldValue }}</span>
+                          <svg class="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                          </svg>
+                        }
+                        @if (item.newValue) {
+                          <span class="text-[#2D5757] font-semibold">{{ item.newValue }}</span>
+                        }
+                      </div>
+                    }
+
+                    <div class="flex items-center gap-3 text-xs text-gray-400 flex-wrap">
+                      @if (item.userName) {
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                          </svg>
+                          {{ item.userName }}
+                        </span>
+                      }
+                      @if (item.performedByName && item.performedByName !== item.userName) {
+                        <span class="flex items-center gap-1">
+                          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                          </svg>
+                          by {{ item.performedByName }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- TRANSFER PRESIDENCY MODAL -->
+@if (showTransferPresidencyModal) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeTransferModal()">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-2">
+        <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+          <span class="text-xl">👑</span>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-bold text-gray-800">Transfer Presidency</p>
+          <p class="text-xs text-gray-400">Choose your successor before leaving</p>
+        </div>
+        <button (click)="closeTransferModal()" class="p-2 text-gray-400 hover:bg-gray-100 rounded-xl transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-4">
+        As president, you must designate a new president before leaving the club.
+      </p>
+
+      <!-- Member list -->
+      <div class="mb-4 max-h-56 overflow-y-auto space-y-1.5">
+        @for (member of nonPresidentMembers; track member.id) {
+          <button
+            (click)="selectedSuccessorId = member.userId"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl border transition-all text-left"
+            [ngClass]="selectedSuccessorId === member.userId
+              ? 'border-[#2D5757] bg-[#2D5757]/5 ring-1 ring-[#2D5757]'
+              : 'border-gray-100 hover:bg-gray-50'">
+            @if (member.image || member.profilePicture) {
+              <img [src]="member.image || member.profilePicture" class="w-9 h-9 rounded-full object-cover flex-shrink-0"/>
+            } @else {
+              <div class="w-9 h-9 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center flex-shrink-0">
+                <span class="text-white text-xs font-bold">{{ (member.firstName || '?')[0] }}</span>
+              </div>
+            }
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-semibold text-gray-800 truncate">{{ member.firstName }} {{ member.lastName }}</p>
+              <p class="text-xs text-gray-400 truncate">{{ getRoleLabel(member.rank || 'MEMBER') }}</p>
+            </div>
+            @if (selectedSuccessorId === member.userId) {
+              <svg class="w-4 h-4 text-[#2D5757] flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-2">
+        <button (click)="closeTransferModal()"
+          class="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors">
+          Cancel
+        </button>
+        <button (click)="confirmTransferAndLeave()"
+          [disabled]="!selectedSuccessorId"
+          class="flex-1 px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+          [ngClass]="selectedSuccessorId
+            ? 'bg-[#C84630] text-white hover:bg-[#C84630]/90'
+            : 'bg-gray-100 text-gray-400 cursor-not-allowed'">
+          Transfer &amp; Leave
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (showManageMemberModal && selectedMember) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4" (click)="closeManageMemberModal()">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6" (click)="$event.stopPropagation()">
+
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-5">
+        @if (selectedMember.image || selectedMember.profilePicture) {
+          <img [src]="selectedMember.image || selectedMember.profilePicture" class="w-12 h-12 rounded-full object-cover border-2 border-gray-100"/>
+        } @else {
+          <div class="w-12 h-12 rounded-full bg-gradient-to-br from-[#2D5757] to-[#3D3D60] flex items-center justify-center">
+            <span class="text-white font-bold">{{ (selectedMember.firstName || '?')[0] }}</span>
+          </div>
+        }
+        <div>
+          <p class="text-sm font-bold text-gray-800">{{ selectedMember.firstName }} {{ selectedMember.lastName }}</p>
+          <p class="text-xs text-gray-400">{{ selectedMember.email }}</p>
+        </div>
+        <button (click)="closeManageMemberModal()" class="ml-auto p-2 text-gray-400 hover:bg-gray-100 rounded-xl transition-all">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Role selector -->
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-600 mb-2">Change Role</label>
+        <select [(ngModel)]="selectedNewRole"
+          class="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:border-[#2D5757] focus:ring-2 focus:ring-[#2D5757]/10 outline-none">
+          @for (role of availableRoles; track role) {
+            <option [value]="role">{{ getRoleLabel(role) }}</option>
+          }
+        </select>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex gap-2">
+        <button (click)="confirmRoleChange()"
+          class="flex-1 px-4 py-2.5 bg-[#2D5757] text-white rounded-xl text-sm font-semibold hover:bg-[#2D5757]/90 transition-colors">
+          Update Role
+        </button>
+        <button (click)="confirmRemoveMember()"
+          class="px-4 py-2.5 bg-red-50 border border-red-200 text-[#C84630] rounded-xl text-sm font-semibold hover:bg-red-100 transition-colors">
+          Remove
+        </button>
+      </div>
+    </div>
+  </div>
+}

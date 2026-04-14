@@ -5,6 +5,7 @@ import { ExpenseService } from '../../../core/services/expense.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { MembershipRequestService } from '../../../core/services/membership-request.service';
+import { EventPaymentService } from '../../../core/services/event-payment.service';
 import { Expense } from '../../../core/models/expense.model';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -25,23 +26,117 @@ export class ClubExpensesComponent implements OnInit {
   loading = false;
   showModal = false;
   isEditMode = false;
-  
+
+  // Search & filter
+  searchQuery = '';
+  sortBy: 'date_desc' | 'date_asc' | 'amount_desc' | 'amount_asc' = 'date_desc';
+  filterPeriod: 'all' | 'this_month' | 'last_month' | 'this_year' = 'all';
+  filterType: 'all' | 'income' | 'expense' = 'all';
+
   expenseForm: Expense = {
     clubId: 0,
     designation: '',
     amount: 0,
     expenseDate: '',
-    createdBy: 0
+    createdBy: 0,
+    source: 'REGISTRATION_FEE'
   };
+
+  setSource(src: string) {
+    (this.expenseForm as any).source = src;
+  }
+
+  getSource(): string {
+    return (this.expenseForm as any).source || 'REGISTRATION_FEE';
+  }
 
   totalExpenses = 0;
   totalRegistrationFees = 0;
+  totalSponsorshipIncome = 0;
+  totalEventFees = 0;
+
+  get balance(): number {
+    return this.totalRegistrationFees + this.totalSponsorshipIncome + this.totalEventFees - this.totalExpenses;
+  }
+
+  isSponsorshipIncome(expense: Expense): boolean {
+    return !!(
+      expense.notes?.includes('SPONSORSHIP_INCOME') ||
+      expense.designation?.includes('Sponsorship received from') ||
+      expense.designation?.includes('Sponsorship income from')
+    );
+  }
+
+  isIncome(expense: Expense): boolean {
+    return !!(
+      expense.notes?.includes('SPONSORSHIP_INCOME') ||
+      expense.notes?.includes('REGISTRATION_FEE_INCOME') ||
+      expense.notes?.includes('EVENT_FEE_INCOME') ||
+      expense.designation?.includes('Sponsorship received from') ||
+      expense.designation?.includes('Sponsorship income from')
+    );
+  }
+
+  get filteredExpenses(): Expense[] {
+    let result = [...this.expenses];
+
+    // Type filter — income (entrantes) vs expense (sortantes)
+    if (this.filterType !== 'all') {
+      result = result.filter(e => {
+        const isIncome = this.isIncome(e);
+        if (this.filterType === 'income') return isIncome;
+        if (this.filterType === 'expense') return !isIncome;
+        return true;
+      });
+    }
+
+    // Search
+    if (this.searchQuery.trim()) {
+      const q = this.searchQuery.toLowerCase();
+      result = result.filter(e =>
+        e.designation.toLowerCase().includes(q) ||
+        (e.createdByName || '').toLowerCase().includes(q) ||
+        (e.notes || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Period filter
+    if (this.filterPeriod !== 'all') {
+      const now = new Date();
+      result = result.filter(e => {
+        const d = new Date(e.expenseDate);
+        if (this.filterPeriod === 'this_month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        if (this.filterPeriod === 'last_month') {
+          const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          return d.getMonth() === lm.getMonth() && d.getFullYear() === lm.getFullYear();
+        }
+        if (this.filterPeriod === 'this_year') return d.getFullYear() === now.getFullYear();
+        return true;
+      });
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (this.sortBy === 'date_desc') return new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime();
+      if (this.sortBy === 'date_asc') return new Date(a.expenseDate).getTime() - new Date(b.expenseDate).getTime();
+      if (this.sortBy === 'amount_desc') return b.amount - a.amount;
+      if (this.sortBy === 'amount_asc') return a.amount - b.amount;
+      return 0;
+    });
+
+    return result;
+  }
+
+  get filteredTotal(): number {
+    return this.filteredExpenses.reduce((sum, e) => sum + e.amount, 0);
+  }
 
   constructor(
     private expenseService: ExpenseService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private membershipRequestService: MembershipRequestService
+    private membershipRequestService: MembershipRequestService,
+    private eventPaymentService: EventPaymentService
   ) {}
 
   ngOnInit() {
@@ -50,8 +145,19 @@ export class ClubExpensesComponent implements OnInit {
 
   loadExpenses() {
     this.loading = true;
+
+    // Single call — compute everything from the same data
     this.expenseService.getExpensesByClub(this.clubId).subscribe({
       next: (expenses) => {
+        // Compute sponsorship income from raw data (before enrichment)
+        this.totalSponsorshipIncome = expenses
+          .filter(e => this.isSponsorshipIncome(e))
+          .reduce((sum, e) => sum + e.amount, 0);
+
+        // Total expenses = all amounts MINUS sponsorship income
+        const rawTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
+        this.totalExpenses = rawTotal - this.totalSponsorshipIncome;
+
         this.enrichExpensesWithCreatorNames(expenses);
       },
       error: () => {
@@ -60,22 +166,14 @@ export class ClubExpensesComponent implements OnInit {
       }
     });
 
-    this.expenseService.getTotalExpenses(this.clubId).subscribe({
-      next: (total) => {
-        this.totalExpenses = total;
-      },
-      error: () => {
-        console.error('Error loading total expenses');
-      }
+    this.membershipRequestService.getTotalPayments(this.clubId).subscribe({
+      next: (total) => { this.totalRegistrationFees = total; },
+      error: () => { this.totalRegistrationFees = 0; }
     });
 
-    this.membershipRequestService.getTotalPayments(this.clubId).subscribe({
-      next: (total) => {
-        this.totalRegistrationFees = total;
-      },
-      error: () => {
-        this.totalRegistrationFees = 0;
-      }
+    this.eventPaymentService.getTotalPaymentsByClub(this.clubId).subscribe({
+      next: (total) => { this.totalEventFees = total; },
+      error: () => { this.totalEventFees = 0; }
     });
   }
 
@@ -128,7 +226,8 @@ export class ClubExpensesComponent implements OnInit {
       designation: '',
       amount: 0,
       expenseDate: new Date().toISOString().slice(0, 16),
-      createdBy: this.currentUserId
+      createdBy: this.currentUserId,
+      source: 'REGISTRATION_FEE'
     };
     this.showModal = true;
   }
@@ -158,8 +257,16 @@ export class ClubExpensesComponent implements OnInit {
       return;
     }
 
+    // Normalize date to full ISO format with seconds (required by backend LocalDateTime)
+    const payload = {
+      ...this.expenseForm,
+      expenseDate: this.expenseForm.expenseDate.length === 16
+        ? this.expenseForm.expenseDate + ':00'
+        : this.expenseForm.expenseDate
+    };
+
     if (this.isEditMode && this.expenseForm.id) {
-      this.expenseService.updateExpense(this.expenseForm.id, this.expenseForm).subscribe({
+      this.expenseService.updateExpense(this.expenseForm.id, payload).subscribe({
         next: () => {
           this.notificationService.success('Expense Updated', 'Expense has been updated successfully');
           this.closeModal();
@@ -170,7 +277,7 @@ export class ClubExpensesComponent implements OnInit {
         }
       });
     } else {
-      this.expenseService.createExpense(this.expenseForm).subscribe({
+      this.expenseService.createExpense(payload).subscribe({
         next: () => {
           this.notificationService.success('Expense Added', 'Expense has been added successfully');
           this.closeModal();

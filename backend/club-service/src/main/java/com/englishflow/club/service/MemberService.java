@@ -30,6 +30,7 @@ public class MemberService {
     private final ClubMapper clubMapper;
     private final ClubHistoryService clubHistoryService;
     private final WebSocketNotificationService wsNotificationService; // ← Ajout WebSocket
+    private final com.englishflow.club.client.AuthServiceClient authServiceClient;
     
     @Cacheable(value = "members", key = "'club-' + #clubId")
     @Transactional(readOnly = true)
@@ -251,5 +252,56 @@ public class MemberService {
         return memberRepository.findByUserId(userId).stream()
                 .map(member -> clubMapper.toClubWithRoleDTO(member.getClub(), member))
                 .collect(Collectors.toList());
+    }
+    
+    @CacheEvict(value = "members", key = "'club-' + #clubId")
+    @Transactional
+    public void transferPresidencyAndLeave(Integer clubId, Long currentPresidentId, Long newPresidentUserId) {
+        log.info("President {} transferring presidency to user {} in club {}", currentPresidentId, newPresidentUserId, clubId);
+
+        Club club = clubRepository.findById(clubId)
+                .orElseThrow(() -> new ClubNotFoundException(clubId));
+
+        Member currentPresident = memberRepository.findByClubIdAndUserId(clubId, currentPresidentId)
+                .orElseThrow(() -> new MemberNotFoundException("Current president not found"));
+
+        if (currentPresident.getRank() != RankType.PRESIDENT) {
+            throw new UnauthorizedException("Only the president can transfer presidency");
+        }
+
+        Member newPresident = memberRepository.findByClubIdAndUserId(clubId, newPresidentUserId)
+                .orElseThrow(() -> new MemberNotFoundException("New president candidate not found in club"));
+
+        // Promote new president
+        newPresident.setRank(RankType.PRESIDENT);
+        memberRepository.save(newPresident);
+
+        // Log history
+        try {
+            String newPresidentName = "Unknown";
+            try {
+                com.englishflow.club.dto.UserInfoDTO userInfo = authServiceClient.getUserInfo(newPresidentUserId);
+                if (userInfo != null) newPresidentName = userInfo.getFirstName() + " " + userInfo.getLastName();
+            } catch (Exception ignored) {}
+
+            clubHistoryService.logHistory(
+                clubId.longValue(), newPresidentUserId,
+                com.englishflow.club.enums.ClubHistoryType.RANK_CHANGED,
+                "Presidency transferred",
+                String.format("%s is now the new President", newPresidentName),
+                "MEMBER", "PRESIDENT", currentPresidentId
+            );
+        } catch (Exception e) {
+            log.error("Failed to log presidency transfer history: {}", e.getMessage());
+        }
+
+        // Remove the old president from the club
+        memberRepository.delete(currentPresident);
+
+        wsNotificationService.notifyMemberLeft(
+            clubId.longValue(), club.getName(), currentPresidentId, "User " + currentPresidentId
+        );
+
+        log.info("Presidency transferred to user {} and old president {} removed from club {}", newPresidentUserId, currentPresidentId, clubId);
     }
 }

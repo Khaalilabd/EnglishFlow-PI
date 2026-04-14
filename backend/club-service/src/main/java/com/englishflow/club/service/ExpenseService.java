@@ -52,6 +52,23 @@ public class ExpenseService {
     }
     
     @Transactional
+    public ExpenseDTO createIncomeEntry(ExpenseDTO expenseDTO) {
+        log.info("Creating income entry for club: {} source: {}", expenseDTO.getClubId(), expenseDTO.getSource());
+        Expense expense = Expense.builder()
+                .clubId(expenseDTO.getClubId())
+                .designation(expenseDTO.getDesignation())
+                .amount(expenseDTO.getAmount())
+                .expenseDate(expenseDTO.getExpenseDate())
+                .createdBy(expenseDTO.getCreatedBy())
+                .notes(expenseDTO.getNotes())
+                .source(expenseDTO.getSource())
+                .build();
+        Expense saved = expenseRepository.save(expense);
+        log.info("Income entry created with id: {}", saved.getId());
+        return toDTO(saved);
+    }
+    
+    @Transactional
     public ExpenseDTO createExpense(ExpenseDTO expenseDTO) {
         log.info("Creating expense for club: {}", expenseDTO.getClubId());
         
@@ -62,6 +79,7 @@ public class ExpenseService {
                 .expenseDate(expenseDTO.getExpenseDate())
                 .createdBy(expenseDTO.getCreatedBy())
                 .notes(expenseDTO.getNotes())
+                .source(expenseDTO.getSource())
                 .build();
         
         Expense savedExpense = expenseRepository.save(expense);
@@ -122,6 +140,7 @@ public class ExpenseService {
                 .expenseDate(expense.getExpenseDate())
                 .createdBy(expense.getCreatedBy())
                 .notes(expense.getNotes())
+                .source(expense.getSource())
                 .createdAt(expense.getCreatedAt())
                 .updatedAt(expense.getUpdatedAt())
                 .build();

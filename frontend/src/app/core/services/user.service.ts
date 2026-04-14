@@ -32,6 +32,7 @@ export interface UserDetails {
   lastName: string;
   email: string;
   image?: string;
+  profilePhoto?: string;
 }
 
 export interface CreateUserRequest {
