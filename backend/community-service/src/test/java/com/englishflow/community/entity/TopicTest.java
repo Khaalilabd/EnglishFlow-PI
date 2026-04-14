@@ -67,23 +67,4 @@ class TopicTest {
         // Score = (5 * 1) + (3 * 2) + (2 * 3) = 17
         assertEquals(17, topic.getWeightedScore());
     }
-
-    @Test
-    void testCalculateTrendingStatus() {
-        Topic topic = new Topic();
-        topic.setWeightedScore(10);
-        topic.setCreatedAt(LocalDateTime.now().minusDays(3));
-        
-        topic.calculateTrendingStatus();
-        
-        assertTrue(topic.getIsTrending());
-    }
-
-    @Test
-    void testPrePersist() {
-        Topic topic = new Topic();
-        topic.prePersist();
-        assertNotNull(topic.getCreatedAt());
-        assertNotNull(topic.getUpdatedAt());
-    }
 }

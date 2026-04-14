@@ -18,19 +18,19 @@ class VocabularyWordDTOTest {
         LocalDateTime now = LocalDateTime.now();
         
         dto.setId(1L);
-        dto.setUserId(100L);
         dto.setWord("test");
         dto.setDefinition("A test word");
         dto.setExample("This is a test");
-        dto.setCategory("General");
+        dto.setPhonetic("/test/");
+        dto.setPartOfSpeech("noun");
         dto.setCreatedAt(now);
         
         assertEquals(1L, dto.getId());
-        assertEquals(100L, dto.getUserId());
         assertEquals("test", dto.getWord());
         assertEquals("A test word", dto.getDefinition());
         assertEquals("This is a test", dto.getExample());
-        assertEquals("General", dto.getCategory());
+        assertEquals("/test/", dto.getPhonetic());
+        assertEquals("noun", dto.getPartOfSpeech());
         assertEquals(now, dto.getCreatedAt());
     }
 

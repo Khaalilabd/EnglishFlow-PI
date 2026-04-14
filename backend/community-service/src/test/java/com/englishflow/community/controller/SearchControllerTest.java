@@ -1,24 +1,32 @@
 package com.englishflow.community.controller;
 
 import com.englishflow.community.dto.TopicDTO;
+import com.englishflow.community.security.JwtAuthenticationFilter;
+import com.englishflow.community.security.InternalServiceAuthenticationFilter;
 import com.englishflow.community.service.SearchService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(SearchController.class)
+@WebMvcTest(value = SearchController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+                classes = {JwtAuthenticationFilter.class, InternalServiceAuthenticationFilter.class}))
 class SearchControllerTest {
 
     @Autowired
@@ -28,6 +36,7 @@ class SearchControllerTest {
     private SearchService searchService;
 
     @Test
+    @WithMockUser
     void searchTopics_ShouldReturnPagedResults() throws Exception {
         TopicDTO topic1 = new TopicDTO();
         topic1.setId(1L);
@@ -41,6 +50,7 @@ class SearchControllerTest {
         when(searchService.searchTopics(eq("Java"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/community/search/topics")
+                        .with(csrf())
                         .param("keyword", "Java")
                         .param("page", "0")
                         .param("size", "20"))
@@ -54,11 +64,13 @@ class SearchControllerTest {
     }
 
     @Test
+    @WithMockUser
     void searchTopics_NoResults_ShouldReturnEmptyPage() throws Exception {
         Page<TopicDTO> emptyPage = new PageImpl<>(Arrays.asList());
         when(searchService.searchTopics(eq("NonExistent"), any(Pageable.class))).thenReturn(emptyPage);
 
         mockMvc.perform(get("/community/search/topics")
+                        .with(csrf())
                         .param("keyword", "NonExistent"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content").isArray())
@@ -68,6 +80,7 @@ class SearchControllerTest {
     }
 
     @Test
+    @WithMockUser
     void searchTopics_WithPagination_ShouldReturnCorrectPage() throws Exception {
         TopicDTO topic = new TopicDTO();
         topic.setId(3L);
@@ -77,6 +90,7 @@ class SearchControllerTest {
         when(searchService.searchTopics(eq("Advanced"), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/community/search/topics")
+                        .with(csrf())
                         .param("keyword", "Advanced")
                         .param("page", "1")
                         .param("size", "10"))

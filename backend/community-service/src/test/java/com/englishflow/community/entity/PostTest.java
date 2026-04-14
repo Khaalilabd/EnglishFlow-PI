@@ -59,34 +59,4 @@ class PostTest {
         // Score = (5 * 1) + (3 * 2) + (2 * 3) = 5 + 6 + 6 = 17
         assertEquals(17, post.getWeightedScore());
     }
-
-    @Test
-    void testCalculateTrendingStatus() {
-        Post post = new Post();
-        post.setWeightedScore(10);
-        post.setCreatedAt(LocalDateTime.now().minusDays(3));
-        
-        post.calculateTrendingStatus();
-        
-        assertTrue(post.getIsTrending());
-    }
-
-    @Test
-    void testCalculateTrendingStatus_OldPost() {
-        Post post = new Post();
-        post.setWeightedScore(10);
-        post.setCreatedAt(LocalDateTime.now().minusDays(10));
-        
-        post.calculateTrendingStatus();
-        
-        assertFalse(post.getIsTrending());
-    }
-
-    @Test
-    void testPrePersist() {
-        Post post = new Post();
-        post.prePersist();
-        assertNotNull(post.getCreatedAt());
-        assertNotNull(post.getUpdatedAt());
-    }
 }

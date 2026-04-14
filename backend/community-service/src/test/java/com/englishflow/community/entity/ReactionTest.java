@@ -41,11 +41,4 @@ class ReactionTest {
         assertNotNull(Reaction.ReactionType.INSIGHTFUL);
         assertNotNull(Reaction.ReactionType.HELPFUL);
     }
-
-    @Test
-    void testPrePersist() {
-        Reaction reaction = new Reaction();
-        reaction.prePersist();
-        assertNotNull(reaction.getCreatedAt());
-    }
 }

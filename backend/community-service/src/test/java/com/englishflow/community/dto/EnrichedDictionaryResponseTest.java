@@ -14,25 +14,26 @@ class EnrichedDictionaryResponseTest {
     @Test
     void testSettersAndGetters() {
         EnrichedDictionaryResponse response = new EnrichedDictionaryResponse();
-        response.setWord("test");
-        response.setPhonetic("/test/");
-        response.setDefinition("A test definition");
-        response.setExample("An example");
-        response.setPartOfSpeech("noun");
-        response.setIsSaved(true);
+        DictionaryResponse basicData = new DictionaryResponse();
+        basicData.setWord("test");
+        response.setBasicData(new DictionaryResponse[]{basicData});
+        response.setContext("A test context");
+        response.setCefrLevel("B1");
+        response.setWordType("General");
         
-        assertEquals("test", response.getWord());
-        assertEquals("/test/", response.getPhonetic());
-        assertEquals("A test definition", response.getDefinition());
-        assertEquals("An example", response.getExample());
-        assertEquals("noun", response.getPartOfSpeech());
-        assertTrue(response.getIsSaved());
+        assertNotNull(response.getBasicData());
+        assertEquals("test", response.getBasicData()[0].getWord());
+        assertEquals("A test context", response.getContext());
+        assertEquals("B1", response.getCefrLevel());
+        assertEquals("General", response.getWordType());
     }
 
     @Test
     void testToString() {
         EnrichedDictionaryResponse response = new EnrichedDictionaryResponse();
-        response.setWord("test");
+        DictionaryResponse basicData = new DictionaryResponse();
+        basicData.setWord("test");
+        response.setBasicData(new DictionaryResponse[]{basicData});
         String toString = response.toString();
         assertTrue(toString.contains("test"));
     }

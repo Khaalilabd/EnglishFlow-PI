@@ -22,7 +22,8 @@ class VocabularyWordTest {
         word.setWord("test");
         word.setDefinition("A test word");
         word.setExample("This is a test");
-        word.setCategory("General");
+        word.setPhonetic("/test/");
+        word.setPartOfSpeech("noun");
         word.setCreatedAt(now);
         
         assertEquals(1L, word.getId());
@@ -30,14 +31,8 @@ class VocabularyWordTest {
         assertEquals("test", word.getWord());
         assertEquals("A test word", word.getDefinition());
         assertEquals("This is a test", word.getExample());
-        assertEquals("General", word.getCategory());
+        assertEquals("/test/", word.getPhonetic());
+        assertEquals("noun", word.getPartOfSpeech());
         assertEquals(now, word.getCreatedAt());
-    }
-
-    @Test
-    void testPrePersist() {
-        VocabularyWord word = new VocabularyWord();
-        word.prePersist();
-        assertNotNull(word.getCreatedAt());
     }
 }

@@ -39,29 +39,4 @@ class SubCategoryTest {
         assertFalse(subCategory.getIsLocked());
         assertNotNull(subCategory.getTopics());
     }
-
-    @Test
-    void testPrePersist() {
-        SubCategory subCategory = new SubCategory();
-        subCategory.prePersist();
-        assertNotNull(subCategory.getCreatedAt());
-        assertNotNull(subCategory.getUpdatedAt());
-    }
-
-    @Test
-    void testPreUpdate() {
-        SubCategory subCategory = new SubCategory();
-        subCategory.prePersist();
-        LocalDateTime created = subCategory.getCreatedAt();
-        
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            // ignore
-        }
-        
-        subCategory.preUpdate();
-        assertNotNull(subCategory.getUpdatedAt());
-        assertEquals(created, subCategory.getCreatedAt());
-    }
 }

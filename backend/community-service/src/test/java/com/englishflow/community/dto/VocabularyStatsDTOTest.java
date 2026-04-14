@@ -13,27 +13,36 @@ class VocabularyStatsDTOTest {
 
     @Test
     void testAllArgsConstructor() {
-        VocabularyStatsDTO dto = new VocabularyStatsDTO(100L, 50L, 30L);
+        VocabularyStatsDTO dto = new VocabularyStatsDTO(100L, 20L, 30L, 10L, 5L, 150L);
         assertEquals(100L, dto.getTotalWords());
-        assertEquals(50L, dto.getWordsThisWeek());
-        assertEquals(30L, dto.getWordsThisMonth());
+        assertEquals(20L, dto.getNewWords());
+        assertEquals(30L, dto.getLearningWords());
+        assertEquals(10L, dto.getFamiliarWords());
+        assertEquals(5L, dto.getMasteredWords());
+        assertEquals(150L, dto.getTotalReviews());
     }
 
     @Test
     void testSettersAndGetters() {
         VocabularyStatsDTO dto = new VocabularyStatsDTO();
         dto.setTotalWords(200L);
-        dto.setWordsThisWeek(75L);
-        dto.setWordsThisMonth(150L);
+        dto.setNewWords(40L);
+        dto.setLearningWords(60L);
+        dto.setFamiliarWords(20L);
+        dto.setMasteredWords(10L);
+        dto.setTotalReviews(300L);
         
         assertEquals(200L, dto.getTotalWords());
-        assertEquals(75L, dto.getWordsThisWeek());
-        assertEquals(150L, dto.getWordsThisMonth());
+        assertEquals(40L, dto.getNewWords());
+        assertEquals(60L, dto.getLearningWords());
+        assertEquals(20L, dto.getFamiliarWords());
+        assertEquals(10L, dto.getMasteredWords());
+        assertEquals(300L, dto.getTotalReviews());
     }
 
     @Test
     void testToString() {
-        VocabularyStatsDTO dto = new VocabularyStatsDTO(100L, 50L, 30L);
+        VocabularyStatsDTO dto = new VocabularyStatsDTO(100L, 20L, 30L, 10L, 5L, 150L);
         String toString = dto.toString();
         assertTrue(toString.contains("100"));
     }

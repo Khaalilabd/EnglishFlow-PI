@@ -19,7 +19,7 @@ class DictionaryResponseTest {
         response.setWord("test");
         response.setPhonetic("/test/");
         
-        List<DictionaryResponse.Meaning> meanings = Arrays.asList(new DictionaryResponse.Meaning());
+        List<DictionaryResponse.MeaningDTO> meanings = Arrays.asList(new DictionaryResponse.MeaningDTO());
         response.setMeanings(meanings);
         
         assertEquals("test", response.getWord());
@@ -29,10 +29,10 @@ class DictionaryResponseTest {
 
     @Test
     void testMeaningClass() {
-        DictionaryResponse.Meaning meaning = new DictionaryResponse.Meaning();
+        DictionaryResponse.MeaningDTO meaning = new DictionaryResponse.MeaningDTO();
         meaning.setPartOfSpeech("noun");
         
-        List<DictionaryResponse.Definition> definitions = Arrays.asList(new DictionaryResponse.Definition());
+        List<DictionaryResponse.DefinitionDTO> definitions = Arrays.asList(new DictionaryResponse.DefinitionDTO());
         meaning.setDefinitions(definitions);
         
         assertEquals("noun", meaning.getPartOfSpeech());
@@ -41,7 +41,7 @@ class DictionaryResponseTest {
 
     @Test
     void testDefinitionClass() {
-        DictionaryResponse.Definition definition = new DictionaryResponse.Definition();
+        DictionaryResponse.DefinitionDTO definition = new DictionaryResponse.DefinitionDTO();
         definition.setDefinition("A test definition");
         definition.setExample("An example");
         

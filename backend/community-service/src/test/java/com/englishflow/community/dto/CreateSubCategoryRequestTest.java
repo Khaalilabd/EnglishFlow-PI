@@ -17,12 +17,10 @@ class CreateSubCategoryRequestTest {
         request.setName("Test SubCategory");
         request.setDescription("Test Description");
         request.setCategoryId(1L);
-        request.setRequiresAdminRole(true);
         
         assertEquals("Test SubCategory", request.getName());
         assertEquals("Test Description", request.getDescription());
         assertEquals(1L, request.getCategoryId());
-        assertTrue(request.getRequiresAdminRole());
     }
 
     @Test

@@ -4,13 +4,18 @@ import com.englishflow.community.dto.CategoryDTO;
 import com.englishflow.community.dto.CreateCategoryRequest;
 import com.englishflow.community.dto.CreateSubCategoryRequest;
 import com.englishflow.community.dto.SubCategoryDTO;
+import com.englishflow.community.security.JwtAuthenticationFilter;
+import com.englishflow.community.security.InternalServiceAuthenticationFilter;
 import com.englishflow.community.service.CategoryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -19,10 +24,13 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(CommunityController.class)
+@WebMvcTest(value = CommunityController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+                classes = {JwtAuthenticationFilter.class, InternalServiceAuthenticationFilter.class}))
 class CommunityControllerTest {
 
     @Autowired
@@ -35,13 +43,16 @@ class CommunityControllerTest {
     private CategoryService categoryService;
 
     @Test
+    @WithMockUser
     void health_ShouldReturnOk() throws Exception {
-        mockMvc.perform(get("/community/categories/health"))
+        mockMvc.perform(get("/community/categories/health")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(content().string("Community service is running"));
     }
 
     @Test
+    @WithMockUser
     void getAllCategories_ShouldReturnCategoryList() throws Exception {
         CategoryDTO category1 = new CategoryDTO();
         category1.setId(1L);
@@ -54,7 +65,8 @@ class CommunityControllerTest {
         List<CategoryDTO> categories = Arrays.asList(category1, category2);
         when(categoryService.getAllCategories()).thenReturn(categories);
 
-        mockMvc.perform(get("/community/categories"))
+        mockMvc.perform(get("/community/categories")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2))
@@ -65,6 +77,7 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getCategoryById_ShouldReturnCategory() throws Exception {
         CategoryDTO category = new CategoryDTO();
         category.setId(1L);
@@ -72,7 +85,8 @@ class CommunityControllerTest {
 
         when(categoryService.getCategoryById(1L)).thenReturn(category);
 
-        mockMvc.perform(get("/community/categories/1"))
+        mockMvc.perform(get("/community/categories/1")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("General"));
@@ -81,10 +95,13 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void createCategory_ShouldReturnCreatedCategory() throws Exception {
         CreateCategoryRequest request = new CreateCategoryRequest();
         request.setName("New Category");
         request.setDescription("Description");
+        request.setIcon("icon-name");
+        request.setColor("#FF0000");
 
         CategoryDTO created = new CategoryDTO();
         created.setId(1L);
@@ -93,6 +110,7 @@ class CommunityControllerTest {
         when(categoryService.createCategory(any(CreateCategoryRequest.class))).thenReturn(created);
 
         mockMvc.perform(post("/community/categories")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -103,9 +121,13 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void updateCategory_ShouldReturnUpdatedCategory() throws Exception {
         CreateCategoryRequest request = new CreateCategoryRequest();
         request.setName("Updated Category");
+        request.setDescription("Updated Description");
+        request.setIcon("updated-icon");
+        request.setColor("#00FF00");
 
         CategoryDTO updated = new CategoryDTO();
         updated.setId(1L);
@@ -114,6 +136,7 @@ class CommunityControllerTest {
         when(categoryService.updateCategory(eq(1L), any(CreateCategoryRequest.class))).thenReturn(updated);
 
         mockMvc.perform(put("/community/categories/1")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -124,16 +147,19 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteCategory_ShouldReturnNoContent() throws Exception {
         doNothing().when(categoryService).deleteCategory(1L);
 
-        mockMvc.perform(delete("/community/categories/1"))
+        mockMvc.perform(delete("/community/categories/1")
+                        .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(categoryService).deleteCategory(1L);
     }
 
     @Test
+    @WithMockUser
     void getAllSubCategories_ShouldReturnSubCategoryList() throws Exception {
         SubCategoryDTO sub1 = new SubCategoryDTO();
         sub1.setId(1L);
@@ -146,7 +172,8 @@ class CommunityControllerTest {
         List<SubCategoryDTO> subCategories = Arrays.asList(sub1, sub2);
         when(categoryService.getAllSubCategories()).thenReturn(subCategories);
 
-        mockMvc.perform(get("/community/categories/subcategories"))
+        mockMvc.perform(get("/community/categories/subcategories")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$.length()").value(2));
@@ -155,6 +182,7 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getSubCategoryById_ShouldReturnSubCategory() throws Exception {
         SubCategoryDTO subCategory = new SubCategoryDTO();
         subCategory.setId(1L);
@@ -162,7 +190,8 @@ class CommunityControllerTest {
 
         when(categoryService.getSubCategoryById(1L)).thenReturn(subCategory);
 
-        mockMvc.perform(get("/community/categories/subcategories/1"))
+        mockMvc.perform(get("/community/categories/subcategories/1")
+                        .with(csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.name").value("SubCategory"));
@@ -171,10 +200,12 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void createSubCategory_ShouldReturnCreatedSubCategory() throws Exception {
         CreateSubCategoryRequest request = new CreateSubCategoryRequest();
         request.setName("New SubCategory");
         request.setCategoryId(1L);
+        request.setDescription("SubCategory Description");
 
         SubCategoryDTO created = new SubCategoryDTO();
         created.setId(1L);
@@ -183,6 +214,7 @@ class CommunityControllerTest {
         when(categoryService.createSubCategory(any(CreateSubCategoryRequest.class))).thenReturn(created);
 
         mockMvc.perform(post("/community/categories/subcategories")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -193,9 +225,12 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void updateSubCategory_ShouldReturnUpdatedSubCategory() throws Exception {
         CreateSubCategoryRequest request = new CreateSubCategoryRequest();
         request.setName("Updated SubCategory");
+        request.setCategoryId(1L);
+        request.setDescription("Updated Description");
 
         SubCategoryDTO updated = new SubCategoryDTO();
         updated.setId(1L);
@@ -204,6 +239,7 @@ class CommunityControllerTest {
         when(categoryService.updateSubCategory(eq(1L), any(CreateSubCategoryRequest.class))).thenReturn(updated);
 
         mockMvc.perform(put("/community/categories/subcategories/1")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -214,10 +250,12 @@ class CommunityControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteSubCategory_ShouldReturnNoContent() throws Exception {
         doNothing().when(categoryService).deleteSubCategory(1L);
 
-        mockMvc.perform(delete("/community/categories/subcategories/1"))
+        mockMvc.perform(delete("/community/categories/subcategories/1")
+                        .with(csrf()))
                 .andExpect(status().isNoContent());
 
         verify(categoryService).deleteSubCategory(1L);

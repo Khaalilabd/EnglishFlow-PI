@@ -4,15 +4,20 @@ import com.englishflow.community.dto.SaveVocabularyRequest;
 import com.englishflow.community.dto.VocabularyStatsDTO;
 import com.englishflow.community.dto.VocabularyWordDTO;
 import com.englishflow.community.entity.VocabularyWord;
+import com.englishflow.community.security.JwtAuthenticationFilter;
+import com.englishflow.community.security.InternalServiceAuthenticationFilter;
 import com.englishflow.community.service.VocabularyService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDateTime;
@@ -21,10 +26,13 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(VocabularyController.class)
+@WebMvcTest(value = VocabularyController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE,
+                classes = {JwtAuthenticationFilter.class, InternalServiceAuthenticationFilter.class}))
 class VocabularyControllerTest {
 
     @Autowired
@@ -37,6 +45,7 @@ class VocabularyControllerTest {
     private VocabularyService vocabularyService;
 
     @Test
+    @WithMockUser
     void saveWord_ShouldReturnSavedWord() throws Exception {
         SaveVocabularyRequest request = new SaveVocabularyRequest();
         request.setWord("eloquent");
@@ -51,6 +60,7 @@ class VocabularyControllerTest {
         when(vocabularyService.saveWord(eq(100L), any(SaveVocabularyRequest.class))).thenReturn(saved);
 
         mockMvc.perform(post("/community/vocabulary")
+                        .with(csrf())
                         .header("X-User-Id", "100")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -62,6 +72,7 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getUserVocabulary_ShouldReturnPagedWords() throws Exception {
         VocabularyWordDTO word1 = new VocabularyWordDTO(
                 1L, "test", "definition", null, "noun", null, null, null, null, null,
@@ -73,6 +84,7 @@ class VocabularyControllerTest {
                 .thenReturn(page);
 
         mockMvc.perform(get("/community/vocabulary")
+                        .with(csrf())
                         .header("X-User-Id", "100")
                         .param("page", "0")
                         .param("size", "20")
@@ -85,6 +97,7 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getUserVocabulary_WithLevel_ShouldReturnFilteredWords() throws Exception {
         VocabularyWordDTO word = new VocabularyWordDTO(
                 1L, "learning", "definition", null, "noun", null, null, null, null, null,
@@ -96,6 +109,7 @@ class VocabularyControllerTest {
                 .thenReturn(page);
 
         mockMvc.perform(get("/community/vocabulary")
+                        .with(csrf())
                         .header("X-User-Id", "100")
                         .param("level", "LEARNING"))
                 .andExpect(status().isOk())
@@ -105,6 +119,7 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void searchVocabulary_ShouldReturnMatchingWords() throws Exception {
         VocabularyWordDTO word = new VocabularyWordDTO(
                 1L, "eloquent", "definition", null, "adjective", null, null, null, null, null,
@@ -116,6 +131,7 @@ class VocabularyControllerTest {
                 .thenReturn(page);
 
         mockMvc.perform(get("/community/vocabulary/search")
+                        .with(csrf())
                         .header("X-User-Id", "100")
                         .param("query", "elo"))
                 .andExpect(status().isOk())
@@ -125,11 +141,13 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void getStats_ShouldReturnVocabularyStats() throws Exception {
         VocabularyStatsDTO stats = new VocabularyStatsDTO(50L, 10L, 30L, 8L, 2L, 150L);
         when(vocabularyService.getUserStats(100L)).thenReturn(stats);
 
         mockMvc.perform(get("/community/vocabulary/stats")
+                        .with(csrf())
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalWords").value(50))
@@ -140,6 +158,7 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void markAsReviewed_ShouldReturnUpdatedWord() throws Exception {
         VocabularyWordDTO updated = new VocabularyWordDTO(
                 1L, "test", "definition", null, "noun", null, null, null, null, null,
@@ -149,6 +168,7 @@ class VocabularyControllerTest {
         when(vocabularyService.markAsReviewed(100L, 1L)).thenReturn(updated);
 
         mockMvc.perform(put("/community/vocabulary/1/review")
+                        .with(csrf())
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.reviewCount").value(1))
@@ -158,10 +178,12 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void deleteWord_ShouldReturnNoContent() throws Exception {
         doNothing().when(vocabularyService).deleteWord(100L, 1L);
 
         mockMvc.perform(delete("/community/vocabulary/1")
+                        .with(csrf())
                         .header("X-User-Id", "100"))
                 .andExpect(status().isNoContent());
 
@@ -169,10 +191,12 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void isWordSaved_ShouldReturnBoolean() throws Exception {
         when(vocabularyService.isWordSaved(100L, "test")).thenReturn(true);
 
         mockMvc.perform(get("/community/vocabulary/check/test")
+                        .with(csrf())
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
                 .andExpect(content().string("true"));
@@ -181,6 +205,7 @@ class VocabularyControllerTest {
     }
 
     @Test
+    @WithMockUser
     void exportVocabulary_ShouldReturnAllWords() throws Exception {
         VocabularyWordDTO word1 = new VocabularyWordDTO(
                 1L, "word1", "def1", null, "noun", null, null, null, null, null,
@@ -195,6 +220,7 @@ class VocabularyControllerTest {
         when(vocabularyService.getAllUserVocabulary(100L)).thenReturn(allWords);
 
         mockMvc.perform(get("/community/vocabulary/export")
+                        .with(csrf())
                         .header("X-User-Id", "100"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())

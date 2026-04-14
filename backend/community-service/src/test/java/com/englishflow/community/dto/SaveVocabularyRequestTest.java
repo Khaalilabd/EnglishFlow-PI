@@ -17,12 +17,14 @@ class SaveVocabularyRequestTest {
         request.setWord("test");
         request.setDefinition("A test word");
         request.setExample("This is a test");
-        request.setCategory("General");
+        request.setPhonetic("/test/");
+        request.setPartOfSpeech("noun");
         
         assertEquals("test", request.getWord());
         assertEquals("A test word", request.getDefinition());
         assertEquals("This is a test", request.getExample());
-        assertEquals("General", request.getCategory());
+        assertEquals("/test/", request.getPhonetic());
+        assertEquals("noun", request.getPartOfSpeech());
     }
 
     @Test

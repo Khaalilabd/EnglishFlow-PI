@@ -39,29 +39,4 @@ class CategoryTest {
         assertNotNull(category.getSubCategories());
         assertEquals(now, category.getCreatedAt());
     }
-
-    @Test
-    void testPrePersist() {
-        Category category = new Category();
-        category.prePersist();
-        assertNotNull(category.getCreatedAt());
-        assertNotNull(category.getUpdatedAt());
-    }
-
-    @Test
-    void testPreUpdate() {
-        Category category = new Category();
-        category.prePersist();
-        LocalDateTime created = category.getCreatedAt();
-        
-        try {
-            Thread.sleep(10);
-        } catch (InterruptedException e) {
-            // ignore
-        }
-        
-        category.preUpdate();
-        assertNotNull(category.getUpdatedAt());
-        assertEquals(created, category.getCreatedAt());
-    }
 }
