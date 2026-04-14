@@ -11,6 +11,9 @@
 /frontend/npm-debug.log
 /frontend/yarn-error.log
 
+# Backend - Node
+/backend/**/node_modules
+
 # Frontend - Angular
 /frontend/.angular/cache
 
