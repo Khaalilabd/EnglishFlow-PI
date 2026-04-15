@@ -208,7 +208,7 @@ export class MeetingJoinComponent implements OnInit, OnDestroy, AfterViewChecked
     });
 
     // WebRTC signaling
-    this.socket.on('description', async ({ from, description }) => {
+    this.socket.on('description', async ({ from, description }: { from: string; description: RTCSessionDescriptionInit }) => {
       // Ignore own descriptions
       if (from === this.socket!.id) return;
 
@@ -251,7 +251,7 @@ export class MeetingJoinComponent implements OnInit, OnDestroy, AfterViewChecked
       }
     });
 
-    this.socket.on('ice-candidate', async ({ from, candidate }) => {
+    this.socket.on('ice-candidate', async ({ from, candidate }: { from: string; candidate: RTCIceCandidateInit }) => {
       if (from === this.socket!.id) return;
 
       const peer = this.peers.get(from);
@@ -277,7 +277,7 @@ export class MeetingJoinComponent implements OnInit, OnDestroy, AfterViewChecked
     });
 
     // Peer left
-    this.socket.on('peer-left', ({ socketId }) => {
+    this.socket.on('peer-left', ({ socketId }: { socketId: string }) => {
       this.removePeer(socketId);
     });
 

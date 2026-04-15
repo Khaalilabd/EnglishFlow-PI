@@ -229,7 +229,7 @@ export class InstantMeetingComponent implements OnInit, OnDestroy, AfterViewChec
     });
 
     // WebRTC signaling
-    this.socket.on('description', async ({ from, description }) => {
+    this.socket.on('description', async ({ from, description }: { from: string; description: RTCSessionDescriptionInit }) => {
       // Ignore own descriptions
       if (from === this.socket!.id) return;
 
@@ -272,7 +272,7 @@ export class InstantMeetingComponent implements OnInit, OnDestroy, AfterViewChec
       }
     });
 
-    this.socket.on('ice-candidate', async ({ from, candidate }) => {
+    this.socket.on('ice-candidate', async ({ from, candidate }: { from: string; candidate: RTCIceCandidateInit }) => {
       if (from === this.socket!.id) return;
 
       const peer = this.peers.get(from);
