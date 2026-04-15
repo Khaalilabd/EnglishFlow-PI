@@ -1,5 +1,5 @@
 server:
-  port: 8090
+  port: ${SERVER_PORT:8091}
 
 spring:
   application:
@@ -40,8 +40,13 @@ spring:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySecretKeyForJWTTokenGenerationAndValidation123456789}
-  expiration: 86400000
+  secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Internal Service Communication
+internal:
+  service:
+    key: ${INTERNAL_SERVICE_KEY:englishflow-internal-service-secret-key-change-in-production-minimum-256-bits}
 
 eureka:
   client:

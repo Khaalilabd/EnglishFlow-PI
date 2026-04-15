@@ -1,12 +1,17 @@
 package com.englishflow.event.config;
 
 import feign.Logger;
+import feign.RequestInterceptor;
 import feign.codec.ErrorDecoder;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class FeignConfig {
+    
+    @Value("${internal.service.key}")
+    private String internalServiceKey;
     
     @Bean
     Logger.Level feignLoggerLevel() {
@@ -16,6 +21,13 @@ public class FeignConfig {
     @Bean
     public ErrorDecoder errorDecoder() {
         return new CustomErrorDecoder();
+    }
+    
+    @Bean
+    public RequestInterceptor requestInterceptor() {
+        return requestTemplate -> {
+            requestTemplate.header("X-Internal-Service-Key", internalServiceKey);
+        };
     }
     
     public static class CustomErrorDecoder implements ErrorDecoder {

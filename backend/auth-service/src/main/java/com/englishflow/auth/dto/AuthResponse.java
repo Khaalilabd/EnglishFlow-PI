@@ -33,6 +33,9 @@ public class AuthResponse {
     // 2FA fields
     private Boolean requires2FA; // Indicates if 2FA verification is required
     private String tempToken; // Temporary token for 2FA verification (short-lived)
+    
+    // Password change requirement
+    private Boolean mustChangePassword; // Indicates if user must change password on first login
 
     public AuthResponse(String token, Long id, String email, String firstName, String lastName, String role, String profilePhoto, String phone) {
         this.token = token;

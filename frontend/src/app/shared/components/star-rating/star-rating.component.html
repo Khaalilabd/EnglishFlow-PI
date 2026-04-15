@@ -29,9 +29,4 @@
       <span *ngIf="star.empty" class="star star-empty">⭐</span>
     </div>
   </div>
-  
-  <!-- Debug info (remove in production) -->
-  <div *ngIf="!readonly && isHovering" class="text-xs text-gray-500 ml-2">
-    Hover: {{ hoverRating.toFixed(1) }}
-  </div>
 </div>

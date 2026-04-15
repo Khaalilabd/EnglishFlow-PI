@@ -8,6 +8,7 @@ import { RecruitmentService, ApplicationResponse } from '../../../core/services/
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmationDialogComponent, ConfirmationConfig } from '../../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { SkeletonLoaderComponent } from '../../../shared/components/skeleton-loader/skeleton-loader.component';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-tutors',
@@ -277,38 +278,58 @@ export class TutorsComponent implements OnInit, OnDestroy {
   }
 
   deleteUser(user: User): void {
-    const config: ConfirmationConfig = {
+    Swal.fire({
       title: '⚠️ Delete Tutor',
-      message: `You are about to permanently delete ${user.firstName} ${user.lastName}. This action cannot be undone.`,
-      confirmText: 'Delete Permanently',
-      cancelText: 'Cancel',
-      type: 'danger',
-      requireTextConfirmation: true,
-      confirmationText: user.lastName,
-      details: [
-        'All tutor records will be removed',
-        'Teaching history will be deleted',
-        'Student assignments will be affected',
-        'This action is irreversible'
-      ]
-    };
-
-    this.confirmDialog.config = config;
-    this.confirmDialog.show();
-    
-    const subscription = this.confirmDialog.confirmed.subscribe(() => {
-      this.userService.deleteUser(user.id).subscribe({
-        next: () => {
-          this.users = this.users.filter(u => u.id !== user.id);
-          this.applyFilters();
-          this.toastService.success(`${user.firstName} ${user.lastName} has been deleted.`);
-        },
-        error: (error) => {
-          console.error('Error deleting user:', error);
-          this.toastService.error('Failed to delete tutor. Please try again.');
+      html: `
+        <p>You are about to permanently delete <strong>${user.firstName} ${user.lastName}</strong>.</p>
+        <p class="text-danger">This action cannot be undone.</p>
+        <ul class="text-left mt-3">
+          <li>All tutor records will be removed</li>
+          <li>Teaching history will be deleted</li>
+          <li>Student assignments will be affected</li>
+          <li>This action is irreversible</li>
+        </ul>
+        <p class="mt-3">Type <strong>${user.lastName}</strong> to confirm:</p>
+      `,
+      input: 'text',
+      inputPlaceholder: `Type ${user.lastName} to confirm`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#dc3545',
+      cancelButtonColor: '#6c757d',
+      confirmButtonText: 'Delete Permanently',
+      cancelButtonText: 'Cancel',
+      preConfirm: (inputValue) => {
+        if (inputValue !== user.lastName) {
+          Swal.showValidationMessage(`Please type "${user.lastName}" to confirm`);
+          return false;
         }
-      });
-      subscription.unsubscribe();
+        return true;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.userService.deleteUser(user.id).subscribe({
+          next: () => {
+            this.users = this.users.filter(u => u.id !== user.id);
+            this.applyFilters();
+            Swal.fire({
+              icon: 'success',
+              title: 'Deleted!',
+              text: `${user.firstName} ${user.lastName} has been deleted.`,
+              timer: 2000,
+              showConfirmButton: false
+            });
+          },
+          error: (error) => {
+            console.error('Error deleting user:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Failed to delete tutor. Please try again.'
+            });
+          }
+        });
+      }
     });
   }
 

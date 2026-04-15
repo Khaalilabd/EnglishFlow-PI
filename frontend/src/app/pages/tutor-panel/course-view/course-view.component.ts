@@ -10,6 +10,7 @@ import { CourseCategoryService } from '../../../core/services/course-category.se
 import { ChapterService } from '../../../core/services/chapter.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { SafePipe } from '../../../core/pipes/safe.pipe';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-course-view',
@@ -126,7 +127,7 @@ export class CourseViewComponent implements OnInit {
   getContentUrl(url: string | undefined): string {
     if (!url) return '';
     if (url.startsWith('http')) return url;
-    return `http://localhost:8088/api${url}`;
+    return `${environment.apiUrl}${url}`;
   }
 
   isVideoLesson(): boolean {
@@ -141,10 +142,22 @@ export class CourseViewComponent implements OnInit {
     return this.selectedLesson?.lessonType === 'DOCUMENT';
   }
 
+  isOnlineLesson(): boolean {
+    return this.selectedLesson?.lessonType === 'ONLINE';
+  }
+
+  startOnlineMeeting(): void {
+    if (!this.selectedLesson?.id) return;
+    const roomId = `lesson-${this.selectedLesson.id}`;
+    this.router.navigate(['/meeting', roomId], {
+      queryParams: { lessonId: this.selectedLesson.id }
+    });
+  }
+
   getThumbnailUrl(thumbnailUrl: string | undefined): string {
     if (!thumbnailUrl) return '';
     if (thumbnailUrl.startsWith('http')) return thumbnailUrl;
-    return `http://localhost:8088/api${thumbnailUrl}`;
+    return `${environment.apiUrl}${thumbnailUrl}`;
   }
 
   loadCategories(): void {
@@ -190,6 +203,19 @@ export class CourseViewComponent implements OnInit {
         return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300';
       default:
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300';
+    }
+  }
+
+  getLessonIcon(lessonType: string): string {
+    switch (lessonType) {
+      case 'VIDEO': return '🎥';
+      case 'TEXT': return '📄';
+      case 'DOCUMENT': return '📋';
+      case 'QUIZ': return '📝';
+      case 'ASSIGNMENT': return '📌';
+      case 'INTERACTIVE': return '🎮';
+      case 'ONLINE': return '🎦';
+      default: return '📚';
     }
   }
 }

@@ -59,9 +59,13 @@ public class QuizService {
     
     @Transactional(readOnly = true)
     public List<QuizDTO> getQuizzesByCourse(Long courseId) {
-        return quizRepository.findByCourseId(courseId)
-                .stream()
-                .map(this::convertToDTO)
+        List<Quiz> quizzes = quizRepository.findByCourseId(courseId);
+        return quizzes.stream()
+                .map(quiz -> {
+                    // Force loading of questions within transaction
+                    quiz.getQuestions().size();
+                    return convertToDTOWithQuestions(quiz);
+                })
                 .collect(Collectors.toList());
     }
     
@@ -157,6 +161,20 @@ public class QuizService {
         
         // Don't load questions in list view to avoid lazy loading issues
         // Questions should be loaded separately via /api/questions/quiz/{id}
+        
+        return dto;
+    }
+    
+    private QuizDTO convertToDTOWithQuestions(Quiz quiz) {
+        QuizDTO dto = convertToDTO(quiz);
+        
+        // Load questions and convert to DTOs
+        if (quiz.getQuestions() != null) {
+            List<QuestionDTO> questionDTOs = quiz.getQuestions().stream()
+                    .map(this::convertQuestionToDTO)
+                    .collect(Collectors.toList());
+            dto.setQuestions(questionDTOs);
+        }
         
         return dto;
     }

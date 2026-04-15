@@ -48,23 +48,46 @@ The platform serves **four main user roles**:
 - Interactive learning modules with chapters and lessons
 - Progress tracking and analytics (course, chapter, lesson level)
 - Multimedia content support (videos, documents, images, audio)
-- Course enrollment system with prerequisites
+- Course enrollment system with validation (student role check via Feign)
 - Course packs and bundles
-- Course categories and filtering
+- Course categories and filtering (by level, status, category)
 - Tutor availability scheduling with time slots
+- Online lesson configuration with meeting links
 - File upload with optimization and thumbnails
 - Course completion certificates
+- Redis caching for performance (course details, published courses)
+- User validation service (Feign client to auth-service)
+- Course status workflow (DRAFT, PUBLISHED, ARCHIVED)
+- Enrollment progress tracking (0-100%)
+- Lesson media management (videos, PDFs, images)
+- Tutor availability modification requests
 
 ### Learning Resources
 - E-books library with metadata and chapters
-- Interactive quizzes with multiple question types
-- Reading progress tracking with bookmarks
-- Personal collections management
+- Interactive quizzes with multiple question types (MCQ, True/False, Fill-in-the-blank)
+- Reading progress tracking with bookmarks and page numbers
+- Personal collections management (create, organize, share)
 - Resource sharing and recommendations
-- Reviews and ratings system
-- Annotations and notes
+- Reviews and ratings system (1-5 stars)
+- Annotations and notes on e-books
 - Tags and categorization
 - Quiz attempts tracking with grading
+- Automatic grading system for objective questions
+- Quiz results with detailed feedback
+- E-book search and filtering (by title, author, category, language)
+- Reading statistics and analytics
+- Vocabulary integration with community service
+- Quiz format validation and error handling
+- Support for various question types:
+  - Multiple Choice (single/multiple answers)
+  - True/False
+  - Fill in the Blank
+  - Short Answer
+  - Essay
+- Quiz timer and time limits
+- Quiz randomization options
+- Feign client integration with auth-service for user validation
+- WireMock testing for external service calls
 
 ### Exam System (CEFR Levels A1-C2)
 - Comprehensive exam creation and management (ACADEMIC_OFFICE_AFFAIR only)
@@ -89,40 +112,71 @@ The platform serves **four main user roles**:
 
 ### Communication & Messaging
 - Real-time messaging system with WebSocket (STOMP protocol)
-- Group conversations with admin roles
-- Direct messaging between users
-- Message reactions (emojis)
-- Read status tracking
-- User presence (online/offline)
-- Message notifications
+- Group conversations with admin roles (ADMIN/MEMBER)
+- Direct messaging (1-to-1) between users
+- Message reactions (emojis) with summary
+- Read status tracking per message
+- User presence (online/offline) with Redis
+- Typing indicators
+- Message notifications via WebSocket
 - Email notifications with professional Thymeleaf templates
-- Rate limiting per user
-- Redis session clustering for scalability
+- Rate limiting per user (60 messages/minute, configurable)
+- Redis session clustering for horizontal scalability
+- Support for 10,000+ concurrent WebSocket connections
+- Message types: TEXT, IMAGE, FILE, EMOJI, VOICE
+- File upload with validation (images, documents)
+- Conversation management (create, update, leave, add/remove participants)
+- Unread message counter
+- Pagination for message history
 
 ### Community Features
-- Discussion forums with hierarchical structure (Category → SubCategory → Topic)
+- Discussion forums with hierarchical structure (Category → SubCategory → Topic → Posts)
 - Forum posts with threading and replies
-- Reaction system (likes, emojis)
+- Reaction system (LIKE, HELPFUL, INSIGHTFUL) with counters
 - Voting system
-- Forum moderation tools (lock topics, delete posts)
-- Full-text search
-- Resource attachments (images, documents, videos)
-- Trending topics
+- Forum moderation tools (lock topics, delete posts, pin topics)
+- Full-text search in topics (title and content)
+- Resource attachments (images, documents, videos) with file upload
+- Trending topics algorithm
 - Permission-based access control
+- Dictionary integration with word definitions
+- Vocabulary saving and tracking
+- User vocabulary statistics
 - Student clubs and groups by English level (Beginner, Intermediate, Advanced)
-- Club membership management with roles (President, Vice-President, Member)
-- Club tasks and activities
-- Club approval workflow
+- Club membership management with roles (PRESIDENT, VICE_PRESIDENT, MEMBER)
+- Club tasks and activities with status tracking
+- Club approval workflow (PENDING, APPROVED, REJECTED)
 - Club history and audit trail
+- Club expenses tracking
+- Club update requests system
+- WebSocket notifications for real-time updates
+- Konnect payment integration for club fees
 
 ### Events Management
 - Event creation and scheduling (3 types: WORKSHOP, SEMINAR, SOCIAL)
-- Event participation and registration with limits
-- Event feedback and ratings
+- Event participation and registration with capacity limits
+- Event feedback and ratings with statistics
 - Event approval workflow (ACADEMIC_OFFICE_AFFAIR)
-- Public events calendar
-- Permission verification via Club Service
-- Upcoming events filtering
+- Public events calendar with filtering
+- Permission verification via Club Service (Feign client)
+- Upcoming events filtering by date
+- Event status tracking (UPCOMING, ONGOING, COMPLETED, CANCELLED)
+- Live session features:
+  - Real-time chat with WebSocket
+  - Hand raise system
+  - Q&A (questions and answers)
+  - Polls with voting
+  - Reactions (emojis)
+  - Whiteboard events
+  - WebRTC signaling for video
+  - Presence tracking
+- Event sponsors integration (Feign client to sponsors-service)
+- SMS reminders via Twilio
+- Event notifications via WebSocket
+- Participant activity tracking
+- Event format support (IN_PERSON, ONLINE, HYBRID)
+- MapStruct for DTO mapping
+- Caffeine cache for performance
 
 ### Complaints System
 - Complaint submission and tracking
@@ -155,11 +209,25 @@ The platform serves **four main user roles**:
   - Advanced (501-1000 points)
   - Expert (1001-5000 points)
   - Master (5001+ points)
-- Achievement badges with rarity system (Common, Rare, Epic, Legendary)
-- Leaderboards
-- Activity tracking
-- English level tracking
-- Loyalty tier system
+- Achievement badges with rarity system (COMMON, RARE, EPIC, LEGENDARY)
+- 20 default badges across 5 categories:
+  - Achievement (5 badges): First Steps, Quick Learner, Dedicated, Overachiever, Master
+  - Streak (4 badges): Week Warrior, Month Master, Consistent, Unstoppable
+  - Quiz (3 badges): Quiz Novice, Quiz Expert, Perfect Score
+  - Social (3 badges): Friendly, Social Butterfly, Community Leader
+  - Special (5 badges): Early Bird, Night Owl, Weekend Warrior, Speed Demon, Perfectionist
+- Leaderboards with ranking
+- Activity tracking and analytics
+- English level tracking (A1-C2 CEFR)
+- Loyalty tier system based on spending:
+  - Bronze (0€): 0% discount
+  - Silver (500€): 5% discount
+  - Gold (1,500€): 10% discount
+  - Platinum (3,000€): 15% discount
+- Jungle Coins virtual currency system
+- Badge notification system (new badges marked as unseen)
+- XP calculation and level progression
+- Purchase tracking for loyalty tiers
 
 ---
 
@@ -210,28 +278,33 @@ The platform serves **four main user roles**:
 
 ### Microservices Overview
 
-The platform consists of **13 microservices** with a total of:
+The platform consists of **16 microservices** (15 Spring Boot + 1 Node.js) with a total of:
 - **75+ entities**
 - **71 controllers**
 - **70+ repositories**
 - **87+ services**
 - **265+ REST endpoints**
+- **115+ test classes**
+- **~65% test coverage** (JUnit 5 + Mockito)
 
-| Service | Port | Database | Description | Swagger UI |
-|---------|------|----------|-------------|------------|
-| Config Server | 8888 | N/A | Centralized configuration management | N/A |
-| Eureka Server | 8761 | N/A | Service registry and discovery | N/A |
-| API Gateway | 8080 | N/A | API routing, load balancing, CORS | N/A |
-| Auth Service | 8081 | englishflow_identity | Authentication, user management, sessions, 2FA, OAuth2 | ✅ |
-| Community Service | 8082 | englishflow_community | Forums, topics, posts, reactions, moderation | ✅ |
-| Learning Service | 8083 | englishflow_learning_db | E-books, quizzes, reading progress, collections | ❌ |
-| Messaging Service | 8084 | englishflow_messaging_db | Real-time messaging, WebSocket, conversations | ✅ |
-| Club Service | 8085 | englishflow_jungle_club_db | Student clubs, members, tasks, approval workflow | ✅ |
-| Courses Service | 8086 | englishflow_courses | Courses, chapters, lessons, enrollment, progress | ❌ |
-| Exam Service | 8087 | englishflow_exams | CEFR exams, questions, attempts, grading, results | ❌ |
-| Event Service | 8088 | englishflow_event_db | Events, participants, feedback, approval | ✅ |
-| Complaints Service | 8089 | englishflow_complaints | Complaints, messages, workflow, notifications | ❌ |
-| Gamification Service | 8090 | englishflow_gamification | Points, levels, badges, leaderboards | ❌ |
+| Service | Port | Database | Description | Swagger UI | Tests |
+|---------|------|----------|-------------|------------|-------|
+| Config Server | 8888 | N/A | Centralized configuration management | N/A | ✅ |
+| Eureka Server | 8761 | N/A | Service registry and discovery | N/A | ✅ |
+| API Gateway | 8080 | N/A | API routing, load balancing, CORS | N/A | ✅ |
+| Auth Service | 8081 | englishflow_identity | Authentication, user management, sessions, 2FA, OAuth2 | ✅ | ✅ (21 tests) |
+| Community Service | 8082 | englishflow_community | Forums, topics, posts, reactions, moderation | ✅ | ✅ (51 tests) |
+| Learning Service | 8083 | englishflow_learning_db | E-books, quizzes, reading progress, collections | ❌ | ✅ (7 tests) |
+| Messaging Service | 8084 | englishflow_messaging_db | Real-time messaging, WebSocket, conversations, Redis | ✅ | ✅ (6 tests) |
+| Club Service | 8085 | englishflow_jungle_club_db | Student clubs, members, tasks, approval workflow | ✅ | ✅ (6 tests) |
+| Courses Service | 8086 | englishflow_courses | Courses, chapters, lessons, enrollment, progress | ❌ | ✅ (3 tests) |
+| Complaints Service | 8087 | englishflow_complaints | Complaints, messages, workflow, SSE notifications | ❌ | ✅ (4 tests) |
+| Event Service | 8088 | englishflow_event_db | Events, participants, feedback, approval, Twilio SMS | ✅ | ✅ (3 tests) |
+| Sponsors Service | 8089 | englishflow_sponsors_db | Sponsorship management, sponsor profiles, emails | ✅ | ✅ (16 tests) |
+| Exam Service | 8090 | englishflow_exams | CEFR exams, questions, attempts, grading, results | ❌ | ❌ |
+| Gamification Service | 8091 | englishflow_gamification | Points, levels, badges, leaderboards, loyalty | ❌ | ❌ |
+| Payment Service | 8095 | englishflow_payments | Payment processing, Paymee/Konnect integration | ❌ | ❌ |
+| WebRTC Signaling | 3001 | N/A | WebRTC signaling server for video calls (Node.js) | N/A | ❌ |
 
 ### Architecture Diagram
 
@@ -261,24 +334,34 @@ The platform consists of **13 microservices** with a total of:
        │                │                │                    │
        │                ▼                ▼                    ▼
        │         ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-       │         │  Club        │  │  Courses     │  │  Exam        │
+       │         │  Club        │  │  Courses     │  │ Complaints   │
        │         │  Service     │  │  Service     │  │  Service     │
        │         │   (8085)     │  │   (8086)     │  │   (8087)     │
        │         │              │  │              │  │              │
-       │         │  Clubs       │  │  Chapters    │  │  CEFR A1-C2  │
-       │         │  Members     │  │  Lessons     │  │  Grading     │
+       │         │  Clubs       │  │  Chapters    │  │  Workflow    │
+       │         │  Members     │  │  Lessons     │  │  SSE         │
        │         └──────────────┘  └──────────────┘  └──────────────┘
        │                │                │                    │
        │                ▼                ▼                    ▼
        │         ┌──────────────┐  ┌──────────────┐  ┌──────────────┐
-       │         │  Event       │  │ Complaints   │  │Gamification  │
+       │         │  Event       │  │  Sponsors    │  │  Exam        │
        │         │  Service     │  │  Service     │  │  Service     │
        │         │   (8088)     │  │   (8089)     │  │   (8090)     │
        │         │              │  │              │  │              │
-       │         │  Workshops   │  │  Workflow    │  │  Points      │
-       │         │  Seminars    │  │  SSE         │  │  Badges      │
+       │         │  Workshops   │  │  Sponsors    │  │  CEFR A1-C2  │
+       │         │  Seminars    │  │  Profiles    │  │  Grading     │
        │         └──────────────┘  └──────────────┘  └──────────────┘
        │                │                │                    │
+       │                ▼                ▼                    ▼
+       │         ┌──────────────┐  ┌──────────────┐
+       │         │Gamification  │  │  Payment     │
+       │         │  Service     │  │  Service     │
+       │         │   (8091)     │  │   (8095)     │
+       │         │              │  │              │
+       │         │  Points      │  │  Paymee      │
+       │         │  Badges      │  │  Konnect     │
+       │         └──────────────┘  └──────────────┘
+       │                │                │
        └────────────────┴────────────────┴────────────────────┘
                          │                │
         ┌────────────────┴────────────────┘
@@ -298,7 +381,7 @@ The platform consists of **13 microservices** with a total of:
         ▼                             ▼
 ┌──────────────────┐        ┌──────────────────┐
 │   PostgreSQL     │        │   Redis Cache    │
-│   (10 databases) │        │   + Sessions     │
+│   (12 databases) │        │   + Sessions     │
 └──────────────────┘        └──────────────────┘
 ```
 
@@ -433,10 +516,12 @@ CREATE DATABASE englishflow_learning_db;
 CREATE DATABASE englishflow_messaging_db;
 CREATE DATABASE englishflow_jungle_club_db;
 CREATE DATABASE englishflow_courses;
-CREATE DATABASE englishflow_exams;
-CREATE DATABASE englishflow_event_db;
 CREATE DATABASE englishflow_complaints;
+CREATE DATABASE englishflow_event_db;
+CREATE DATABASE englishflow_sponsors_db;
+CREATE DATABASE englishflow_exams;
 CREATE DATABASE englishflow_gamification;
+CREATE DATABASE englishflow_payments;
 
 -- Create user (optional)
 CREATE USER englishflow WITH PASSWORD 'englishflow123';
@@ -448,10 +533,12 @@ GRANT ALL PRIVILEGES ON DATABASE englishflow_learning_db TO englishflow;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_messaging_db TO englishflow;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_jungle_club_db TO englishflow;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_courses TO englishflow;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_exams TO englishflow;
-GRANT ALL PRIVILEGES ON DATABASE englishflow_event_db TO englishflow;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_complaints TO englishflow;
+GRANT ALL PRIVILEGES ON DATABASE englishflow_event_db TO englishflow;
+GRANT ALL PRIVILEGES ON DATABASE englishflow_sponsors_db TO englishflow;
+GRANT ALL PRIVILEGES ON DATABASE englishflow_exams TO englishflow;
 GRANT ALL PRIVILEGES ON DATABASE englishflow_gamification TO englishflow;
+GRANT ALL PRIVILEGES ON DATABASE englishflow_payments TO englishflow;
 ```
 
 #### 3. Backend Configuration
@@ -518,10 +605,12 @@ cd backend/learning-service && mvn spring-boot:run &
 cd backend/messaging-service && mvn spring-boot:run &
 cd backend/club-service && mvn spring-boot:run &
 cd backend/courses-service && mvn spring-boot:run &
-cd backend/exam-service && mvn spring-boot:run &
-cd backend/event-service && mvn spring-boot:run &
 cd backend/complaints-service && mvn spring-boot:run &
+cd backend/event-service && mvn spring-boot:run &
+cd backend/sponsors-service && mvn spring-boot:run &
+cd backend/exam-service && mvn spring-boot:run &
 cd backend/gamification-service && mvn spring-boot:run &
+cd backend/payment-service && mvn spring-boot:run &
 ```
 
 #### 5. Start Frontend
@@ -541,21 +630,24 @@ npm start
 
 ### Service Endpoints
 
-| Service | Port | Swagger UI | Health Check | Actuator |
-|---------|------|------------|--------------|----------|
-| Config Server | 8888 | N/A | http://localhost:8888/actuator/health | ✅ |
-| Eureka Server | 8761 | N/A | http://localhost:8761 | ✅ |
-| API Gateway | 8080 | N/A | http://localhost:8080/actuator/health | ✅ |
-| Auth Service | 8081 | http://localhost:8081/swagger-ui.html | http://localhost:8081/actuator/health | ✅ |
-| Community Service | 8082 | http://localhost:8082/swagger-ui.html | http://localhost:8082/actuator/health | ✅ |
-| Learning Service | 8083 | N/A | http://localhost:8083/actuator/health | ✅ |
-| Messaging Service | 8084 | http://localhost:8084/swagger-ui.html | http://localhost:8084/actuator/health | ✅ |
-| Club Service | 8085 | http://localhost:8085/swagger-ui.html | http://localhost:8085/actuator/health | ✅ |
-| Courses Service | 8086 | N/A | http://localhost:8086/actuator/health | ✅ |
-| Exam Service | 8087 | N/A | http://localhost:8087/actuator/health | ✅ |
-| Event Service | 8088 | http://localhost:8088/swagger-ui.html | http://localhost:8088/actuator/health | ✅ |
-| Complaints Service | 8089 | N/A | http://localhost:8089/actuator/health | ✅ |
-| Gamification Service | 8090 | N/A | N/A | ❌ |
+| Service | Port | Swagger UI | Health Check | Actuator | Prometheus |
+|---------|------|------------|--------------|----------|------------|
+| Config Server | 8888 | N/A | http://localhost:8888/actuator/health | ✅ | ❌ |
+| Eureka Server | 8761 | N/A | http://localhost:8761 | ✅ | ❌ |
+| API Gateway | 8080 | N/A | http://localhost:8080/actuator/health | ✅ | ✅ |
+| Auth Service | 8081 | http://localhost:8081/swagger-ui.html | http://localhost:8081/actuator/health | ✅ | ✅ |
+| Community Service | 8082 | http://localhost:8082/swagger-ui.html | http://localhost:8082/actuator/health | ✅ | ✅ |
+| Learning Service | 8083 | N/A | http://localhost:8083/actuator/health | ✅ | ❌ |
+| Messaging Service | 8084 | http://localhost:8084/swagger-ui.html | http://localhost:8084/actuator/health | ✅ | ✅ |
+| Club Service | 8085 | http://localhost:8085/swagger-ui.html | http://localhost:8085/actuator/health | ✅ | ✅ |
+| Courses Service | 8086 | N/A | http://localhost:8086/actuator/health | ✅ | ❌ |
+| Complaints Service | 8087 | N/A | http://localhost:8087/actuator/health | ✅ | ❌ |
+| Event Service | 8088 | http://localhost:8088/swagger-ui.html | http://localhost:8088/actuator/health | ✅ | ✅ |
+| Sponsors Service | 8089 | http://localhost:8089/swagger-ui.html | http://localhost:8089/actuator/health | ✅ | ✅ |
+| Exam Service | 8090 | N/A | http://localhost:8090/actuator/health | ✅ | ❌ |
+| Gamification Service | 8091 | N/A | http://localhost:8091/actuator/health | ✅ | ❌ |
+| Payment Service | 8095 | N/A | http://localhost:8095/actuator/health | ✅ | ❌ |
+| WebRTC Signaling | 3001 | N/A | N/A | ❌ | ❌ |
 
 ---
 
@@ -568,9 +660,14 @@ npm start
 - [2FA Implementation](./backend/auth-service/docs/2FA_IMPLEMENTATION.md)
 - [API Documentation](./backend/auth-service/docs/API_DOCUMENTATION.md)
 - [Monitoring Guide](./backend/auth-service/docs/MONITORING_GUIDE.md)
+- [Test Coverage Report](./backend/auth-service/TEST_COVERAGE_REPORT.md)
 - [Club Service README](./backend/club-service/README.md)
 - [Event Service README](./backend/event-service/README.md)
+- [Community Service README](./backend/community-service/README.md)
+- [Messaging Service README](./backend/messaging-service/README.md)
 - [Exam Service README](./backend/exam-service/README.md)
+- [Gamification Service README](./backend/gamification-service/README.md)
+- [Learning Service Quiz Format Guide](./backend/learning-service/QUIZ_FORMAT_GUIDE.md)
 
 ### API Documentation
 Swagger/OpenAPI documentation available at: `http://localhost:<port>/swagger-ui.html`
@@ -587,16 +684,27 @@ Swagger/OpenAPI documentation available at: `http://localhost:<port>/swagger-ui.
 
 ## Project Statistics
 
-- **Total Lines of Code**: 100,000+
-- **Backend Services**: 13 microservices
+- **Total Lines of Code**: 120,000+
+- **Backend Services**: 16 microservices (15 business + 1 WebRTC signaling)
 - **Entities**: 75+
 - **Controllers**: 71
 - **Repositories**: 70+
 - **Services**: 87+
 - **REST Endpoints**: 265+
-- **Databases**: 10 PostgreSQL databases
+- **Databases**: 12 PostgreSQL databases
 - **Frontend Components**: 150+
-- **Test Coverage**: 70%+
+- **Test Files**: 115+ test classes
+- **Test Coverage**: 
+  - Auth Service: ~70%
+  - Community Service: ~75%
+  - Messaging Service: ~65%
+  - Courses Service: ~60%
+  - Club Service: ~55%
+  - Event Service: ~60%
+  - Learning Service: ~70%
+  - Complaints Service: ~70%
+  - Sponsors Service: ~65%
+  - Overall: ~65%
 
 ---
 
@@ -608,6 +716,60 @@ Swagger/OpenAPI documentation available at: `http://localhost:<port>/swagger-ui.
 - **Monsieur Khaled Hamrouni** for his guidance and mentorship throughout the project
 - **Spring Boot & Angular Communities** for excellent documentation and support
 - **Open Source Contributors** for the libraries and tools used in this project
+
+## Testing
+
+### Test Coverage by Service
+
+| Service | Test Files | Test Coverage | Test Framework |
+|---------|-----------|---------------|----------------|
+| Auth Service | 21 tests | ~70% | JUnit 5 + Mockito + Spring Security Test |
+| Community Service | 51 tests | ~75% | JUnit 5 + Mockito + @WebMvcTest |
+| Messaging Service | 6 tests | ~65% | JUnit 5 + Mockito + WebSocket Test |
+| Courses Service | 3 tests | ~60% | JUnit 5 + Mockito + Feign Test |
+| Club Service | 6 tests | ~55% | JUnit 5 + Mockito + MapStruct Test |
+| Event Service | 3 tests | ~60% | JUnit 5 + Mockito + Feign Test |
+| Learning Service | 7 tests | ~70% | JUnit 5 + Mockito + WireMock |
+| Complaints Service | 4 tests | ~70% | JUnit 5 + Mockito + Resilience4j Test |
+| Sponsors Service | 16 tests | ~65% | JUnit 5 + Mockito + Email Test |
+| **Total** | **115+ tests** | **~65%** | **JaCoCo Reports** |
+
+### Running Tests
+
+```bash
+# Run all tests for a service
+cd backend/<service-name>
+mvn test
+
+# Run tests with coverage report
+mvn test jacoco:report
+
+# View coverage report
+open target/site/jacoco/index.html
+
+# Run tests with specific profile
+mvn test -Dspring.profiles.active=test
+
+# Skip tests during build
+mvn clean install -DskipTests
+```
+
+### Test Types
+
+- **Unit Tests**: Service layer logic with mocked dependencies
+- **Integration Tests**: Controller tests with @WebMvcTest
+- **Repository Tests**: @DataJpaTest for database operations
+- **Security Tests**: @WithMockUser for authentication
+- **Feign Client Tests**: WireMock for external service calls
+- **WebSocket Tests**: STOMP client tests for real-time features
+
+### JaCoCo Configuration
+
+All services with tests have JaCoCo configured with:
+- Minimum coverage: 50% line coverage
+- Exclusions: DTOs, entities, config classes, mappers
+- Reports: HTML, XML, CSV formats
+- Integration with CI/CD pipelines
 
 ### Resources & References
 

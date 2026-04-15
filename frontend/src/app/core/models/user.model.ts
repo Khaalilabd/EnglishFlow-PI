@@ -92,5 +92,6 @@ export interface AuthResponse {
   refreshTokenExpiryDate?: string;
   requires2FA?: boolean;
   tempToken?: string;
+  mustChangePassword?: boolean; // Force password change on first login
   gamificationLevel?: UserLevel;
 }

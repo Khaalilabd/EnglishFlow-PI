@@ -94,12 +94,25 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginData).subscribe({
       next: (response) => {
         console.log('Login successful:', response);
+        console.log('mustChangePassword:', response.mustChangePassword);
         
         // Check if 2FA is required
         if (response.requires2FA && response.tempToken) {
           this.tempToken = response.tempToken;
           this.show2FAModal = true;
           this.loading = false;
+          return;
+        }
+        
+        // Check if user must change password (first login for recruited tutors)
+        if (response.mustChangePassword) {
+          console.log('Redirecting to reset-password for first login');
+          this.router.navigate(['/reset-password'], {
+            queryParams: {
+              firstLogin: 'true',
+              email: response.email
+            }
+          });
           return;
         }
         

@@ -19,6 +19,8 @@ export class ResetPasswordComponent implements OnInit {
   errorMessage = '';
   successMessage = '';
   token: string = '';
+  isFirstLogin = false;
+  userEmail = '';
   showPassword = false;
   showConfirmPassword = false;
 
@@ -37,9 +39,21 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.token = this.route.snapshot.queryParams['token'] || '';
-    if (!this.token) {
-      this.errorMessage = 'Invalid or missing reset token';
+    // Check if this is a first login scenario
+    this.isFirstLogin = this.route.snapshot.queryParams['firstLogin'] === 'true';
+    this.userEmail = this.route.snapshot.queryParams['email'] || '';
+    
+    if (this.isFirstLogin) {
+      // First login - user is already authenticated, no token needed
+      if (!this.userEmail) {
+        this.errorMessage = 'Missing user information';
+      }
+    } else {
+      // Regular password reset - need token
+      this.token = this.route.snapshot.queryParams['token'] || '';
+      if (!this.token) {
+        this.errorMessage = 'Invalid or missing reset token';
+      }
     }
   }
 
@@ -60,7 +74,18 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.resetPasswordForm.invalid || !this.token) {
+    if (this.resetPasswordForm.invalid) {
+      return;
+    }
+
+    // Validate based on scenario
+    if (!this.isFirstLogin && !this.token) {
+      this.errorMessage = 'Invalid or missing reset token';
+      return;
+    }
+
+    if (this.isFirstLogin && !this.userEmail) {
+      this.errorMessage = 'Missing user information';
       return;
     }
 
@@ -68,20 +93,56 @@ export class ResetPasswordComponent implements OnInit {
     this.errorMessage = '';
     this.successMessage = '';
 
-    this.authService.resetPassword(this.token, this.resetPasswordForm.value.password).subscribe({
-      next: () => {
-        this.successMessage = 'Password reset successful! Redirecting to login...';
-        this.loading = false;
-        setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 2000);
-      },
-      error: (error) => {
-        console.error('Password reset error:', error);
-        this.errorMessage = error.error?.message || 'An error occurred. Please try again.';
-        this.loading = false;
-      }
-    });
+    if (this.isFirstLogin) {
+      // First login - use change password endpoint without current password
+      this.authService.changePasswordFirstLogin(this.resetPasswordForm.value.password).subscribe({
+        next: () => {
+          // Clear mustChangePassword flag
+          const currentUser = this.authService.currentUserValue;
+          if (currentUser) {
+            currentUser.mustChangePassword = false;
+            this.authService.updateCurrentUser(currentUser);
+          }
+          
+          this.successMessage = 'Password changed successfully! Redirecting...';
+          this.loading = false;
+          setTimeout(() => {
+            // Redirect based on role
+            const user = this.authService.currentUserValue;
+            if (user?.role === 'ADMIN' || user?.role === 'ACADEMIC_OFFICE_AFFAIR') {
+              this.router.navigate(['/dashboard']);
+            } else if (user?.role === 'TUTOR' || user?.role === 'TEACHER') {
+              this.router.navigate(['/tutor-panel']);
+            } else if (user?.role === 'SPONSOR') {
+              this.router.navigate(['/sponsor-panel']);
+            } else {
+              this.router.navigate(['/user-panel']);
+            }
+          }, 2000);
+        },
+        error: (error) => {
+          console.error('Password change error:', error);
+          this.errorMessage = error.error?.message || 'An error occurred. Please try again.';
+          this.loading = false;
+        }
+      });
+    } else {
+      // Regular password reset
+      this.authService.resetPassword(this.token, this.resetPasswordForm.value.password).subscribe({
+        next: () => {
+          this.successMessage = 'Password reset successful! Redirecting to login...';
+          this.loading = false;
+          setTimeout(() => {
+            this.router.navigate(['/login']);
+          }, 2000);
+        },
+        error: (error) => {
+          console.error('Password reset error:', error);
+          this.errorMessage = error.error?.message || 'An error occurred. Please try again.';
+          this.loading = false;
+        }
+      });
+    }
   }
 
   get password() {

@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.application-upload-dir:uploads/applications}")
     private String applicationUploadDir;
 
-    // CORS est géré par l'API Gateway - pas besoin de configuration ici
+    // CORS est géré par l'API Gateway - pas de configuration CORS ici pour éviter les doublons
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {

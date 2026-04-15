@@ -30,6 +30,69 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Online Lessons Section -->
+    <div class="bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h2 class="text-xl font-bold text-gray-900 mb-1">Online Lessons</h2>
+          <p class="text-sm text-gray-500">Your scheduled sessions</p>
+        </div>
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-50 to-blue-50">
+          <span class="text-xl">🎥</span>
+        </div>
+      </div>
+
+      <div *ngIf="loadingLessons" class="text-center py-8">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-[#2D5757]"></div>
+        <p class="text-sm text-gray-500 mt-2">Loading lessons...</p>
+      </div>
+
+      <div *ngIf="!loadingLessons && onlineLessons.length === 0" class="text-center py-8">
+        <div class="text-4xl mb-2">📚</div>
+        <p class="text-sm text-gray-500">No online lessons scheduled</p>
+        <a routerLink="/tutor-panel/courses" 
+           class="inline-block mt-3 text-[#2D5757] hover:text-[#3D3D60] text-sm font-medium">
+          Create a lesson →
+        </a>
+      </div>
+
+      <div *ngIf="!loadingLessons && onlineLessons.length > 0" class="space-y-3">
+        <div *ngFor="let lesson of onlineLessons; let i = index" 
+             class="border border-gray-200 rounded-xl p-4 hover:border-cyan-300 transition-colors animate-slide-up"
+             [style.animation-delay]="i * 100 + 'ms'">
+          <div class="mb-3">
+            <h3 class="font-semibold text-gray-800 mb-1">{{ lesson.lessonTitle }}</h3>
+            <p class="text-xs text-gray-500">{{ lesson.courseTitle }}</p>
+          </div>
+          
+          <div class="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+            <span><i class="fas fa-calendar mr-1"></i>{{ getDayName(lesson.dayOfWeek) }}</span>
+            <span><i class="fas fa-clock mr-1"></i>{{ lesson.startTime }}</span>
+          </div>
+
+          <button 
+            *ngIf="lesson.canStart"
+            (click)="startMeeting(lesson)"
+            class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2">
+            <i class="fas fa-video"></i>
+            Start Meeting
+          </button>
+
+          <div 
+            *ngIf="!lesson.canStart"
+            class="w-full bg-gray-100 text-gray-500 py-2 px-4 rounded-lg text-sm font-medium text-center">
+            <i class="fas fa-clock mr-1"></i>
+            Not available yet
+          </div>
+        </div>
+      </div>
+
+      <a routerLink="/tutor-panel/availability" 
+         class="block w-full mt-4 bg-[#F7EDE2] text-[#2D5757] hover:bg-[#F6BD60] py-3 px-6 rounded-xl font-medium transition-all text-center">
+        <i class="fas fa-calendar-alt mr-2"></i>Manage Availability
+      </a>
+    </div>
+
     <!-- Recent Quizzes -->
     <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100 hover:shadow-lg transition-all duration-300">
       <div class="flex items-center justify-between mb-6">

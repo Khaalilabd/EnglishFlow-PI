@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -9,11 +9,13 @@ import { CourseReview } from '../../../core/models/review.model';
 import { CourseService } from '../../../core/services/course.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { LessonService } from '../../../core/services/lesson.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { PaymentModalComponent } from '../../../shared/components/payment-modal/payment-modal.component';
 
 @Component({
   selector: 'app-course-view',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule],
+  imports: [CommonModule, FormsModule, RouterModule, PaymentModalComponent],
   templateUrl: './course-view.component.html',
   styleUrls: ['./course-view.component.scss']
 })
@@ -26,6 +28,9 @@ export class CourseViewComponent implements OnInit {
   loading = true;
   expandedSections: Set<number> = new Set();
   activeTab: 'overview' | 'curriculum' | 'reviews' = 'overview';
+
+  // Payment modal
+  showPaymentModal = false;
   
   // Review form
   userRating = 0;
@@ -37,7 +42,8 @@ export class CourseViewComponent implements OnInit {
     private route: ActivatedRoute,
     private courseService: CourseService,
     private chapterService: ChapterService,
-    private lessonService: LessonService
+    private lessonService: LessonService,
+    private authService: AuthService
   ) {}
 
   ngOnInit(): void {
@@ -103,11 +109,14 @@ export class CourseViewComponent implements OnInit {
   }
 
   enrollCourse(): void {
-    if (this.course) {
-      // TODO: API call to enroll
-      this.isEnrolled = true;
-      alert('Successfully enrolled in the course!');
-    }
+    if (!this.course) return;
+    const user = this.authService.currentUserValue;
+    if (!user) { this.router.navigate(['/login']); return; }
+    this.showPaymentModal = true;
+  }
+
+  onPaymentModalClosed(): void {
+    this.showPaymentModal = false;
   }
 
   toggleSection(sectionId: number | undefined): void {
@@ -156,10 +165,11 @@ export class CourseViewComponent implements OnInit {
     const icons: { [key in LessonType]: string } = {
       [LessonType.VIDEO]: '🎥',
       [LessonType.TEXT]: '📄',
-      [LessonType.DOCUMENT]: '📁',
-      [LessonType.QUIZ]: '❓',
-      [LessonType.ASSIGNMENT]: '📝',
-      [LessonType.INTERACTIVE]: '🎮'
+      [LessonType.DOCUMENT]: '📋',
+      [LessonType.QUIZ]: '📝',
+      [LessonType.ASSIGNMENT]: '📌',
+      [LessonType.INTERACTIVE]: '🎮',
+      [LessonType.ONLINE]: '🎦'
     };
     return icons[type] || '📚';
   }

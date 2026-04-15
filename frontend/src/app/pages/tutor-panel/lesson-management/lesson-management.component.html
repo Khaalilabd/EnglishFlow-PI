@@ -1,4 +1,4 @@
-<!-- Lesson Management Page -->
+﻿<!-- Lesson Management Page -->
 <div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-cyan-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-900">
   
   <!-- Loading State -->
@@ -10,7 +10,7 @@
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!loading || lessons.length > 0" class="max-w-7xl mx-auto px-6 py-8">
+  <div class="max-w-7xl mx-auto px-6 py-8">
     
     <!-- Header -->
     <div class="mb-8">
@@ -167,42 +167,51 @@
                   <span class="truncate max-w-xs">Has content</span>
                 </div>
               </div>
+
+              <!-- ONLINE: schedule badge -->
+              <div *ngIf="lesson.lessonType === LessonType.ONLINE" 
+                class="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300 rounded-lg text-xs font-semibold">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Click Preview to see schedule
+              </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col gap-2 ml-4 flex-shrink-0">
               <button (click)="openPreviewModal(lesson)"
-                class="px-4 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-28 px-3 py-2 bg-blue-500 text-white rounded-lg font-semibold hover:bg-blue-600 transition-all shadow-md flex items-center gap-2 justify-center text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
                 Preview
               </button>
-              
               <button (click)="openEditModal(lesson)"
-                class="px-4 py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-28 px-3 py-2 bg-amber-500 text-white rounded-lg font-semibold hover:bg-amber-600 transition-all shadow-md flex items-center gap-2 justify-center text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                 </svg>
                 Edit
               </button>
-              
               <button (click)="togglePublish(lesson)"
                 [disabled]="!lesson.isPublished && !canPublish(lesson)"
                 [title]="!lesson.isPublished && !canPublish(lesson) ? getPublishTooltip(lesson) : ''"
-                [class]="lesson.isPublished ? 'px-4 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center' : (!canPublish(lesson) ? 'px-4 py-2 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2 justify-center opacity-50' : 'px-4 py-2 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center')">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                [class]="lesson.isPublished
+                  ? 'w-28 px-3 py-2 bg-gray-500 text-white rounded-lg font-semibold hover:bg-gray-600 transition-all shadow-md flex items-center gap-2 justify-center text-sm'
+                  : (!canPublish(lesson)
+                    ? 'w-28 px-3 py-2 bg-gray-300 text-gray-500 rounded-lg font-semibold cursor-not-allowed flex items-center gap-2 justify-center text-sm opacity-50'
+                    : 'w-28 px-3 py-2 bg-emerald-500 text-white rounded-lg font-semibold hover:bg-emerald-600 transition-all shadow-md flex items-center gap-2 justify-center text-sm')">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
                 </svg>
                 {{lesson.isPublished ? 'Unpublish' : 'Publish'}}
               </button>
-
-              
               <button (click)="openDeleteModal(lesson)"
-                class="px-4 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all shadow-md hover:shadow-lg flex items-center gap-2 justify-center">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                class="w-28 px-3 py-2 bg-red-500 text-white rounded-lg font-semibold hover:bg-red-600 transition-all shadow-md flex items-center gap-2 justify-center text-sm">
+                <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                 </svg>
                 Delete
@@ -239,10 +248,130 @@
       
       <div>
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Lesson Type *</label>
-        <select [(ngModel)]="lessonForm.lessonType"
+        <select [(ngModel)]="lessonForm.lessonType" (ngModelChange)="onLessonTypeChange()"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
           <option *ngFor="let type of lessonTypes" [value]="type">{{type}}</option>
         </select>
+      </div>
+      
+      <!-- Time Slot Selection for ONLINE lessons -->
+      <div *ngIf="lessonForm.lessonType === LessonType.ONLINE">
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          Select Time Slot *
+        </label>
+        
+        <!-- Loading State -->
+        <div *ngIf="loadingSlots" class="p-6 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-4 border-b-4 border-blue-600 mb-2"></div>
+          <p class="text-sm text-gray-600 dark:text-gray-400">Loading available time slots...</p>
+        </div>
+        
+        <!-- No Availability Warning -->
+        <div *ngIf="!loadingSlots && noAvailabilityConfigured" class="p-6 bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-800 rounded-xl">
+          <div class="flex items-start gap-3">
+            <svg class="w-6 h-6 text-amber-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div class="flex-1">
+              <p class="text-sm font-semibold text-amber-900 dark:text-amber-200">No Availability Configured</p>
+              <p class="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                You need to configure your availability first before creating online lessons.
+              </p>
+              <a href="/tutor-panel/availability" target="_blank"
+                class="inline-flex items-center gap-2 mt-3 px-4 py-2 bg-amber-600 text-white rounded-lg text-sm font-semibold hover:bg-amber-700 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Configure Availability
+              </a>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Available Slots -->
+        <div *ngIf="!loadingSlots && availableSlots && availableSlots.hasAvailability" class="space-y-4">
+          <!-- Selected Slot Summary at Top -->
+          <div *ngIf="selectedTimeSlot" class="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-2 border-emerald-300 dark:border-emerald-700 rounded-xl shadow-sm">
+            <div class="flex items-center gap-3">
+              <div class="p-2 bg-emerald-500 rounded-lg">
+                <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <div>
+                <p class="text-xs font-medium text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">Selected Time Slot</p>
+                <p class="text-sm font-bold text-emerald-900 dark:text-emerald-200">
+                  {{getDayName(selectedTimeSlot.dayOfWeek)}} ÔÇó {{selectedTimeSlot.startTime}} - {{selectedTimeSlot.endTime}}
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Time Slots Grid -->
+          <div class="bg-white dark:bg-gray-800 rounded-xl border-2 border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-500 to-cyan-500 px-4 py-3">
+              <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+                Available Time Slots
+              </h4>
+            </div>
+            
+            <div class="max-h-96 overflow-y-auto p-4">
+              <ng-container *ngFor="let entry of getAvailableSlotsByDay() | keyvalue">
+                <div class="mb-6 last:mb-0">
+                  <div class="flex items-center gap-2 mb-3 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                      <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                    </svg>
+                    <h5 class="text-sm font-bold text-gray-900 dark:text-white">
+                      {{getDayName(entry.key)}}
+                    </h5>
+                    <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
+                      {{getAvailableCountForDay(entry.value)}} available
+                    </span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    <button *ngFor="let slot of entry.value" type="button"
+                      (click)="selectTimeSlot(slot)"
+                      [disabled]="slot.booked"
+                      [class]="getTimeSlotClasses(slot)">
+                      <div class="relative">
+                        <!-- Booked indicator with red X and label -->
+                        <div *ngIf="slot.booked" class="absolute inset-0 flex flex-col items-center justify-center bg-red-500/10 rounded-lg z-10">
+                          <svg class="w-8 h-8 text-red-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
+                          </svg>
+                          <span class="text-[9px] font-bold text-red-600 uppercase tracking-wider">Booked</span>
+                        </div>
+                        
+                        <!-- Time display -->
+                        <div [class]="slot.booked ? 'opacity-30' : ''">
+                          <div class="flex items-center justify-center gap-1 mb-1">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <span class="font-bold">{{slot.startTime}}</span>
+                          </div>
+                          <div class="text-[10px] opacity-75">to {{slot.endTime}}</div>
+                        </div>
+                        
+                        <!-- Selected checkmark -->
+                        <div *ngIf="selectedTimeSlot === slot && !slot.booked" class="absolute -top-1 -right-1 bg-white dark:bg-gray-800 rounded-full p-0.5 shadow-lg z-20">
+                          <svg class="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                          </svg>
+                        </div>
+                      </div>
+                    </button>
+                  </div>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div *ngIf="lessonForm.lessonType === LessonType.TEXT">
@@ -404,7 +533,7 @@
             class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="https://youtube.com/watch?v=... or https://drive.google.com/...">
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            💡 Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
+            ­ƒÆí Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
           </p>
         </div>
       </div>
@@ -414,9 +543,9 @@
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Select Quiz <span class="text-red-500">*</span>
         </label>
-        <select [(ngModel)]="lessonForm.contentUrl"
+        <select [(ngModel)]="lessonForm.quizId"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-          <option value="">Choose a quiz</option>
+          <option [value]="undefined">Choose a quiz</option>
           <option *ngFor="let quiz of availableQuizzes" [value]="quiz.id">
             {{ quiz.title }} ({{ quiz.questions?.length || 0 }} questions)
           </option>
@@ -427,10 +556,19 @@
         </p>
       </div>
 
-      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE) -->
+      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE, ONLINE) -->
       <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT && lessonForm.lessonType !== LessonType.QUIZ">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
-        <input type="text" [(ngModel)]="lessonForm.contentUrl"
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <span *ngIf="lessonForm.lessonType === LessonType.ONLINE">Configure Online Lesson</span>
+          <span *ngIf="lessonForm.lessonType !== LessonType.ONLINE">Content URL</span>
+        </label>
+        <div *ngIf="lessonForm.lessonType === LessonType.ONLINE" class="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Online lessons are configured separately with recurring schedules. This lesson will be linked to online sessions.</p>
+          <input type="text" [(ngModel)]="lessonForm.contentUrl"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Optional: Enter session configuration URL or notes">
+        </div>
+        <input *ngIf="lessonForm.lessonType !== LessonType.ONLINE" type="text" [(ngModel)]="lessonForm.contentUrl"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           placeholder="Enter content URL">
       </div>
@@ -669,7 +807,7 @@
             class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
             placeholder="https://youtube.com/watch?v=... or https://drive.google.com/...">
           <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-            💡 Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
+            ­ƒÆí Tip: You can use YouTube, Vimeo, Google Drive, or any direct link
           </p>
         </div>
       </div>
@@ -679,9 +817,9 @@
         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
           Select Quiz <span class="text-red-500">*</span>
         </label>
-        <select [(ngModel)]="lessonForm.contentUrl"
+        <select [(ngModel)]="lessonForm.quizId"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
-          <option value="">Choose a quiz</option>
+          <option [value]="undefined">Choose a quiz</option>
           <option *ngFor="let quiz of availableQuizzes" [value]="quiz.id">
             {{ quiz.title }} ({{ quiz.questions?.length || 0 }} questions)
           </option>
@@ -692,10 +830,19 @@
         </p>
       </div>
 
-      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE) -->
+      <!-- URL Input for other types (ASSIGNMENT, INTERACTIVE, ONLINE) -->
       <div *ngIf="lessonForm.lessonType !== LessonType.TEXT && lessonForm.lessonType !== LessonType.VIDEO && lessonForm.lessonType !== LessonType.DOCUMENT && lessonForm.lessonType !== LessonType.QUIZ">
-        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Content URL</label>
-        <input type="text" [(ngModel)]="lessonForm.contentUrl"
+        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <span *ngIf="lessonForm.lessonType === LessonType.ONLINE">Configure Online Lesson</span>
+          <span *ngIf="lessonForm.lessonType !== LessonType.ONLINE">Content URL</span>
+        </label>
+        <div *ngIf="lessonForm.lessonType === LessonType.ONLINE" class="p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl">
+          <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">Online lessons are configured separately with recurring schedules. This lesson will be linked to online sessions.</p>
+          <input type="text" [(ngModel)]="lessonForm.contentUrl"
+            class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            placeholder="Optional: Enter session configuration URL or notes">
+        </div>
+        <input *ngIf="lessonForm.lessonType !== LessonType.ONLINE" type="text" [(ngModel)]="lessonForm.contentUrl"
           class="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
           placeholder="Enter content URL">
       </div>
@@ -781,7 +928,7 @@
 
 <!-- Preview Modal -->
 <div *ngIf="showPreviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 overflow-y-auto">
-  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-4xl w-full my-8">
+  <div class="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl max-w-6xl w-full my-8 max-h-[90vh] overflow-y-auto">
     <div class="p-6">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
@@ -895,20 +1042,230 @@
           </div>
         </div>
 
-        <!-- QUIZ, ASSIGNMENT, INTERACTIVE -->
-        <div *ngIf="selectedLesson?.lessonType === 'QUIZ' || selectedLesson?.lessonType === 'ASSIGNMENT' || selectedLesson?.lessonType === 'INTERACTIVE'" 
+        <!-- ONLINE -->
+        <div *ngIf="selectedLesson?.lessonType === 'ONLINE'" class="space-y-4">
+          <!-- Loading -->
+          <div *ngIf="loadingTimeAssignment" class="flex items-center justify-center py-12">
+            <div class="inline-block animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-cyan-600"></div>
+          </div>
+
+          <!-- Assigned slot card -->
+          <div *ngIf="!loadingTimeAssignment && currentTimeAssignment" 
+            class="bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-900/20 dark:to-blue-900/20 border-2 border-cyan-200 dark:border-cyan-700 rounded-2xl p-6">
+            <div class="flex items-center gap-3 mb-5">
+              <div class="p-3 bg-cyan-100 dark:bg-cyan-900/40 rounded-xl">
+                <svg class="w-7 h-7 text-cyan-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                </svg>
+              </div>
+              <div>
+                <h4 class="text-lg font-bold text-gray-900 dark:text-white">Scheduled Session</h4>
+                <p class="text-sm text-gray-500 dark:text-gray-400">This lesson runs on a recurring weekly schedule</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Day -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm border border-cyan-100 dark:border-cyan-800">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Day</p>
+                <p class="text-2xl font-bold text-cyan-600">{{getDayName(currentTimeAssignment.dayOfWeek)}}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Every week</p>
+              </div>
+              <!-- Start time -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm border border-cyan-100 dark:border-cyan-800">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Starts</p>
+                <p class="text-2xl font-bold text-blue-600">{{currentTimeAssignment.startTime}}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Session start</p>
+              </div>
+              <!-- End time -->
+              <div class="bg-white dark:bg-gray-800 rounded-xl p-4 text-center shadow-sm border border-cyan-100 dark:border-cyan-800">
+                <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">Ends</p>
+                <p class="text-2xl font-bold text-blue-600">{{currentTimeAssignment.endTime}}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Session end</p>
+              </div>
+            </div>
+
+            <!-- Summary banner -->
+            <div class="mt-4 flex items-center gap-3 p-3 bg-cyan-600 text-white rounded-xl">
+              <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-sm font-semibold">
+                Every {{getDayName(currentTimeAssignment.dayOfWeek)}} from {{currentTimeAssignment.startTime}} to {{currentTimeAssignment.endTime}}
+              </p>
+            </div>
+          </div>
+
+          <!-- No assignment yet -->
+          <div *ngIf="!loadingTimeAssignment && !currentTimeAssignment"
+            class="bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-200 dark:border-amber-700 rounded-2xl p-8 text-center">
+            <svg class="w-14 h-14 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <p class="text-lg font-semibold text-amber-900 dark:text-amber-200">No time slot assigned</p>
+            <p class="text-sm text-amber-700 dark:text-amber-300 mt-1">Edit this lesson to assign a recurring time slot.</p>
+          </div>
+        </div>
+
+        <!-- QUIZ -->
+        <div *ngIf="selectedLesson?.lessonType === 'QUIZ'">
+          <div *ngIf="selectedLesson?.quizId; else noQuizAssigned">
+            <!-- Quiz info will be loaded -->
+            <div *ngIf="previewQuiz" class="space-y-6">
+              <!-- Quiz header -->
+              <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-8 border-2 border-amber-200 dark:border-amber-700">
+                <div class="flex items-start gap-4">
+                  <div class="text-5xl">📝</div>
+                  <div class="flex-1">
+                    <h4 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{previewQuiz.title}}</h4>
+                    <p class="text-gray-700 dark:text-gray-300 mb-4">{{previewQuiz.description}}</p>
+                    
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Questions</p>
+                        <p class="text-2xl font-bold text-amber-600">{{previewQuiz.questions?.length || 0}}</p>
+                      </div>
+                      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Duration</p>
+                        <p class="text-2xl font-bold text-blue-600">{{previewQuiz.durationMin}}min</p>
+                      </div>
+                      <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Pass Score</p>
+                        <p class="text-2xl font-bold text-green-600">{{previewQuiz.passingScore}}%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Questions list with pagination -->
+              <div *ngIf="previewQuiz.questions && previewQuiz.questions.length > 0" class="space-y-4">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-lg font-semibold text-gray-900 dark:text-white">Questions Preview</h4>
+                  <span class="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {{currentQuestionPage * questionsPerPage + 1}}-{{Math.min((currentQuestionPage + 1) * questionsPerPage, previewQuiz.questions.length)}} of {{previewQuiz.questions.length}}
+                  </span>
+                </div>
+                
+                <!-- Questions container with fixed height -->
+                <div class="space-y-4 max-h-96 overflow-y-auto pr-2">
+                  <div *ngFor="let question of getPaginatedQuestions(); let i = index" 
+                       class="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+                    <div class="flex items-start gap-3 mb-4">
+                      <span class="flex-shrink-0 w-8 h-8 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full flex items-center justify-center font-semibold text-sm">
+                        {{currentQuestionPage * questionsPerPage + i + 1}}
+                      </span>
+                      <div class="flex-1">
+                        <p class="text-gray-900 dark:text-white font-medium mb-2">{{question.content}}</p>
+                        <span class="inline-block px-2 py-1 text-xs rounded-full" 
+                              [class.bg-blue-100]="question.type === 'MCQ'"
+                              [class.text-blue-700]="question.type === 'MCQ'"
+                              [class.bg-purple-100]="question.type === 'TRUE_FALSE'"
+                              [class.text-purple-700]="question.type === 'TRUE_FALSE'"
+                              [class.bg-green-100]="question.type === 'OPEN'"
+                              [class.text-green-700]="question.type === 'OPEN'">
+                          {{question.type}}
+                        </span>
+                        <span class="ml-2 text-sm text-gray-500 dark:text-gray-400">{{question.points}} points</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Options for MCQ and TRUE_FALSE -->
+                    <div *ngIf="question.type === 'MCQ' || question.type === 'TRUE_FALSE'" class="ml-11 space-y-2">
+                      <div *ngFor="let option of question.options?.split('|')" 
+                           class="flex items-center gap-2 p-3 rounded-lg"
+                           [class.bg-green-50]="option === question.correctAnswer"
+                           [class.border-2]="option === question.correctAnswer"
+                           [class.border-green-500]="option === question.correctAnswer"
+                           [class.bg-gray-50]="option !== question.correctAnswer"
+                           [class.dark:bg-gray-700]="option !== question.correctAnswer">
+                        <span *ngIf="option === question.correctAnswer" class="text-green-600 font-bold">✓</span>
+                        <span class="text-gray-700 dark:text-gray-300">{{option}}</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Correct answer for OPEN questions -->
+                    <div *ngIf="question.type === 'OPEN'" class="ml-11 mt-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Correct Answer:</p>
+                      <p class="text-gray-900 dark:text-white">{{question.correctAnswer}}</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Pagination controls -->
+                <div *ngIf="getTotalQuestionPages() > 1" class="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <button (click)="previousQuestionPage()" 
+                          [disabled]="currentQuestionPage === 0"
+                          class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                    </svg>
+                  </button>
+                  
+                  <div class="flex gap-1">
+                    <button *ngFor="let page of [].constructor(getTotalQuestionPages()); let i = index"
+                            (click)="goToQuestionPage(i)"
+                            [class.bg-amber-600]="i === currentQuestionPage"
+                            [class.text-white]="i === currentQuestionPage"
+                            [class.bg-gray-100]="i !== currentQuestionPage"
+                            [class.dark:bg-gray-700]="i !== currentQuestionPage"
+                            class="w-10 h-10 rounded-lg font-medium hover:bg-amber-500 hover:text-white transition-colors">
+                      {{i + 1}}
+                    </button>
+                  </div>
+                  
+                  <button (click)="nextQuestionPage()" 
+                          [disabled]="currentQuestionPage === getTotalQuestionPages() - 1"
+                          class="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!previewQuiz" class="flex justify-center items-center py-12">
+              <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+            </div>
+          </div>
+          
+          <ng-template #noQuizAssigned>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-12 text-center">
+              <div class="text-6xl mb-4">📝</div>
+              <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Quiz Assigned</h4>
+              <p class="text-gray-600 dark:text-gray-400">Edit this lesson to assign a quiz</p>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- ASSIGNMENT, INTERACTIVE -->
+        <div *ngIf="selectedLesson?.lessonType === 'ASSIGNMENT' || selectedLesson?.lessonType === 'INTERACTIVE'" 
           class="bg-gray-50 dark:bg-gray-700 rounded-xl p-12 text-center">
-          <div class="text-6xl mb-4">🚧</div>
+          <div class="text-6xl mb-4">{{ selectedLesson && selectedLesson.lessonType ? getLessonTypeIcon(selectedLesson.lessonType) : '📚' }}</div>
           <h4 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Coming Soon</h4>
           <p class="text-gray-600 dark:text-gray-400">{{selectedLesson?.lessonType}} content preview is under development</p>
         </div>
       </div>
 
       <!-- Actions -->
-      <div class="flex gap-3">
+      <div class="flex gap-3 flex-wrap">
         <button (click)="closeModals()"
           class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition-all">
           Close
+        </button>
+        <!-- Start Lesson button ÔÇö only for ONLINE lessons with a time assignment -->
+        <button *ngIf="selectedLesson?.lessonType === 'ONLINE' && currentTimeAssignment"
+          (click)="startLesson(selectedLesson!)"
+          [disabled]="!canStartLesson(currentTimeAssignment)"
+          [class]="canStartLesson(currentTimeAssignment)
+            ? 'flex-1 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 transition-all flex items-center justify-center gap-2 shadow-lg'
+            : 'flex-1 px-6 py-3 bg-gray-300 text-gray-500 rounded-xl font-semibold cursor-not-allowed flex items-center justify-center gap-2 opacity-60'"
+          [title]="canStartLesson(currentTimeAssignment) ? 'Start the online lesson' : 'Available 15 min before session start until session end'">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+          </svg>
+          {{ canStartLesson(currentTimeAssignment) ? 'Start Lesson' : 'Not Yet Available' }}
         </button>
         <button (click)="openEditModal(selectedLesson!); showPreviewModal = false"
           class="flex-1 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2">

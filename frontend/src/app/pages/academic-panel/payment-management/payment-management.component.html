@@ -1,0 +1,106 @@
+﻿<div class="p-6 space-y-6">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Payment Management</h1>
+      <p class="text-gray-400 text-sm mt-1">All transactions across courses and packs</p>
+    </div>
+    <button (click)="loadPayments()" class="flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm transition-all border border-gray-700">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+      </svg>
+      Refresh
+    </button>
+  </div>
+
+  <!-- Stats cards -->
+  <div *ngIf="stats" class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+      <p class="text-gray-400 text-xs mb-1">Total Payments</p>
+      <p class="text-white text-2xl font-bold">{{stats.totalPayments}}</p>
+    </div>
+    <div class="bg-emerald-950/40 border border-emerald-800/40 rounded-2xl p-4">
+      <p class="text-emerald-400 text-xs mb-1">Successful</p>
+      <p class="text-emerald-300 text-2xl font-bold">{{stats.successfulPayments}}</p>
+    </div>
+    <div class="bg-amber-950/40 border border-amber-800/40 rounded-2xl p-4">
+      <p class="text-amber-400 text-xs mb-1">Pending</p>
+      <p class="text-amber-300 text-2xl font-bold">{{stats.pendingPayments}}</p>
+    </div>
+    <div class="bg-red-950/40 border border-red-800/40 rounded-2xl p-4">
+      <p class="text-red-400 text-xs mb-1">Failed</p>
+      <p class="text-red-300 text-2xl font-bold">{{stats.failedPayments}}</p>
+    </div>
+    <div class="bg-teal-950/40 border border-teal-800/40 rounded-2xl p-4">
+      <p class="text-teal-400 text-xs mb-1">Total Revenue</p>
+      <p class="text-teal-300 text-2xl font-bold">{{stats.totalRevenue | number:'1.2-2'}} TND</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="flex flex-wrap gap-3">
+    <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="applyFilters()" placeholder="Search by name, email, order..."
+      class="flex-1 min-w-48 px-4 py-2.5 bg-gray-900 border border-gray-700 text-white rounded-xl text-sm focus:outline-none focus:border-teal-500 placeholder-gray-500">
+    <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()"
+      class="px-4 py-2.5 bg-gray-900 border border-gray-700 text-white rounded-xl text-sm focus:outline-none focus:border-teal-500">
+      <option value="">All Statuses</option>
+      <option value="SUCCESS">Success</option>
+      <option value="PENDING">Pending</option>
+      <option value="FAILED">Failed</option>
+      <option value="CANCELLED">Cancelled</option>
+    </select>
+    <select [(ngModel)]="typeFilter" (ngModelChange)="applyFilters()"
+      class="px-4 py-2.5 bg-gray-900 border border-gray-700 text-white rounded-xl text-sm focus:outline-none focus:border-teal-500">
+      <option value="">All Types</option>
+      <option value="COURSE">Course</option>
+      <option value="PACK">Pack</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+    <div *ngIf="loading" class="flex items-center justify-center py-16">
+      <div class="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+
+    <div *ngIf="!loading && filtered.length === 0" class="text-center py-16 text-gray-500">
+      No payments found.
+    </div>
+
+    <div *ngIf="!loading && filtered.length > 0" class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b border-gray-800 text-gray-400 text-xs uppercase tracking-wider">
+            <th class="px-4 py-3 text-left">Order ID</th>
+            <th class="px-4 py-3 text-left">Student</th>
+            <th class="px-4 py-3 text-left">Item</th>
+            <th class="px-4 py-3 text-left">Type</th>
+            <th class="px-4 py-3 text-right">Amount</th>
+            <th class="px-4 py-3 text-center">Status</th>
+            <th class="px-4 py-3 text-left">Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of filtered" class="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
+            <td class="px-4 py-3 font-mono text-xs text-gray-400">{{p.orderId}}</td>
+            <td class="px-4 py-3">
+              <p class="text-white font-medium">{{p.studentName}}</p>
+              <p class="text-gray-500 text-xs">{{p.studentEmail}}</p>
+            </td>
+            <td class="px-4 py-3 text-gray-300 max-w-xs truncate">{{p.itemName}}</td>
+            <td class="px-4 py-3">
+              <span class="px-2 py-0.5 rounded-lg text-xs font-semibold" [class]="typeClass(p.itemType)">{{p.itemType}}</span>
+            </td>
+            <td class="px-4 py-3 text-right text-white font-semibold">{{p.amount | number:'1.2-2'}} TND</td>
+            <td class="px-4 py-3 text-center">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-semibold" [class]="statusClass(p.status)">{{p.status}}</span>
+            </td>
+            <td class="px-4 py-3 text-gray-400 text-xs">{{p.createdAt | date:'dd/MM/yyyy HH:mm'}}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>

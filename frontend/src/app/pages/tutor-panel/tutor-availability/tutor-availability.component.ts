@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TutorAvailabilityService } from '../../../core/services/tutor-availability.service';
 import { CourseCategoryService } from '../../../core/services/course-category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { AvailabilityModificationRequestService } from '../../../core/services/availability-modification-request.service';
 import { TutorAvailability, DayOfWeek, TutorStatus, TimeSlot } from '../../../core/models/tutor-availability.model';
 import { CourseCategory } from '../../../core/models/course-category.model';
 
@@ -44,7 +45,8 @@ export class TutorAvailabilityComponent implements OnInit {
   constructor(
     private availabilityService: TutorAvailabilityService,
     private categoryService: CourseCategoryService,
-    private authService: AuthService
+    private authService: AuthService,
+    private modificationRequestService: AvailabilityModificationRequestService
   ) {}
 
   ngOnInit(): void {
@@ -182,17 +184,31 @@ export class TutorAvailabilityComponent implements OnInit {
       return;
     }
 
-    // TODO: Implement backend API call to send modification request to manager
-    // For now, we'll just show a success message
-    console.log('Modification request:', {
-      tutorId: this.availability.tutorId,
-      tutorName: this.availability.tutorName,
-      reason: this.modificationReason,
-      requestedAt: new Date()
-    });
+    const currentUser = this.authService.currentUserValue;
+    if (!currentUser) {
+      this.showMessage('User not authenticated', 'error');
+      return;
+    }
 
-    this.showMessage('Modification request sent to manager successfully!', 'success');
-    this.closeModificationRequestModal();
+    const request = {
+      tutorId: currentUser.id,
+      tutorName: `${currentUser.firstName} ${currentUser.lastName}`,
+      tutorEmail: currentUser.email,
+      reason: this.modificationReason,
+      proposedAvailability: JSON.stringify(this.availability)
+    };
+
+    this.modificationRequestService.createRequest(request).subscribe({
+      next: (response) => {
+        console.log('Modification request created:', response);
+        this.showMessage('Modification request sent to manager successfully!', 'success');
+        this.closeModificationRequestModal();
+      },
+      error: (error) => {
+        console.error('Error creating modification request:', error);
+        this.showMessage('Failed to send modification request. Please try again.', 'error');
+      }
+    });
   }
 
   validateForm(): boolean {

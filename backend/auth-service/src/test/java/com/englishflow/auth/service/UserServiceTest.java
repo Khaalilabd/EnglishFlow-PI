@@ -140,4 +140,64 @@ class UserServiceTest {
         // Verify welcome email was attempted (it's in a try-catch so it won't fail the test)
         verify(emailService, times(1)).sendWelcomeEmail(eq(testUser.getEmail()), eq(testUser.getFirstName()));
     }
+
+    @Test
+    void testGetUsersByRole_Success() {
+        // Given
+        when(userRepository.findByRole(User.Role.STUDENT)).thenReturn(Arrays.asList(testUser));
+
+        // When
+        List<UserDTO> result = userService.getUsersByRole("STUDENT");
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("STUDENT", result.get(0).getRole());
+    }
+
+    @Test
+    void testDeactivateUser_Success() {
+        // Given
+        testUser.setActive(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // When
+        UserDTO result = userService.deactivateUser(1L);
+
+        // Then
+        assertNotNull(result);
+        assertFalse(testUser.isActive());
+        verify(userRepository).save(testUser);
+    }
+
+    @Test
+    void testEncodePassword_Success() {
+        // Given
+        String rawPassword = "password123";
+        when(passwordEncoder.encode(rawPassword)).thenReturn("encodedPassword");
+
+        // When
+        String result = userService.encodePassword(rawPassword);
+
+        // Then
+        assertEquals("encodedPassword", result);
+        verify(passwordEncoder).encode(rawPassword);
+    }
+
+    @Test
+    void testGetAllUsersPaginated_Success() {
+        // Given
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<User> page = new PageImpl<>(Arrays.asList(testUser));
+        when(userRepository.findAll(pageable)).thenReturn(page);
+
+        // When
+        Page<UserDTO> result = userService.getAllUsersPaginated(pageable);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.getContent().size());
+        verify(userRepository).findAll(pageable);
+    }
 }

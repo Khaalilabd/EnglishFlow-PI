@@ -367,6 +367,7 @@ public class AuthService {
 
         User user = resetToken.getUser();
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setMustChangePassword(false); // User has changed password
         userRepository.save(user);
 
         resetToken.setUsed(true);
@@ -455,6 +456,7 @@ public class AuthService {
                 .phone(user.getPhone())
                 .profileCompleted(user.isProfileCompleted())
                 .englishLevel(user.getEnglishLevel())
+                .mustChangePassword(user.isMustChangePassword())
                 .expiresIn(jwtUtil.getExpirationTimeInSeconds())
                 .refreshTokenExpiryDate(refreshToken.getExpiryDate())
                 .build();

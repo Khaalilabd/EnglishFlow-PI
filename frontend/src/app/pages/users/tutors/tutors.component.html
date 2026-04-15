@@ -515,16 +515,6 @@
       <div class="detail-section">
         <h3>🎓 Recruitment Details</h3>
         
-        <!-- Debug info -->
-        <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin-bottom: 15px; font-size: 13px;">
-          <strong>Debug Info:</strong><br>
-          User ID: {{ selectedUser.id }}<br>
-          Application ID: {{ selectedUser.applicationId || 'NOT SET' }}<br>
-          <span *ngIf="!selectedUser.applicationId" style="color: #856404;">
-            ⚠️ This tutor was not created through the recruitment system or the database needs to be updated.
-          </span>
-        </div>
-        
         <div *ngIf="selectedUser.applicationId">
           <div *ngIf="loadingApplication" class="loading-state">
             <div class="spinner"></div>

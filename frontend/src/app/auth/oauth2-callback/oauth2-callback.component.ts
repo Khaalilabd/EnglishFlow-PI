@@ -54,8 +54,9 @@ export class OAuth2CallbackComponent implements OnInit {
       const lastName = actualParams['lastName'];
       const role = actualParams['role'] || 'STUDENT';
       const profileCompleted = actualParams['profileCompleted'] === 'true';
+      const englishLevel = actualParams['englishLevel'] || null;
 
-      console.log('OAuth2 Callback - Received params:', { token: token ? 'present' : 'missing', id, email, role, profileCompleted });
+      console.log('OAuth2 Callback - Received params:', { token: token ? 'present' : 'missing', id, email, role, profileCompleted, englishLevel });
 
       if (token && email && id) {
         // Store user data
@@ -68,7 +69,8 @@ export class OAuth2CallbackComponent implements OnInit {
           lastName,
           role,
           profilePhoto: actualParams['profilePhoto'] || null,
-          phone: actualParams['phone'] || null
+          phone: actualParams['phone'] || null,
+          englishLevel: englishLevel
         };
         
         console.log('OAuth2 Callback - Storing user data:', userData);

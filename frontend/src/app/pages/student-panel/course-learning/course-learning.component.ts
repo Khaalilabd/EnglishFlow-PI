@@ -211,6 +211,7 @@ export class CourseLearningComponent implements OnInit {
       case 'ASSIGNMENT': return '📋';
       case 'DOCUMENT': return '📄';
       case 'INTERACTIVE': return '🎮';
+      case 'ONLINE': return '🎦';
       default: return '📚';
     }
   }

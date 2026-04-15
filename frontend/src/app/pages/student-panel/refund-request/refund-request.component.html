@@ -1,0 +1,192 @@
+﻿<div class="refund-request-container">
+  <div class="page-header">
+    <h1>Request Refund</h1>
+    <p class="subtitle">Select a payment to request a refund. Refunds are available within 7 days of purchase and if course progress is below 30%.</p>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading && !selectedPayment" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your payments...</p>
+  </div>
+
+  <!-- Payment List View -->
+  <div *ngIf="!selectedPayment && !loading" class="payments-list">
+    <div *ngIf="payments.length === 0" class="empty-state">
+      <i class="fas fa-receipt"></i>
+      <h3>No Payments Found</h3>
+      <p>You don't have any successful payments yet.</p>
+      <button class="btn btn-primary" routerLink="/user-panel/course-catalog">
+        Browse Courses
+      </button>
+    </div>
+
+    <div *ngIf="payments.length > 0" class="payment-cards">
+      <div *ngFor="let payment of payments" class="payment-card" [class.ineligible]="!isEligible(payment)">
+        <div class="payment-header">
+          <div class="payment-info">
+            <h3>{{ payment.itemName }}</h3>
+            <span class="payment-type-badge" [class.course]="payment.itemType === 'COURSE'" [class.pack]="payment.itemType === 'PACK'">
+              {{ payment.itemType }}
+            </span>
+          </div>
+          <div class="payment-amount">
+            <span class="amount">{{ payment.receivedAmount || payment.amount }} TND</span>
+          </div>
+        </div>
+
+        <div class="payment-details">
+          <div class="detail-row">
+            <span class="label">Order ID:</span>
+            <span class="value">{{ payment.orderId }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Payment Date:</span>
+            <span class="value">{{ formatDate(payment.createdAt) }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="label">Status:</span>
+            <span class="value">
+              <span class="status-badge success">{{ payment.status }}</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="eligibility-info">
+          <div *ngIf="isEligible(payment)" class="eligible">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ getEligibilityMessage(payment) }}</span>
+          </div>
+          <div *ngIf="!isEligible(payment)" class="ineligible">
+            <i class="fas fa-times-circle"></i>
+            <span>{{ getEligibilityMessage(payment) }}</span>
+          </div>
+        </div>
+
+        <div class="payment-actions">
+          <button 
+            class="btn btn-primary" 
+            [disabled]="!isEligible(payment)"
+            (click)="selectPayment(payment)">
+            Request Refund
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Refund Request Form -->
+  <div *ngIf="selectedPayment && !loading" class="refund-form-container">
+    <button class="btn-back" (click)="backToList()">
+      <i class="fas fa-arrow-left"></i> Back to Payments
+    </button>
+
+    <div class="selected-payment-summary">
+      <h2>Refund Request for:</h2>
+      <div class="summary-card">
+        <div class="summary-row">
+          <span class="label">Item:</span>
+          <span class="value">{{ selectedPayment.itemName }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Type:</span>
+          <span class="value">{{ selectedPayment.itemType }}</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Amount:</span>
+          <span class="value">{{ selectedPayment.receivedAmount || selectedPayment.amount }} TND</span>
+        </div>
+        <div class="summary-row">
+          <span class="label">Payment Date:</span>
+          <span class="value">{{ formatDate(selectedPayment.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="refund-form">
+      <div class="form-group">
+        <label for="reason">Reason for Refund Request <span class="required">*</span></label>
+        <textarea 
+          id="reason"
+          [(ngModel)]="refundReason"
+          placeholder="Please explain why you are requesting a refund..."
+          rows="6"
+          maxlength="1000"
+          required>
+        </textarea>
+        <div class="char-count">{{ refundReason.length }}/1000</div>
+      </div>
+
+      <div class="info-box">
+        <i class="fas fa-info-circle"></i>
+        <div class="info-content">
+          <h4>Refund Policy</h4>
+          <ul>
+            <li>Refunds are processed within 5-7 business days after approval</li>
+            <li>Your enrollment will be removed once the refund is completed</li>
+            <li>You will receive email notifications about your refund status</li>
+            <li>Course progress must be below 30% to be eligible</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="backToList()">
+          Cancel
+        </button>
+        <button 
+          class="btn btn-primary" 
+          [disabled]="!refundReason.trim()"
+          (click)="openConfirmDialog()">
+          Submit Refund Request
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation Dialog -->
+  <div *ngIf="showConfirmDialog" class="modal-overlay" (click)="closeConfirmDialog()">
+    <div class="modal-dialog" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Refund Request</h3>
+        <button class="btn-close" (click)="closeConfirmDialog()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to submit a refund request for:</p>
+        <div class="confirm-details">
+          <strong>{{ selectedPayment?.itemName }}</strong>
+          <span>Amount: {{ selectedPayment?.receivedAmount || selectedPayment?.amount }} TND</span>
+        </div>
+        <p class="warning-text">
+          <i class="fas fa-exclamation-triangle"></i>
+          Once submitted, your request will be reviewed by an administrator. Your enrollment will be removed if the refund is approved and processed.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeConfirmDialog()">
+          Cancel
+        </button>
+        <button class="btn btn-primary" (click)="submitRefundRequest()" [disabled]="loading">
+          <span *ngIf="!loading">Confirm Request</span>
+          <span *ngIf="loading">
+            <i class="fas fa-spinner fa-spin"></i> Submitting...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

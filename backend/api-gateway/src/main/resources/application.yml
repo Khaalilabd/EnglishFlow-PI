@@ -291,6 +291,39 @@ spring:
             - StripPrefix=1
           order: 22
             
+        - id: courses-availability-modification-requests
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/courses/availability-modification-requests/**
+          filters:
+            - RewritePath=/api/courses/(?<segment>.*), /$\{segment}
+          order: 21
+            
+        # Online Lessons routes
+        - id: courses-online-lessons
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/online-lessons/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-online-meeting-sessions
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/online-meeting-sessions/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
+        - id: courses-meeting-sessions
+          uri: lb://courses-service
+          predicates:
+            - Path=/api/meeting-sessions/**
+          filters:
+            - StripPrefix=1
+          order: 22
+            
         # Chapters and Lessons routes
         - id: courses-chapters
           uri: lb://courses-service

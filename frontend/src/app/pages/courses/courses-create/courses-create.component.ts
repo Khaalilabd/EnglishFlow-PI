@@ -66,7 +66,7 @@ export class CoursesCreateComponent implements OnInit {
         
         let errorMessage = 'Error creating course. ';
         if (error.status === 0) {
-          errorMessage += 'Cannot connect to server. Please ensure the backend is running on port 8088.';
+          errorMessage += 'Cannot connect to server. Please ensure the backend is running.';
         } else if (error.status === 404) {
           errorMessage += 'API endpoint not found. Check the API Gateway configuration.';
         } else if (error.error && error.error.message) {

@@ -1,6 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { AuthService } from '../../core/services/auth.service';
+import { environment } from '../../../environments/environment';
+
+interface OnlineLessonSchedule {
+  lessonId: number;
+  lessonTitle: string;
+  courseTitle: string;
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  canStart: boolean;
+}
 
 @Component({
   selector: 'app-tutor-panel',
@@ -9,7 +22,16 @@ import { RouterModule } from '@angular/router';
   templateUrl: './tutor-panel.component.html',
   styleUrls: ['./tutor-panel.component.scss']
 })
-export class TutorPanelComponent {
+export class TutorPanelComponent implements OnInit {
+  tutorId: number = 0;
+  onlineLessons: OnlineLessonSchedule[] = [];
+  loadingLessons = false;
+
+  constructor(
+    private router: Router,
+    private http: HttpClient,
+    private authService: AuthService
+  ) {}
   stats = [
     { icon: 'fas fa-users', label: 'Total Students', value: '124', change: '+12%', color: 'purple' },
     { icon: 'fas fa-book', label: 'Active Courses', value: '8', change: '+2', color: 'blue' },
@@ -34,4 +56,69 @@ export class TutorPanelComponent {
     { student: 'Sara Mansouri', action: 'submitted assignment', quiz: 'Essay Writing', score: 92, time: '3 hours ago' },
     { student: 'Mohamed Trabelsi', action: 'completed quiz', quiz: 'Vocabulary', score: 78, time: '5 hours ago' },
   ];
+
+  ngOnInit(): void {
+    const currentUser = this.authService.currentUserValue;
+    if (currentUser?.id) {
+      this.tutorId = currentUser.id;
+      this.loadOnlineLessons();
+    }
+  }
+
+  loadOnlineLessons(): void {
+    this.loadingLessons = true;
+    this.http.get<any[]>(`${environment.apiUrl}/online-lessons/tutor/${this.tutorId}/scheduled`)
+      .subscribe({
+        next: (lessons) => {
+          this.onlineLessons = lessons.map(lesson => ({
+            ...lesson,
+            canStart: this.canStartLesson(lesson)
+          }));
+          this.loadingLessons = false;
+        },
+        error: (err) => {
+          console.error('Failed to load online lessons:', err);
+          this.loadingLessons = false;
+        }
+      });
+  }
+
+  canStartLesson(lesson: any): boolean {
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[lesson.dayOfWeek];
+    if (now.getDay() !== lessonDay) return false;
+
+    const [startH, startM] = lesson.startTime.split(':').map(Number);
+    const [endH, endM] = lesson.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Enable button 15 minutes before start time until end time
+    return nowMinutes >= startMinutes - 15 && nowMinutes <= endMinutes;
+  }
+
+  getDayName(dayOfWeek: string): string {
+    const days: { [key: string]: string } = {
+      'MONDAY': 'Monday',
+      'TUESDAY': 'Tuesday',
+      'WEDNESDAY': 'Wednesday',
+      'THURSDAY': 'Thursday',
+      'FRIDAY': 'Friday',
+      'SATURDAY': 'Saturday',
+      'SUNDAY': 'Sunday'
+    };
+    return days[dayOfWeek] || dayOfWeek;
+  }
+
+  startMeeting(lesson: OnlineLessonSchedule): void {
+    const roomId = `lesson-${lesson.lessonId}`;
+    this.router.navigate(['/meeting', roomId], {
+      queryParams: { lessonId: lesson.lessonId }
+    });
+  }
 }

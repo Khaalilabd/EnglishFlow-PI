@@ -1,10 +1,11 @@
-export enum LessonType {
+﻿export enum LessonType {
   VIDEO = 'VIDEO',
   TEXT = 'TEXT',
   QUIZ = 'QUIZ',
   ASSIGNMENT = 'ASSIGNMENT',
   DOCUMENT = 'DOCUMENT',
-  INTERACTIVE = 'INTERACTIVE'
+  INTERACTIVE = 'INTERACTIVE',
+  ONLINE = 'ONLINE'
 }
 
 export interface Lesson {
@@ -19,6 +20,7 @@ export interface Lesson {
   isPreview: boolean;
   isPublished: boolean;
   chapterId: number;
+  quizId?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -34,6 +36,7 @@ export interface CreateLessonRequest {
   isPreview: boolean;
   isPublished: boolean;
   chapterId: number;
+  quizId?: number;
 }
 
 export interface UpdateLessonRequest {
@@ -47,4 +50,5 @@ export interface UpdateLessonRequest {
   isPreview: boolean;
   isPublished: boolean;
   chapterId: number;
+  quizId?: number;
 }

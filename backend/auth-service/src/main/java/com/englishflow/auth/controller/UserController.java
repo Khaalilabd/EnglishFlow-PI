@@ -485,4 +485,41 @@ public class UserController {
                 .body(Map.of("error", "Failed to update professional profile: " + e.getMessage()));
         }
     }
+
+    @PostMapping("/{id}/change-password-first-login")
+    public ResponseEntity<Map<String, String>> changePasswordFirstLogin(
+            @PathVariable Long id,
+            @RequestBody Map<String, String> request) {
+        
+        try {
+            String newPassword = request.get("newPassword");
+            
+            if (newPassword == null || newPassword.length() < 8) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Password must be at least 8 characters long"));
+            }
+            
+            User user = userRepository.findById(id)
+                .orElseThrow(() -> new com.englishflow.auth.exception.UserNotFoundException(id));
+            
+            // Vérifier que l'utilisateur doit changer son mot de passe
+            if (!user.isMustChangePassword()) {
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "Password change not required for this user"));
+            }
+            
+            // Mettre à jour le mot de passe
+            user.setPassword(userService.encodePassword(newPassword));
+            user.setMustChangePassword(false);
+            userRepository.save(user);
+            
+            log.info("Password changed successfully for user {} on first login", id);
+            return ResponseEntity.ok(Map.of("message", "Password changed successfully"));
+            
+        } catch (Exception e) {
+            log.error("Failed to change password on first login: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Failed to change password: " + e.getMessage()));
+        }
+    }
 }

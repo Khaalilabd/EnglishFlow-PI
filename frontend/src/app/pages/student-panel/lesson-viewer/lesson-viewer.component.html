@@ -1,4 +1,4 @@
-<div class="lesson-viewer">
+﻿<div class="lesson-viewer">
   <!-- Progress Bar -->
   <div class="progress-bar-top">
     <div class="progress-fill" [style.width.%]="getLessonProgress()"></div>
@@ -154,13 +154,17 @@
 
           <!-- TEXT Lesson -->
           @if (lesson.lessonType === 'TEXT') {
-            <div class="text-content" [innerHTML]="lesson.content"></div>
+            <div class="text-content" [innerHTML]="getSafeTextHtml()"></div>
           }
 
           <!-- DOCUMENT Lesson -->
           @if (lesson.lessonType === 'DOCUMENT') {
             <div class="document-container">
-              @if (documentUrl) {
+              <!-- Show HTML content if available -->
+              @if (hasDocumentHtmlContent()) {
+                <div class="text-content" [innerHTML]="getSafeDocumentHtml()"></div>
+              } @else if (documentUrl) {
+                <!-- Show file preview and download button only if no HTML content -->
                 <div class="document-preview">
                   <iframe [src]="documentUrl" frameborder="0"></iframe>
                 </div>
@@ -183,14 +187,391 @@
 
           <!-- QUIZ Lesson -->
           @if (lesson.lessonType === 'QUIZ') {
-            @if (lessonQuizId) {
-              <app-quiz-take 
-                [quizId]="lessonQuizId" 
-                (quizCompleted)="onQuizCompleted()">
-              </app-quiz-take>
+            @if (lesson.quizId) {
+              <div class="quiz-container">
+                @if (loadingQuiz) {
+                  <div class="flex justify-center items-center py-12">
+                    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600"></div>
+                    <p class="ml-4 text-gray-600 dark:text-gray-400">Loading quiz...</p>
+                  </div>
+                } @else if (quizSubmitted && quizResult) {
+                  <!-- Quiz Results -->
+                  <div class="quiz-results space-y-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 border-2" 
+                         [class.border-green-200]="quizResult.passed"
+                         [class.border-red-200]="!quizResult.passed">
+                      <div class="text-center mb-6">
+                        <div class="text-6xl mb-4">{{ quizResult.passed ? '🎉' : '📚' }}</div>
+                        <h3 class="text-3xl font-bold mb-2" 
+                            [class.text-green-700]="quizResult.passed"
+                            [class.text-red-700]="!quizResult.passed">
+                          {{ quizResult.passed ? 'Congratulations!' : 'Keep Learning!' }}
+                        </h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-lg">
+                          {{ quizResult.passed ? 'You passed the quiz!' : 'You didn\'t pass this time, but you can try again.' }}
+                        </p>
+                      </div>
+                      
+                      <!-- Pie Chart -->
+                      <div class="flex justify-center items-center gap-12 mb-8">
+                        <!-- SVG Pie Chart -->
+                        <div class="relative">
+                          <svg width="200" height="200" viewBox="0 0 200 200" class="transform -rotate-90">
+                            <!-- Background circle -->
+                            <circle cx="100" cy="100" r="80" fill="none" stroke="#e5e7eb" stroke-width="40"/>
+                            <!-- Score arc -->
+                            <circle cx="100" cy="100" r="80" fill="none" 
+                                    [attr.stroke]="quizResult.passed ? '#10b981' : '#ef4444'"
+                                    stroke-width="40"
+                                    [attr.stroke-dasharray]="502"
+                                    [attr.stroke-dashoffset]="502 - (502 * (quizResult.score / quizResult.maxScore))"
+                                    stroke-linecap="round"
+                                    class="transition-all duration-1000"/>
+                          </svg>
+                          <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <p class="text-4xl font-bold" [class.text-green-600]="quizResult.passed" [class.text-red-600]="!quizResult.passed">
+                              {{((quizResult.score / quizResult.maxScore) * 100).toFixed(0)}}%
+                            </p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Score</p>
+                          </div>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="space-y-4">
+                          <div class="flex items-center gap-3">
+                            <div class="w-4 h-4 rounded-full" [class.bg-green-500]="quizResult.passed" [class.bg-red-500]="!quizResult.passed"></div>
+                            <div>
+                              <p class="text-sm text-gray-500 dark:text-gray-400">Your Score</p>
+                              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{quizResult.score}}</p>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-3">
+                            <div class="w-4 h-4 rounded-full bg-gray-300"></div>
+                            <div>
+                              <p class="text-sm text-gray-500 dark:text-gray-400">Total Points</p>
+                              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{quizResult.maxScore}}</p>
+                            </div>
+                          </div>
+                          <div class="flex items-center gap-3">
+                            <div class="w-4 h-4 rounded-full bg-amber-500"></div>
+                            <div>
+                              <p class="text-sm text-gray-500 dark:text-gray-400">Pass Score</p>
+                              <p class="text-2xl font-bold text-gray-900 dark:text-white">{{currentQuiz.passingScore}}%</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="flex justify-center gap-4">
+                        <button (click)="retakeQuiz()" 
+                                disabled
+                                class="px-8 py-3 bg-gray-400 cursor-not-allowed text-white text-lg font-semibold rounded-lg opacity-50">
+                          Quiz Completed - No Retakes Allowed
+                        </button>
+                        
+                        @if (!isCompleted) {
+                          <button (click)="markAsComplete()"
+                                  class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all">
+                            <div class="flex items-center gap-2">
+                              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                              </svg>
+                              <span>Mark as Complete</span>
+                            </div>
+                          </button>
+                        } @else {
+                          <button disabled
+                                  class="px-8 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg opacity-75 cursor-default">
+                            <div class="flex items-center gap-2">
+                              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                              </svg>
+                              <span>Completed</span>
+                            </div>
+                          </button>
+                        }
+                      </div>
+                      <p class="text-sm text-gray-500 dark:text-gray-400 mt-2 text-center">You can only take this quiz once</p>
+                    </div>
+                  </div>
+                } @else if (!quizStarted && currentQuiz && quizQuestions.length > 0) {
+                  <!-- Quiz Introduction Screen -->
+                  <div class="quiz-intro space-y-6">
+                    <div class="bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-8 border-2 border-amber-200 dark:border-amber-700">
+                      <div class="flex items-start gap-4 mb-6">
+                        <div class="text-6xl">📝</div>
+                        <div class="flex-1">
+                          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">{{currentQuiz.title}}</h3>
+                          <p class="text-gray-700 dark:text-gray-300">{{currentQuiz.description}}</p>
+                        </div>
+                      </div>
+                      
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                          <svg class="w-8 h-8 mx-auto mb-2 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Questions</p>
+                          <p class="text-2xl font-bold text-amber-600">{{quizQuestions.length}}</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                          <svg class="w-8 h-8 mx-auto mb-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Duration</p>
+                          <p class="text-2xl font-bold text-blue-600">{{currentQuiz.durationMin}} min</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 text-center shadow-sm">
+                          <svg class="w-8 h-8 mx-auto mb-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                          </svg>
+                          <p class="text-sm text-gray-500 dark:text-gray-400 mb-1">Pass Score</p>
+                          <p class="text-2xl font-bold text-green-600">{{currentQuiz.passingScore}}%</p>
+                        </div>
+                      </div>
+
+                      <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
+                        <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-2">Instructions:</h4>
+                        <ul class="text-sm text-blue-800 dark:text-blue-300 space-y-1">
+                          <li>• Read each question carefully before answering</li>
+                          <li>• You can navigate between questions using the navigation buttons</li>
+                          <li>• Make sure to answer all questions before submitting</li>
+                          <li>• You need {{currentQuiz.passingScore}}% to pass this quiz</li>
+                        </ul>
+                      </div>
+
+                      <div class="text-center">
+                        <button (click)="startQuiz()" 
+                                class="px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-105">
+                          <div class="flex items-center gap-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Start Quiz</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                } @else if (quizStarted && currentQuiz && quizQuestions.length > 0) {
+                  <!-- Quiz Interface -->
+                  <div class="quiz-interface space-y-6">
+                    <!-- Quiz Header with Dual Timers -->
+                    <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border-2 border-amber-200 dark:border-amber-700">
+                      <div class="flex items-center justify-between mb-4">
+                        <div class="flex-1">
+                          <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{currentQuiz.title}}</h3>
+                          <p class="text-sm text-gray-600 dark:text-gray-400">{{currentQuiz.description}}</p>
+                        </div>
+                        
+                        <!-- Timers Section -->
+                        @if (currentQuiz.durationMin && totalTimeRemaining > 0) {
+                          <div class="flex items-center gap-6">
+                            <!-- Total Time Remaining -->
+                            <div class="text-center">
+                              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Total Time</p>
+                              <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5" [class.text-red-600]="totalTimeRemaining < 60"
+                                     [class.text-amber-600]="totalTimeRemaining >= 60 && totalTimeRemaining < 300"
+                                     [class.text-green-600]="totalTimeRemaining >= 300"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <p class="text-2xl font-bold" 
+                                   [class.text-red-600]="totalTimeRemaining < 60"
+                                   [class.text-amber-600]="totalTimeRemaining >= 60 && totalTimeRemaining < 300"
+                                   [class.text-green-600]="totalTimeRemaining >= 300">
+                                  {{getTotalFormattedTime()}}
+                                </p>
+                              </div>
+                            </div>
+
+                            <!-- Question Time Suggestion -->
+                            <div class="text-center border-l-2 border-gray-300 dark:border-gray-600 pl-6">
+                              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Per Question</p>
+                              <div class="relative w-16 h-16">
+                                <svg class="transform -rotate-90 w-16 h-16">
+                                  <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="transparent" 
+                                          class="text-gray-200 dark:text-gray-700"/>
+                                  <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="transparent"
+                                          [attr.stroke-dasharray]="176"
+                                          [attr.stroke-dashoffset]="176 - (176 * getQuestionTimePercentage() / 100)"
+                                          [class.text-red-500]="questionTimeRemaining < 5"
+                                          [class.text-amber-500]="questionTimeRemaining >= 5 && questionTimeRemaining < 10"
+                                          [class.text-green-500]="questionTimeRemaining >= 10"
+                                          class="transition-all duration-1000"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                  <p class="text-lg font-bold" 
+                                     [class.text-red-600]="questionTimeRemaining < 5"
+                                     [class.text-amber-600]="questionTimeRemaining >= 5 && questionTimeRemaining < 10"
+                                     [class.text-green-600]="questionTimeRemaining >= 10">
+                                    {{getQuestionFormattedTime()}}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        }
+                        
+                        <div class="text-right ml-6">
+                          <p class="text-sm text-gray-500 dark:text-gray-400">Progress</p>
+                          <p class="text-2xl font-bold text-amber-600">{{getAnsweredCount()}}/{{quizQuestions.length}}</p>
+                        </div>
+                      </div>
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div class="bg-amber-600 h-2 rounded-full transition-all" 
+                             [style.width.%]="(getAnsweredCount() / quizQuestions.length) * 100"></div>
+                      </div>
+                    </div>
+
+                    <!-- Current Question -->
+                    <div class="bg-white dark:bg-gray-800 rounded-xl p-8 border border-gray-200 dark:border-gray-700 shadow-sm">
+                      <div class="flex items-start gap-4 mb-6">
+                        <span class="flex-shrink-0 w-10 h-10 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full flex items-center justify-center font-bold">
+                          {{currentQuestionIndex + 1}}
+                        </span>
+                        <div class="flex-1">
+                          <p class="text-lg font-medium text-gray-900 dark:text-white mb-3">
+                            {{getCurrentQuestion().content}}
+                          </p>
+                          <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 text-xs rounded-full"
+                                  [class.bg-blue-100]="getCurrentQuestion().type === 'MCQ'"
+                                  [class.text-blue-700]="getCurrentQuestion().type === 'MCQ'"
+                                  [class.bg-purple-100]="getCurrentQuestion().type === 'TRUE_FALSE'"
+                                  [class.text-purple-700]="getCurrentQuestion().type === 'TRUE_FALSE'"
+                                  [class.bg-green-100]="getCurrentQuestion().type === 'OPEN'"
+                                  [class.text-green-700]="getCurrentQuestion().type === 'OPEN'">
+                              {{getCurrentQuestion().type}}
+                            </span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">
+                              {{getCurrentQuestion().points}} points
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Answer Options -->
+                      <div class="space-y-3 ml-14">
+                        @if (getCurrentQuestion().type === 'TRUE_FALSE') {
+                          <!-- TRUE/FALSE specific options -->
+                          @for (option of ['True', 'False']; track $index) {
+                            <button (click)="selectAnswer(getCurrentQuestion().id, option)"
+                                    [class.border-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    [class.bg-amber-50]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    [class.border-2]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    class="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all">
+                              <div class="flex items-center gap-3">
+                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                     [class.border-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                     [class.bg-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                     [class.border-gray-300]="!isAnswerSelected(getCurrentQuestion().id, option)">
+                                  @if (isAnswerSelected(getCurrentQuestion().id, option)) {
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                    </svg>
+                                  }
+                                </div>
+                                <span class="text-gray-700 dark:text-gray-300 font-medium">
+                                  @if (option === 'True') {
+                                    <span class="text-green-600">✓ True</span>
+                                  } @else {
+                                    <span class="text-red-600">✗ False</span>
+                                  }
+                                </span>
+                              </div>
+                            </button>
+                          }
+                        } @else if (getCurrentQuestion().type === 'MCQ') {
+                          <!-- MCQ options from database -->
+                          @for (option of getCurrentQuestion().options?.split('|'); track $index) {
+                            <button (click)="selectAnswer(getCurrentQuestion().id, option)"
+                                    [class.border-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    [class.bg-amber-50]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    [class.border-2]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                    class="w-full text-left p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-amber-300 hover:bg-amber-50/50 dark:hover:bg-amber-900/10 transition-all">
+                              <div class="flex items-center gap-3">
+                                <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                                     [class.border-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                     [class.bg-amber-500]="isAnswerSelected(getCurrentQuestion().id, option)"
+                                     [class.border-gray-300]="!isAnswerSelected(getCurrentQuestion().id, option)">
+                                  @if (isAnswerSelected(getCurrentQuestion().id, option)) {
+                                    <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                                    </svg>
+                                  }
+                                </div>
+                                <span class="text-gray-700 dark:text-gray-300">{{option}}</span>
+                              </div>
+                            </button>
+                          }
+                        } @else if (getCurrentQuestion().type === 'OPEN') {
+                          <textarea [(ngModel)]="studentAnswers[getCurrentQuestion().id]"
+                                    placeholder="Type your answer here..."
+                                    rows="4"
+                                    class="w-full p-4 border border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+                          </textarea>
+                        }
+                      </div>
+                    </div>
+
+                    <!-- Navigation -->
+                    <div class="flex items-center justify-between">
+                      <button (click)="previousQuestion()"
+                              [disabled]="currentQuestionIndex === 0"
+                              class="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                          </svg>
+                          <span>Previous</span>
+                        </div>
+                      </button>
+
+                      <!-- Question dots -->
+                      <div class="flex gap-2 flex-wrap justify-center">
+                        @for (question of quizQuestions; track question.id; let i = $index) {
+                          <button (click)="goToQuestion(i)"
+                                  [class.bg-amber-600]="i === currentQuestionIndex"
+                                  [class.text-white]="i === currentQuestionIndex"
+                                  [class.bg-green-100]="i !== currentQuestionIndex && isQuestionAnswered(i)"
+                                  [class.text-green-700]="i !== currentQuestionIndex && isQuestionAnswered(i)"
+                                  [class.bg-gray-100]="i !== currentQuestionIndex && !isQuestionAnswered(i)"
+                                  [class.dark:bg-gray-700]="i !== currentQuestionIndex && !isQuestionAnswered(i)"
+                                  class="w-10 h-10 rounded-lg font-medium hover:scale-110 transition-transform">
+                            {{i + 1}}
+                          </button>
+                        }
+                      </div>
+
+                      @if (currentQuestionIndex < quizQuestions.length - 1) {
+                        <button (click)="nextQuestion()"
+                                class="px-6 py-3 bg-amber-600 hover:bg-amber-700 text-white rounded-lg transition-colors">
+                          <div class="flex items-center gap-2">
+                            <span>Next</span>
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                          </div>
+                        </button>
+                      } @else {
+                        <button (click)="submitQuiz()"
+                                [disabled]="!canSubmitQuiz()"
+                                [class.opacity-50]="!canSubmitQuiz()"
+                                [class.cursor-not-allowed]="!canSubmitQuiz()"
+                                class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors">
+                          Submit Quiz
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
             } @else {
               <div class="coming-soon">
-                <div class="coming-soon-icon">⚠️</div>
+                <div class="coming-soon-icon">📝</div>
                 <h3>Quiz Not Assigned</h3>
                 <p>This lesson is marked as a quiz, but no quiz has been assigned yet.</p>
                 <p class="text-sm text-gray-500 mt-2">Please contact your tutor to assign a quiz to this lesson.</p>
@@ -198,10 +579,96 @@
             }
           }
 
+          <!-- ONLINE Lesson -->
+          @if (lesson.lessonType === 'ONLINE') {
+            <div class="online-lesson-container">
+              @if (loadingTimeAssignment) {
+                <div class="loading-state">
+                  <div class="spinner"></div>
+                  <p>Loading lesson schedule...</p>
+                </div>
+              } @else if (lessonTimeAssignment) {
+                <div class="online-lesson-info">
+                  <div class="schedule-card">
+                    <div class="schedule-header">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" class="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                      </svg>
+                      <h3>Lesson Schedule</h3>
+                    </div>
+                    
+                    <div class="schedule-details">
+                      <div class="schedule-item">
+                        <span class="label">Day:</span>
+                        <span class="value">{{ getDayName(lessonTimeAssignment.dayOfWeek) }}</span>
+                      </div>
+                      
+                      <div class="schedule-item">
+                        <span class="label">Start Time:</span>
+                        <span class="value">{{ lessonTimeAssignment.startTime }}</span>
+                      </div>
+                      
+                      <div class="schedule-item">
+                        <span class="label">End Time:</span>
+                        <span class="value">{{ lessonTimeAssignment.endTime }}</span>
+                      </div>
+                    </div>
+
+                    @if (canJoinLesson()) {
+                      <div class="join-section available">
+                        <div class="status-badge live">
+                          <span class="pulse"></span>
+                          <span>Lesson Available</span>
+                        </div>
+                        <button class="join-btn" (click)="joinLesson()">
+                          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                          </svg>
+                          Join Lesson
+                        </button>
+                      </div>
+                    } @else {
+                      <div class="join-section unavailable">
+                        @if (isInScheduledTime() && !activeMeetingRoomId) {
+                          <!-- It's the right time but tutor hasn't started -->
+                          <div class="status-badge waiting">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Waiting for tutor to start meeting</span>
+                          </div>
+                          <p class="info-text">It's lesson time! The tutor will start the meeting soon. The join button will appear when the tutor starts the lesson.</p>
+                        } @else {
+                          <!-- Not the right time yet -->
+                          <div class="status-badge waiting">
+                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>{{ getTimeUntilStart() }}</span>
+                          </div>
+                          <p class="info-text">The join button will appear 15 minutes before the lesson starts</p>
+                        }
+                      </div>
+                    }
+                  </div>
+                </div>
+              } @else {
+                <div class="no-schedule">
+                  <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <h3>No Schedule Configured</h3>
+                  <p>The tutor hasn't set up a schedule for this online lesson yet.</p>
+                  <p class="text-sm">Please contact your tutor for more information.</p>
+                </div>
+              }
+            </div>
+          }
+
           <!-- ASSIGNMENT, INTERACTIVE (Coming Soon) -->
           @if (lesson.lessonType === 'ASSIGNMENT' || lesson.lessonType === 'INTERACTIVE') {
             <div class="coming-soon">
-              <div class="coming-soon-icon">🚧</div>
+              <div class="coming-soon-icon">{{ getLessonIcon(lesson.lessonType) }}</div>
               <h3>Coming Soon</h3>
               <p>{{ lesson.lessonType }} lessons are under development</p>
             </div>

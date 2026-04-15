@@ -251,6 +251,35 @@ public class RecruitmentService {
         TutorApplication.ApplicationStatus oldStatus = application.getStatus();
         TutorApplication.ApplicationStatus newStatus = TutorApplication.ApplicationStatus.valueOf(request.getStatus().toUpperCase());
 
+        // Logique métier: Si on remet en UNDER_REVIEW un candidat qui était ACCEPTED
+        // Il faut désactiver ou supprimer le compte utilisateur créé
+        if (oldStatus == TutorApplication.ApplicationStatus.ACCEPTED && 
+            newStatus == TutorApplication.ApplicationStatus.UNDER_REVIEW) {
+            
+            // Trouver et désactiver le compte utilisateur associé
+            userRepository.findByEmail(application.getEmail()).ifPresent(user -> {
+                if (user.getRole() == User.Role.TUTOR && user.getApplicationId() != null && 
+                    user.getApplicationId().equals(applicationId)) {
+                    
+                    // Option 1: Désactiver le compte (recommandé pour garder l'historique)
+                    user.setActive(false);
+                    userRepository.save(user);
+                    log.info("User account {} deactivated due to application status change to UNDER_REVIEW", user.getId());
+                    
+                    // Option 2: Supprimer le compte (décommenter si vous préférez supprimer)
+                    // userRepository.delete(user);
+                    // log.info("User account {} deleted due to application status change to UNDER_REVIEW", user.getId());
+                }
+            });
+        }
+        
+        // Logique métier: Si on remet en UNDER_REVIEW un candidat qui était REJECTED
+        // Réinitialiser la raison de rejet
+        if (oldStatus == TutorApplication.ApplicationStatus.REJECTED && 
+            newStatus == TutorApplication.ApplicationStatus.UNDER_REVIEW) {
+            application.setRejectionReason(null);
+        }
+
         application.setStatus(newStatus);
         TutorApplication saved = applicationRepository.save(application);
 
@@ -437,32 +466,55 @@ public class RecruitmentService {
         }
 
         // Check if user already exists
-        if (userRepository.existsByEmail(application.getEmail())) {
-            throw new IllegalArgumentException("User account already exists for this email");
+        User existingUser = userRepository.findByEmail(application.getEmail()).orElse(null);
+        
+        if (existingUser != null && existingUser.isActive()) {
+            throw new IllegalArgumentException("Active user account already exists for this email");
         }
 
-        // Create tutor user account
-        User tutor = new User();
-        tutor.setEmail(application.getEmail());
-        tutor.setFirstName(application.getFirstName());
-        tutor.setLastName(application.getLastName());
-        tutor.setPhone(application.getPhone());
-        tutor.setCin(application.getCin());
-        tutor.setDateOfBirth(application.getDateOfBirth());
-        tutor.setAddress(application.getAddress());
-        tutor.setCity(application.getCity());
-        tutor.setPostalCode(application.getPostalCode());
-        tutor.setYearsOfExperience(application.getYearsOfExperience());
-        tutor.setBio(application.getMotivationLetter()); // Use motivation letter as bio
-        tutor.setApplicationId(applicationId); // Link to recruitment application
-        tutor.setRole(User.Role.TUTOR);
-        tutor.setActive(true);
-        tutor.setProfileCompleted(true);
-        tutor.setRegistrationFeePaid(false);
-        
-        // Generate temporary password
-        String tempPassword = UUID.randomUUID().toString().substring(0, 12);
-        tutor.setPassword(passwordEncoder.encode(tempPassword));
+        User tutor;
+        String tempPassword = null;
+        boolean isReactivation = false;
+
+        if (existingUser != null && !existingUser.isActive()) {
+            // Réactiver le compte existant
+            tutor = existingUser;
+            tutor.setActive(true);
+            tutor.setMustChangePassword(true);
+            
+            // Générer un nouveau mot de passe temporaire
+            tempPassword = UUID.randomUUID().toString().substring(0, 12);
+            tutor.setPassword(passwordEncoder.encode(tempPassword));
+            
+            isReactivation = true;
+            log.info("Reactivating existing tutor account for email: {}", application.getEmail());
+        } else {
+            // Create new tutor user account
+            tutor = new User();
+            tutor.setEmail(application.getEmail());
+            tutor.setFirstName(application.getFirstName());
+            tutor.setLastName(application.getLastName());
+            tutor.setPhone(application.getPhone());
+            tutor.setCin(application.getCin());
+            tutor.setDateOfBirth(application.getDateOfBirth());
+            tutor.setAddress(application.getAddress());
+            tutor.setCity(application.getCity());
+            tutor.setPostalCode(application.getPostalCode());
+            tutor.setYearsOfExperience(application.getYearsOfExperience());
+            tutor.setBio(application.getMotivationLetter()); // Use motivation letter as bio
+            tutor.setApplicationId(applicationId); // Link to recruitment application
+            tutor.setRole(User.Role.TUTOR);
+            tutor.setActive(true);
+            tutor.setProfileCompleted(true);
+            tutor.setRegistrationFeePaid(false);
+            tutor.setMustChangePassword(true); // Force password change on first login
+            
+            // Generate temporary password
+            tempPassword = UUID.randomUUID().toString().substring(0, 12);
+            tutor.setPassword(passwordEncoder.encode(tempPassword));
+            
+            log.info("Creating new tutor account for email: {}", application.getEmail());
+        }
 
         userRepository.save(tutor);
 
@@ -475,8 +527,11 @@ public class RecruitmentService {
         TutorApplication saved = applicationRepository.save(application);
 
         // Record status change
+        String statusComment = isReactivation ? 
+            "Application accepted and tutor account reactivated" : 
+            "Application accepted and tutor account created";
         recordStatusChange(application, oldStatus, TutorApplication.ApplicationStatus.ACCEPTED, 
-                "Application accepted and tutor account created", acceptedBy);
+                statusComment, acceptedBy);
 
         // Send welcome email with credentials
         try {
@@ -485,12 +540,14 @@ public class RecruitmentService {
                     application.getFirstName(),
                     tempPassword
             );
-            log.info("Tutor account created email sent to: {}", application.getEmail());
+            log.info("Tutor account {} email sent to: {}", 
+                isReactivation ? "reactivated" : "created", application.getEmail());
         } catch (Exception e) {
-            log.error("Failed to send tutor account created email", e);
+            log.error("Failed to send tutor account email", e);
         }
 
-        log.info("Application {} accepted and tutor account created by user {}", applicationId, acceptedBy);
+        log.info("Application {} accepted and tutor account {} by user {}", 
+            applicationId, isReactivation ? "reactivated" : "created", acceptedBy);
         return ApplicationResponse.fromEntity(saved);
     }
 

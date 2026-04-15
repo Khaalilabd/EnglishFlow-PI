@@ -1,0 +1,120 @@
+﻿<div class="refund-history-container">
+  <div class="page-header">
+    <h1>Refund History</h1>
+    <button class="btn btn-primary" (click)="requestNewRefund()">
+      <i class="fas fa-plus"></i> Request New Refund
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-error">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ errorMessage }}
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading your refund history...</p>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && refunds.length === 0" class="empty-state">
+    <i class="fas fa-history"></i>
+    <h3>No Refund Requests</h3>
+    <p>You haven't requested any refunds yet.</p>
+    <button class="btn btn-primary" (click)="requestNewRefund()">
+      Request a Refund
+    </button>
+  </div>
+
+  <!-- Refund List -->
+  <div *ngIf="!loading && refunds.length > 0" class="refunds-list">
+    <div *ngFor="let refund of refunds" class="refund-card">
+      <div class="refund-header">
+        <div class="refund-info">
+          <h3>{{ refund.itemName }}</h3>
+          <span class="item-type-badge" [class.course]="refund.itemType === 'COURSE'" [class.pack]="refund.itemType === 'PACK'">
+            {{ refund.itemType }}
+          </span>
+        </div>
+        <div class="refund-amount">
+          <span class="amount">{{ refund.amount }} TND</span>
+        </div>
+      </div>
+
+      <div class="refund-details">
+        <div class="detail-row">
+          <span class="label">Order ID:</span>
+          <span class="value">{{ refund.orderId }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Request Date:</span>
+          <span class="value">{{ formatDate(refund.requestedAt) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="label">Status:</span>
+          <span class="value">
+            <span class="status-badge" [ngClass]="getStatusClass(refund.status)">
+              {{ refund.status }}
+            </span>
+          </span>
+        </div>
+        <div *ngIf="refund.reason" class="detail-row">
+          <span class="label">Reason:</span>
+          <span class="value">{{ refund.reason }}</span>
+        </div>
+        <div *ngIf="refund.rejectionReason" class="detail-row">
+          <span class="label">Rejection Reason:</span>
+          <span class="value rejection-reason">{{ refund.rejectionReason }}</span>
+        </div>
+        <div *ngIf="refund.completedAt" class="detail-row">
+          <span class="label">Completed At:</span>
+          <span class="value">{{ formatDate(refund.completedAt) }}</span>
+        </div>
+      </div>
+
+      <div *ngIf="refund.status === 'PENDING'" class="refund-actions">
+        <p class="info-text">
+          <i class="fas fa-info-circle"></i>
+          Your refund request is being reviewed by an administrator.
+        </p>
+      </div>
+
+      <div *ngIf="refund.status === 'APPROVED'" class="refund-actions">
+        <p class="info-text success">
+          <i class="fas fa-check-circle"></i>
+          Your refund has been approved and is being processed.
+        </p>
+      </div>
+
+      <div *ngIf="refund.status === 'PROCESSING'" class="refund-actions">
+        <p class="info-text">
+          <i class="fas fa-spinner fa-spin"></i>
+          Your refund is being processed with the payment gateway.
+        </p>
+      </div>
+
+      <div *ngIf="refund.status === 'COMPLETED'" class="refund-actions">
+        <p class="info-text success">
+          <i class="fas fa-check-circle"></i>
+          Your refund has been completed successfully.
+        </p>
+      </div>
+
+      <div *ngIf="refund.status === 'REJECTED'" class="refund-actions">
+        <p class="info-text error">
+          <i class="fas fa-times-circle"></i>
+          Your refund request was rejected.
+        </p>
+      </div>
+
+      <div *ngIf="refund.status === 'FAILED'" class="refund-actions">
+        <p class="info-text error">
+          <i class="fas fa-exclamation-triangle"></i>
+          Refund processing failed. Please contact support.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

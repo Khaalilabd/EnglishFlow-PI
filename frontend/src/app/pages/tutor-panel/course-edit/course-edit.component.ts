@@ -7,6 +7,7 @@ import { CourseCategory } from '../../../core/models/course-category.model';
 import { CourseService } from '../../../core/services/course.service';
 import { CourseCategoryService } from '../../../core/services/course-category.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-course-edit',
@@ -72,7 +73,7 @@ export class CourseEditComponent implements OnInit {
         this.course = course;
         // Construct full URL for thumbnail if it exists
         if (course.thumbnailUrl && !course.thumbnailUrl.startsWith('http')) {
-          this.thumbnailPreview = `http://localhost:8088/api${course.thumbnailUrl}`;
+          this.thumbnailPreview = `${environment.apiUrl}${course.thumbnailUrl}`;
         } else {
           this.thumbnailPreview = course.thumbnailUrl || null;
         }

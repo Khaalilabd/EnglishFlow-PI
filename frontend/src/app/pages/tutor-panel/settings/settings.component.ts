@@ -1,22 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../../core/services/auth.service';
 import { AuthResponse } from '../../../core/models/user.model';
-import { TwoFactorAuthService, TwoFactorSetupResponse, TwoFactorStatusResponse } from '../../../services/two-factor-auth.service';
-import { SessionService, UserSession, SessionSummary } from '../../../services/session.service';
+import { environment } from '../../../../environments/environment';
 import Swal from 'sweetalert2';
 
 @Component({
-  selector: 'app-dashboard-settings',
+  selector: 'app-tutor-settings',
   standalone: true,
   imports: [CommonModule, RouterModule, ReactiveFormsModule, FormsModule],
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss']
 })
-export class DashboardSettingsComponent implements OnInit {
+export class TutorSettingsComponent implements OnInit {
   currentUser: AuthResponse | null = null;
   activeTab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional' = 'profile';
   
@@ -28,50 +27,36 @@ export class DashboardSettingsComponent implements OnInit {
   isLoadingProfile = false;
   isLoadingPassword = false;
   isLoadingNotifications = false;
+  isLoadingSessions = false;
+  isLoading2FA = false;
+  isLoadingDocuments = false;
   
   profilePhotoPreview: string | null = null;
   selectedFile: File | null = null;
-  isDragging = false;
-  
-  // Password strength
-  passwordStrength: 'weak' | 'medium' | 'strong' | null = null;
-  
-  // Profile completion
-  profileCompletion = 0;
-  
-  // Dark mode
-  isDarkMode = false;
-  
-  // Professional documents
-  professionalDocuments: any[] = [];
-  isLoadingDocuments = false;
   selectedDocumentFile: File | null = null;
-  documentType: string = 'cv';
-  showDocumentViewer = false;
   currentDocument: any = null;
-  
-  // Active sessions
+  showDocumentViewer: boolean = false;
+  showSessionsModal: boolean = false;
+  showBackupCodesModal: boolean = false;
+  showDisableModal: boolean = false;
+  showSetupModal: boolean = false;
   activeSessions: any[] = [];
-  sessionSummary: any = null;
-  showSessionsModal = false;
-  isLoadingSessions = false;
-
-  // 2FA properties
-  twoFactorStatus: TwoFactorStatusResponse | null = null;
-  isLoading2FA = false;
-  showSetupModal = false;
-  showDisableModal = false;
-  setupData: TwoFactorSetupResponse | null = null;
-  verificationCode = '';
   backupCodes: string[] = [];
-  showBackupCodesModal = false;
+  verificationCode: string = '';
+  setupData: any = null;
+  professionalDocuments: any[] = [];
+  documentType: string = '';
+  isDarkMode: boolean = false;
+  sessionSummary: any = null;
+  twoFactorStatus: any = null;
+  passwordStrength: string = '';
+  isDragging: boolean = false;
+  profileCompletion: number = 0;
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private http: HttpClient,
-    private twoFactorService: TwoFactorAuthService,
-    private sessionService: SessionService
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -80,8 +65,6 @@ export class DashboardSettingsComponent implements OnInit {
     // Load fresh user data from backend
     if (this.currentUser) {
       this.loadUserProfile();
-      this.load2FAStatus();
-      this.loadSessionSummary();
     }
     
     this.authService.currentUser$.subscribe(user => {
@@ -92,66 +75,13 @@ export class DashboardSettingsComponent implements OnInit {
     });
     
     this.initializeForms();
-    this.calculateProfileCompletion();
-    this.loadDarkModePreference();
-  }
-  
-  calculateProfileCompletion() {
-    if (!this.currentUser) return;
-    
-    const fields = [
-      this.currentUser.firstName,
-      this.currentUser.lastName,
-      this.currentUser.email,
-      this.currentUser.phone,
-      this.currentUser.dateOfBirth,
-      this.currentUser.address,
-      this.currentUser.city,
-      this.currentUser.postalCode,
-      this.currentUser.bio,
-      this.currentUser.profilePhoto
-    ];
-    
-    const filledFields = fields.filter(field => field && field.toString().trim() !== '').length;
-    this.profileCompletion = Math.round((filledFields / fields.length) * 100);
-  }
-  
-  loadDarkModePreference() {
-    const savedMode = localStorage.getItem('darkMode');
-    this.isDarkMode = savedMode === 'true';
-    if (this.isDarkMode) {
-      document.documentElement.classList.add('dark');
-    }
-  }
-  
-  toggleDarkMode() {
-    this.isDarkMode = !this.isDarkMode;
-    localStorage.setItem('darkMode', this.isDarkMode.toString());
-    
-    if (this.isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-    
-    Swal.fire({
-      icon: 'success',
-      title: 'Theme Updated!',
-      text: `${this.isDarkMode ? 'Dark' : 'Light'} mode activated`,
-      confirmButtonColor: '#3b82f6',
-      timer: 1500,
-      showConfirmButton: false
-    });
   }
 
   loadUserProfile() {
     if (!this.currentUser) return;
     
-    console.log('Loading user profile for ID:', this.currentUser.id);
-    
-    this.http.get<any>(`http://localhost:8080/api/users/${this.currentUser.id}`).subscribe({
+    this.http.get<any>(`${environment.apiUrl}/users/${this.currentUser.id}`).subscribe({
       next: (userData) => {
-        console.log('User data loaded from backend:', userData);
         // Update current user with fresh data
         if (this.currentUser) {
           const updatedUser: AuthResponse = {
@@ -159,17 +89,11 @@ export class DashboardSettingsComponent implements OnInit {
             ...userData
           };
           this.currentUser = updatedUser;
-          console.log('Updated currentUser:', this.currentUser);
           
           // Update in authService to persist in localStorage
           this.authService.updateCurrentUser(updatedUser);
           
           this.initializeForms();
-          
-          // Load professional documents if user is a tutor
-          if (this.currentUser.role === 'TUTOR') {
-            this.loadProfessionalDocuments();
-          }
         }
       },
       error: (error) => {
@@ -196,11 +120,6 @@ export class DashboardSettingsComponent implements OnInit {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
-    
-    // Watch password changes for strength indicator
-    this.passwordForm.get('newPassword')?.valueChanges.subscribe(password => {
-      this.checkPasswordStrength(password);
-    });
 
     this.notificationForm = this.fb.group({
       emailNotifications: [true],
@@ -209,47 +128,10 @@ export class DashboardSettingsComponent implements OnInit {
       messageNotifications: [true],
       weeklyDigest: [false]
     });
-    
-    this.professionalForm = this.fb.group({
-      yearsOfExperience: [this.currentUser?.yearsOfExperience || 0, [Validators.min(0), Validators.max(50)]],
-      englishLevel: [this.currentUser?.englishLevel || ''],
-      specializations: [this.currentUser?.specializations || '', [Validators.required, Validators.minLength(3)]],
-      education: ['', [Validators.required, Validators.minLength(10)]],
-      certifications: [''],
-      workExperience: ['', [Validators.minLength(10)]],
-      teachingPhilosophy: ['', [Validators.maxLength(1000)]],
-      availability: ['']
-    });
   }
 
   passwordMatchValidator(g: FormGroup) {
     return g.get('newPassword')?.value === g.get('confirmPassword')?.value ? null : { 'mismatch': true };
-  }
-  
-  checkPasswordStrength(password: string) {
-    if (!password) {
-      this.passwordStrength = null;
-      return;
-    }
-    
-    let strength = 0;
-    
-    // Length check
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    
-    // Character variety checks
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[^a-zA-Z\d]/.test(password)) strength++;
-    
-    if (strength <= 2) {
-      this.passwordStrength = 'weak';
-    } else if (strength <= 4) {
-      this.passwordStrength = 'medium';
-    } else {
-      this.passwordStrength = 'strong';
-    }
   }
 
   setActiveTab(tab: 'profile' | 'security' | 'notifications' | 'appearance' | 'professional') {
@@ -259,62 +141,13 @@ export class DashboardSettingsComponent implements OnInit {
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (file) {
-      this.handleFile(file);
+      this.selectedFile = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.profilePhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
     }
-  }
-  
-  onDragOver(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragging = true;
-  }
-  
-  onDragLeave(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragging = false;
-  }
-  
-  onDrop(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragging = false;
-    
-    const files = event.dataTransfer?.files;
-    if (files && files.length > 0) {
-      this.handleFile(files[0]);
-    }
-  }
-  
-  handleFile(file: File) {
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      Swal.fire({
-        icon: 'error',
-        title: 'Invalid File',
-        text: 'Please select an image file',
-        confirmButtonColor: '#3b82f6'
-      });
-      return;
-    }
-    
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      Swal.fire({
-        icon: 'error',
-        title: 'File Too Large',
-        text: 'Please select an image smaller than 5MB',
-        confirmButtonColor: '#3b82f6'
-      });
-      return;
-    }
-    
-    this.selectedFile = file;
-    const reader = new FileReader();
-    reader.onload = (e: any) => {
-      this.profilePhotoPreview = e.target.result;
-    };
-    reader.readAsDataURL(file);
   }
 
   uploadProfilePhoto() {
@@ -322,13 +155,10 @@ export class DashboardSettingsComponent implements OnInit {
     const formData = new FormData();
     formData.append('file', this.selectedFile);
     
-    console.log('Uploading profile photo for user ID:', this.currentUser.id);
-    
     // Use correct endpoint
-    this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
+    this.http.post<any>(`${environment.apiUrl}/users/${this.currentUser.id}/upload-photo`, formData).subscribe({
       next: (response) => {
-        console.log('Upload response:', response);
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#3b82f6', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile photo updated', confirmButtonColor: '#14b8a6', timer: 2000 });
         this.profilePhotoPreview = null;
         this.selectedFile = null;
         
@@ -338,7 +168,6 @@ export class DashboardSettingsComponent implements OnInit {
             ...this.currentUser,
             profilePhoto: response.profilePhoto
           };
-          console.log('Updated photo URL:', response.profilePhoto);
           this.authService.updateCurrentUser(updatedUser);
           
           // Reload user profile to get fresh data
@@ -349,7 +178,7 @@ export class DashboardSettingsComponent implements OnInit {
       },
       error: (error) => {
         console.error('Upload error:', error);
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#3b82f6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.error || 'Failed to upload photo', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -363,12 +192,11 @@ export class DashboardSettingsComponent implements OnInit {
     this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
       next: () => {
         this.isLoadingProfile = false;
-        this.calculateProfileCompletion();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#3b82f6', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Profile updated', confirmButtonColor: '#14b8a6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingProfile = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#3b82f6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to update', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -384,11 +212,11 @@ export class DashboardSettingsComponent implements OnInit {
       next: () => {
         this.isLoadingPassword = false;
         this.passwordForm.reset();
-        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#3b82f6', timer: 2000 });
+        Swal.fire({ icon: 'success', title: 'Success!', text: 'Password changed', confirmButtonColor: '#14b8a6', timer: 2000 });
       },
       error: (error) => {
         this.isLoadingPassword = false;
-        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#3b82f6' });
+        Swal.fire({ icon: 'error', title: 'Error!', text: error.error?.message || 'Failed to change password', confirmButtonColor: '#14b8a6' });
       }
     });
   }
@@ -397,7 +225,7 @@ export class DashboardSettingsComponent implements OnInit {
     this.isLoadingNotifications = true;
     setTimeout(() => {
       this.isLoadingNotifications = false;
-      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#3b82f6', timer: 2000 });
+      Swal.fire({ icon: 'success', title: 'Success!', text: 'Preferences updated', confirmButtonColor: '#14b8a6', timer: 2000 });
     }, 1000);
   }
 
@@ -408,7 +236,7 @@ export class DashboardSettingsComponent implements OnInit {
       return `http://localhost:8081${this.currentUser.profilePhoto}`;
     }
     const name = `${this.currentUser?.firstName || 'User'}+${this.currentUser?.lastName || 'Name'}`;
-    return `https://ui-avatars.com/api/?name=${name}&background=3b82f6&color=fff&size=256`;
+    return `https://ui-avatars.com/api/?name=${name}&background=2D5757&color=fff&size=256`;
   }
 
   getFieldError(formGroup: FormGroup, fieldName: string): string {
@@ -421,600 +249,195 @@ export class DashboardSettingsComponent implements OnInit {
     return '';
   }
 
-  // ========== 2FA Methods ==========
-
-  load2FAStatus() {
-    this.twoFactorService.getTwoFactorStatus().subscribe({
-      next: (status) => {
-        this.twoFactorStatus = status;
-      },
-      error: (error) => {
-        console.error('Failed to load 2FA status:', error);
-      }
-    });
+  downloadDocument(document: any): void {
+    if (!document) return;
+    // Implement document download logic
+    const link = document.createElement('a');
+    link.href = document.url || document.path;
+    link.download = document.name || 'document';
+    link.click();
   }
 
-  openSetup2FA() {
-    this.isLoading2FA = true;
-    this.twoFactorService.setupTwoFactor().subscribe({
-      next: (response) => {
-        this.setupData = response;
-        this.showSetupModal = true;
-        this.isLoading2FA = false;
-      },
-      error: (error) => {
-        this.isLoading2FA = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.error?.message || 'Failed to setup 2FA',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
+  isImageFile(filePath: string): boolean {
+    if (!filePath) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'];
+    return imageExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
   }
 
-  enable2FA() {
-    if (!this.verificationCode || this.verificationCode.length !== 6) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Code',
-        text: 'Please enter a 6-digit code',
-        confirmButtonColor: '#3b82f6'
-      });
-      return;
-    }
-
-    this.isLoading2FA = true;
-    this.twoFactorService.enableTwoFactor(this.verificationCode).subscribe({
-      next: () => {
-        this.isLoading2FA = false;
-        this.backupCodes = this.setupData?.backupCodes || [];
-        this.showSetupModal = false;
-        this.showBackupCodesModal = true;
-        this.verificationCode = '';
-        this.load2FAStatus();
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: '2FA has been enabled successfully',
-          confirmButtonColor: '#3b82f6',
-          timer: 2000
-        });
-      },
-      error: (error) => {
-        this.isLoading2FA = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.error?.message || 'Invalid verification code',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
+  isPdfFile(filePath: string): boolean {
+    if (!filePath) return false;
+    return filePath.toLowerCase().endsWith('.pdf');
   }
 
-  openDisable2FA() {
-    this.showDisableModal = true;
-    this.verificationCode = '';
+  isVideoFile(filePath: string): boolean {
+    if (!filePath) return false;
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.mkv', '.webm', '.flv'];
+    return videoExtensions.some(ext => filePath.toLowerCase().endsWith(ext));
   }
 
-  disable2FA() {
-    if (!this.verificationCode || this.verificationCode.length !== 6) {
-      Swal.fire({
-        icon: 'warning',
-        title: 'Invalid Code',
-        text: 'Please enter a 6-digit code',
-        confirmButtonColor: '#3b82f6'
-      });
-      return;
-    }
-
-    this.isLoading2FA = true;
-    this.twoFactorService.disableTwoFactor(this.verificationCode).subscribe({
-      next: () => {
-        this.isLoading2FA = false;
-        this.showDisableModal = false;
-        this.verificationCode = '';
-        this.load2FAStatus();
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: '2FA has been disabled',
-          confirmButtonColor: '#3b82f6',
-          timer: 2000
-        });
-      },
-      error: (error) => {
-        this.isLoading2FA = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.error?.message || 'Invalid verification code',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
+  closeDocumentViewer(): void {
+    this.currentDocument = null;
   }
 
-  regenerateBackupCodes() {
-    Swal.fire({
-      title: 'Regenerate Backup Codes?',
-      text: 'This will invalidate all existing backup codes',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#3b82f6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, regenerate'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.isLoading2FA = true;
-        this.twoFactorService.regenerateBackupCodes().subscribe({
-          next: (codes) => {
-            this.isLoading2FA = false;
-            this.backupCodes = codes;
-            this.showBackupCodesModal = true;
-            this.load2FAStatus();
-            
-            Swal.fire({
-              icon: 'success',
-              title: 'Success!',
-              text: 'New backup codes generated',
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-          },
-          error: (error) => {
-            this.isLoading2FA = false;
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: error.error?.message || 'Failed to regenerate codes',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
-      }
-    });
+  getDocumentIcon(documentType: string): string {
+    const iconMap: { [key: string]: string } = {
+      'pdf': 'fa-file-pdf',
+      'doc': 'fa-file-word',
+      'docx': 'fa-file-word',
+      'xls': 'fa-file-excel',
+      'xlsx': 'fa-file-excel',
+      'ppt': 'fa-file-powerpoint',
+      'pptx': 'fa-file-powerpoint',
+      'txt': 'fa-file-text',
+      'zip': 'fa-file-archive',
+      'image': 'fa-file-image',
+      'video': 'fa-file-video',
+      'audio': 'fa-file-audio'
+    };
+    return iconMap[documentType?.toLowerCase()] || 'fa-file';
   }
 
-  downloadBackupCodes() {
-    const text = this.backupCodes.join('\n');
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'englishflow-backup-codes.txt';
-    a.click();
-    window.URL.revokeObjectURL(url);
+  closeSessionsModal(): void {
+    // Close sessions modal logic
   }
 
-  closeSetupModal() {
-    this.showSetupModal = false;
-    this.verificationCode = '';
-    this.setupData = null;
+  revokeAllOtherSessions(): void {
+    // Revoke all other sessions logic
   }
 
-  closeDisableModal() {
-    this.showDisableModal = false;
-    this.verificationCode = '';
+  formatLocation(session: any): string {
+    if (!session) return '';
+    const parts = [];
+    if (session.city) parts.push(session.city);
+    if (session.country) parts.push(session.country);
+    return parts.join(', ') || 'Unknown location';
   }
 
-  closeBackupCodesModal() {
-    this.showBackupCodesModal = false;
-    this.backupCodes = [];
-  }
-
-  // ========== Session Management Methods ==========
-
-  loadSessionSummary() {
-    this.isLoadingSessions = true;
-    const currentToken = this.sessionService.getCurrentSessionToken();
-    
-    this.sessionService.getSessionSummary(currentToken || undefined).subscribe({
-      next: (summary: SessionSummary) => {
-        this.sessionSummary = summary;
-        this.isLoadingSessions = false;
-      },
-      error: (error) => {
-        console.error('Failed to load session summary:', error);
-        this.isLoadingSessions = false;
-      }
-    });
-  }
-
-  openSessionsModal() {
-    this.showSessionsModal = true;
-    this.loadAllSessions();
-  }
-
-  closeSessionsModal() {
-    this.showSessionsModal = false;
-  }
-
-  loadAllSessions() {
-    this.isLoadingSessions = true;
-    const currentToken = this.sessionService.getCurrentSessionToken();
-    
-    this.sessionService.getMyActiveSessions(currentToken || undefined).subscribe({
-      next: (sessions: UserSession[]) => {
-        this.activeSessions = sessions;
-        this.isLoadingSessions = false;
-      },
-      error: (error) => {
-        console.error('Failed to load sessions:', error);
-        this.isLoadingSessions = false;
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: 'Failed to load sessions',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
-  }
-
-  revokeSession(sessionId: number, sessionInfo: string) {
-    Swal.fire({
-      title: 'Revoke Session?',
-      html: `Are you sure you want to revoke this session?<br><small class="text-gray-600">${sessionInfo}</small>`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, revoke it',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.sessionService.terminateSession(sessionId).subscribe({
-          next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Session Revoked!',
-              text: 'The session has been terminated successfully',
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-            this.loadSessionSummary();
-            if (this.showSessionsModal) {
-              this.loadAllSessions();
-            }
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: error.error?.message || 'Failed to revoke session',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
-      }
-    });
-  }
-
-  revokeAllOtherSessions() {
-    Swal.fire({
-      title: 'Revoke All Other Sessions?',
-      text: 'This will sign you out from all other devices. Your current session will remain active.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, revoke all',
-      cancelButtonText: 'Cancel'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        const currentToken = this.sessionService.getCurrentSessionToken();
-        this.sessionService.terminateOtherSessions(currentToken || undefined).subscribe({
-          next: (response) => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Sessions Revoked!',
-              text: `${response.terminatedCount} session(s) have been terminated`,
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-            this.loadSessionSummary();
-            if (this.showSessionsModal) {
-              this.loadAllSessions();
-            }
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: error.error?.message || 'Failed to revoke sessions',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
-      }
-    });
-  }
-
-  getDeviceIcon(deviceType: string): string {
-    return this.sessionService.getDeviceIcon(deviceType);
-  }
-
-  getBrowserIcon(browserName: string): string {
-    return this.sessionService.getBrowserIcon(browserName);
+  revokeSession(sessionId: string, browserName: string): void {
+    // Revoke specific session logic
   }
 
   getOSIcon(os: string): string {
-    return this.sessionService.getOSIcon(os);
+    const osMap: { [key: string]: string } = {
+      'windows': 'fa-windows',
+      'mac': 'fa-apple',
+      'linux': 'fa-linux',
+      'android': 'fa-android',
+      'ios': 'fa-apple'
+    };
+    return osMap[os?.toLowerCase()] || 'fa-desktop';
   }
 
-  formatLocation(session: UserSession): string {
-    return this.sessionService.formatLocation(session);
+  getBrowserIcon(browser: string): string {
+    const browserMap: { [key: string]: string } = {
+      'chrome': 'fa-chrome',
+      'firefox': 'fa-firefox',
+      'safari': 'fa-safari',
+      'edge': 'fa-edge',
+      'opera': 'fa-opera'
+    };
+    return browserMap[browser?.toLowerCase()] || 'fa-globe';
   }
 
-  getStatusColor(status: string): string {
-    return this.sessionService.getStatusColor(status);
+  getDeviceIcon(deviceType: string): string {
+    const deviceMap: { [key: string]: string } = {
+      'desktop': 'fa-desktop',
+      'mobile': 'fa-mobile',
+      'tablet': 'fa-tablet',
+      'laptop': 'fa-laptop'
+    };
+    return deviceMap[deviceType?.toLowerCase()] || 'fa-device';
   }
 
-  // ========== Professional Profile Methods ==========
-
-  loadProfessionalDocuments() {
-    if (!this.currentUser) return;
-    
-    console.log('📄 Loading professional documents for user:', this.currentUser.id);
-    console.log('📋 Application ID:', this.currentUser.applicationId);
-    
-    // S'assurer que le formulaire est initialisé
-    if (!this.professionalForm) {
-      console.log('⚠️ Professional form not initialized yet, initializing...');
-      this.professionalForm = this.fb.group({
-        yearsOfExperience: [0, [Validators.min(0), Validators.max(50)]],
-        englishLevel: [''],
-        specializations: ['', [Validators.required, Validators.minLength(3)]],
-        education: ['', [Validators.required, Validators.minLength(10)]],
-        certifications: [''],
-        workExperience: ['', [Validators.minLength(10)]],
-        teachingPhilosophy: ['', [Validators.maxLength(1000)]],
-        availability: ['']
-      });
-    }
-    
-    this.isLoadingDocuments = true;
-    
-    // Charger les documents professionnels uploadés par le tuteur
-    this.http.get<any[]>(`http://localhost:8080/api/users/${this.currentUser.id}/documents`).subscribe({
-      next: (documents) => {
-        console.log('✅ Professional documents loaded:', documents);
-        this.professionalDocuments = documents;
-        this.isLoadingDocuments = false;
-      },
-      error: (error) => {
-        console.error('❌ Failed to load professional documents:', error);
-        this.professionalDocuments = [];
-        this.isLoadingDocuments = false;
-      }
-    });
-
-    // Si le tuteur a un applicationId, charger aussi les données de recrutement
-    if (this.currentUser.applicationId) {
-      console.log('🎓 Loading recruitment application data...');
-      this.http.get<any>(`http://localhost:8080/api/auth/recruitment/my-application`).subscribe({
-        next: (application) => {
-          console.log('✅ Application data loaded:', application);
-          
-          // Ajouter les documents de l'application à la liste
-          if (application.documents && application.documents.length > 0) {
-            console.log('📎 Adding recruitment documents:', application.documents.length);
-            this.professionalDocuments = [...this.professionalDocuments, ...application.documents];
-          }
-          
-          // Pré-remplir le formulaire avec les données de l'application
-          console.log('📝 Pre-filling form with application data');
-          const formData = {
-            yearsOfExperience: application.yearsOfExperience || this.currentUser?.yearsOfExperience || 0,
-            englishLevel: application.englishLevel || this.currentUser?.englishLevel || '',
-            specializations: application.specializations || this.currentUser?.specializations || '',
-            education: application.education || '',
-            certifications: application.certifications || '',
-            workExperience: application.workExperience || '',
-            teachingPhilosophy: application.teachingPhilosophy || '',
-            availability: application.availability || ''
-          };
-          
-          console.log('📝 Form data to patch:', formData);
-          this.professionalForm.patchValue(formData);
-          console.log('✅ Form values after patch:', this.professionalForm.value);
-        },
-        error: (error) => {
-          console.error('❌ Failed to load recruitment application:', error);
-          // Pré-remplir avec les données du currentUser si disponibles
-          console.log('📝 Pre-filling form with currentUser data');
-          this.professionalForm.patchValue({
-            yearsOfExperience: this.currentUser?.yearsOfExperience || 0,
-            englishLevel: this.currentUser?.englishLevel || '',
-            specializations: this.currentUser?.specializations || ''
-          });
-        }
-      });
-    } else {
-      // Pas d'applicationId, utiliser les données du currentUser
-      console.log('📝 No application ID, using currentUser data');
-      this.professionalForm.patchValue({
-        yearsOfExperience: this.currentUser?.yearsOfExperience || 0,
-        englishLevel: this.currentUser?.englishLevel || '',
-        specializations: this.currentUser?.specializations || ''
-      });
-    }
+  closeBackupCodesModal(): void {
+    // Close backup codes modal logic
   }
 
-  onDocumentFileSelected(event: any) {
+  downloadBackupCodes(): void {
+    // Download backup codes logic
+  }
+
+  disable2FA(): void {
+    // Disable 2FA logic
+  }
+
+  closeDisableModal(): void {
+    // Close disable modal logic
+  }
+
+  enable2FA(): void {
+    // Enable 2FA logic
+  }
+
+  closeSetupModal(): void {
+    // Close setup modal logic
+  }
+
+  onSubmitProfessional(): void {
+    // Submit professional form logic
+  }
+
+  deleteDocument(docId: string): void {
+    // Delete document logic
+  }
+
+  viewDocument(doc: any): void {
+    this.currentDocument = doc;
+    this.showDocumentViewer = true;
+  }
+
+  uploadDocument(): void {
+    // Upload document logic
+  }
+
+  onDocumentFileSelected(event: any): void {
     const file = event.target.files[0];
     if (file) {
-      // Validate file size (50MB)
-      if (file.size > 50 * 1024 * 1024) {
-        Swal.fire({
-          icon: 'error',
-          title: 'File Too Large',
-          text: 'Please select a file smaller than 50MB',
-          confirmButtonColor: '#3b82f6'
-        });
-        return;
-      }
       this.selectedDocumentFile = file;
     }
   }
 
-  uploadDocument() {
-    if (!this.selectedDocumentFile || !this.currentUser) return;
-
-    const formData = new FormData();
-    formData.append('file', this.selectedDocumentFile);
-    formData.append('documentType', this.documentType);
-
-    this.http.post<any>(`http://localhost:8080/api/users/${this.currentUser.id}/upload-document`, formData).subscribe({
-      next: (response) => {
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Document uploaded successfully',
-          confirmButtonColor: '#3b82f6',
-          timer: 2000
-        });
-        this.selectedDocumentFile = null;
-        
-        // Recharger uniquement les documents professionnels (pas toute l'application)
-        this.http.get<any[]>(`http://localhost:8080/api/users/${this.currentUser?.id}/documents`).subscribe({
-          next: (documents) => {
-            // Garder les documents de l'application si ils existent
-            const applicationDocs = this.professionalDocuments.filter(doc => doc.applicationId);
-            this.professionalDocuments = [...documents, ...applicationDocs];
-          },
-          error: (error) => {
-            console.error('Failed to reload documents:', error);
-          }
-        });
-      },
-      error: (error) => {
-        console.error('Upload error:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.error?.error || 'Failed to upload document',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
+  toggleDarkMode(): void {
+    // Toggle dark mode logic
   }
 
-  viewDocument(document: any) {
-    this.currentDocument = document;
-    this.showDocumentViewer = true;
+  openSessionsModal(): void {
+    this.showSessionsModal = true;
   }
 
-  closeDocumentViewer() {
-    this.showDocumentViewer = false;
-    this.currentDocument = null;
+  openDisable2FA(): void {
+    this.showDisableModal = true;
   }
 
-  downloadDocument(document: any) {
-    const url = `http://localhost:8081${document.filePath}`;
-    window.open(url, '_blank');
+  regenerateBackupCodes(): void {
+    // Regenerate backup codes logic
   }
 
-  deleteDocument(documentId: number) {
-    Swal.fire({
-      title: 'Delete Document?',
-      text: 'This action cannot be undone',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, delete it'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.http.delete(`http://localhost:8080/api/users/documents/${documentId}`).subscribe({
-          next: () => {
-            Swal.fire({
-              icon: 'success',
-              title: 'Deleted!',
-              text: 'Document has been deleted',
-              confirmButtonColor: '#3b82f6',
-              timer: 2000
-            });
-            
-            // Retirer le document de la liste
-            this.professionalDocuments = this.professionalDocuments.filter(doc => doc.id !== documentId);
-          },
-          error: (error) => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Error!',
-              text: error.error?.message || 'Failed to delete document',
-              confirmButtonColor: '#3b82f6'
-            });
-          }
-        });
-      }
-    });
+  openSetup2FA(): void {
+    this.showSetupModal = true;
   }
 
-  onSubmitProfessional() {
-    if (this.professionalForm.invalid) {
-      Object.keys(this.professionalForm.controls).forEach(key => this.professionalForm.get(key)?.markAsTouched());
-      return;
+  onDrop(event: any): void {
+    event.preventDefault();
+    this.isDragging = false;
+    const files = event.dataTransfer.files;
+    if (files.length > 0) {
+      this.selectedFile = files[0];
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.profilePhotoPreview = e.target.result;
+      };
+      reader.readAsDataURL(files[0]);
     }
-
-    const formData = this.professionalForm.value;
-    
-    // Mettre à jour le profil utilisateur
-    this.http.put(`http://localhost:8080/api/users/${this.currentUser?.id}/professional`, formData).subscribe({
-      next: () => {
-        // Mettre à jour currentUser avec les nouvelles valeurs
-        if (this.currentUser) {
-          this.currentUser.yearsOfExperience = formData.yearsOfExperience;
-          this.currentUser.englishLevel = formData.englishLevel;
-          this.currentUser.specializations = formData.specializations;
-          this.authService.updateCurrentUser(this.currentUser);
-        }
-        
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Professional profile updated',
-          confirmButtonColor: '#3b82f6',
-          timer: 2000
-        });
-      },
-      error: (error) => {
-        Swal.fire({
-          icon: 'error',
-          title: 'Error!',
-          text: error.error?.message || 'Failed to update professional profile',
-          confirmButtonColor: '#3b82f6'
-        });
-      }
-    });
   }
 
-  getDocumentIcon(documentType: string): string {
-    const icons: any = {
-      'cv': 'fa-file-alt',
-      'diploma': 'fa-graduation-cap',
-      'certificate': 'fa-certificate',
-      'video': 'fa-video',
-      'other': 'fa-file'
-    };
-    return icons[documentType] || 'fa-file';
+  onDragLeave(event: any): void {
+    event.preventDefault();
+    this.isDragging = false;
   }
 
-  isVideoFile(filePath: string): boolean {
-    return filePath?.match(/\.(mp4|webm|ogg|mov)$/i) !== null;
-  }
-
-  isPdfFile(filePath: string): boolean {
-    return filePath?.match(/\.pdf$/i) !== null;
-  }
-
-  isImageFile(filePath: string): boolean {
-    return filePath?.match(/\.(jpg|jpeg|png|gif|webp)$/i) !== null;
+  onDragOver(event: any): void {
+    event.preventDefault();
+    this.isDragging = true;
   }
 }

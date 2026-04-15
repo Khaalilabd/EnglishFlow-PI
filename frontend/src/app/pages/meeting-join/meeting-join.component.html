@@ -1,0 +1,120 @@
+﻿<div class="meeting-container">
+  <!-- Preview Screen -->
+  <div class="preview-screen" *ngIf="showPreview">
+    <div class="preview-card">
+      <h1 class="preview-title">Join Meeting</h1>
+      
+      <div class="video-preview-container">
+        <video #previewVideo class="preview-video" autoplay playsinline></video>
+        <div class="preview-overlay" *ngIf="!previewStream">
+          <div class="spinner"></div>
+          <p>Loading camera...</p>
+        </div>
+      </div>
+
+      <div class="join-form">
+        <div class="form-group">
+          <label>Your Name</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            [(ngModel)]="userName" 
+            placeholder="Enter your name"
+            (keyup.enter)="joinMeeting()"
+          />
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="error">
+        {{ error }}
+      </div>
+
+      <button class="btn-join" (click)="joinMeeting()" [disabled]="!userName.trim()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+        Join Meeting
+      </button>
+
+      <p class="room-info">Room: {{ roomId }}</p>
+    </div>
+  </div>
+
+  <!-- Meeting Screen -->
+  <div class="meeting-screen" *ngIf="joined">
+    <!-- Header -->
+    <div class="meeting-header">
+      <div class="meeting-info">
+        <h2 class="meeting-title">{{ roomId }}</h2>
+        <div class="connection-status" [class.connected]="connectionStatus === 'connected'">
+          <span class="status-dot"></span>
+          {{ connectionStatus }}
+        </div>
+      </div>
+      <button class="btn-leave" (click)="leaveMeeting()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+        </svg>
+        Leave
+      </button>
+    </div>
+
+    <!-- Video Grid -->
+    <div class="video-grid">
+      <!-- Remote Video (Tutor) -->
+      <div class="video-container main-video">
+        <video #remoteVideo class="video-element" autoplay playsinline></video>
+        <div class="video-overlay" *ngIf="peers.size === 0">
+          <div class="spinner"></div>
+          <p>Waiting for tutor...</p>
+        </div>
+        <div class="video-label">
+          <span class="participant-name">Tutor</span>
+        </div>
+      </div>
+
+      <!-- Local Video (Student - Picture in Picture) -->
+      <div class="video-container local-video">
+        <video #localVideo class="video-element" autoplay playsinline muted></video>
+        <div class="video-disabled-overlay" *ngIf="!videoEnabled">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 00-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409" />
+          </svg>
+        </div>
+        <div class="video-label">
+          <span class="participant-name">You</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+      <div class="controls-group">
+        <button class="control-btn" [class.disabled]="!audioEnabled" (click)="toggleAudio()">
+          <svg *ngIf="audioEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
+          </svg>
+          <svg *ngIf="!audioEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3zM19.5 12c0 .621-.504 1.125-1.125 1.125M4.5 12c0 .621.504 1.125 1.125 1.125m0 0c.621 0 1.125-.504 1.125-1.125M5.625 13.125c.621 0 1.125-.504 1.125-1.125m0 0V9m0 3v3m6.75-6v6" />
+          </svg>
+          <span class="control-label">{{ audioEnabled ? 'Mute' : 'Unmute' }}</span>
+        </button>
+
+        <button class="control-btn" [class.disabled]="!videoEnabled" (click)="toggleVideo()">
+          <svg *ngIf="videoEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+          </svg>
+          <svg *ngIf="!videoEnabled" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M12 18.75H4.5a2.25 2.25 0 01-2.25-2.25V9m12.841 9.091L16.5 19.5m-1.409-1.409c.407-.407.659-.97.659-1.591v-9a2.25 2.25 0 00-2.25-2.25h-9c-.621 0-1.184.252-1.591.659m12.182 12.182L2.909 5.909M1.5 4.5l1.409 1.409" />
+          </svg>
+          <span class="control-label">{{ videoEnabled ? 'Stop Video' : 'Start Video' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" *ngIf="error && joined">
+      {{ error }}
+    </div>
+  </div>
+</div>

@@ -77,6 +77,9 @@ public class User {
     @Column(nullable = false)
     private boolean profileCompleted = false; // For OAuth2 users who need to complete their profile
 
+    @Column(nullable = false)
+    private boolean mustChangePassword = false; // Force password change on first login
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

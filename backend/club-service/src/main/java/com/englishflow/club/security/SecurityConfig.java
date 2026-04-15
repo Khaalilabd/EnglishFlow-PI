@@ -40,11 +40,11 @@ public class SecurityConfig {
                 .requestMatchers("/ws/**").permitAll()
                 
                 // Admin-only endpoints (approval workflow)
-                .requestMatchers(HttpMethod.GET, "/clubs/pending").hasAnyRole("ADMIN", "ACADEMIC_MANAGER")
-                .requestMatchers(HttpMethod.POST, "/clubs/{id}/approve").hasAnyRole("ADMIN", "ACADEMIC_MANAGER")
-                .requestMatchers(HttpMethod.POST, "/clubs/{id}/reject").hasAnyRole("ADMIN", "ACADEMIC_MANAGER")
-                .requestMatchers(HttpMethod.POST, "/clubs/{id}/suspend").hasAnyRole("ADMIN", "ACADEMIC_MANAGER")
-                .requestMatchers(HttpMethod.POST, "/clubs/{id}/activate").hasAnyRole("ADMIN", "ACADEMIC_MANAGER")
+                .requestMatchers(HttpMethod.GET, "/clubs/pending").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
+                .requestMatchers(HttpMethod.POST, "/clubs/{id}/approve").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
+                .requestMatchers(HttpMethod.POST, "/clubs/{id}/reject").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
+                .requestMatchers(HttpMethod.POST, "/clubs/{id}/suspend").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
+                .requestMatchers(HttpMethod.POST, "/clubs/{id}/activate").hasAnyRole("ADMIN", "ACADEMIC_OFFICE_AFFAIR")
                 
                 // Write operations - require authentication
                 .requestMatchers(HttpMethod.POST, "/clubs").authenticated()

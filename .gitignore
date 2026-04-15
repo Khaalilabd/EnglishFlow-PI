@@ -14,6 +14,12 @@
 # Frontend - Angular
 /frontend/.angular/cache
 
+# Backend - Node.js (WebRTC Signaling)
+/backend/webrtc-signaling/node_modules
+/backend/webrtc-signaling/npm-debug.log
+/backend/webrtc-signaling/yarn-error.log
+/backend/webrtc-signaling/package-lock.json
+
 # Backend - Maven
 /backend/**/target/
 /backend/**/.mvn/

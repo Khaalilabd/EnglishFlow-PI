@@ -87,6 +87,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
     title: 'Live Session | Jungle in English'
   },
+
+  // Meeting Room - Standalone (no sidebar, full screen) for online lessons
+  {
+    path: 'meeting/:roomId',
+    loadComponent: () => import('./pages/tutor-panel/instant-meeting/instant-meeting.component').then(m => m.InstantMeetingComponent),
+    canActivate: [authGuard],
+    title: 'Meeting Room | Jungle in English'
+  },
+
+  // Join Meeting - Standalone (no sidebar, full screen) for students joining online lessons
+  {
+    path: 'join/:roomId',
+    loadComponent: () => import('./pages/meeting-join/meeting-join.component').then(m => m.MeetingJoinComponent),
+    canActivate: [authGuard],
+    title: 'Join Meeting | Jungle in English'
+  },
   
   // Student Panel avec layout et sidebar - Protégé pour STUDENT uniquement
   {
@@ -326,7 +342,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.DashboardSettingsComponent),
+        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.StudentSettingsComponent),
         title: 'Settings | Jungle in English'
       },
       {
@@ -450,7 +466,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/tutor-panel/settings/settings.component').then(m => m.DashboardSettingsComponent),
+        loadComponent: () => import('./pages/tutor-panel/settings/settings.component').then(m => m.TutorSettingsComponent),
         title: 'Settings | Jungle in English'
       },
       {
@@ -566,7 +582,7 @@ export const routes: Routes = [
   {
     path: 'reset-password',
     component: ResetPasswordComponent,
-    canActivate: [guestGuard],
+    // No guard - accessible by both guests (with token) and authenticated users (first login)
     title: 'Reset Password | Jungle in English'
   },
   {
@@ -630,7 +646,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.DashboardSettingsComponent),
+        loadComponent: () => import('./pages/dashboard/settings/settings.component').then(m => m.AdminSettingsComponent),
         title: 'Settings Profile | Jungle in English Dashboard'
       },
       {
@@ -687,6 +703,11 @@ export const routes: Routes = [
         path: 'schedules/manage',
         loadComponent: () => import('./pages/dashboard/schedules-manage/schedules-manage.component').then(m => m.SchedulesManageComponent),
         title: 'Manage Schedules | Jungle in English Dashboard'
+      },
+      {
+        path: 'availability-requests',
+        loadComponent: () => import('./pages/dashboard/availability-requests/availability-requests.component').then(m => m.AvailabilityRequestsComponent),
+        title: 'Availability Modification Requests | Jungle in English Dashboard'
       },
       {
         path: 'refunds',
@@ -827,6 +848,11 @@ export const routes: Routes = [
         path: 'categories',
         loadComponent: () => import('./pages/academic-panel/category-management/category-management.component').then(m => m.CategoryManagementComponent),
         title: 'Category Management | Jungle in English Dashboard'
+      },
+      {
+        path: 'courses',
+        loadComponent: () => import('./pages/tutor-panel/course-list/course-list.component').then(m => m.CourseListComponent),
+        title: 'Courses Management | Jungle in English Dashboard'
       },
       {
         path: 'packs',

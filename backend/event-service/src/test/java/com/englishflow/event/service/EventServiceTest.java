@@ -1,7 +1,5 @@
 package com.englishflow.event.service;
 
-import com.englishflow.event.client.ClubServiceClient;
-import com.englishflow.event.client.SponsorServiceClient;
 import com.englishflow.event.dto.EventDTO;
 import com.englishflow.event.entity.Event;
 import com.englishflow.event.enums.EventStatus;
@@ -9,7 +7,6 @@ import com.englishflow.event.enums.EventType;
 import com.englishflow.event.exception.ResourceNotFoundException;
 import com.englishflow.event.mapper.EventMapper;
 import com.englishflow.event.repository.EventRepository;
-import com.englishflow.event.repository.ParticipantRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,188 +30,215 @@ class EventServiceTest {
     private EventRepository eventRepository;
 
     @Mock
-    private ParticipantRepository participantRepository;
+    private EventMapper eventMapper;
 
     @Mock
     private PermissionService permissionService;
 
-    @Mock
-    private EventMapper eventMapper;
-
-    @Mock
-    private ClubServiceClient clubServiceClient;
-
-    @Mock
-    private SponsorServiceClient sponsorServiceClient;
-
-    @Mock
-    private WebSocketNotificationService wsNotificationService;
-
     @InjectMocks
     private EventService eventService;
 
-    private Event testEvent;
-    private EventDTO testEventDTO;
+    private Event event;
+    private EventDTO eventDTO;
+    private Long eventId = 1L;
+    private Long userId = 100L;
 
     @BeforeEach
     void setUp() {
-        testEvent = new Event();
-        testEvent.setId(1);
-        testEvent.setTitle("English Workshop");
-        testEvent.setDescription("Learn English");
-        testEvent.setType(EventType.WORKSHOP);
-        testEvent.setStartDate(LocalDateTime.now().plusDays(7));
-        testEvent.setEndDate(LocalDateTime.now().plusDays(7).plusHours(2));
-        testEvent.setLocation("Room 101");
-        testEvent.setMaxParticipants(30);
-        testEvent.setCurrentParticipants(0);
-        testEvent.setStatus(EventStatus.PENDING);
-        testEvent.setCreatorId(1L);
+        event = new Event();
+        event.setId(eventId);
+        event.setTitle("English Workshop");
+        event.setDescription("Learn English grammar");
+        event.setEventType(EventType.WORKSHOP);
+        event.setStatus(EventStatus.UPCOMING);
+        event.setStartDate(LocalDateTime.now().plusDays(7));
+        event.setEndDate(LocalDateTime.now().plusDays(7).plusHours(2));
+        event.setMaxParticipants(50);
+        event.setCreatedBy(userId);
 
-        testEventDTO = new EventDTO();
-        testEventDTO.setId(1);
-        testEventDTO.setTitle("English Workshop");
-        testEventDTO.setDescription("Learn English");
-        testEventDTO.setType(EventType.WORKSHOP);
-        testEventDTO.setStartDate(LocalDateTime.now().plusDays(7));
-        testEventDTO.setEndDate(LocalDateTime.now().plusDays(7).plusHours(2));
-        testEventDTO.setLocation("Room 101");
-        testEventDTO.setMaxParticipants(30);
-        testEventDTO.setCurrentParticipants(0);
-        testEventDTO.setStatus(EventStatus.PENDING);
-        testEventDTO.setCreatorId(1L);
+        eventDTO = new EventDTO();
+        eventDTO.setId(eventId);
+        eventDTO.setTitle("English Workshop");
+        eventDTO.setDescription("Learn English grammar");
+        eventDTO.setEventType("WORKSHOP");
+        eventDTO.setStatus("UPCOMING");
+        eventDTO.setMaxParticipants(50);
     }
 
     @Test
     void getAllEvents_ShouldReturnAllEvents() {
-        // Arrange
-        List<Event> events = Arrays.asList(testEvent);
-        when(eventRepository.findAll()).thenReturn(events);
-        when(eventMapper.toDTO(any(Event.class))).thenReturn(testEventDTO);
+        // Given
+        when(eventRepository.findAll()).thenReturn(Arrays.asList(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // Act
+        // When
         List<EventDTO> result = eventService.getAllEvents();
 
-        // Assert
+        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(eventRepository, times(1)).findAll();
+        assertEquals("English Workshop", result.get(0).getTitle());
+        verify(eventRepository).findAll();
     }
 
     @Test
-    void getEventById_WhenEventExists_ShouldReturnEvent() {
-        // Arrange
-        when(eventRepository.findById(1)).thenReturn(Optional.of(testEvent));
-        when(eventMapper.toDTO(testEvent)).thenReturn(testEventDTO);
+    void getEventById_WhenExists_ShouldReturnEvent() {
+        // Given
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // Act
-        EventDTO result = eventService.getEventById(1);
+        // When
+        EventDTO result = eventService.getEventById(eventId);
 
-        // Assert
+        // Then
         assertNotNull(result);
+        assertEquals(eventId, result.getId());
         assertEquals("English Workshop", result.getTitle());
-        verify(eventRepository, times(1)).findById(1);
     }
 
     @Test
-    void getEventById_WhenEventNotExists_ShouldThrowException() {
-        // Arrange
-        when(eventRepository.findById(999)).thenReturn(Optional.empty());
+    void getEventById_WhenNotExists_ShouldThrowException() {
+        // Given
+        when(eventRepository.findById(eventId)).thenReturn(Optional.empty());
 
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> eventService.getEventById(999));
-        verify(eventRepository, times(1)).findById(999);
-    }
-
-    @Test
-    void createEvent_ShouldCreateAndReturnEvent() {
-        // Arrange
-        when(eventMapper.toEntity(testEventDTO)).thenReturn(testEvent);
-        when(eventRepository.save(any(Event.class))).thenReturn(testEvent);
-        when(eventMapper.toDTO(testEvent)).thenReturn(testEventDTO);
-        doNothing().when(permissionService).checkEventCreationPermission(anyLong());
-        doNothing().when(wsNotificationService).notifyEventCreated(anyLong(), anyString());
-
-        // Act
-        EventDTO result = eventService.createEvent(testEventDTO);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("English Workshop", result.getTitle());
-        verify(eventRepository, times(1)).save(any(Event.class));
-        verify(wsNotificationService, times(1)).notifyEventCreated(anyLong(), anyString());
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, 
+            () -> eventService.getEventById(eventId));
     }
 
     @Test
     void getEventsByType_ShouldReturnFilteredEvents() {
-        // Arrange
-        List<Event> events = Arrays.asList(testEvent);
-        when(eventRepository.findByType(EventType.WORKSHOP)).thenReturn(events);
-        when(eventMapper.toDTO(any(Event.class))).thenReturn(testEventDTO);
+        // Given
+        when(eventRepository.findByEventType(EventType.WORKSHOP))
+            .thenReturn(Arrays.asList(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // Act
+        // When
         List<EventDTO> result = eventService.getEventsByType(EventType.WORKSHOP);
 
-        // Assert
+        // Then
         assertNotNull(result);
         assertEquals(1, result.size());
-        verify(eventRepository, times(1)).findByType(EventType.WORKSHOP);
+        assertEquals("WORKSHOP", result.get(0).getEventType());
     }
 
     @Test
-    void deleteEvent_WhenEventExists_ShouldDeleteSuccessfully() {
-        // Arrange
-        when(eventRepository.findById(1)).thenReturn(Optional.of(testEvent));
-        doNothing().when(eventRepository).deleteById(1);
-        doNothing().when(wsNotificationService).notifyEventCancelled(anyLong(), anyString());
+    void getUpcomingEvents_ShouldReturnUpcomingEvents() {
+        // Given
+        when(eventRepository.findUpcomingEvents(any(LocalDateTime.class)))
+            .thenReturn(Arrays.asList(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // Act
-        eventService.deleteEvent(1);
+        // When
+        List<EventDTO> result = eventService.getUpcomingEvents();
 
-        // Assert
-        verify(eventRepository, times(1)).deleteById(1);
-        verify(wsNotificationService, times(1)).notifyEventCancelled(anyLong(), anyString());
-    }
-
-    @Test
-    void deleteEvent_WhenEventNotExists_ShouldThrowException() {
-        // Arrange
-        when(eventRepository.findById(999)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        assertThrows(ResourceNotFoundException.class, () -> eventService.deleteEvent(999));
-        verify(eventRepository, never()).deleteById(999);
-    }
-
-    @Test
-    void approveEvent_ShouldUpdateStatusToApproved() {
-        // Arrange
-        when(eventRepository.findById(1)).thenReturn(Optional.of(testEvent));
-        when(eventRepository.save(any(Event.class))).thenReturn(testEvent);
-        when(eventMapper.toDTO(testEvent)).thenReturn(testEventDTO);
-
-        // Act
-        EventDTO result = eventService.approveEvent(1);
-
-        // Assert
+        // Then
         assertNotNull(result);
-        assertEquals(EventStatus.APPROVED, testEvent.getStatus());
-        verify(eventRepository, times(1)).save(testEvent);
+        assertEquals(1, result.size());
+        assertEquals("UPCOMING", result.get(0).getStatus());
     }
 
     @Test
-    void rejectEvent_ShouldUpdateStatusToRejected() {
-        // Arrange
-        when(eventRepository.findById(1)).thenReturn(Optional.of(testEvent));
-        when(eventRepository.save(any(Event.class))).thenReturn(testEvent);
-        when(eventMapper.toDTO(testEvent)).thenReturn(testEventDTO);
+    void createEvent_WithValidPermission_ShouldCreateEvent() {
+        // Given
+        doNothing().when(permissionService).checkEventCreationPermission(userId);
+        when(eventMapper.toEntity(eventDTO)).thenReturn(event);
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
 
-        // Act
-        EventDTO result = eventService.rejectEvent(1);
+        // When
+        EventDTO result = eventService.createEvent(eventDTO, userId);
 
-        // Assert
+        // Then
         assertNotNull(result);
-        assertEquals(EventStatus.REJECTED, testEvent.getStatus());
-        verify(eventRepository, times(1)).save(testEvent);
+        assertEquals("English Workshop", result.getTitle());
+        verify(permissionService).checkEventCreationPermission(userId);
+        verify(eventRepository).save(any(Event.class));
+    }
+
+    @Test
+    void createEvent_WithoutPermission_ShouldThrowException() {
+        // Given
+        doThrow(new RuntimeException("No permission"))
+            .when(permissionService).checkEventCreationPermission(userId);
+
+        // When & Then
+        assertThrows(RuntimeException.class, 
+            () -> eventService.createEvent(eventDTO, userId));
+        verify(eventRepository, never()).save(any(Event.class));
+    }
+
+    @Test
+    void updateEvent_WhenExists_ShouldUpdateEvent() {
+        // Given
+        when(eventRepository.findById(eventId)).thenReturn(Optional.of(event));
+        when(eventRepository.save(any(Event.class))).thenReturn(event);
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
+
+        EventDTO updateDTO = new EventDTO();
+        updateDTO.setTitle("Updated Workshop");
+        updateDTO.setDescription("Updated description");
+        updateDTO.setMaxParticipants(60);
+
+        // When
+        EventDTO result = eventService.updateEvent(eventId, updateDTO);
+
+        // Then
+        assertNotNull(result);
+        verify(eventRepository).save(event);
+    }
+
+    @Test
+    void deleteEvent_WhenExists_ShouldDelete() {
+        // Given
+        when(eventRepository.existsById(eventId)).thenReturn(true);
+
+        // When
+        eventService.deleteEvent(eventId);
+
+        // Then
+        verify(eventRepository).deleteById(eventId);
+    }
+
+    @Test
+    void deleteEvent_WhenNotExists_ShouldThrowException() {
+        // Given
+        when(eventRepository.existsById(eventId)).thenReturn(false);
+
+        // When & Then
+        assertThrows(ResourceNotFoundException.class, 
+            () -> eventService.deleteEvent(eventId));
+        verify(eventRepository, never()).deleteById(eventId);
+    }
+
+    @Test
+    void getEventsByClub_ShouldReturnClubEvents() {
+        // Given
+        Long clubId = 10L;
+        when(eventRepository.findByClubId(clubId)).thenReturn(Arrays.asList(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
+
+        // When
+        List<EventDTO> result = eventService.getEventsByClub(clubId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void getEventsByStatus_ShouldReturnFilteredEvents() {
+        // Given
+        when(eventRepository.findByStatus(EventStatus.UPCOMING))
+            .thenReturn(Arrays.asList(event));
+        when(eventMapper.toDTO(event)).thenReturn(eventDTO);
+
+        // When
+        List<EventDTO> result = eventService.getEventsByStatus(EventStatus.UPCOMING);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("UPCOMING", result.get(0).getStatus());
     }
 }

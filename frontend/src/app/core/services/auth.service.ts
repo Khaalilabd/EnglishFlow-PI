@@ -264,5 +264,17 @@ export class AuthService {
       newPassword
     });
   }
+
+  // Change password on first login (no current password required)
+  changePasswordFirstLogin(newPassword: string): Observable<any> {
+    const currentUser = this.currentUserValue;
+    if (!currentUser) {
+      throw new Error('No user logged in');
+    }
+    
+    return this.http.post(`${environment.apiUrl}/users/${currentUser.id}/change-password-first-login`, {
+      newPassword
+    });
+  }
 }
 

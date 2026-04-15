@@ -60,6 +60,9 @@ public class TutorAvailability {
     private TutorStatus status = TutorStatus.AVAILABLE;
     
     @Column(nullable = false)
+    private Boolean locked = false; // Schedule lock status - true when submitted and awaiting approval for changes
+    
+    @Column(nullable = false)
     private LocalDateTime lastUpdated;
     
     @Column(nullable = false)

@@ -1,0 +1,192 @@
+<div class="p-6">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Availability Modification Requests</h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">Review and manage tutor availability modification requests</p>
+  </div>
+
+  <!-- Filter -->
+  <div class="mb-6 flex items-center gap-4">
+    <label class="text-sm font-medium text-gray-700 dark:text-gray-300">Filter by Status:</label>
+    <select [(ngModel)]="filterStatus" (ngModelChange)="onFilterChange()"
+      class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
+      <option value="all">All</option>
+      <option value="pending">Pending</option>
+      <option value="approved">Approved</option>
+      <option value="rejected">Rejected</option>
+    </select>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-blue-600"></div>
+  </div>
+
+  <!-- Requests Grid -->
+  <div *ngIf="!loading" class="grid gap-6">
+    <div *ngFor="let request of filteredRequests" 
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700">
+      
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-800 px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex justify-between items-start">
+          <div>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white">{{request.tutorName}}</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">{{request.tutorEmail}}</p>
+            <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">Requested: {{formatDate(request.requestedAt)}}</p>
+          </div>
+          <span [class]="getStatusClass(request.status!) + ' px-4 py-2 rounded-full text-sm font-semibold'">
+            {{request.status}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="p-6">
+        <div class="space-y-4">
+          <!-- Reason -->
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-comment-alt mr-2"></i>Reason for Modification
+            </label>
+            <p class="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-900 p-4 rounded-lg">{{request.reason}}</p>
+          </div>
+
+          <!-- Proposed Availability -->
+          <div *ngIf="request.proposedAvailability">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              <i class="fas fa-calendar-alt mr-2"></i>Proposed Availability Changes
+            </label>
+            <div class="bg-blue-50 dark:bg-gray-900 p-4 rounded-lg space-y-3">
+              <ng-container *ngIf="parseAvailability(request.proposedAvailability) as availability">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Available Days</p>
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngFor="let day of availability.availableDays" 
+                        class="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                        {{day}}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Time Slots</p>
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngFor="let slot of availability.timeSlots" 
+                        class="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm">
+                        {{slot}}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Categories</p>
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngFor="let cat of availability.categories" 
+                        class="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 rounded-full text-sm">
+                        {{cat}}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <p class="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">Levels</p>
+                    <div class="flex flex-wrap gap-2">
+                      <span *ngFor="let level of availability.levels" 
+                        class="px-3 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded-full text-sm">
+                        {{level}}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div class="pt-2 border-t border-gray-200 dark:border-gray-700">
+                  <p class="text-sm text-gray-700 dark:text-gray-300">
+                    <span class="font-medium">Max Students:</span> {{availability.maxStudentsCapacity}} | 
+                    <span class="font-medium">Hourly Rate:</span> ${{availability.hourlyRate}}
+                  </p>
+                </div>
+              </ng-container>
+            </div>
+          </div>
+
+          <!-- Review Info (if reviewed) -->
+          <div *ngIf="request.status !== 'PENDING'" class="border-t border-gray-200 dark:border-gray-700 pt-4">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              <i class="fas fa-user-check mr-2"></i>Review Information
+            </label>
+            <div class="bg-gray-50 dark:bg-gray-900 p-4 rounded-lg space-y-2">
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Reviewed by:</span> {{request.reviewerName}}
+              </p>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Reviewed at:</span> {{formatDate(request.reviewedAt)}}
+              </p>
+              <p *ngIf="request.reviewComment" class="text-sm text-gray-700 dark:text-gray-300">
+                <span class="font-medium">Comment:</span> {{request.reviewComment}}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div *ngIf="request.status === 'PENDING'" class="bg-gray-50 dark:bg-gray-900 px-6 py-4 flex justify-end gap-3">
+        <button (click)="openReviewModal(request, 'reject')"
+          class="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition flex items-center gap-2">
+          <i class="fas fa-times"></i> Reject
+        </button>
+        <button (click)="openReviewModal(request, 'approve')"
+          class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2">
+          <i class="fas fa-check"></i> Approve
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="filteredRequests.length === 0" class="bg-white dark:bg-gray-800 rounded-lg shadow p-12 text-center">
+      <i class="fas fa-inbox text-6xl text-gray-300 dark:text-gray-600 mb-4"></i>
+      <p class="text-gray-500 dark:text-gray-400 text-lg">No requests found</p>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div *ngIf="showReviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-2xl w-full">
+    <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+        {{reviewAction === 'approve' ? 'Approve' : 'Reject'}} Request
+      </h3>
+    </div>
+    
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Tutor</label>
+        <p class="text-gray-900 dark:text-white">{{selectedRequest?.tutorName}}</p>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason</label>
+        <p class="text-gray-900 dark:text-white">{{selectedRequest?.reason}}</p>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Comment (Optional)
+        </label>
+        <textarea [(ngModel)]="reviewComment" rows="4"
+          class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+          placeholder="Add a comment for the tutor..."></textarea>
+      </div>
+    </div>
+    
+    <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
+      <button (click)="closeReviewModal()"
+        class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+        Cancel
+      </button>
+      <button (click)="submitReview()"
+        [class]="reviewAction === 'approve' 
+          ? 'px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition'
+          : 'px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition'">
+        {{reviewAction === 'approve' ? 'Approve' : 'Reject'}}
+      </button>
+    </div>
+  </div>
+</div>

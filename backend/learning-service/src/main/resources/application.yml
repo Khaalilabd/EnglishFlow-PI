@@ -30,6 +30,16 @@ spring:
       max-file-size: 50MB
       max-request-size: 50MB
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Internal Service Communication
+internal:
+  service:
+    key: ${INTERNAL_SERVICE_KEY:englishflow-internal-service-secret-key-change-in-production-minimum-256-bits}
+
 eureka:
   client:
     enabled: true
@@ -69,11 +79,7 @@ app:
 
 auth:
   service:
-    url: ${AUTH_SERVICE_URL:http://localhost:8080/api/auth}
-
-jwt:
-  secret: ${JWT_SECRET:dGhpc2lzYXZlcnlzZWNyZXRrZXlmb3JlbmdsaXNoZmxvd2xlYXJuaW5nc2VydmljZTEyMzQ1Ng==}
-  expiration: 900000
+    url: ${AUTH_SERVICE_URL:http://localhost:8081}
 
 ---
 spring:

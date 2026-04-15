@@ -1,14 +1,11 @@
-// This file can be replaced during build by using the `fileReplacements` array.
+﻿// This file can be replaced during build by using the `fileReplacements` array.
 // `ng build` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:8080/api', // API Gateway base URL
-  frontendUrl: 'http://localhost:4200',
-  // Konnect (virement bancaire) - SANDBOX
-  konnectWalletId: '69d1070fcd2bd9f6adb45cd4',
-  konnectApiKey: '69d1070fcd2bd9f6adb45cd4:drqJ1hLOiGDiXQ5TCcCTfWOh'
+  frontendUrl: 'http://localhost:4200'
 };
 
 /*

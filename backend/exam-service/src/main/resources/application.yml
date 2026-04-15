@@ -43,8 +43,18 @@ spring:
     config:
       enabled: false
 
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Internal Service Communication
+internal:
+  service:
+    key: ${INTERNAL_SERVICE_KEY:englishflow-internal-service-secret-key-change-in-production-minimum-256-bits}
+
 server:
-  port: 8089
+  port: ${SERVER_PORT:8090}
 
 eureka:
   client:

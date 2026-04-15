@@ -137,6 +137,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
                 .queryParam("role", user.getRole().name())
                 .queryParam("profilePhoto", user.getProfilePhoto())
                 .queryParam("profileCompleted", user.isProfileCompleted())
+                .queryParam("englishLevel", user.getEnglishLevel() != null ? user.getEnglishLevel() : "")
                 .build()
                 .encode() // Encode the URL to avoid special characters issues
                 .toUriString();

@@ -135,4 +135,94 @@ class AuthServiceTest {
         verify(userRepository).save(any(User.class));
         verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
     }
+
+    @Test
+    void testRegister_Success() {
+        // Given
+        when(userRepository.existsByEmail(anyString())).thenReturn(false);
+        when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(activationTokenRepository.save(any(ActivationToken.class))).thenReturn(new ActivationToken());
+        doNothing().when(emailService).sendActivationEmail(anyString(), anyString(), anyString());
+
+        // When
+        assertDoesNotThrow(() -> authService.register(registerRequest));
+
+        // Then
+        verify(userRepository).save(any(User.class));
+        verify(activationTokenRepository).save(any(ActivationToken.class));
+    }
+
+    @Test
+    void testRequestPasswordReset_Success() {
+        // Given
+        PasswordResetRequest request = new PasswordResetRequest();
+        request.setEmail("test@example.com");
+        
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
+        when(passwordResetTokenRepository.save(any(PasswordResetToken.class)))
+                .thenReturn(new PasswordResetToken());
+        doNothing().when(emailService).sendPasswordResetEmail(anyString(), anyString(), anyString());
+
+        // When
+        assertDoesNotThrow(() -> authService.requestPasswordReset(request));
+
+        // Then
+        verify(passwordResetTokenRepository).save(any(PasswordResetToken.class));
+    }
+
+    @Test
+    void testCheckActivationStatus_Active() {
+        // Given
+        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+
+        // When
+        var result = authService.checkActivationStatus("test@example.com");
+
+        // Then
+        assertNotNull(result);
+        assertTrue((Boolean) result.get("active"));
+        assertEquals("test@example.com", result.get("email"));
+    }
+
+    @Test
+    void testCheckActivationStatus_NotFound() {
+        // Given
+        when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
+
+        // When
+        var result = authService.checkActivationStatus("notfound@example.com");
+
+        // Then
+        assertNotNull(result);
+        assertFalse((Boolean) result.get("exists"));
+    }
+
+    @Test
+    void testLogout_Success() {
+        // Given
+        String refreshToken = "refresh-token-123";
+        doNothing().when(refreshTokenService).revokeToken(refreshToken);
+
+        // When
+        assertDoesNotThrow(() -> authService.logout(refreshToken));
+
+        // Then
+        verify(refreshTokenService).revokeToken(refreshToken);
+    }
+
+    @Test
+    void testLogoutFromAllDevices_Success() {
+        // Given
+        Long userId = 1L;
+        doNothing().when(refreshTokenService).revokeAllUserTokens(userId);
+        when(userSessionService.terminateAllUserSessions(anyLong(), any())).thenReturn(3);
+
+        // When
+        assertDoesNotThrow(() -> authService.logoutFromAllDevices(userId));
+
+        // Then
+        verify(refreshTokenService).revokeAllUserTokens(userId);
+        verify(userSessionService).terminateAllUserSessions(anyLong(), any());
+    }
 }

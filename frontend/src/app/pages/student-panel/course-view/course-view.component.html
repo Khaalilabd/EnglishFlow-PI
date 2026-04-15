@@ -1,4 +1,4 @@
-<div class="space-y-6 p-4 sm:p-6" *ngIf="course">
+﻿<div class="space-y-6 p-4 sm:p-6" *ngIf="course">
   <!-- Back Button -->
   <button 
     (click)="goBack()"
@@ -96,7 +96,7 @@
             </div>
             <div class="flex items-center justify-between py-2">
               <span class="text-gray-600 dark:text-gray-400">Certificate</span>
-              <span class="font-semibold text-success-600">✓ Included</span>
+              <span class="font-semibold text-success-600">Ô£ô Included</span>
             </div>
           </div>
 
@@ -192,7 +192,7 @@
                   <p class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Objectives:</p>
                   <ul class="text-xs text-gray-600 dark:text-gray-400 space-y-1">
                     <li *ngFor="let obj of chapter.objectives" class="flex items-start gap-1">
-                      <span class="text-success-500">•</span>
+                      <span class="text-success-500">ÔÇó</span>
                       <span>{{ obj }}</span>
                     </li>
                   </ul>
@@ -208,7 +208,7 @@
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Course Curriculum</h2>
           <div class="text-sm text-gray-600 dark:text-gray-400">
-            {{ chapters.length }} chapters • {{ getTotalLessons() }} lessons • {{ formatDuration(getTotalDuration()) }}
+            {{ chapters.length }} chapters ÔÇó {{ getTotalLessons() }} lessons ÔÇó {{ formatDuration(getTotalDuration()) }}
           </div>
         </div>
 
@@ -383,3 +383,13 @@
     <p class="mt-4 text-gray-600 dark:text-gray-400">Loading course...</p>
   </div>
 </div>
+
+<!-- Payment Modal -->
+<app-payment-modal
+  *ngIf="showPaymentModal && course"
+  [itemType]="'COURSE'"
+  [itemId]="course.id!"
+  [itemName]="course.title"
+  [amount]="course.price || 0"
+  (closed)="onPaymentModalClosed()">
+</app-payment-modal>

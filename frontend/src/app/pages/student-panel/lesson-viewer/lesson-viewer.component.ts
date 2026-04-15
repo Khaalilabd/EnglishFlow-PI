@@ -1,17 +1,19 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { LessonService } from '../../../core/services/lesson.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { CourseService } from '../../../core/services/course.service';
+import { QuizService } from '../../../core/services/quiz.service';
 import { LessonProgressService } from '../../../core/services/lesson-progress.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { OnlineLessonService, LessonTimeAssignment } from '../../../core/services/online-lesson.service';
 import { Lesson } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Course } from '../../../core/models/course.model';
 import { Subscription } from 'rxjs';
-import { QuizTakeComponent } from '../quiz-take/quiz-take.component';
 
 interface ChapterWithLessons {
   chapter: Chapter;
@@ -22,7 +24,7 @@ interface ChapterWithLessons {
 @Component({
   selector: 'app-lesson-viewer',
   standalone: true,
-  imports: [CommonModule, RouterModule, QuizTakeComponent],
+  imports: [CommonModule, FormsModule, RouterModule],
   templateUrl: './lesson-viewer.component.html',
   styleUrls: ['./lesson-viewer.component.scss']
 })
@@ -39,14 +41,29 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   isCompleted = false;
   sidebarCollapsed = false;
   
-  // Getter for quizId - stored in contentUrl field
-  get lessonQuizId(): number | undefined {
-    if (this.lesson?.lessonType === 'QUIZ' && this.lesson?.contentUrl) {
-      const quizId = parseInt(this.lesson.contentUrl, 10);
-      return isNaN(quizId) ? undefined : quizId;
-    }
-    return undefined;
-  }
+  // Quiz properties
+  currentQuiz: any = null;
+  quizQuestions: any[] = [];
+  loadingQuiz = false;
+  quizStarted = false;
+  currentQuestionIndex = 0;
+  studentAnswers: { [questionId: number]: string } = {};
+  quizSubmitted = false;
+  quizResult: any = null;
+  quizAttemptExists = false;
+  
+  // Timer properties
+  totalTimeRemaining = 0; // Total quiz time in seconds
+  questionTimeRemaining = 0; // Suggested time per question in seconds
+  quizTimerInterval: any = null;
+  timePerQuestion = 0; // Calculated time per question
+  
+  // Online lesson properties
+  lessonTimeAssignment: LessonTimeAssignment | null = null;
+  loadingTimeAssignment = false;
+  activeMeetingRoomId: string | null = null;
+  checkingActiveMeeting = false;
+  private activeMeetingCheckInterval: any = null;
   
   private progressSubscription?: Subscription;
   private currentStudentId: number = 0;
@@ -57,9 +74,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     private lessonService: LessonService,
     private chapterService: ChapterService,
     private courseService: CourseService,
+    private quizService: QuizService,
     private progressService: LessonProgressService,
     private authService: AuthService,
-    private sanitizer: DomSanitizer
+    private sanitizer: DomSanitizer,
+    private onlineLessonService: OnlineLessonService
   ) {}
 
   ngOnInit(): void {
@@ -85,6 +104,14 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     if (this.progressSubscription) {
       this.progressSubscription.unsubscribe();
     }
+    
+    // Clear active meeting check interval
+    if (this.activeMeetingCheckInterval) {
+      clearInterval(this.activeMeetingCheckInterval);
+    }
+    
+    // Clear quiz timer
+    this.stopTimer();
   }
 
   loadLesson(): void {
@@ -92,9 +119,6 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     this.lessonService.getLessonById(this.lessonId).subscribe({
       next: (lesson) => {
         this.lesson = lesson;
-        console.log('📚 Loaded lesson:', lesson);
-        console.log('📝 Lesson type:', lesson.lessonType);
-        console.log('🎯 Quiz ID:', this.lessonQuizId);
         
         // Load chapter to get courseId
         if (lesson.chapterId) {
@@ -134,16 +158,75 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
         }
         
         // Process document URL if it's a document lesson
-        if (lesson.lessonType === 'DOCUMENT' && lesson.contentUrl) {
+        // Only set documentUrl if there's a contentUrl AND no HTML content
+        if (lesson.lessonType === 'DOCUMENT' && lesson.contentUrl && (!lesson.content || lesson.content.trim().length === 0)) {
           // Remove leading slash if present to avoid double slash
           const cleanUrl = lesson.contentUrl.startsWith('/') ? lesson.contentUrl.substring(1) : lesson.contentUrl;
           const docUrl = `http://localhost:8086/${cleanUrl}`;
           this.documentUrl = this.sanitizer.bypassSecurityTrustResourceUrl(docUrl);
+        } else {
+          this.documentUrl = null;
+        }
+        
+        // Load quiz for QUIZ lessons
+        if (lesson.lessonType === 'QUIZ' && lesson.quizId) {
+          this.loadQuiz(lesson.quizId);
+        }
+        
+        // Load time assignment for ONLINE lessons
+        if (lesson.lessonType === 'ONLINE' && lesson.id) {
+          this.loadTimeAssignment(lesson.id);
         }
       },
       error: (error) => {
         console.error('Error loading lesson:', error);
         this.loading = false;
+      }
+    });
+  }
+  
+  loadTimeAssignment(lessonId: number): void {
+    this.loadingTimeAssignment = true;
+    this.onlineLessonService.getTimeAssignment(lessonId).subscribe({
+      next: (assignment) => {
+        this.lessonTimeAssignment = assignment;
+        this.loadingTimeAssignment = false;
+        
+        // Start checking for active meeting every 10 seconds
+        this.startActiveMeetingCheck(lessonId);
+      },
+      error: () => {
+        this.lessonTimeAssignment = null;
+        this.loadingTimeAssignment = false;
+      }
+    });
+  }
+
+  startActiveMeetingCheck(lessonId: number): void {
+    // Clear any existing interval
+    if (this.activeMeetingCheckInterval) {
+      clearInterval(this.activeMeetingCheckInterval);
+    }
+    
+    // Check immediately
+    this.checkActiveMeeting(lessonId);
+    
+    // Then check every 10 seconds
+    this.activeMeetingCheckInterval = setInterval(() => {
+      this.checkActiveMeeting(lessonId);
+    }, 10000);
+  }
+
+  checkActiveMeeting(lessonId: number): void {
+    this.checkingActiveMeeting = true;
+    this.onlineLessonService.checkActiveMeeting(lessonId).subscribe({
+      next: (response) => {
+        this.activeMeetingRoomId = response.active ? response.roomId : null;
+        this.checkingActiveMeeting = false;
+      },
+      error: () => {
+        this.activeMeetingRoomId = null;
+        this.checkingActiveMeeting = false;
       }
     });
   }
@@ -298,12 +381,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
       // Check if next lesson is unlocked
       if (this.isLessonUnlocked(nextLesson)) {
         this.navigateToLesson(nextLesson);
-      } else {
-        alert('Complete the current lesson to unlock the next one!');
       }
+      // Removed alert - just don't navigate if locked
     } else {
       // Last lesson - go back to course learning
-      alert('Congratulations! You completed all lessons in this course!');
+      // Removed congratulations alert
       this.goBack();
     }
   }
@@ -342,9 +424,9 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   goBack(): void {
     // Navigate back to course learning page
     if (this.courseId) {
-      this.router.navigate(['../../course', this.courseId, 'learning'], { relativeTo: this.route });
+      this.router.navigate(['/user-panel/course', this.courseId, 'learning']);
     } else {
-      this.router.navigate(['../../my-packs'], { relativeTo: this.route });
+      this.router.navigate(['/user-panel/my-packs']);
     }
   }
 
@@ -357,11 +439,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     
     // Check if lesson is unlocked
     if (!this.isLessonUnlocked(lesson)) {
-      alert('Complete previous lessons to unlock this one!');
+      // Removed alert - just don't navigate if locked
       return;
     }
     
-    this.router.navigate(['../../lesson', lesson.id], { relativeTo: this.route });
+    this.router.navigate(['/user-panel/lesson', lesson.id]);
     this.lessonId = lesson.id!;
     this.loadLesson();
   }
@@ -410,11 +492,12 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     
     switch (type) {
       case 'VIDEO': return '🎥';
-      case 'TEXT': return '📝';
-      case 'QUIZ': return '❓';
-      case 'ASSIGNMENT': return '📋';
-      case 'DOCUMENT': return '📄';
+      case 'TEXT': return '📄';
+      case 'QUIZ': return '📝';
+      case 'ASSIGNMENT': return '📌';
+      case 'DOCUMENT': return '📋';
       case 'INTERACTIVE': return '🎮';
+      case 'ONLINE': return '🎦';
       default: return '📚';
     }
   }
@@ -434,18 +517,388 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
 
   getLessonTypeColor(lessonType: string): string {
     switch (lessonType) {
-      case 'VIDEO': return '#C84630';
-      case 'TEXT': return '#2D5757';
-      case 'QUIZ': return '#F6BD60';
-      case 'ASSIGNMENT': return '#3D3D60';
-      case 'DOCUMENT': return '#F6BD60';
-      case 'INTERACTIVE': return '#C84630';
+      case 'VIDEO': return '#ef4444';
+      case 'TEXT': return '#3b82f6';
+      case 'QUIZ': return '#f59e0b';
+      case 'ASSIGNMENT': return '#8b5cf6';
+      case 'DOCUMENT': return '#10b981';
+      case 'INTERACTIVE': return '#ec4899';
       default: return '#6b7280';
     }
   }
 
+  // Helper methods for DOCUMENT lessons with HTML content
+  hasDocumentHtmlContent(): boolean {
+    return !!(this.lesson?.lessonType === 'DOCUMENT' && this.lesson?.content && this.lesson.content.trim().length > 0);
+  }
+
+  getSafeDocumentHtml() {
+    if (!this.lesson?.content) return '';
+    return this.sanitizer.bypassSecurityTrustHtml(this.lesson.content);
+  }
+
+  getSafeTextHtml() {
+    if (!this.lesson?.content) return '';
+    return this.sanitizer.bypassSecurityTrustHtml(this.lesson.content);
+  }
+
   onQuizCompleted(): void {
-    // Mark lesson as complete and move to next
+    // Mark lesson as complete when quiz is completed
     this.markAsComplete();
   }
+
+  // Online lesson helper methods
+  getDayName(dayOfWeek: string): string {
+    const days: { [key: string]: string } = {
+      'MONDAY': 'Monday',
+      'TUESDAY': 'Tuesday',
+      'WEDNESDAY': 'Wednesday',
+      'THURSDAY': 'Thursday',
+      'FRIDAY': 'Friday',
+      'SATURDAY': 'Saturday',
+      'SUNDAY': 'Sunday'
+    };
+    return days[dayOfWeek] || dayOfWeek;
+  }
+
+  canJoinLesson(): boolean {
+    if (!this.lesson || this.lesson.lessonType !== 'ONLINE') return false;
+    if (!this.courseId || !this.currentStudentId) return false;
+    
+    // If tutor has started the meeting, allow join regardless of schedule
+    if (this.activeMeetingRoomId) return true;
+    
+    // Otherwise, check schedule
+    if (!this.lessonTimeAssignment) return false;
+
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[this.lessonTimeAssignment.dayOfWeek];
+    if (now.getDay() !== lessonDay) return false;
+
+    const [startH, startM] = this.lessonTimeAssignment.startTime.split(':').map(Number);
+    const [endH, endM] = this.lessonTimeAssignment.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Enable button 15 minutes before start time until end time
+    return nowMinutes >= startMinutes - 15 && nowMinutes <= endMinutes;
+  }
+
+  isInScheduledTime(): boolean {
+    if (!this.lessonTimeAssignment) return false;
+    
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[this.lessonTimeAssignment.dayOfWeek];
+    if (now.getDay() !== lessonDay) return false;
+
+    const [startH, startM] = this.lessonTimeAssignment.startTime.split(':').map(Number);
+    const [endH, endM] = this.lessonTimeAssignment.endTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const endMinutes = endH * 60 + endM;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+
+    // Check if current time is within the scheduled window (15 min before → end time)
+    return nowMinutes >= startMinutes - 15 && nowMinutes <= endMinutes;
+  }
+
+  getTimeUntilStart(): string {
+    if (!this.lessonTimeAssignment) return '';
+    
+    const now = new Date();
+    const dayMap: { [key: string]: number } = {
+      MONDAY: 1, TUESDAY: 2, WEDNESDAY: 3, THURSDAY: 4,
+      FRIDAY: 5, SATURDAY: 6, SUNDAY: 0
+    };
+    const lessonDay = dayMap[this.lessonTimeAssignment.dayOfWeek];
+    const currentDay = now.getDay();
+    
+    // Calculate days until lesson day
+    let daysUntil = lessonDay - currentDay;
+    if (daysUntil < 0) daysUntil += 7; // Next week
+    
+    const [startH, startM] = this.lessonTimeAssignment.startTime.split(':').map(Number);
+    const startMinutes = startH * 60 + startM;
+    const earlyStartMinutes = startMinutes - 15;
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    
+    // If it's the same day
+    if (daysUntil === 0) {
+      const minutesUntilEarlyStart = earlyStartMinutes - nowMinutes;
+      
+      if (minutesUntilEarlyStart <= 0) {
+        // Already in or past early start window
+        return 'Available now';
+      }
+      
+      const hours = Math.floor(minutesUntilEarlyStart / 60);
+      const minutes = minutesUntilEarlyStart % 60;
+      
+      if (hours > 0) {
+        return `Available in ${hours}h ${minutes}m`;
+      } else {
+        return `Available in ${minutes}m`;
+      }
+    }
+    
+    // Different day
+    if (daysUntil === 1) {
+      return `Available tomorrow at ${this.lessonTimeAssignment.startTime}`;
+    } else {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      return `Available on ${dayNames[lessonDay]} at ${this.lessonTimeAssignment.startTime}`;
+    }
+  }
+
+  joinLesson(): void {
+    if (!this.lesson?.id || !this.activeMeetingRoomId) return;
+
+    // Use the actual room ID from the active meeting
+    this.router.navigate(['/join', this.activeMeetingRoomId], {
+      queryParams: { lessonId: this.lesson.id }
+    });
+  }
+
+  // Quiz methods
+  loadQuiz(quizId: number): void {
+    this.loadingQuiz = true;
+    
+    // Check if student already attempted this quiz
+    if (this.currentStudentId) {
+      this.quizService.getStudentAttempts(this.currentStudentId).subscribe({
+        next: (attempts) => {
+          const existingAttempt = attempts.find(a => a.quizId === quizId && a.status === 'COMPLETED');
+          if (existingAttempt) {
+            this.quizAttemptExists = true;
+            // Load the result
+            this.quizService.getAttemptResult(existingAttempt.id!).subscribe({
+              next: (result) => {
+                this.quizResult = result;
+                this.quizSubmitted = true;
+                this.loadingQuiz = false;
+              },
+              error: () => {
+                this.loadingQuiz = false;
+              }
+            });
+            return;
+          }
+          
+          // No attempt exists, load quiz normally
+          this.loadQuizData(quizId);
+        },
+        error: () => {
+          // If error checking attempts, still load quiz
+          this.loadQuizData(quizId);
+        }
+      });
+    } else {
+      this.loadQuizData(quizId);
+    }
+  }
+
+  loadQuizData(quizId: number): void {
+    this.quizService.getQuizById(quizId).subscribe({
+      next: (quiz) => {
+        this.currentQuiz = quiz;
+        // Load questions
+        this.quizService.getQuestionsByQuizId(quizId).subscribe({
+          next: (questions) => {
+            this.quizQuestions = questions.sort((a, b) => (a.orderIndex || 0) - (b.orderIndex || 0));
+            this.loadingQuiz = false;
+          },
+          error: (error) => {
+            console.error('Error loading questions:', error);
+            this.loadingQuiz = false;
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error loading quiz:', error);
+        this.loadingQuiz = false;
+      }
+    });
+  }
+
+  startQuiz(): void {
+    this.quizStarted = true;
+    this.currentQuestionIndex = 0;
+    this.studentAnswers = {};
+    
+    // Calculate time per question
+    if (this.currentQuiz.durationMin && this.quizQuestions.length > 0) {
+      this.totalTimeRemaining = this.currentQuiz.durationMin * 60; // Convert to seconds
+      this.timePerQuestion = Math.floor(this.totalTimeRemaining / this.quizQuestions.length);
+      this.questionTimeRemaining = this.timePerQuestion;
+      this.startTimer();
+    }
+  }
+
+  startTimer(): void {
+    this.quizTimerInterval = setInterval(() => {
+      this.totalTimeRemaining--;
+      this.questionTimeRemaining--;
+      
+      // Check if total time is up
+      if (this.totalTimeRemaining <= 0) {
+        this.stopTimer();
+        alert('Time is up! Your quiz will be submitted automatically.');
+        this.autoSubmitQuiz();
+      }
+    }, 1000);
+  }
+
+  stopTimer(): void {
+    if (this.quizTimerInterval) {
+      clearInterval(this.quizTimerInterval);
+      this.quizTimerInterval = null;
+    }
+  }
+
+  resetQuestionTimer(): void {
+    this.questionTimeRemaining = this.timePerQuestion;
+  }
+
+  getTotalFormattedTime(): string {
+    const minutes = Math.floor(this.totalTimeRemaining / 60);
+    const seconds = this.totalTimeRemaining % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  }
+
+  getQuestionFormattedTime(): string {
+    return `${this.questionTimeRemaining}s`;
+  }
+
+  getTotalTimePercentage(): number {
+    if (!this.currentQuiz.durationMin) return 100;
+    const totalSeconds = this.currentQuiz.durationMin * 60;
+    return (this.totalTimeRemaining / totalSeconds) * 100;
+  }
+
+  getQuestionTimePercentage(): number {
+    if (this.timePerQuestion === 0) return 100;
+    return (this.questionTimeRemaining / this.timePerQuestion) * 100;
+  }
+
+  selectAnswer(questionId: number, answer: string): void {
+    this.studentAnswers[questionId] = answer;
+  }
+
+  isAnswerSelected(questionId: number, answer: string): boolean {
+    return this.studentAnswers[questionId] === answer;
+  }
+
+  getCurrentQuestion(): any {
+    const question = this.quizQuestions[this.currentQuestionIndex];
+    // Debug log
+    if (question && question.type === 'TRUE_FALSE') {
+      console.log('TRUE_FALSE Question:', question);
+      console.log('Options:', question.options);
+      console.log('Split options:', question.options?.split('|'));
+    }
+    return question;
+  }
+
+  nextQuestion(): void {
+    if (this.currentQuestionIndex < this.quizQuestions.length - 1) {
+      this.currentQuestionIndex++;
+      this.resetQuestionTimer(); // Reset question timer when moving to next question
+    }
+  }
+
+  previousQuestion(): void {
+    if (this.currentQuestionIndex > 0) {
+      this.currentQuestionIndex--;
+      this.resetQuestionTimer(); // Reset question timer when going back
+    }
+  }
+
+  goToQuestion(index: number): void {
+    this.currentQuestionIndex = index;
+    this.resetQuestionTimer(); // Reset question timer when jumping to a question
+  }
+
+  isQuestionAnswered(index: number): boolean {
+    const question = this.quizQuestions[index];
+    return !!this.studentAnswers[question.id];
+  }
+
+  getAnsweredCount(): number {
+    return Object.keys(this.studentAnswers).length;
+  }
+
+  canSubmitQuiz(): boolean {
+    return this.getAnsweredCount() === this.quizQuestions.length;
+  }
+
+  submitQuiz(): void {
+    if (!this.canSubmitQuiz() || !this.currentQuiz || !this.currentStudentId) return;
+
+    const confirmed = confirm(`Are you sure you want to submit? You have answered ${this.getAnsweredCount()} out of ${this.quizQuestions.length} questions.`);
+    if (!confirmed) return;
+
+    // Stop timer
+    this.stopTimer();
+
+    this.performQuizSubmission();
+  }
+
+  autoSubmitQuiz(): void {
+    if (!this.currentQuiz || !this.currentStudentId) return;
+    this.stopTimer();
+    this.performQuizSubmission();
+  }
+
+  performQuizSubmission(): void {
+    console.log('Submitting quiz with answers:', this.studentAnswers);
+
+    // Start attempt and submit
+    this.quizService.startAttempt(this.currentQuiz.id, this.currentStudentId).subscribe({
+      next: (attempt) => {
+        console.log('Attempt started:', attempt);
+        
+        const attemptRequest: any = {
+          quizId: this.currentQuiz.id,
+          studentId: this.currentStudentId,
+          answers: this.studentAnswers
+        };
+
+        console.log('Submitting attempt request:', attemptRequest);
+
+        this.quizService.submitAttempt(attempt.id!, attemptRequest).subscribe({
+          next: (result) => {
+            console.log('Quiz result:', result);
+            this.quizResult = result;
+            this.quizSubmitted = true;
+            // Mark lesson as complete if passed
+            if (result.passed) {
+              this.markAsComplete();
+            }
+          },
+          error: (error) => {
+            console.error('Error submitting quiz:', error);
+            alert('Failed to submit quiz. Please try again.');
+          }
+        });
+      },
+      error: (error) => {
+        console.error('Error starting attempt:', error);
+        alert('Failed to start quiz attempt. Please try again.');
+      }
+    });
+  }
+
+  retakeQuiz(): void {
+    // Cannot retake quiz - show message
+    alert('You have already completed this quiz. You cannot retake it.');
+  }
+
 }

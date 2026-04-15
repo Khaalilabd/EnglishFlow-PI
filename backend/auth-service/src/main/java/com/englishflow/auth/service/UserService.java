@@ -44,6 +44,11 @@ public class UserService {
         return tutorApplicationRepository;
     }
 
+    // Encode password using the configured password encoder
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
+    }
+
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(UserDTO::fromEntity)
