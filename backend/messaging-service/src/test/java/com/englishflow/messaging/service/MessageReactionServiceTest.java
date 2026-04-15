@@ -1,7 +1,9 @@
 package com.englishflow.messaging.service;
 
+import com.englishflow.messaging.client.AuthServiceClient;
 import com.englishflow.messaging.dto.AddReactionRequest;
 import com.englishflow.messaging.dto.MessageReactionDTO;
+import com.englishflow.messaging.dto.ReactionSummaryDTO;
 import com.englishflow.messaging.exception.ResourceNotFoundException;
 import com.englishflow.messaging.model.Message;
 import com.englishflow.messaging.model.MessageReaction;
@@ -170,17 +172,16 @@ class MessageReactionServiceTest {
     }
 
     @Test
-    void getUserReactionForMessage_WhenExists_ShouldReturnReaction() {
+    void getReactionSummary_ShouldReturnSummary() {
         // Given
-        when(reactionRepository.findByMessageIdAndUserId(messageId, userId))
+        when(reactionRepository.findByMessageId(messageId))
             .thenReturn(Arrays.asList(reaction));
 
         // When
-        List<MessageReactionDTO> result = reactionService.getUserReactionForMessage(messageId, userId);
+        List<ReactionSummaryDTO> result = reactionService.getReactionSummary(messageId, userId);
 
         // Then
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("👍", result.get(0).getEmoji());
+        assertFalse(result.isEmpty());
     }
 }

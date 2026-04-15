@@ -298,7 +298,7 @@ export class InstantMeetingComponent implements OnInit, OnDestroy, AfterViewChec
     });
 
     // Peer left
-    this.socket.on('peer-left', ({ socketId }) => {
+    this.socket.on('peer-left', ({ socketId }: { socketId: string }) => {
       this.removePeer(socketId);
     });
 
