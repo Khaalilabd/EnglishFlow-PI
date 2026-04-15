@@ -72,7 +72,8 @@ class InvitationServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(invitationRepository.existsByEmailAndUsedFalse(anyString())).thenReturn(false);
         when(invitationRepository.save(any(Invitation.class))).thenReturn(testInvitation);
-        doNothing().when(emailService).sendInvitationEmail(anyString(), anyString(), anyString());
+        when(emailService.sendInvitationEmail(anyString(), anyString(), anyString()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // When
         InvitationResponse result = invitationService.sendInvitation(invitationRequest, 1L);
@@ -164,7 +165,8 @@ class InvitationServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
         when(invitationRepository.save(any(Invitation.class))).thenReturn(testInvitation);
-        doNothing().when(emailService).sendWelcomeEmail(anyString(), anyString());
+        when(emailService.sendWelcomeEmail(anyString(), anyString()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // When
         User result = invitationService.acceptInvitation(request);
@@ -220,7 +222,8 @@ class InvitationServiceTest {
         // Given
         when(invitationRepository.findById(1L)).thenReturn(Optional.of(testInvitation));
         when(invitationRepository.save(any(Invitation.class))).thenReturn(testInvitation);
-        doNothing().when(emailService).sendInvitationEmail(anyString(), anyString(), anyString());
+        when(emailService.sendInvitationEmail(anyString(), anyString(), anyString()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // When
         InvitationResponse result = invitationService.resendInvitation(1L);

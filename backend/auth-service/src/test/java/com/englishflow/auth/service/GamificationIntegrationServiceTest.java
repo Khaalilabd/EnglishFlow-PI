@@ -122,7 +122,8 @@ class GamificationIntegrationServiceTest {
     @Test
     void testAddXP_Success() {
         // Given
-        doNothing().when(gamificationClient).addXP(anyLong(), anyMap());
+        when(gamificationClient.addXP(anyLong(), anyMap()))
+                .thenReturn(java.util.Map.of("success", true));
 
         // When
         gamificationIntegrationService.addXP(1L, 100, "Completed lesson");
@@ -144,7 +145,8 @@ class GamificationIntegrationServiceTest {
     @Test
     void testAddCoins_Success() {
         // Given
-        doNothing().when(gamificationClient).addCoins(anyLong(), anyMap());
+        when(gamificationClient.addCoins(anyLong(), anyMap()))
+                .thenReturn(java.util.Map.of("success", true));
 
         // When
         gamificationIntegrationService.addCoins(1L, 50, "Daily bonus");
@@ -166,7 +168,8 @@ class GamificationIntegrationServiceTest {
     @Test
     void testRecordPurchase_Success() {
         // Given
-        doNothing().when(gamificationClient).recordPurchase(anyLong(), anyMap());
+        when(gamificationClient.recordPurchase(anyLong(), anyMap()))
+                .thenReturn(java.util.Map.of("success", true));
 
         // When
         gamificationIntegrationService.recordPurchase(1L, 29.99);

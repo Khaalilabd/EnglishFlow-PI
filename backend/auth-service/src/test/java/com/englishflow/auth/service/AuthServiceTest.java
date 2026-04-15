@@ -143,7 +143,8 @@ class AuthServiceTest {
         when(passwordEncoder.encode(anyString())).thenReturn("encodedPassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(activationTokenRepository.save(any(ActivationToken.class))).thenReturn(new ActivationToken());
-        doNothing().when(emailService).sendActivationEmail(anyString(), anyString(), anyString());
+        when(emailService.sendActivationEmail(anyString(), anyString(), anyString()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // When
         assertDoesNotThrow(() -> authService.register(registerRequest));
@@ -162,7 +163,8 @@ class AuthServiceTest {
         when(userRepository.findByEmail(anyString())).thenReturn(Optional.of(testUser));
         when(passwordResetTokenRepository.save(any(PasswordResetToken.class)))
                 .thenReturn(new PasswordResetToken());
-        doNothing().when(emailService).sendPasswordResetEmail(anyString(), anyString(), anyString());
+        when(emailService.sendPasswordResetEmail(anyString(), anyString(), anyString()))
+                .thenReturn(java.util.concurrent.CompletableFuture.completedFuture(null));
 
         // When
         assertDoesNotThrow(() -> authService.requestPasswordReset(request));
@@ -175,13 +177,14 @@ class AuthServiceTest {
     void testCheckActivationStatus_Active() {
         // Given
         when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
+        when(jwtUtil.generateToken(anyString(), anyString(), anyLong())).thenReturn("jwt-token");
 
         // When
         var result = authService.checkActivationStatus("test@example.com");
 
         // Then
         assertNotNull(result);
-        assertTrue((Boolean) result.get("active"));
+        assertTrue((Boolean) result.get("activated"));
         assertEquals("test@example.com", result.get("email"));
     }
 
@@ -190,12 +193,9 @@ class AuthServiceTest {
         // Given
         when(userRepository.findByEmail("notfound@example.com")).thenReturn(Optional.empty());
 
-        // When
-        var result = authService.checkActivationStatus("notfound@example.com");
-
-        // Then
-        assertNotNull(result);
-        assertFalse((Boolean) result.get("exists"));
+        // When & Then
+        assertThrows(com.englishflow.auth.exception.UserNotFoundException.class,
+                () -> authService.checkActivationStatus("notfound@example.com"));
     }
 
     @Test
@@ -216,13 +216,11 @@ class AuthServiceTest {
         // Given
         Long userId = 1L;
         doNothing().when(refreshTokenService).revokeAllUserTokens(userId);
-        when(userSessionService.terminateAllUserSessions(anyLong(), any())).thenReturn(3);
 
         // When
         assertDoesNotThrow(() -> authService.logoutFromAllDevices(userId));
 
         // Then
         verify(refreshTokenService).revokeAllUserTokens(userId);
-        verify(userSessionService).terminateAllUserSessions(anyLong(), any());
     }
 }
