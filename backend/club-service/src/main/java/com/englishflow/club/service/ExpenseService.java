@@ -124,6 +124,12 @@ public class ExpenseService {
     }
     
     @Transactional(readOnly = true)
+    public boolean existsIncomeEntryForToken(Integer clubId, String token) {
+        return expenseRepository.findByClubIdOrderByExpenseDateDesc(clubId).stream()
+                .anyMatch(e -> e.getNotes() != null && e.getNotes().contains(token));
+    }
+
+    @Transactional(readOnly = true)
     public Double getTotalExpensesByClub(Integer clubId) {
         List<Expense> expenses = expenseRepository.findByClubIdOrderByExpenseDateDesc(clubId);
         return expenses.stream()

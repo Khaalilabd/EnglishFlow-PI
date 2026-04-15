@@ -1,12 +1,12 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { ExpenseService } from '../../../core/services/expense.service';
 import { UserService } from '../../../core/services/user.service';
 import { NotificationService } from '../../../core/services/notification.service';
-import { MembershipRequestService } from '../../../core/services/membership-request.service';
-import { EventPaymentService } from '../../../core/services/event-payment.service';
 import { Expense } from '../../../core/models/expense.model';
+import { environment } from '../../../../environments/environment';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -26,6 +26,7 @@ export class ClubExpensesComponent implements OnInit {
   loading = false;
   showModal = false;
   isEditMode = false;
+  backfilling = false;
 
   // Search & filter
   searchQuery = '';
@@ -68,6 +69,8 @@ export class ClubExpensesComponent implements OnInit {
   }
 
   isIncome(expense: Expense): boolean {
+    // An entry is income ONLY if it has an explicit INCOME marker in notes or designation.
+    // The 'source' field indicates funding origin for expenses, not whether it's income.
     return !!(
       expense.notes?.includes('SPONSORSHIP_INCOME') ||
       expense.notes?.includes('REGISTRATION_FEE_INCOME') ||
@@ -80,7 +83,6 @@ export class ClubExpensesComponent implements OnInit {
   get filteredExpenses(): Expense[] {
     let result = [...this.expenses];
 
-    // Type filter — income (entrantes) vs expense (sortantes)
     if (this.filterType !== 'all') {
       result = result.filter(e => {
         const isIncome = this.isIncome(e);
@@ -90,7 +92,6 @@ export class ClubExpensesComponent implements OnInit {
       });
     }
 
-    // Search
     if (this.searchQuery.trim()) {
       const q = this.searchQuery.toLowerCase();
       result = result.filter(e =>
@@ -100,7 +101,6 @@ export class ClubExpensesComponent implements OnInit {
       );
     }
 
-    // Period filter
     if (this.filterPeriod !== 'all') {
       const now = new Date();
       result = result.filter(e => {
@@ -115,7 +115,6 @@ export class ClubExpensesComponent implements OnInit {
       });
     }
 
-    // Sort
     result.sort((a, b) => {
       if (this.sortBy === 'date_desc') return new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime();
       if (this.sortBy === 'date_asc') return new Date(a.expenseDate).getTime() - new Date(b.expenseDate).getTime();
@@ -135,8 +134,7 @@ export class ClubExpensesComponent implements OnInit {
     private expenseService: ExpenseService,
     private userService: UserService,
     private notificationService: NotificationService,
-    private membershipRequestService: MembershipRequestService,
-    private eventPaymentService: EventPaymentService
+    private http: HttpClient
   ) {}
 
   ngOnInit() {
@@ -146,17 +144,27 @@ export class ClubExpensesComponent implements OnInit {
   loadExpenses() {
     this.loading = true;
 
-    // Single call — compute everything from the same data
     this.expenseService.getExpensesByClub(this.clubId).subscribe({
       next: (expenses) => {
-        // Compute sponsorship income from raw data (before enrichment)
+        // Compute sponsorship income
         this.totalSponsorshipIncome = expenses
           .filter(e => this.isSponsorshipIncome(e))
           .reduce((sum, e) => sum + e.amount, 0);
 
-        // Total expenses = all amounts MINUS sponsorship income
-        const rawTotal = expenses.reduce((sum, e) => sum + e.amount, 0);
-        this.totalExpenses = rawTotal - this.totalSponsorshipIncome;
+        // Compute registration fees income — only entries auto-created by payment confirmation
+        this.totalRegistrationFees = expenses
+          .filter(e => e.notes?.includes('REGISTRATION_FEE_INCOME'))
+          .reduce((sum, e) => sum + e.amount, 0);
+
+        // Compute event fees income — only entries auto-created by event payment
+        this.totalEventFees = expenses
+          .filter(e => e.notes?.includes('EVENT_FEE_INCOME'))
+          .reduce((sum, e) => sum + e.amount, 0);
+
+        // Total expenses = only outgoing entries (not income)
+        this.totalExpenses = expenses
+          .filter(e => !this.isIncome(e))
+          .reduce((sum, e) => sum + e.amount, 0);
 
         this.enrichExpensesWithCreatorNames(expenses);
       },
@@ -164,16 +172,6 @@ export class ClubExpensesComponent implements OnInit {
         console.error('Error loading expenses');
         this.loading = false;
       }
-    });
-
-    this.membershipRequestService.getTotalPayments(this.clubId).subscribe({
-      next: (total) => { this.totalRegistrationFees = total; },
-      error: () => { this.totalRegistrationFees = 0; }
-    });
-
-    this.eventPaymentService.getTotalPaymentsByClub(this.clubId).subscribe({
-      next: (total) => { this.totalEventFees = total; },
-      error: () => { this.totalEventFees = 0; }
     });
   }
 
@@ -190,26 +188,20 @@ export class ClubExpensesComponent implements OnInit {
     expenses.forEach(expense => {
       this.userService.getUserById(expense.createdBy).subscribe({
         next: (user) => {
-          enrichedExpenses.push({
-            ...expense,
-            createdByName: `${user.firstName} ${user.lastName}`
-          });
+          enrichedExpenses.push({ ...expense, createdByName: `${user.firstName} ${user.lastName}` });
           completed++;
           if (completed === expenses.length) {
-            this.expenses = enrichedExpenses.sort((a, b) => 
+            this.expenses = enrichedExpenses.sort((a, b) =>
               new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime()
             );
             this.loading = false;
           }
         },
         error: () => {
-          enrichedExpenses.push({
-            ...expense,
-            createdByName: 'Unknown'
-          });
+          enrichedExpenses.push({ ...expense, createdByName: 'Unknown' });
           completed++;
           if (completed === expenses.length) {
-            this.expenses = enrichedExpenses.sort((a, b) => 
+            this.expenses = enrichedExpenses.sort((a, b) =>
               new Date(b.expenseDate).getTime() - new Date(a.expenseDate).getTime()
             );
             this.loading = false;
@@ -251,13 +243,11 @@ export class ClubExpensesComponent implements OnInit {
       this.notificationService.error('Missing Field', 'Please enter a designation');
       return;
     }
-
     if (this.expenseForm.amount <= 0) {
       this.notificationService.error('Invalid Amount', 'Amount must be greater than 0');
       return;
     }
 
-    // Normalize date to full ISO format with seconds (required by backend LocalDateTime)
     const payload = {
       ...this.expenseForm,
       expenseDate: this.expenseForm.expenseDate.length === 16
@@ -283,7 +273,7 @@ export class ClubExpensesComponent implements OnInit {
           this.closeModal();
           this.loadExpenses();
         },
-        error: (err) => {
+        error: () => {
           this.notificationService.error('Creation Failed', 'Failed to create expense');
         }
       });
@@ -297,11 +287,33 @@ export class ClubExpensesComponent implements OnInit {
           this.notificationService.success('Expense Deleted', 'Expense has been deleted successfully');
           this.loadExpenses();
         },
-        error: (err) => {
+        error: () => {
           this.notificationService.error('Delete Failed', 'Failed to delete expense');
         }
       });
     }
+  }
+
+  backfillTreasury() {
+    if (!confirm('Synchroniser les paiements existants vers la trésorerie ? Cette opération est sûre et peut être répétée.')) return;
+    this.backfilling = true;
+    this.http.post<{ entriesCreated: number; message: string }>(
+      `${environment.apiUrl}/membership-requests/club/${this.clubId}/backfill-treasury`, {}
+    ).subscribe({
+      next: (res) => {
+        this.backfilling = false;
+        if (res.entriesCreated > 0) {
+          this.notificationService.success('Synchronisation réussie', res.message);
+          this.loadExpenses();
+        } else {
+          this.notificationService.success('Déjà à jour', res.message);
+        }
+      },
+      error: () => {
+        this.backfilling = false;
+        this.notificationService.error('Erreur', 'Échec de la synchronisation');
+      }
+    });
   }
 
   formatDate(dateString: string): string {
@@ -327,66 +339,48 @@ export class ClubExpensesComponent implements OnInit {
       minute: '2-digit'
     });
 
-    // Create PDF document in A4 format
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: 'a4'
-    });
-
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
 
-    // Modern Header with gradient effect (simulated with rectangles)
     doc.setFillColor(45, 87, 87);
     doc.rect(0, 0, pageWidth, 45, 'F');
-    
-    // Accent line
     doc.setFillColor(246, 189, 96);
     doc.rect(0, 45, pageWidth, 3, 'F');
 
-    // Title
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.text('CLUB EXPENSES', pageWidth / 2, 20, { align: 'center' });
-    
     doc.setFontSize(14);
     doc.setFont('helvetica', 'normal');
     doc.text('Financial Report', pageWidth / 2, 30, { align: 'center' });
 
-    // Info cards section
     let yPos = 58;
-    
-    // Card 1: Export Date
+
     doc.setFillColor(248, 250, 252);
     doc.roundedRect(margin, yPos, (pageWidth - 3 * margin) / 2, 18, 2, 2, 'F');
     doc.setDrawColor(226, 232, 240);
     doc.roundedRect(margin, yPos, (pageWidth - 3 * margin) / 2, 18, 2, 2, 'S');
-    
     doc.setTextColor(100, 116, 139);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('EXPORT DATE', margin + 3, yPos + 6);
-    
     doc.setTextColor(30, 41, 59);
     doc.setFontSize(10);
     doc.setFont('helvetica', 'bold');
     doc.text(currentDate, margin + 3, yPos + 13);
 
-    // Card 2: Total Amount
     const card2X = margin + (pageWidth - 3 * margin) / 2 + margin;
     doc.setFillColor(254, 243, 199);
     doc.roundedRect(card2X, yPos, (pageWidth - 3 * margin) / 2, 18, 2, 2, 'F');
     doc.setDrawColor(251, 191, 36);
     doc.roundedRect(card2X, yPos, (pageWidth - 3 * margin) / 2, 18, 2, 2, 'S');
-    
     doc.setTextColor(146, 64, 14);
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.text('TOTAL AMOUNT', card2X + 3, yPos + 6);
-    
     doc.setTextColor(45, 87, 87);
     doc.setFontSize(14);
     doc.setFont('helvetica', 'bold');
@@ -394,20 +388,15 @@ export class ClubExpensesComponent implements OnInit {
 
     yPos += 25;
 
-    // Section title
     doc.setTextColor(45, 87, 87);
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('Expense Details', margin, yPos);
-    
-    // Decorative line
     doc.setDrawColor(246, 189, 96);
     doc.setLineWidth(0.5);
     doc.line(margin, yPos + 2, margin + 40, yPos + 2);
-
     yPos += 8;
 
-    // Prepare table data
     const tableData = this.expenses.map((expense, index) => [
       (index + 1).toString(),
       expense.designation,
@@ -417,28 +406,14 @@ export class ClubExpensesComponent implements OnInit {
       expense.notes || '-'
     ]);
 
-    // Generate modern table
     autoTable(doc, {
       startY: yPos,
       head: [['#', 'Designation', 'Amount (DT)', 'Date', 'Created By', 'Notes']],
       body: tableData,
       theme: 'striped',
-      headStyles: {
-        fillColor: [45, 87, 87],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 10,
-        halign: 'center',
-        cellPadding: 4
-      },
-      bodyStyles: {
-        textColor: [51, 65, 85],
-        fontSize: 9,
-        cellPadding: 3
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252]
-      },
+      headStyles: { fillColor: [45, 87, 87], textColor: [255, 255, 255], fontStyle: 'bold', fontSize: 10, halign: 'center', cellPadding: 4 },
+      bodyStyles: { textColor: [51, 65, 85], fontSize: 9, cellPadding: 3 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
       columnStyles: {
         0: { halign: 'center', cellWidth: 12, fontStyle: 'bold', textColor: [100, 116, 139] },
         1: { cellWidth: 55 },
@@ -450,10 +425,7 @@ export class ClubExpensesComponent implements OnInit {
       margin: { left: margin, right: margin }
     });
 
-    // Summary section with modern design
     const finalY = (doc as any).lastAutoTable.finalY + 10;
-    
-    // Check if we need a new page
     if (finalY + 30 > pageHeight - margin) {
       doc.addPage();
       yPos = margin;
@@ -461,34 +433,27 @@ export class ClubExpensesComponent implements OnInit {
       yPos = finalY;
     }
 
-    // Summary box
     const summaryBoxHeight = 20;
     doc.setFillColor(45, 87, 87);
     doc.roundedRect(margin, yPos, pageWidth - 2 * margin, summaryBoxHeight, 3, 3, 'F');
-    
-    // Summary content
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(11);
     doc.setFont('helvetica', 'normal');
     doc.text('TOTAL EXPENSES', margin + 5, yPos + 8);
-    
     doc.setFontSize(18);
     doc.setFont('helvetica', 'bold');
     doc.text(`${this.totalExpenses.toFixed(2)} DT`, pageWidth - margin - 5, yPos + 13, { align: 'right' });
 
-    // Footer
     const footerY = pageHeight - 15;
     doc.setDrawColor(226, 232, 240);
     doc.setLineWidth(0.3);
     doc.line(margin, footerY, pageWidth - margin, footerY);
-    
     doc.setTextColor(148, 163, 184);
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text('Generated by Club Management System', pageWidth / 2, footerY + 5, { align: 'center' });
     doc.text(`Page 1 | ${this.expenses.length} records`, pageWidth / 2, footerY + 9, { align: 'center' });
 
-    // Save PDF
     const fileDate = new Date().toISOString().split('T')[0];
     doc.save(`club-expenses-report-${fileDate}.pdf`);
 

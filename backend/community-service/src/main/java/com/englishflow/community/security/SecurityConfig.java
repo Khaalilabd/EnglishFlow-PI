@@ -34,6 +34,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/community/trending/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/community/permissions/**").permitAll()
                 
+                // Public file serving - uploaded images, PDFs, videos
+                .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
+                
                 // Actuator endpoints
                 .requestMatchers("/actuator/**").permitAll()
                 

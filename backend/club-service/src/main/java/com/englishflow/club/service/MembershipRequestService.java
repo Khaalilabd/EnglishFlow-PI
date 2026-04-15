@@ -123,6 +123,43 @@ public class MembershipRequestService {
                 .sum();
     }
 
+    /**
+     * Backfill missing income entries in treasury for all confirmed payments.
+     * Safe to call multiple times — skips requests that already have an expense entry.
+     */
+    @Transactional
+    public int backfillTreasuryIncomeEntries(Integer clubId) {
+        List<MembershipRequest> confirmed = requestRepository.findByClubId(clubId).stream()
+                .filter(r -> r.getStatus() == MembershipRequestStatus.APPROVED && r.getPaymentConfirmedAt() != null)
+                .collect(Collectors.toList());
+
+        int created = 0;
+        for (MembershipRequest r : confirmed) {
+            Double fee = r.getClub().getRegistrationFee();
+            if (fee == null || fee <= 0) continue;
+
+            // Check if an income entry already exists for this payment token
+            String token = r.getPaymentToken() != null ? r.getPaymentToken() : "MANUAL_" + r.getId();
+            boolean alreadyExists = expenseService.existsIncomeEntryForToken(clubId, token);
+            if (alreadyExists) continue;
+
+            ExpenseDTO incomeEntry = ExpenseDTO.builder()
+                    .clubId(r.getClub().getId())
+                    .designation("Registration fee from member #" + r.getUserId())
+                    .amount(fee)
+                    .expenseDate(r.getPaymentConfirmedAt())
+                    .createdBy(r.getUserId())
+                    .notes("REGISTRATION_FEE_INCOME | payment: " + token)
+                    .source("REGISTRATION_FEE")
+                    .build();
+            expenseService.createIncomeEntry(incomeEntry);
+            created++;
+            log.info("Backfilled income entry for membership request {} (user {}, amount {} TND)", r.getId(), r.getUserId(), fee);
+        }
+        log.info("Backfill complete for club {}: {} entries created", clubId, created);
+        return created;
+    }
+
     @Transactional(readOnly = true)
     public List<MembershipRequestDTO> getAllRequestsForClub(Integer clubId) {
         return requestRepository.findByClubId(clubId)
@@ -240,6 +277,12 @@ public class MembershipRequestService {
         MembershipRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found"));
 
+        // Allow idempotent confirmation: if already APPROVED with same token, return existing
+        if (request.getStatus() == MembershipRequestStatus.APPROVED) {
+            log.info("Payment already confirmed for request {}, returning existing data", requestId);
+            return toDTO(request);
+        }
+
         if (request.getStatus() != MembershipRequestStatus.PAYMENT_PENDING) {
             throw new RuntimeException("Request is not awaiting payment");
         }
@@ -267,22 +310,19 @@ public class MembershipRequestService {
         );
 
         // Auto-create income entry in treasury
-        try {
-            Double fee = request.getClub().getRegistrationFee();
-            if (fee != null && fee > 0) {
-                ExpenseDTO incomeEntry = ExpenseDTO.builder()
-                        .clubId(request.getClub().getId())
-                        .designation("Registration fee from member #" + request.getUserId())
-                        .amount(fee)
-                        .expenseDate(LocalDateTime.now())
-                        .createdBy(request.getUserId())
-                        .notes("REGISTRATION_FEE_INCOME | payment: " + paymentToken)
-                        .source("REGISTRATION_FEE")
-                        .build();
-                expenseService.createIncomeEntry(incomeEntry);
-            }
-        } catch (Exception e) {
-            log.warn("Failed to create income entry for membership payment: {}", e.getMessage());
+        Double fee = request.getClub().getRegistrationFee();
+        if (fee != null && fee > 0) {
+            ExpenseDTO incomeEntry = ExpenseDTO.builder()
+                    .clubId(request.getClub().getId())
+                    .designation("Registration fee from member #" + request.getUserId())
+                    .amount(fee)
+                    .expenseDate(LocalDateTime.now())
+                    .createdBy(request.getUserId())
+                    .notes("REGISTRATION_FEE_INCOME | payment: " + paymentToken)
+                    .source("REGISTRATION_FEE")
+                    .build();
+            expenseService.createIncomeEntry(incomeEntry);
+            log.info("Income entry created in treasury for membership request {}, amount: {} TND", requestId, fee);
         }
 
         log.info("Payment confirmed for membership request {}, user {} added to club {}", 

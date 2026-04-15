@@ -412,12 +412,19 @@ export class TextToSpeechService {
     if (currentState.repeatMode) {
       this.clearRepeatSection();
     } else {
-      // Set repeat from current position to 50 words ahead (or end)
-      const repeatEnd = Math.min(this.currentWordIndex + 50, this.words.length - 1);
-      this.setRepeatSection(this.currentWordIndex, repeatEnd);
-      
-      // Show notification
-      console.log(`Repeat mode enabled: words ${this.currentWordIndex} to ${repeatEnd}`);
+      // Repeat from the very beginning of the text
+      this.setRepeatSection(0, this.words.length - 1);
+      console.log(`Repeat mode enabled: will restart from beginning`);
+
+      // If currently paused, restart immediately from the beginning
+      if (currentState.isPaused) {
+        this.synth.cancel();
+        if (this.wordTrackingInterval) {
+          clearInterval(this.wordTrackingInterval);
+          this.wordTrackingInterval = null;
+        }
+        setTimeout(() => this.speakFromWord(0), 100);
+      }
     }
   }
 

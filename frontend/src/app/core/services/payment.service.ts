@@ -20,7 +20,7 @@ export interface MembershipRequestPayment {
 export class PaymentService {
 
   private readonly base = `${environment.apiUrl}/payments`;
-  private readonly clubsBase = `${environment.apiUrl}/clubs`;
+  private readonly clubsBase = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

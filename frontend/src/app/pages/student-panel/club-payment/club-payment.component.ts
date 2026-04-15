@@ -93,6 +93,13 @@ export class ClubPaymentComponent implements OnInit {
     });
   }
 
+  simulatePayment() {
+    if (!this.request) return;
+    this.processing = true;
+    const token = 'DEV_SIM_' + Date.now();
+    this.confirmPayment(this.request.id, 'SIMULATION', token);
+  }
+
   goToClubs() {
     this.router.navigate(['/user-panel/clubs']);
   }

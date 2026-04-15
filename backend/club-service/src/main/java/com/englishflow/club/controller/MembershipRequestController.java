@@ -57,6 +57,18 @@ public class MembershipRequestController {
     public ResponseEntity<Double> getTotalPayments(@PathVariable Integer clubId) {
         return ResponseEntity.ok(requestService.getTotalConfirmedPayments(clubId));
     }
+
+    @PostMapping("/club/{clubId}/backfill-treasury")
+    public ResponseEntity<Map<String, Object>> backfillTreasury(@PathVariable Integer clubId) {
+        int count = requestService.backfillTreasuryIncomeEntries(clubId);
+        return ResponseEntity.ok(Map.of(
+            "clubId", clubId,
+            "entriesCreated", count,
+            "message", count > 0
+                ? count + " missing income entries created in treasury"
+                : "No missing entries — treasury is already up to date"
+        ));
+    }
     
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<MembershipRequestDTO>> getUserRequests(@PathVariable Long userId) {
