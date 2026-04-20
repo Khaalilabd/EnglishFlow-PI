@@ -515,9 +515,33 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,gateway,routes
+        include: health,info,gateway,routes,metrics,prometheus
+      base-path: /actuator
   endpoint:
     gateway:
+      enabled: true
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    metrics:
+      enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+    tags:
+      application: ${spring.application.name}
+      environment: ${ENVIRONMENT:dev}
+  health:
+    livenessState:
+      enabled: true
+    readinessState:
       enabled: true
 
 # JWT Configuration

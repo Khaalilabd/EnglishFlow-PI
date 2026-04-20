@@ -48,4 +48,9 @@ public interface CourseEnrollmentRepository extends JpaRepository<CourseEnrollme
      */
     @Query("SELECT e FROM CourseEnrollment e WHERE e.course.id = :courseId AND e.isActive = true ORDER BY e.enrolledAt DESC")
     List<CourseEnrollment> findActiveByCourseIdOrderByEnrolledAt(@Param("courseId") Long courseId);
+    
+    /**
+     * Delete all enrollments for a specific course
+     */
+    void deleteByCourseId(Long courseId);
 }

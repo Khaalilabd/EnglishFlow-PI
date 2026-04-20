@@ -91,14 +91,42 @@ export class QuizManagementComponent implements OnInit {
 
   loadQuizzes() {
     this.loading = true;
-    this.quizService.getAllQuizzes().subscribe({
-      next: (quizzes) => {
-        this.quizzes = quizzes;
-        this.applyFilters();
-        this.loading = false;
+    
+    // Get current user ID from auth service
+    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    const tutorId = currentUser.id;
+    
+    if (!tutorId) {
+      console.error('❌ No tutor ID found');
+      this.loading = false;
+      return;
+    }
+    
+    // First, get tutor's courses
+    this.courseService.getCoursesByTutor(tutorId).subscribe({
+      next: (courses) => {
+        const courseIds = courses.map(c => c.id);
+        console.log('📚 Tutor courses:', courseIds);
+        
+        // Then get all quizzes and filter by tutor's courses
+        this.quizService.getAllQuizzes().subscribe({
+          next: (quizzes) => {
+            // Filter quizzes to only show those belonging to tutor's courses
+            this.quizzes = quizzes.filter(quiz => 
+              quiz.courseId && courseIds.includes(quiz.courseId)
+            );
+            console.log('✅ Filtered quizzes:', this.quizzes.length);
+            this.applyFilters();
+            this.loading = false;
+          },
+          error: (error) => {
+            console.error('❌ Error loading quizzes:', error);
+            this.loading = false;
+          }
+        });
       },
       error: (error) => {
-        console.error('Error loading quizzes:', error);
+        console.error('❌ Error loading courses:', error);
         this.loading = false;
       }
     });

@@ -2,8 +2,13 @@ package com.englishflow.courses.service;
 
 import com.englishflow.courses.dto.CourseDTO;
 import com.englishflow.courses.entity.Course;
+import com.englishflow.courses.entity.Chapter;
 import com.englishflow.courses.enums.CourseStatus;
 import com.englishflow.courses.repository.CourseRepository;
+import com.englishflow.courses.repository.ChapterRepository;
+import com.englishflow.courses.repository.LessonRepository;
+import com.englishflow.courses.repository.CourseEnrollmentRepository;
+import com.englishflow.courses.repository.LessonProgressRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -22,6 +27,10 @@ public class CourseService implements ICourseService {
     
     private final CourseRepository courseRepository;
     private final UserValidationService userValidationService;
+    private final ChapterRepository chapterRepository;
+    private final LessonRepository lessonRepository;
+    private final CourseEnrollmentRepository courseEnrollmentRepository;
+    private final LessonProgressRepository lessonProgressRepository;
     
     @Override
     @Transactional(readOnly = true)
@@ -134,6 +143,27 @@ public class CourseService implements ICourseService {
         if (!courseRepository.existsById(id)) {
             throw new RuntimeException("Course not found with id: " + id);
         }
+        
+        // Delete in correct order to avoid foreign key constraint violations
+        
+        // 1. Delete lesson progress for this course
+        lessonProgressRepository.deleteByCourseId(id);
+        
+        // 2. Delete course enrollments
+        courseEnrollmentRepository.deleteByCourseId(id);
+        
+        // 3. Get all chapters for this course
+        List<Chapter> chapters = chapterRepository.findByCourseIdOrderByOrderIndexAsc(id);
+        
+        for (Chapter chapter : chapters) {
+            // 4. Delete lessons for each chapter (this will cascade to lesson_media)
+            lessonRepository.deleteByChapterId(chapter.getId());
+            
+            // 5. Delete chapter (this will cascade to chapter_objectives)
+            chapterRepository.deleteById(chapter.getId());
+        }
+        
+        // 6. Finally delete the course
         courseRepository.deleteById(id);
     }
     

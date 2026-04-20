@@ -29,4 +29,9 @@ public interface LessonRepository extends JpaRepository<Lesson, Long> {
     
     @Query("SELECT COUNT(l) FROM Lesson l JOIN l.chapter c WHERE c.course.id = :courseId AND l.isPublished = true")
     Long countPublishedByCourseId(@Param("courseId") Long courseId);
+    
+    /**
+     * Delete all lessons for a specific chapter
+     */
+    void deleteByChapterId(Long chapterId);
 }

@@ -24,4 +24,9 @@ public interface LessonProgressRepository extends JpaRepository<LessonProgress, 
     boolean existsByStudentIdAndLessonId(Long studentId, Long lessonId);
     
     void deleteByStudentIdAndCourseId(Long studentId, Long courseId);
+    
+    /**
+     * Delete all lesson progress for a specific course
+     */
+    void deleteByCourseId(Long courseId);
 }

@@ -1,19 +1,19 @@
-# Prometheus Configuration for EnglishFlow Auth Service
-# Save this file in your project root directory
+# Prometheus Configuration for EnglishFlow Microservices
+# Complete monitoring setup for all services
 
 global:
   scrape_interval: 15s      # Scrape metrics every 15 seconds
   evaluation_interval: 15s  # Evaluate rules every 15 seconds
   external_labels:
-    cluster: 'development'
-    project: 'englishflow'
+    cluster: 'englishflow'
+    environment: 'docker'
 
 # Alerting configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets: []
-          # - 'localhost:9093'  # Uncomment if you set up Alertmanager
+          # - 'alertmanager:9093'  # Uncomment if you set up Alertmanager
 
 # Load alert rules
 rule_files:
@@ -21,38 +21,173 @@ rule_files:
 
 # Scrape configurations
 scrape_configs:
-  # Auth Service - Main application
-  - job_name: 'auth-service'
-    metrics_path: '/actuator/prometheus'
-    scrape_interval: 10s
-    static_configs:
-      - targets: ['localhost:8081']
-        labels:
-          application: 'auth-service'
-          environment: 'development'
-          service: 'authentication'
-
   # Prometheus itself (self-monitoring)
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
         labels:
           application: 'prometheus'
-          environment: 'development'
+          environment: 'docker'
 
-# Optional: Add more services as you build them
-#  - job_name: 'club-service'
-#    metrics_path: '/actuator/prometheus'
-#    static_configs:
-#      - targets: ['localhost:8082']
-#        labels:
-#          application: 'club-service'
-#          environment: 'development'
-#
-#  - job_name: 'community-service'
-#    metrics_path: '/actuator/prometheus'
-#    static_configs:
-#      - targets: ['localhost:8083']
-#        labels:
-#          application: 'community-service'
-#          environment: 'development'
+  # Infrastructure Services
+  - job_name: 'eureka-server'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['eureka-server:8761']
+        labels:
+          application: 'eureka-server'
+          service_type: 'infrastructure'
+          environment: 'docker'
+
+  - job_name: 'config-server'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['config-server:8888']
+        labels:
+          application: 'config-server'
+          service_type: 'infrastructure'
+          environment: 'docker'
+
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          application: 'api-gateway'
+          service_type: 'gateway'
+          environment: 'docker'
+
+  # Core Business Services
+  - job_name: 'auth-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['auth-service:8081']
+        labels:
+          application: 'auth-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'courses-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['courses-service:8082']
+        labels:
+          application: 'courses-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'learning-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['learning-service:8083']
+        labels:
+          application: 'learning-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'messaging-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['messaging-service:8084']
+        labels:
+          application: 'messaging-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'event-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['event-service:8085']
+        labels:
+          application: 'event-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'club-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['club-service:8086']
+        labels:
+          application: 'club-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'community-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['community-service:8087']
+        labels:
+          application: 'community-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'gamification-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['gamification-service:8088']
+        labels:
+          application: 'gamification-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'payment-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['payment-service:8089']
+        labels:
+          application: 'payment-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'complaints-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['complaints-service:8090']
+        labels:
+          application: 'complaints-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'exam-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['exam-service:8091']
+        labels:
+          application: 'exam-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  - job_name: 'sponsors-service'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['sponsors-service:8092']
+        labels:
+          application: 'sponsors-service'
+          service_type: 'business'
+          environment: 'docker'
+
+  # Node.js Services
+  - job_name: 'webrtc-signaling'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['webrtc-signaling:3001']
+        labels:
+          application: 'webrtc-signaling'
+          service_type: 'realtime'
+          environment: 'docker'

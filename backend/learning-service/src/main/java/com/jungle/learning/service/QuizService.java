@@ -70,6 +70,14 @@ public class QuizService {
     }
     
     @Transactional(readOnly = true)
+    public List<QuizDTO> getQuizzesByTutor(Long tutorId) {
+        // This method requires calling courses-service to get tutor's courses
+        // For now, return all quizzes - frontend should filter by course
+        // TODO: Implement proper filtering via courses-service call
+        return getAllQuizzes();
+    }
+    
+    @Transactional(readOnly = true)
     public QuizDTO getQuizById(Long id) {
         Quiz quiz = quizRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Quiz not found with id: " + id));

@@ -146,7 +146,7 @@ services:
       dockerfile: Dockerfile
     container_name: englishflow-courses
     ports:
-      - "8086:8086"
+      - "8082:8082"
     networks:
       - englishflow-network
     depends_on:
@@ -159,7 +159,7 @@ services:
     volumes:
       - courses_uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -168,7 +168,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
-      - SERVER_PORT=8086
+      - SERVER_PORT=8082
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - EUREKA_INSTANCE_HOSTNAME=courses-service
       - DB_URL=jdbc:postgresql://postgres:5432/englishflow_courses
@@ -178,25 +178,25 @@ services:
       - REDIS_PORT=6379
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
-  # Exam Service
-  exam-service:
+  # Learning Service
+  learning-service:
     build:
-      context: ../../backend/exam-service
+      context: ../../backend/learning-service
       dockerfile: Dockerfile
-    container_name: englishflow-exam
+    container_name: englishflow-learning
     ports:
-      - "8089:8089"
+      - "8083:8083"
     networks:
       - englishflow-network
     depends_on:
       postgres:
         condition: service_healthy
-      redis:
-        condition: service_healthy
       eureka-server:
         condition: service_healthy
+    volumes:
+      - learning_uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -206,12 +206,10 @@ services:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=exam-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_exams
+      - EUREKA_INSTANCE_HOSTNAME=learning-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_learning_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
   # Messaging Service
@@ -255,6 +253,41 @@ services:
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
       - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
+  # Club Service
+  club-service:
+    build:
+      context: ../../backend/club-service
+      dockerfile: Dockerfile
+    container_name: englishflow-club
+    ports:
+      - "8086:8086"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8086/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8086
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_INSTANCE_HOSTNAME=club-service
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=englishflow_jungle_club_db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
   # Community Service
   community-service:
     build:
@@ -262,7 +295,7 @@ services:
       dockerfile: Dockerfile
     container_name: englishflow-community
     ports:
-      - "8082:8082"
+      - "8087:8087"
     networks:
       - englishflow-network
     depends_on:
@@ -273,7 +306,7 @@ services:
     volumes:
       - community_uploads:/app/uploads
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
       interval: 30s
       timeout: 5s
       retries: 5
@@ -282,6 +315,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8087
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - EUREKA_INSTANCE_HOSTNAME=community-service
       - DB_URL=jdbc:postgresql://postgres:5432/englishflow_community
@@ -289,12 +323,12 @@ services:
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
-  # Club Service
-  club-service:
+  # Event Service
+  event-service:
     build:
-      context: ../../backend/club-service
+      context: ../../backend/event-service
       dockerfile: Dockerfile
-    container_name: englishflow-club
+    container_name: englishflow-event
     ports:
       - "8085:8085"
     networks:
@@ -314,21 +348,20 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8085
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=club-service
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_NAME=englishflow_jungle_club_db
+      - EUREKA_INSTANCE_HOSTNAME=event-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_event_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
-  # Event Service
-  event-service:
+  # Gamification Service
+  gamification-service:
     build:
-      context: ../../backend/event-service
+      context: ../../backend/gamification-service
       dockerfile: Dockerfile
-    container_name: englishflow-event
+    container_name: englishflow-gamification
     ports:
       - "8088:8088"
     networks:
@@ -348,9 +381,43 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8088
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=event-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_event_db
+      - EUREKA_INSTANCE_HOSTNAME=gamification-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_gamification
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
+  # Payment Service
+  payment-service:
+    build:
+      context: ../../backend/payment-service
+      dockerfile: Dockerfile
+    container_name: englishflow-payment
+    ports:
+      - "8089:8089"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8089/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8089
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_INSTANCE_HOSTNAME=payment-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_payment
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
@@ -361,38 +428,6 @@ services:
       context: ../../backend/complaints-service
       dockerfile: Dockerfile
     container_name: englishflow-complaints
-    ports:
-      - "8087:8087"
-    networks:
-      - englishflow-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8087/actuator/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    restart: unless-stopped
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONFIG_ENABLED=false
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=complaints-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_complaints
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
-
-  # Gamification Service
-  gamification-service:
-    build:
-      context: ../../backend/gamification-service
-      dockerfile: Dockerfile
-    container_name: englishflow-gamification
     ports:
       - "8090:8090"
     networks:
@@ -412,57 +447,28 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8090
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=gamification-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_gamification
+      - EUREKA_INSTANCE_HOSTNAME=complaints-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_complaints
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
 
-  # Learning Service
-  learning-service:
+  # Exam Service
+  exam-service:
     build:
-      context: ../../backend/learning-service
+      context: ../../backend/exam-service
       dockerfile: Dockerfile
-    container_name: englishflow-learning
-    ports:
-      - "8083:8083"
-    networks:
-      - englishflow-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      eureka-server:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-      start_period: 60s
-    restart: unless-stopped
-    environment:
-      - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONFIG_ENABLED=false
-      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
-      - EUREKA_INSTANCE_HOSTNAME=learning-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_learning_db
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
-
-  # Sponsors Service
-  sponsors-service:
-    build:
-      context: ../../backend/sponsors-service
-      dockerfile: Dockerfile
-    container_name: englishflow-sponsors
+    container_name: englishflow-exam
     ports:
       - "8091:8091"
     networks:
       - englishflow-network
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       eureka-server:
         condition: service_healthy
@@ -476,12 +482,125 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8091
+      - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
+      - EUREKA_INSTANCE_HOSTNAME=exam-service
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_exams
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
+  # Sponsors Service
+  sponsors-service:
+    build:
+      context: ../../backend/sponsors-service
+      dockerfile: Dockerfile
+    container_name: englishflow-sponsors
+    ports:
+      - "8092:8092"
+    networks:
+      - englishflow-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8092/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_CLOUD_CONFIG_ENABLED=false
+      - SERVER_PORT=8092
       - EUREKA_INSTANCE_PREFER_IP_ADDRESS=true
       - EUREKA_INSTANCE_HOSTNAME=sponsors-service
-      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_sponsors
+      - DB_URL=jdbc:postgresql://postgres:5432/englishflow_sponsors_db
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+
+  # WebRTC Signaling Service
+  webrtc-signaling:
+    build:
+      context: ../../backend/webrtc-signaling
+      dockerfile: Dockerfile
+    container_name: englishflow-webrtc
+    ports:
+      - "3001:3001"
+    networks:
+      - englishflow-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+
+  # ==================== Monitoring ====================
+  
+  # Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: englishflow-prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - englishflow-network
+    volumes:
+      - ../../devops/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../../devops/monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: englishflow-grafana
+    ports:
+      - "3000:3000"
+    networks:
+      - englishflow-network
+    depends_on:
+      - prometheus
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../../devops/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ../../devops/monitoring/grafana-dashboard-working.json:/etc/grafana/provisioning/dashboards/englishflow.json
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
 
   # Config Server
   config-server:
@@ -542,4 +661,10 @@ volumes:
   messaging_uploads:
     driver: local
   community_uploads:
+    driver: local
+  learning_uploads:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
     driver: local
