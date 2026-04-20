@@ -4,6 +4,10 @@ import com.englishflow.courses.dto.CourseDTO;
 import com.englishflow.courses.entity.Course;
 import com.englishflow.courses.enums.CourseStatus;
 import com.englishflow.courses.repository.CourseRepository;
+import com.englishflow.courses.repository.ChapterRepository;
+import com.englishflow.courses.repository.LessonRepository;
+import com.englishflow.courses.repository.CourseEnrollmentRepository;
+import com.englishflow.courses.repository.LessonProgressRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,6 +39,18 @@ class CourseServiceTest {
 
     @Mock
     private UserValidationService userValidationService;
+
+    @Mock
+    private ChapterRepository chapterRepository;
+
+    @Mock
+    private LessonRepository lessonRepository;
+
+    @Mock
+    private CourseEnrollmentRepository courseEnrollmentRepository;
+
+    @Mock
+    private LessonProgressRepository lessonProgressRepository;
 
     @InjectMocks
     private CourseService courseService;
@@ -221,11 +238,17 @@ class CourseServiceTest {
     @Test
     void deleteCourse_WhenCourseExists_ShouldDeleteCourse() {
         when(courseRepository.existsById(1L)).thenReturn(true);
+        when(chapterRepository.findByCourseIdOrderByOrderIndexAsc(1L)).thenReturn(Collections.emptyList());
+        doNothing().when(lessonProgressRepository).deleteByCourseId(1L);
+        doNothing().when(courseEnrollmentRepository).deleteByCourseId(1L);
         doNothing().when(courseRepository).deleteById(1L);
 
         courseService.deleteCourse(1L);
 
         verify(courseRepository, times(1)).existsById(1L);
+        verify(lessonProgressRepository, times(1)).deleteByCourseId(1L);
+        verify(courseEnrollmentRepository, times(1)).deleteByCourseId(1L);
+        verify(chapterRepository, times(1)).findByCourseIdOrderByOrderIndexAsc(1L);
         verify(courseRepository, times(1)).deleteById(1L);
     }
 
