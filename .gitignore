@@ -75,3 +75,12 @@ Thumbs.db
 **/.env
 *.env
 !.env.example
+
+# Prometheus data and logs (generated at runtime)
+/data/
+/logs/
+
+# Temporary files
+temp_*.xml
+temp_*.yml
+temp_*.json
