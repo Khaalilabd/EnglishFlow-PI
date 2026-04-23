@@ -299,17 +299,17 @@ The platform consists of **16 microservices** (15 Spring Boot + 1 Node.js) with 
 | Eureka Server | 8761 | N/A | Service registry and discovery | N/A | ✅ |
 | API Gateway | 8080 | N/A | API routing, load balancing, CORS | N/A | ✅ |
 | Auth Service | 8081 | englishflow_identity | Authentication, user management, sessions, 2FA, OAuth2 | ✅ | ✅ (21 tests) |
-| Community Service | 8082 | englishflow_community | Forums, topics, posts, reactions, moderation | ✅ | ✅ (51 tests) |
-| Learning Service | 8083 | englishflow_learning_db | E-books, quizzes, reading progress, collections | ❌ | ✅ (7 tests) |
+| Courses Service | 8082 | englishflow_courses | Courses, chapters, lessons, enrollment, progress | ✅ | ✅ (3 tests) |
+| Learning Service | 8083 | englishflow_learning_db | E-books, quizzes, reading progress, collections | ✅ | ✅ (7 tests) |
 | Messaging Service | 8084 | englishflow_messaging_db | Real-time messaging, WebSocket, conversations, Redis | ✅ | ✅ (6 tests) |
-| Club Service | 8085 | englishflow_jungle_club_db | Student clubs, members, tasks, approval workflow | ✅ | ✅ (6 tests) |
-| Courses Service | 8086 | englishflow_courses | Courses, chapters, lessons, enrollment, progress | ❌ | ✅ (3 tests) |
-| Complaints Service | 8087 | englishflow_complaints | Complaints, messages, workflow, SSE notifications | ❌ | ✅ (4 tests) |
-| Event Service | 8088 | englishflow_event_db | Events, participants, feedback, approval, Twilio SMS | ✅ | ✅ (3 tests) |
-| Sponsors Service | 8089 | englishflow_sponsors_db | Sponsorship management, sponsor profiles, emails | ✅ | ✅ (16 tests) |
-| Exam Service | 8090 | englishflow_exams | CEFR exams, questions, attempts, grading, results | ❌ | ❌ |
-| Gamification Service | 8091 | englishflow_gamification | Points, levels, badges, leaderboards, loyalty | ❌ | ❌ |
-| Payment Service | 8095 | englishflow_payments | Payment processing, Paymee/Konnect integration | ❌ | ❌ |
+| Event Service | 8085 | englishflow_event_db | Events, participants, feedback, approval, Twilio SMS | ✅ | ✅ (3 tests) |
+| Club Service | 8086 | englishflow_jungle_club_db | Student clubs, members, tasks, approval workflow | ✅ | ✅ (6 tests) |
+| Community Service | 8087 | englishflow_community | Forums, topics, posts, reactions, moderation | ✅ | ✅ (51 tests) |
+| Gamification Service | 8088 | englishflow_gamification | Points, levels, badges, leaderboards, loyalty | ✅ | ❌ |
+| Payment Service | 8089 | englishflow_payments | Payment processing, Paymee/Konnect integration | ✅ | ❌ |
+| Complaints Service | 8090 | englishflow_complaints | Complaints, messages, workflow, SSE notifications | ✅ | ✅ (4 tests) |
+| Exam Service | 8091 | englishflow_exams | CEFR exams, questions, attempts, grading, results | ✅ | ❌ |
+| Sponsors Service | 8092 | englishflow_sponsors_db | Sponsorship management, sponsor profiles, emails | ✅ | ✅ (16 tests) |
 | WebRTC Signaling | 3001 | N/A | WebRTC signaling server for video calls (Node.js) | N/A | ❌ |
 
 ### Architecture Diagram
@@ -638,22 +638,228 @@ npm start
 
 | Service | Port | Swagger UI | Health Check | Actuator | Prometheus |
 |---------|------|------------|--------------|----------|------------|
-| Config Server | 8888 | N/A | http://localhost:8888/actuator/health | ✅ | ❌ |
-| Eureka Server | 8761 | N/A | http://localhost:8761 | ✅ | ❌ |
+| Config Server | 8888 | N/A | http://localhost:8888/actuator/health | ✅ | ✅ |
+| Eureka Server | 8761 | N/A | http://localhost:8761 | ✅ | ✅ |
 | API Gateway | 8080 | N/A | http://localhost:8080/actuator/health | ✅ | ✅ |
 | Auth Service | 8081 | http://localhost:8081/swagger-ui.html | http://localhost:8081/actuator/health | ✅ | ✅ |
-| Community Service | 8082 | http://localhost:8082/swagger-ui.html | http://localhost:8082/actuator/health | ✅ | ✅ |
-| Learning Service | 8083 | N/A | http://localhost:8083/actuator/health | ✅ | ❌ |
+| Courses Service | 8082 | http://localhost:8082/swagger-ui.html | http://localhost:8082/actuator/health | ✅ | ✅ |
+| Learning Service | 8083 | http://localhost:8083/swagger-ui.html | http://localhost:8083/actuator/health | ✅ | ✅ |
 | Messaging Service | 8084 | http://localhost:8084/swagger-ui.html | http://localhost:8084/actuator/health | ✅ | ✅ |
-| Club Service | 8085 | http://localhost:8085/swagger-ui.html | http://localhost:8085/actuator/health | ✅ | ✅ |
-| Courses Service | 8086 | N/A | http://localhost:8086/actuator/health | ✅ | ❌ |
-| Complaints Service | 8087 | N/A | http://localhost:8087/actuator/health | ✅ | ❌ |
-| Event Service | 8088 | http://localhost:8088/swagger-ui.html | http://localhost:8088/actuator/health | ✅ | ✅ |
-| Sponsors Service | 8089 | http://localhost:8089/swagger-ui.html | http://localhost:8089/actuator/health | ✅ | ✅ |
-| Exam Service | 8090 | N/A | http://localhost:8090/actuator/health | ✅ | ❌ |
-| Gamification Service | 8091 | N/A | http://localhost:8091/actuator/health | ✅ | ❌ |
-| Payment Service | 8095 | N/A | http://localhost:8095/actuator/health | ✅ | ❌ |
-| WebRTC Signaling | 3001 | N/A | N/A | ❌ | ❌ |
+| Event Service | 8085 | http://localhost:8085/swagger-ui.html | http://localhost:8085/actuator/health | ✅ | ✅ |
+| Club Service | 8086 | http://localhost:8086/swagger-ui.html | http://localhost:8086/actuator/health | ✅ | ✅ |
+| Community Service | 8087 | http://localhost:8087/swagger-ui.html | http://localhost:8087/actuator/health | ✅ | ✅ |
+| Gamification Service | 8088 | http://localhost:8088/swagger-ui.html | http://localhost:8088/actuator/health | ✅ | ✅ |
+| Payment Service | 8089 | http://localhost:8089/swagger-ui.html | http://localhost:8089/actuator/health | ✅ | ✅ |
+| Complaints Service | 8090 | http://localhost:8090/swagger-ui.html | http://localhost:8090/actuator/health | ✅ | ✅ |
+| Exam Service | 8091 | http://localhost:8091/swagger-ui.html | http://localhost:8091/actuator/health | ✅ | ✅ |
+| Sponsors Service | 8092 | http://localhost:8092/swagger-ui.html | http://localhost:8092/actuator/health | ✅ | ✅ |
+| WebRTC Signaling | 3001 | N/A | http://localhost:3001/health | ❌ | ❌ |
+
+---
+
+## DevOps & Infrastructure
+
+### Docker Compose Setup
+
+The project includes a complete Docker Compose configuration for running all services locally or in development environments.
+
+#### Quick Start with Docker
+
+```bash
+# Navigate to docker directory
+cd devops/docker
+
+# Start all services
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+#### Services Included in Docker Compose
+
+- **Infrastructure**: PostgreSQL, Redis, Eureka, Config Server, API Gateway
+- **Business Services**: All 12 microservices (auth, courses, learning, messaging, club, community, event, gamification, payment, complaints, exam, sponsors)
+- **Monitoring**: Prometheus, Grafana
+- **Frontend**: Angular application (Nginx)
+- **WebRTC**: Signaling server (Node.js)
+
+#### Environment Configuration
+
+Before running Docker Compose, copy and configure environment files:
+
+```bash
+# Root environment
+cp .env.example .env
+
+# Service-specific environments
+for service in auth-service courses-service community-service messaging-service club-service event-service learning-service complaints-service gamification-service exam-service payment-service sponsors-service; do
+  cp backend/$service/.env.example backend/$service/.env
+done
+```
+
+#### Access Services
+
+After starting Docker Compose:
+
+- **Frontend**: http://localhost:4200
+- **Eureka Dashboard**: http://localhost:8761
+- **API Gateway**: http://localhost:8080
+- **Prometheus**: http://localhost:9090
+- **Grafana**: http://localhost:3000 (admin/admin)
+- **Swagger UIs**: http://localhost:808X/swagger-ui.html (where X is service port)
+
+---
+
+### Monitoring with Prometheus & Grafana
+
+#### Prometheus Configuration
+
+All 16 microservices expose Prometheus metrics at `/actuator/prometheus` endpoint.
+
+**Prometheus Configuration**: `devops/monitoring/prometheus.yml`
+
+- Scrapes metrics from all services every 15 seconds
+- Monitors JVM metrics (heap, threads, GC)
+- Tracks HTTP requests, latency, and error rates
+- Database connection pool metrics
+- Custom business metrics
+
+**Alert Rules**: `devops/monitoring/alert-rules.yml`
+
+- Service Down (> 5 minutes)
+- High CPU Usage (> 80%)
+- High Memory Usage (> 85%)
+- High Error Rate (> 5%)
+- Database Connection Pool Exhausted
+
+#### Grafana Dashboards
+
+**Pre-configured Dashboard**: `devops/monitoring/grafana-dashboard-working.json`
+
+Includes panels for:
+- **System Overview**: All services health status
+- **JVM Metrics**: Heap usage, GC activity, thread count
+- **HTTP Metrics**: Request rate, latency (p50, p95, p99), error rate
+- **Database Metrics**: Connection pool, query performance
+- **Redis Metrics**: Cache hit/miss ratio, memory usage
+- **Business Metrics**: User registrations, course enrollments, messages sent
+
+**Access Grafana**:
+1. Open http://localhost:3000
+2. Login: `admin` / `admin`
+3. Navigate to Dashboards → EnglishFlow Overview
+
+#### Metrics Endpoints
+
+All services expose the following actuator endpoints:
+
+- `/actuator/health` - Health check
+- `/actuator/info` - Service information
+- `/actuator/metrics` - Available metrics
+- `/actuator/prometheus` - Prometheus-formatted metrics
+
+---
+
+### CI/CD with GitHub Actions
+
+#### Automated Workflows
+
+The project uses GitHub Actions for continuous integration and deployment:
+
+**Backend CI** (`.github/workflows/ci-backend.yml`):
+- Triggers on push to `main` and pull requests
+- Builds all 15 Spring Boot services
+- Runs 200+ unit and integration tests
+- Generates JaCoCo coverage reports (target: 30%+)
+- Performs SonarCloud code quality analysis
+- Caches Maven dependencies for faster builds
+
+**Frontend CI** (`.github/workflows/ci-frontend.yml`):
+- Builds Angular application
+- Runs linting and tests
+- Generates production build
+
+#### SonarCloud Integration
+
+**Quality Gate Metrics**:
+- Code Coverage: Tracked per service
+- Security Hotspots: Monitored and reviewed
+- Code Smells: Identified and prioritized
+- Duplications: Tracked (target: < 3%)
+- Reliability Rating: Target A
+- Security Rating: Target A
+
+**SonarCloud Dashboard**: 
+- Organization: `khaalilabd`
+- Project: `Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish`
+- URL: https://sonarcloud.io/project/overview?id=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish
+
+**Configuration Files**:
+- `sonar-project.properties` - Root configuration
+- `backend/sonar-project.properties` - Backend-specific settings
+- `.sonarcloud.properties` - SonarCloud integration
+
+#### GitHub Secrets Required
+
+For CI/CD to work, configure these secrets in GitHub Settings → Secrets:
+
+- `SONAR_TOKEN` - SonarCloud authentication token
+- `JWT_SECRET` - JWT signing key (256-bit)
+- `MAIL_USERNAME` - Gmail for email service
+- `MAIL_PASSWORD` - Gmail app password
+- `GOOGLE_CLIENT_ID` - OAuth2 Google client ID
+- `GOOGLE_CLIENT_SECRET` - OAuth2 Google secret
+- `RECAPTCHA_SECRET` - reCAPTCHA secret key
+
+---
+
+### Kubernetes Deployment
+
+Kubernetes manifests are available in `devops/kubernetes/` for production deployment.
+
+#### Kubernetes Resources
+
+- **00-namespace.yaml** - EnglishFlow namespace
+- **01-configmaps/** - Configuration for all services
+- **02-secrets/** - Sensitive data (DB credentials, JWT secrets)
+- **03-storage/** - Persistent volumes for databases
+- **04-databases/** - PostgreSQL and Redis deployments
+- **05-infrastructure/** - Eureka, Config Server, API Gateway
+- **06-microservices/** - All 12 business services
+- **07-frontend/** - Angular application
+- **08-ingress/** - Ingress controller and routes
+- **09-monitoring/** - Prometheus and Grafana
+- **10-autoscaling/** - Horizontal Pod Autoscalers (HPA)
+
+#### Deploy to Kubernetes
+
+```bash
+# Create namespace
+kubectl apply -f devops/kubernetes/00-namespace.yaml
+
+# Deploy in order
+kubectl apply -f devops/kubernetes/01-configmaps/
+kubectl apply -f devops/kubernetes/02-secrets/
+kubectl apply -f devops/kubernetes/03-storage/
+kubectl apply -f devops/kubernetes/04-databases/
+kubectl apply -f devops/kubernetes/05-infrastructure/
+kubectl apply -f devops/kubernetes/06-microservices/
+kubectl apply -f devops/kubernetes/07-frontend/
+kubectl apply -f devops/kubernetes/08-ingress/
+kubectl apply -f devops/kubernetes/09-monitoring/
+kubectl apply -f devops/kubernetes/10-autoscaling/
+
+# Check deployment status
+kubectl get pods -n englishflow
+kubectl get svc -n englishflow
+```
 
 ---
 

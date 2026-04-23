@@ -141,6 +141,14 @@ gamification:
       minPoints: 5001
       maxPoints: 999999
 
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
 ---
 spring:
   config:
