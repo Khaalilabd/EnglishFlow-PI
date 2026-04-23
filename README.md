@@ -1,7 +1,13 @@
 # Jungle in English - English Learning Platform
 
-[![CI Status](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-backend.yml?branch=main&label=Backend%20CI)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
-[![Frontend CI](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-frontend.yml?branch=main&label=Frontend%20CI)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
+[![Backend CI](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-backend.yml?branch=main&label=Backend%20CI&logo=github)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
+[![Frontend CI](https://img.shields.io/github/actions/workflow/status/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/ci-frontend.yml?branch=main&label=Frontend%20CI&logo=angular)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/actions)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish)
+[![Docker](https://img.shields.io/badge/docker-ready-blue?logo=docker)](https://github.com/Khaalilabd/Esprit-PIDEV-4SAE1-2026-JungleInEnglish/pkgs/container/englishflow)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 ## Overview
 

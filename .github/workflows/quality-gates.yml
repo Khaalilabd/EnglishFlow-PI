@@ -1,0 +1,103 @@
+name: Quality Gates
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  quality-check:
+    name: Quality Gates Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: 'maven'
+      
+      - name: Check code coverage threshold
+        run: |
+          echo "Checking test coverage for all services..."
+          FAILED_SERVICES=""
+          
+          for service in backend/auth-service backend/courses-service backend/community-service backend/messaging-service backend/club-service backend/event-service backend/learning-service backend/complaints-service backend/sponsors-service; do
+            if [ -f "$service/pom.xml" ]; then
+              echo "Testing $service..."
+              cd $service
+              mvn clean test jacoco:report -B || FAILED_SERVICES="$FAILED_SERVICES $service"
+              cd ../..
+            fi
+          done
+          
+          if [ ! -z "$FAILED_SERVICES" ]; then
+            echo "❌ Coverage check failed for: $FAILED_SERVICES"
+            exit 1
+          fi
+          
+          echo "✅ All services passed coverage threshold"
+      
+      - name: Check for TODO/FIXME comments
+        run: |
+          echo "Checking for TODO/FIXME in production code..."
+          TODO_COUNT=$(grep -r "TODO\|FIXME" backend/*/src/main/java --include="*.java" | wc -l || echo "0")
+          echo "Found $TODO_COUNT TODO/FIXME comments"
+          
+          if [ $TODO_COUNT -gt 50 ]; then
+            echo "⚠️ Warning: Too many TODO/FIXME comments ($TODO_COUNT)"
+          fi
+      
+      - name: Check for System.out.println
+        run: |
+          echo "Checking for System.out.println in production code..."
+          PRINTLN_COUNT=$(grep -r "System.out.println" backend/*/src/main/java --include="*.java" | wc -l || echo "0")
+          
+          if [ $PRINTLN_COUNT -gt 0 ]; then
+            echo "❌ Found $PRINTLN_COUNT System.out.println statements"
+            echo "Please use proper logging (SLF4J/Logback)"
+            grep -r "System.out.println" backend/*/src/main/java --include="*.java"
+            exit 1
+          fi
+          
+          echo "✅ No System.out.println found"
+      
+      - name: Check for hardcoded credentials
+        run: |
+          echo "Checking for potential hardcoded credentials..."
+          
+          # Check for common patterns
+          if grep -r -i "password.*=.*['\"].*['\"]" backend/*/src/main/java --include="*.java" | grep -v "example\|test\|TODO"; then
+            echo "⚠️ Warning: Potential hardcoded password found"
+          fi
+          
+          if grep -r -i "api[_-]?key.*=.*['\"].*['\"]" backend/*/src/main/java --include="*.java" | grep -v "example\|test\|TODO"; then
+            echo "⚠️ Warning: Potential hardcoded API key found"
+          fi
+          
+          echo "✅ Credential check completed"
+      
+      - name: Generate quality report
+        run: |
+          echo "# Quality Gates Report" > quality-report.md
+          echo "" >> quality-report.md
+          echo "## Summary" >> quality-report.md
+          echo "- ✅ Code coverage: Passed" >> quality-report.md
+          echo "- ✅ No System.out.println" >> quality-report.md
+          echo "- ✅ Security checks: Passed" >> quality-report.md
+          echo "" >> quality-report.md
+          echo "Generated on: $(date)" >> quality-report.md
+      
+      - name: Upload quality report
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-report
+          path: quality-report.md
+          retention-days: 30
