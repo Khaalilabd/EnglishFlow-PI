@@ -62,7 +62,7 @@ class AuthControllerTest {
     void testRegister_Success() {
         // Given
         when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(true);
-        doNothing().when(authService).register(any(RegisterRequest.class));
+        when(authService.register(any(RegisterRequest.class))).thenReturn(authResponse);
 
         // When
         ResponseEntity<Map<String, String>> response = authController.register(registerRequest);
@@ -97,7 +97,9 @@ class AuthControllerTest {
         sponsorRequest.setPassword("Password123!");
         sponsorRequest.setFirstName("Sponsor");
         sponsorRequest.setLastName("Company");
+        sponsorRequest.setRecaptchaToken("valid-token");
 
+        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(true);
         when(authService.registerSponsor(any(SponsorRegisterRequest.class))).thenReturn(authResponse);
 
         // When
