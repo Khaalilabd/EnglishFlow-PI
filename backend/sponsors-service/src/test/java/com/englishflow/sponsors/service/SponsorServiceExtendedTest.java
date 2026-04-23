@@ -1,5 +1,6 @@
 package com.englishflow.sponsors.service;
 
+import com.englishflow.sponsors.client.ClubServiceClient;
 import com.englishflow.sponsors.client.ClubServiceFeignClient;
 import com.englishflow.sponsors.dto.ExpenseDTO;
 import com.englishflow.sponsors.dto.MemberDTO;
@@ -15,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -37,6 +39,12 @@ class SponsorServiceExtendedTest {
 
     @Mock
     private ClubServiceFeignClient clubServiceFeignClient;
+
+    @Mock
+    private ClubServiceClient clubServiceClient;
+
+    @Mock
+    private RestTemplate restTemplate;
 
     @Mock
     private EmailService emailService;
@@ -196,6 +204,8 @@ class SponsorServiceExtendedTest {
         when(sponsorRepository.findById(1L)).thenReturn(Optional.of(sponsor));
         when(clubServiceFeignClient.getClubMembers(1)).thenReturn(members);
         when(clubServiceFeignClient.createExpense(any(ExpenseDTO.class))).thenReturn(new ExpenseDTO());
+        when(clubServiceClient.createSponsorshipExpense(anyInt(), anyDouble(), anyString())).thenReturn(null);
+        when(clubServiceClient.getClubPresidentUserId(anyInt())).thenReturn(100L);
         when(sponsorRepository.save(any(Sponsor.class))).thenReturn(sponsor);
         when(sponsorMapper.toDTO(any(Sponsor.class))).thenReturn(sponsorDTO);
 
@@ -245,6 +255,8 @@ class SponsorServiceExtendedTest {
 
         when(sponsorRepository.findById(1L)).thenReturn(Optional.of(sponsor));
         when(clubServiceFeignClient.getClubMembers(1)).thenThrow(new RuntimeException("Feign error"));
+        when(clubServiceClient.createSponsorshipExpense(anyInt(), anyDouble(), anyString())).thenReturn(null);
+        when(clubServiceClient.getClubPresidentUserId(anyInt())).thenReturn(100L);
         when(sponsorRepository.save(any(Sponsor.class))).thenReturn(sponsor);
         when(sponsorMapper.toDTO(any(Sponsor.class))).thenReturn(sponsorDTO);
 
