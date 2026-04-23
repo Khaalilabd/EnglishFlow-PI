@@ -208,6 +208,7 @@ class SponsorServiceExtendedTest {
         when(clubServiceClient.getClubPresidentUserId(anyInt())).thenReturn(100L);
         when(sponsorRepository.save(any(Sponsor.class))).thenReturn(sponsor);
         when(sponsorMapper.toDTO(any(Sponsor.class))).thenReturn(sponsorDTO);
+        doNothing().when(emailService).sendClubSponsorApprovedEmail(anyString(), anyString(), anyString(), anyDouble(), anyDouble());
 
         SponsorDTO result = sponsorService.approveSponsor(1L);
 
@@ -241,6 +242,7 @@ class SponsorServiceExtendedTest {
         when(sponsorRepository.findById(1L)).thenReturn(Optional.of(sponsor));
         when(sponsorRepository.save(any(Sponsor.class))).thenReturn(sponsor);
         when(sponsorMapper.toDTO(any(Sponsor.class))).thenReturn(dtoWithoutClub);
+        doNothing().when(emailService).sendSponsorApprovedEmail(anyString(), anyString(), anyString());
 
         SponsorDTO result = sponsorService.approveSponsor(1L);
 
