@@ -55,6 +55,9 @@ class AuthControllerTest {
         authResponse = new AuthResponse();
         authResponse.setId(1L);
         authResponse.setEmail("test@example.com");
+        authResponse.setFirstName("John");
+        authResponse.setLastName("Doe");
+        authResponse.setRole("STUDENT");
         authResponse.setToken("jwt-token");
     }
 
