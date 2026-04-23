@@ -97,9 +97,7 @@ class AuthControllerTest {
         sponsorRequest.setPassword("Password123!");
         sponsorRequest.setFirstName("Sponsor");
         sponsorRequest.setLastName("Company");
-        sponsorRequest.setRecaptchaToken("valid-token");
 
-        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(true);
         when(authService.registerSponsor(any(SponsorRegisterRequest.class))).thenReturn(authResponse);
 
         // When
