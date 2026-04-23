@@ -1,7 +1,6 @@
 package com.englishflow.auth.security;
 
 import com.englishflow.auth.entity.User;
-import com.englishflow.auth.enums.Role;
 import com.englishflow.auth.repository.UserRepository;
 import com.englishflow.auth.service.UserSessionService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -58,7 +57,7 @@ class OAuth2AuthenticationSuccessHandlerTest {
         testUser.setEmail("test@example.com");
         testUser.setFirstName("John");
         testUser.setLastName("Doe");
-        testUser.setRole(Role.STUDENT);
+        testUser.setRole(User.Role.STUDENT);
         testUser.setActive(true);
 
         Map<String, Object> attributes = new HashMap<>();
