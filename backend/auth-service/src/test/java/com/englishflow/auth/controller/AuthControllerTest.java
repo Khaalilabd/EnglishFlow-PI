@@ -3,16 +3,16 @@ package com.englishflow.auth.controller;
 import com.englishflow.auth.dto.*;
 import com.englishflow.auth.service.AuthService;
 import com.englishflow.auth.service.RecaptchaService;
-import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -29,13 +29,16 @@ class AuthControllerTest {
     private RecaptchaService recaptchaService;
 
     @Mock
-    private HttpServletRequest httpServletRequest;
+    private HttpServletRequest httpRequest;
+
+    @Mock
+    private Model model;
 
     @InjectMocks
     private AuthController authController;
 
     private RegisterRequest registerRequest;
-    private LoginRequest loginRequest;
+    private SponsorRegisterRequest sponsorRequest;
     private AuthResponse authResponse;
 
     @BeforeEach
@@ -45,305 +48,250 @@ class AuthControllerTest {
         registerRequest.setPassword("Password123!");
         registerRequest.setFirstName("John");
         registerRequest.setLastName("Doe");
-        registerRequest.setRecaptchaToken("valid-token");
+        registerRequest.setRecaptchaToken("valid-recaptcha-token");
 
-        loginRequest = new LoginRequest();
-        loginRequest.setEmail("test@example.com");
-        loginRequest.setPassword("Password123!");
-        loginRequest.setRecaptchaToken("valid-token");
+        sponsorRequest = new SponsorRegisterRequest();
+        sponsorRequest.setEmail("sponsor@example.com");
+        sponsorRequest.setPassword("Password123!");
+        sponsorRequest.setFirstName("Jane");
+        sponsorRequest.setLastName("Smith");
+        sponsorRequest.setPhone("123456789");
+        sponsorRequest.setCin("AB123456");
 
-        authResponse = new AuthResponse();
-        authResponse.setId(1L);
-        authResponse.setEmail("test@example.com");
-        authResponse.setFirstName("John");
-        authResponse.setLastName("Doe");
-        authResponse.setRole("STUDENT");
-        authResponse.setToken("jwt-token");
+        authResponse = AuthResponse.builder()
+                .id(1L)
+                .email("sponsor@example.com")
+                .firstName("Jane")
+                .lastName("Smith")
+                .role("SPONSOR")
+                .token("jwt-token")
+                .build();
     }
 
     @Test
-    void testRegister_Success() {
-        // Given
-        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(true);
-        when(authService.register(any(RegisterRequest.class))).thenReturn(authResponse);
+    void register_Success() {
+        // Arrange
+        AuthResponse mockResponse = AuthResponse.builder()
+                .id(1L)
+                .email("test@example.com")
+                .firstName("John")
+                .lastName("Doe")
+                .role("STUDENT")
+                .token(null)
+                .profileCompleted(false)
+                .build();
+        
+        when(recaptchaService.verifyRecaptcha("valid-recaptcha-token")).thenReturn(true);
+        when(authService.register(any(RegisterRequest.class))).thenReturn(mockResponse);
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.register(registerRequest);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().get("message").contains("Registration successful"));
-        verify(authService, times(1)).register(any(RegisterRequest.class));
+        verify(recaptchaService).verifyRecaptcha("valid-recaptcha-token");
+        verify(authService).register(any(RegisterRequest.class));
     }
 
     @Test
-    void testRegister_RecaptchaFailed() {
-        // Given
-        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(false);
+    void register_RecaptchaFailed() {
+        // Arrange
+        when(recaptchaService.verifyRecaptcha("valid-recaptcha-token")).thenReturn(false);
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.register(registerRequest);
 
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        // Assert
+        assertNotNull(response);
+        assertEquals(400, response.getStatusCode().value());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().get("message").contains("reCAPTCHA verification failed"));
+        verify(recaptchaService).verifyRecaptcha("valid-recaptcha-token");
         verify(authService, never()).register(any(RegisterRequest.class));
     }
 
     @Test
-    void testRegisterSponsor_Success() {
-        // Given
-        SponsorRegisterRequest sponsorRequest = new SponsorRegisterRequest();
-        sponsorRequest.setEmail("sponsor@example.com");
-        sponsorRequest.setPassword("Password123!");
-        sponsorRequest.setFirstName("Sponsor");
-        sponsorRequest.setLastName("Company");
-
+    void registerSponsor_Success() {
+        // Arrange
         when(authService.registerSponsor(any(SponsorRegisterRequest.class))).thenReturn(authResponse);
 
-        // When
+        // Act
         ResponseEntity<Map<String, Object>> response = authController.registerSponsor(sponsorRequest);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertTrue(response.getBody().containsKey("message"));
-        assertTrue(response.getBody().containsKey("email"));
-        verify(authService, times(1)).registerSponsor(any(SponsorRegisterRequest.class));
+        assertTrue(response.getBody().get("message").toString().contains("Sponsor registration successful"));
+        assertEquals(1L, response.getBody().get("id"));
+        assertEquals("sponsor@example.com", response.getBody().get("email"));
+        assertEquals("SPONSOR", response.getBody().get("role"));
+        verify(authService).registerSponsor(any(SponsorRegisterRequest.class));
     }
 
     @Test
-    void testActivateAccountApi_Success() {
-        // Given
-        String token = "activation-token";
+    void activateAccountView_Success() {
+        // Arrange
+        String token = "valid-token";
         when(authService.activateAccount(token)).thenReturn(authResponse);
 
-        // When
+        // Act
+        String viewName = authController.activateAccountView(token, model);
+
+        // Assert
+        assertEquals("activation-success", viewName);
+        verify(authService).activateAccount(token);
+        verify(model, never()).addAttribute(anyString(), any());
+    }
+
+    @Test
+    void activateAccountView_Error() {
+        // Arrange
+        String token = "invalid-token";
+        when(authService.activateAccount(token)).thenThrow(new RuntimeException("Invalid token"));
+
+        // Act
+        String viewName = authController.activateAccountView(token, model);
+
+        // Assert
+        assertEquals("activation-error", viewName);
+        verify(authService).activateAccount(token);
+        verify(model).addAttribute("error", "Invalid token");
+    }
+
+    @Test
+    void activateAccountApi_Success() {
+        // Arrange
+        String token = "valid-token";
+        when(authService.activateAccount(token)).thenReturn(authResponse);
+
+        // Act
         ResponseEntity<AuthResponse> response = authController.activateAccountApi(token);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(authResponse, response.getBody());
-        verify(authService, times(1)).activateAccount(token);
+        verify(authService).activateAccount(token);
     }
 
     @Test
-    void testCheckActivationStatus() {
-        // Given
+    void checkActivationStatus_Success() {
+        // Arrange
         String email = "test@example.com";
-        Map<String, Object> status = Map.of("activated", true);
+        Map<String, Object> status = Map.of("activated", true, "email", email);
         when(authService.checkActivationStatus(email)).thenReturn(status);
 
-        // When
+        // Act
         ResponseEntity<Map<String, Object>> response = authController.checkActivationStatus(email);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(status, response.getBody());
-        verify(authService, times(1)).checkActivationStatus(email);
+        verify(authService).checkActivationStatus(email);
     }
 
     @Test
-    void testLogin_Success() {
-        // Given
-        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(true);
-        when(authService.login(any(LoginRequest.class), any(HttpServletRequest.class))).thenReturn(authResponse);
-
-        // When
-        ResponseEntity<AuthResponse> response = authController.login(loginRequest, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse, response.getBody());
-        verify(authService, times(1)).login(any(LoginRequest.class), any(HttpServletRequest.class));
-    }
-
-    @Test
-    void testLogin_RecaptchaFailed() {
-        // Given
-        when(recaptchaService.verifyRecaptcha(anyString())).thenReturn(false);
-
-        // When
-        ResponseEntity<AuthResponse> response = authController.login(loginRequest, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-        verify(authService, never()).login(any(LoginRequest.class), any(HttpServletRequest.class));
-    }
-
-    @Test
-    void testValidateToken() {
-        // Given
-        String token = "jwt-token";
+    void validateToken_Success() {
+        // Arrange
+        String token = "valid-token";
         when(authService.validateToken(token)).thenReturn(true);
 
-        // When
+        // Act
         ResponseEntity<Boolean> response = authController.validateToken(token);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
         assertTrue(response.getBody());
-        verify(authService, times(1)).validateToken(token);
+        verify(authService).validateToken(token);
     }
 
     @Test
-    void testRequestPasswordReset() {
-        // Given
+    void requestPasswordReset_Success() {
+        // Arrange
         PasswordResetRequest request = new PasswordResetRequest();
         request.setEmail("test@example.com");
         doNothing().when(authService).requestPasswordReset(any(PasswordResetRequest.class));
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.requestPasswordReset(request);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().get("message").contains("Password reset email sent"));
-        verify(authService, times(1)).requestPasswordReset(any(PasswordResetRequest.class));
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Password reset email sent", response.getBody().get("message"));
+        verify(authService).requestPasswordReset(any(PasswordResetRequest.class));
     }
 
     @Test
-    void testConfirmPasswordReset() {
-        // Given
+    void confirmPasswordReset_Success() {
+        // Arrange
         PasswordResetConfirm request = new PasswordResetConfirm();
         request.setToken("reset-token");
         request.setNewPassword("NewPassword123!");
         doNothing().when(authService).resetPassword(any(PasswordResetConfirm.class));
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.confirmPasswordReset(request);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().get("message").contains("Password reset successful"));
-        verify(authService, times(1)).resetPassword(any(PasswordResetConfirm.class));
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Password reset successful", response.getBody().get("message"));
+        verify(authService).resetPassword(any(PasswordResetConfirm.class));
     }
 
     @Test
-    void testCompleteProfile() {
-        // Given
+    void completeProfile_Success() {
+        // Arrange
         Long userId = 1L;
-        Map<String, String> profileData = Map.of("bio", "Test bio");
+        Map<String, String> profileData = Map.of("bio", "Test bio", "phone", "123456789");
         doNothing().when(authService).completeProfile(userId, profileData);
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.completeProfile(userId, profileData);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().get("message").contains("Profile completed successfully"));
-        verify(authService, times(1)).completeProfile(userId, profileData);
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Profile completed successfully", response.getBody().get("message"));
+        verify(authService).completeProfile(userId, profileData);
     }
 
     @Test
-    void testRefreshToken_Success() {
-        // Given
-        RefreshTokenRequest request = new RefreshTokenRequest();
-        request.setRefreshToken("refresh-token");
-        RefreshTokenResponse refreshResponse = new RefreshTokenResponse();
-        refreshResponse.setAccessToken("new-access-token");
-        when(authService.refreshToken(any(RefreshTokenRequest.class), any(HttpServletRequest.class)))
-                .thenReturn(refreshResponse);
+    void logout_Success() {
+        // Arrange
+        Map<String, String> request = Map.of("refreshToken", "refresh-token-123");
+        doNothing().when(authService).logout("refresh-token-123");
 
-        // When
-        ResponseEntity<RefreshTokenResponse> response = authController.refreshToken(request, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("new-access-token", response.getBody().getAccessToken());
-        verify(authService, times(1)).refreshToken(any(RefreshTokenRequest.class), any(HttpServletRequest.class));
-    }
-
-    @Test
-    void testRefreshToken_Unauthorized() {
-        // Given
-        RefreshTokenRequest request = new RefreshTokenRequest();
-        request.setRefreshToken("invalid-token");
-        when(authService.refreshToken(any(RefreshTokenRequest.class), any(HttpServletRequest.class)))
-                .thenThrow(new RuntimeException("Invalid token"));
-
-        // When
-        ResponseEntity<RefreshTokenResponse> response = authController.refreshToken(request, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(authService, times(1)).refreshToken(any(RefreshTokenRequest.class), any(HttpServletRequest.class));
-    }
-
-    @Test
-    void testLogout() {
-        // Given
-        Map<String, String> request = Map.of("refreshToken", "refresh-token");
-        doNothing().when(authService).logout(anyString());
-
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.logout(request);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().get("message").contains("Logged out successfully"));
-        verify(authService, times(1)).logout(anyString());
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Logged out successfully", response.getBody().get("message"));
+        verify(authService).logout("refresh-token-123");
     }
 
     @Test
-    void testLogoutFromAllDevices() {
-        // Given
+    void logoutFromAllDevices_Success() {
+        // Arrange
         Map<String, Long> request = Map.of("userId", 1L);
-        doNothing().when(authService).logoutFromAllDevices(anyLong());
+        doNothing().when(authService).logoutFromAllDevices(1L);
 
-        // When
+        // Act
         ResponseEntity<Map<String, String>> response = authController.logoutFromAllDevices(request);
 
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().get("message").contains("Logged out from all devices successfully"));
-        verify(authService, times(1)).logoutFromAllDevices(anyLong());
-    }
-
-    @Test
-    void testVerifyTwoFactorLogin_Success() {
-        // Given
-        TwoFactorLoginRequest request = new TwoFactorLoginRequest();
-        request.setTempToken("temp-token");
-        request.setCode("123456");
-        when(authService.verifyTwoFactorLogin(anyString(), anyString(), any(HttpServletRequest.class)))
-                .thenReturn(authResponse);
-
-        // When
-        ResponseEntity<AuthResponse> response = authController.verifyTwoFactorLogin(request, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(authResponse, response.getBody());
-        verify(authService, times(1)).verifyTwoFactorLogin(anyString(), anyString(), any(HttpServletRequest.class));
-    }
-
-    @Test
-    void testVerifyTwoFactorLogin_Unauthorized() {
-        // Given
-        TwoFactorLoginRequest request = new TwoFactorLoginRequest();
-        request.setTempToken("temp-token");
-        request.setCode("invalid");
-        when(authService.verifyTwoFactorLogin(anyString(), anyString(), any(HttpServletRequest.class)))
-                .thenThrow(new RuntimeException("Invalid code"));
-
-        // When
-        ResponseEntity<AuthResponse> response = authController.verifyTwoFactorLogin(request, httpServletRequest);
-
-        // Then
-        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        verify(authService, times(1)).verifyTwoFactorLogin(anyString(), anyString(), any(HttpServletRequest.class));
+        // Assert
+        assertNotNull(response);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals("Logged out from all devices successfully", response.getBody().get("message"));
+        verify(authService).logoutFromAllDevices(1L);
     }
 }

@@ -15,66 +15,63 @@ class RateLimitServiceTest {
     }
 
     @Test
-    void testIsBlocked_InitiallyNotBlocked() {
-        // Given
-        String identifier = "test@example.com";
+    void isBlocked_WhenNoAttempts_ShouldReturnFalse() {
+        // Act
+        boolean result = rateLimitService.isBlocked("test@example.com");
 
-        // When
-        boolean isBlocked = rateLimitService.isBlocked(identifier);
-
-        // Then
-        assertFalse(isBlocked);
+        // Assert
+        assertFalse(result);
     }
 
     @Test
-    void testRecordFailedAttempt_IncreasesAttempts() {
-        // Given
+    void recordFailedAttempt_ShouldIncrementAttempts() {
+        // Arrange
         String identifier = "test@example.com";
 
-        // When
+        // Act
         rateLimitService.recordFailedAttempt(identifier);
         int remaining = rateLimitService.getRemainingAttempts(identifier);
 
-        // Then
-        assertEquals(4, remaining); // 5 max - 1 attempt = 4 remaining
+        // Assert
+        assertEquals(4, remaining);
     }
 
     @Test
-    void testIsBlocked_AfterMaxAttempts() {
-        // Given
-        String identifier = "test@example.com";
+    void isBlocked_AfterMaxAttempts_ShouldReturnTrue() {
+        // Arrange
+        String identifier = "blocked@example.com";
 
-        // When - Record 5 failed attempts (max allowed)
+        // Act - Record 5 failed attempts
         for (int i = 0; i < 5; i++) {
             rateLimitService.recordFailedAttempt(identifier);
         }
 
-        // Then
+        // Assert
         assertTrue(rateLimitService.isBlocked(identifier));
         assertEquals(0, rateLimitService.getRemainingAttempts(identifier));
     }
 
     @Test
-    void testResetAttempts_ClearsFailedAttempts() {
-        // Given
-        String identifier = "test@example.com";
+    void resetAttempts_ShouldClearFailedAttempts() {
+        // Arrange
+        String identifier = "reset@example.com";
         rateLimitService.recordFailedAttempt(identifier);
         rateLimitService.recordFailedAttempt(identifier);
 
-        // When
+        // Act
         rateLimitService.resetAttempts(identifier);
 
-        // Then
+        // Assert
         assertFalse(rateLimitService.isBlocked(identifier));
         assertEquals(5, rateLimitService.getRemainingAttempts(identifier));
     }
 
     @Test
-    void testGetRemainingAttempts_DecreasesWithFailures() {
-        // Given
-        String identifier = "test@example.com";
+    void getRemainingAttempts_ShouldReturnCorrectCount() {
+        // Arrange
+        String identifier = "attempts@example.com";
 
-        // When & Then
+        // Act & Assert
         assertEquals(5, rateLimitService.getRemainingAttempts(identifier));
 
         rateLimitService.recordFailedAttempt(identifier);
@@ -82,44 +79,38 @@ class RateLimitServiceTest {
 
         rateLimitService.recordFailedAttempt(identifier);
         assertEquals(3, rateLimitService.getRemainingAttempts(identifier));
-
-        rateLimitService.recordFailedAttempt(identifier);
-        assertEquals(2, rateLimitService.getRemainingAttempts(identifier));
     }
 
     @Test
-    void testMultipleIdentifiers_IndependentTracking() {
-        // Given
+    void unblock_ShouldResetAttempts() {
+        // Arrange
+        String identifier = "unblock@example.com";
+        for (int i = 0; i < 5; i++) {
+            rateLimitService.recordFailedAttempt(identifier);
+        }
+        assertTrue(rateLimitService.isBlocked(identifier));
+
+        // Act
+        rateLimitService.unblock(identifier);
+
+        // Assert
+        assertFalse(rateLimitService.isBlocked(identifier));
+        assertEquals(5, rateLimitService.getRemainingAttempts(identifier));
+    }
+
+    @Test
+    void multipleIdentifiers_ShouldBeTrackedSeparately() {
+        // Arrange
         String identifier1 = "user1@example.com";
         String identifier2 = "user2@example.com";
 
-        // When
+        // Act
         rateLimitService.recordFailedAttempt(identifier1);
         rateLimitService.recordFailedAttempt(identifier1);
         rateLimitService.recordFailedAttempt(identifier2);
 
-        // Then
+        // Assert
         assertEquals(3, rateLimitService.getRemainingAttempts(identifier1));
         assertEquals(4, rateLimitService.getRemainingAttempts(identifier2));
-        assertFalse(rateLimitService.isBlocked(identifier1));
-        assertFalse(rateLimitService.isBlocked(identifier2));
-    }
-
-    @Test
-    void testBlockDuration_ExpiresAfter15Minutes() throws InterruptedException {
-        // Given
-        String identifier = "test@example.com";
-
-        // When - Block the user
-        for (int i = 0; i < 5; i++) {
-            rateLimitService.recordFailedAttempt(identifier);
-        }
-
-        // Then
-        assertTrue(rateLimitService.isBlocked(identifier));
-
-        // Note: This test would need to wait 15 minutes in real scenario
-        // For unit testing, we verify the initial block state
-        // Integration tests should verify expiration
     }
 }

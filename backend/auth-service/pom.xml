@@ -332,22 +332,8 @@
                         <exclude>**/config/**</exclude>
                         <!-- Exclude Main application class -->
                         <exclude>**/AuthServiceApplication.class</exclude>
-                        <!-- Exclude Repository interfaces (Spring Data, no implementation) -->
-                        <exclude>**/repository/**</exclude>
-                        <!-- Exclude Feign Client interfaces (no implementation) -->
-                        <exclude>**/client/**</exclude>
                         <!-- Exclude Enums -->
                         <exclude>**/enums/**</exclude>
-                        <!-- Exclude Util classes (hard to test, low coverage) -->
-                        <exclude>**/util/**</exclude>
-                        <!-- Exclude Exception classes (simple POJOs) -->
-                        <exclude>**/exception/**</exclude>
-                        <!-- Exclude services with external dependencies (hard to test) -->
-                        <exclude>**/service/EmailService.class</exclude>
-                        <exclude>**/service/FileStorageService.class</exclude>
-                        <exclude>**/service/GeoIpService.class</exclude>
-                        <exclude>**/service/ImageOptimizationService.class</exclude>
-                        <exclude>**/service/MetricsService.class</exclude>
                     </excludes>
                 </configuration>
             </plugin>

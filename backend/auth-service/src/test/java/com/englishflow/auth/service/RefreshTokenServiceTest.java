@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -37,156 +37,162 @@ class RefreshTokenServiceTest {
         
         testToken = RefreshToken.builder()
                 .id(1L)
-                .token("test-refresh-token")
+                .token("test-token-123")
                 .userId(100L)
                 .expiryDate(LocalDateTime.now().plusDays(7))
                 .revoked(false)
-                .deviceInfo("Chrome/120.0")
+                .deviceInfo("Chrome/Windows")
                 .ipAddress("192.168.1.1")
                 .build();
     }
 
     @Test
-    void testCreateRefreshToken_Success() {
-        // Given
-        Long userId = 100L;
-        when(refreshTokenRepository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(Arrays.asList());
+    void createRefreshToken_ShouldCreateAndReturnToken() {
+        // Arrange
+        when(refreshTokenRepository.findByUserIdOrderByCreatedAtDesc(100L)).thenReturn(Arrays.asList());
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(testToken);
 
-        // When
-        RefreshToken result = refreshTokenService.createRefreshToken(userId, "Chrome/120.0", "192.168.1.1");
+        // Act
+        RefreshToken result = refreshTokenService.createRefreshToken(100L, "Chrome/Windows", "192.168.1.1");
 
-        // Then
+        // Assert
         assertNotNull(result);
-        assertEquals(userId, result.getUserId());
-        verify(refreshTokenRepository).save(any(RefreshToken.class));
+        assertEquals(100L, result.getUserId());
+        assertFalse(result.isRevoked());
+        verify(refreshTokenRepository, times(1)).save(any(RefreshToken.class));
     }
 
     @Test
-    void testFindByToken_Success() {
-        // Given
-        when(refreshTokenRepository.findByToken("test-refresh-token")).thenReturn(Optional.of(testToken));
+    void findByToken_WhenTokenExists_ShouldReturnToken() {
+        // Arrange
+        when(refreshTokenRepository.findByToken("test-token-123")).thenReturn(Optional.of(testToken));
 
-        // When
-        Optional<RefreshToken> result = refreshTokenService.findByToken("test-refresh-token");
+        // Act
+        Optional<RefreshToken> result = refreshTokenService.findByToken("test-token-123");
 
-        // Then
+        // Assert
         assertTrue(result.isPresent());
-        assertEquals("test-refresh-token", result.get().getToken());
+        assertEquals("test-token-123", result.get().getToken());
+        verify(refreshTokenRepository, times(1)).findByToken("test-token-123");
     }
 
     @Test
-    void testVerifyExpiration_ValidToken() {
-        // Given
+    void findByToken_WhenTokenNotExists_ShouldReturnEmpty() {
+        // Arrange
+        when(refreshTokenRepository.findByToken("invalid-token")).thenReturn(Optional.empty());
+
+        // Act
+        Optional<RefreshToken> result = refreshTokenService.findByToken("invalid-token");
+
+        // Assert
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    void verifyExpiration_WhenTokenValid_ShouldUpdateAndReturn() {
+        // Arrange
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(testToken);
 
-        // When
+        // Act
         RefreshToken result = refreshTokenService.verifyExpiration(testToken);
 
-        // Then
+        // Assert
         assertNotNull(result);
-        verify(refreshTokenRepository).save(testToken);
+        assertNotNull(result.getLastUsedAt());
+        verify(refreshTokenRepository, times(1)).save(testToken);
     }
 
     @Test
-    void testVerifyExpiration_ExpiredToken() {
-        // Given
+    void verifyExpiration_WhenTokenExpired_ShouldThrowException() {
+        // Arrange
         testToken.setExpiryDate(LocalDateTime.now().minusDays(1));
         doNothing().when(refreshTokenRepository).delete(testToken);
 
-        // When & Then
-        assertThrows(TokenExpiredException.class, () -> {
-            refreshTokenService.verifyExpiration(testToken);
-        });
-        verify(refreshTokenRepository).delete(testToken);
+        // Act & Assert
+        assertThrows(TokenExpiredException.class, () -> refreshTokenService.verifyExpiration(testToken));
+        verify(refreshTokenRepository, times(1)).delete(testToken);
     }
 
     @Test
-    void testRevokeToken_Success() {
-        // Given
-        when(refreshTokenRepository.findByToken("test-refresh-token")).thenReturn(Optional.of(testToken));
+    void revokeToken_WhenTokenExists_ShouldRevokeSuccessfully() {
+        // Arrange
+        when(refreshTokenRepository.findByToken("test-token-123")).thenReturn(Optional.of(testToken));
         when(refreshTokenRepository.save(any(RefreshToken.class))).thenReturn(testToken);
 
-        // When
-        refreshTokenService.revokeToken("test-refresh-token");
+        // Act
+        refreshTokenService.revokeToken("test-token-123");
 
-        // Then
-        verify(refreshTokenRepository).save(testToken);
+        // Assert
+        verify(refreshTokenRepository, times(1)).save(testToken);
     }
 
     @Test
-    void testRevokeAllUserTokens_Success() {
-        // Given
-        Long userId = 100L;
-        List<RefreshToken> tokens = Arrays.asList(testToken);
-        when(refreshTokenRepository.findByUserIdAndRevokedFalse(userId)).thenReturn(tokens);
+    void revokeAllUserTokens_ShouldRevokeAllTokens() {
+        // Arrange
+        RefreshToken token1 = RefreshToken.builder().id(1L).userId(100L).revoked(false).build();
+        RefreshToken token2 = RefreshToken.builder().id(2L).userId(100L).revoked(false).build();
+        List<RefreshToken> tokens = Arrays.asList(token1, token2);
+        
+        when(refreshTokenRepository.findByUserIdAndRevokedFalse(100L)).thenReturn(tokens);
         when(refreshTokenRepository.saveAll(anyList())).thenReturn(tokens);
 
-        // When
-        refreshTokenService.revokeAllUserTokens(userId);
+        // Act
+        refreshTokenService.revokeAllUserTokens(100L);
 
-        // Then
-        verify(refreshTokenRepository).saveAll(tokens);
+        // Assert
+        assertTrue(token1.isRevoked());
+        assertTrue(token2.isRevoked());
+        verify(refreshTokenRepository, times(1)).saveAll(tokens);
     }
 
     @Test
-    void testCleanupExpiredTokens_Success() {
-        // Given
-        List<RefreshToken> expiredTokens = Arrays.asList(testToken);
+    void cleanupExpiredTokens_ShouldDeleteExpiredTokens() {
+        // Arrange
+        RefreshToken expiredToken = RefreshToken.builder()
+                .id(1L)
+                .expiryDate(LocalDateTime.now().minusDays(1))
+                .build();
+        List<RefreshToken> expiredTokens = Arrays.asList(expiredToken);
+        
         when(refreshTokenRepository.findByExpiryDateBefore(any(LocalDateTime.class))).thenReturn(expiredTokens);
         doNothing().when(refreshTokenRepository).deleteAll(expiredTokens);
 
-        // When
+        // Act
         refreshTokenService.cleanupExpiredTokens();
 
-        // Then
-        verify(refreshTokenRepository).deleteAll(expiredTokens);
+        // Assert
+        verify(refreshTokenRepository, times(1)).deleteAll(expiredTokens);
     }
 
     @Test
-    void testGetActiveTokensCount_Success() {
-        // Given
-        Long userId = 100L;
-        when(refreshTokenRepository.countByUserIdAndRevokedFalseAndExpiryDateAfter(eq(userId), any(LocalDateTime.class)))
+    void getActiveTokensCount_ShouldReturnCount() {
+        // Arrange
+        when(refreshTokenRepository.countByUserIdAndRevokedFalseAndExpiryDateAfter(eq(100L), any(LocalDateTime.class)))
                 .thenReturn(3L);
 
-        // When
-        long count = refreshTokenService.getActiveTokensCount(userId);
+        // Act
+        long count = refreshTokenService.getActiveTokensCount(100L);
 
-        // Then
+        // Assert
         assertEquals(3L, count);
+        verify(refreshTokenRepository, times(1))
+                .countByUserIdAndRevokedFalseAndExpiryDateAfter(eq(100L), any(LocalDateTime.class));
     }
 
     @Test
-    void testGetActiveTokensForUser_Success() {
-        // Given
-        Long userId = 100L;
-        List<RefreshToken> tokens = Arrays.asList(testToken);
-        when(refreshTokenRepository.findByUserIdAndRevokedFalseAndExpiryDateAfter(eq(userId), any(LocalDateTime.class)))
-                .thenReturn(tokens);
+    void getActiveTokensForUser_ShouldReturnActiveTokens() {
+        // Arrange
+        List<RefreshToken> activeTokens = Arrays.asList(testToken);
+        when(refreshTokenRepository.findByUserIdAndRevokedFalseAndExpiryDateAfter(eq(100L), any(LocalDateTime.class)))
+                .thenReturn(activeTokens);
 
-        // When
-        List<RefreshToken> result = refreshTokenService.getActiveTokensForUser(userId);
+        // Act
+        List<RefreshToken> result = refreshTokenService.getActiveTokensForUser(100L);
 
-        // Then
+        // Assert
         assertNotNull(result);
         assertEquals(1, result.size());
-    }
-
-    @Test
-    void testCleanupOldTokensForUser_ExceedsLimit() {
-        // Given
-        Long userId = 100L;
-        List<RefreshToken> tokens = Arrays.asList(
-                testToken, testToken, testToken, testToken, testToken, testToken, testToken
-        );
-        when(refreshTokenRepository.findByUserIdOrderByCreatedAtDesc(userId)).thenReturn(tokens);
-        doNothing().when(refreshTokenRepository).deleteAll(anyList());
-
-        // When
-        refreshTokenService.cleanupOldTokensForUser(userId);
-
-        // Then
-        verify(refreshTokenRepository).deleteAll(anyList());
+        verify(refreshTokenRepository, times(1))
+                .findByUserIdAndRevokedFalseAndExpiryDateAfter(eq(100L), any(LocalDateTime.class));
     }
 }

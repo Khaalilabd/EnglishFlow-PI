@@ -17,7 +17,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -43,37 +42,40 @@ class InvitationControllerTest {
     private InvitationRequest invitationRequest;
     private InvitationResponse invitationResponse;
     private User testUser;
+    private final Long userId = 1L;
+    private final String token = "test-token-123";
 
     @BeforeEach
     void setUp() {
         invitationRequest = new InvitationRequest();
-        invitationRequest.setEmail("newuser@example.com");
-        invitationRequest.setRole("TUTOR");
+        invitationRequest.setEmail("invited@example.com");
+        invitationRequest.setRole("STUDENT");
 
         invitationResponse = InvitationResponse.builder()
                 .id(1L)
-                .email("newuser@example.com")
-                .role("TUTOR")
-                .token("invitation-token-123")
+                .email("invited@example.com")
+                .role("STUDENT")
+                .token(token)
                 .used(false)
-                .expiryDate(LocalDateTime.now().plusDays(7))
+                .invitedBy(userId)
                 .createdAt(LocalDateTime.now())
+                .expiryDate(LocalDateTime.now().plusDays(7))
                 .build();
 
         testUser = new User();
-        testUser.setId(1L);
-        testUser.setEmail("newuser@example.com");
-        testUser.setFirstName("New");
-        testUser.setLastName("User");
-        testUser.setRole(User.Role.TUTOR);
+        testUser.setId(2L);
+        testUser.setEmail("invited@example.com");
+        testUser.setFirstName("John");
+        testUser.setLastName("Doe");
+        testUser.setRole(User.Role.STUDENT);
     }
 
     @Test
-    void testSendInvitation_Success() {
+    void sendInvitation_Success() {
         // Arrange
-        when(securityUtil.getCurrentUserId()).thenReturn(1L);
-        when(invitationService.sendInvitation(any(InvitationRequest.class), eq(1L)))
-            .thenReturn(invitationResponse);
+        when(securityUtil.getCurrentUserId()).thenReturn(userId);
+        when(invitationService.sendInvitation(any(InvitationRequest.class), eq(userId)))
+                .thenReturn(invitationResponse);
 
         // Act
         ResponseEntity<InvitationResponse> response = 
@@ -81,42 +83,47 @@ class InvitationControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals("newuser@example.com", response.getBody().getEmail());
-        verify(invitationService).sendInvitation(any(InvitationRequest.class), eq(1L));
+        assertEquals("invited@example.com", response.getBody().getEmail());
+        assertFalse(response.getBody().isUsed());
+        verify(securityUtil).getCurrentUserId();
+        verify(invitationService).sendInvitation(any(InvitationRequest.class), eq(userId));
     }
 
     @Test
-    void testGetInvitationByToken_Success() {
+    void getInvitationByToken_Success() {
         // Arrange
-        when(invitationService.getInvitationByToken("invitation-token-123"))
-            .thenReturn(invitationResponse);
+        when(invitationService.getInvitationByToken(token))
+                .thenReturn(invitationResponse);
 
         // Act
         ResponseEntity<InvitationResponse> response = 
-            invitationController.getInvitationByToken("invitation-token-123");
+            invitationController.getInvitationByToken(token);
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals("invitation-token-123", response.getBody().getToken());
+        assertEquals(token, response.getBody().getToken());
+        verify(invitationService).getInvitationByToken(token);
     }
 
     @Test
-    void testAcceptInvitation_Success() {
+    void acceptInvitation_Success() {
         // Arrange
         AcceptInvitationRequest acceptRequest = new AcceptInvitationRequest();
-        acceptRequest.setToken("invitation-token-123");
+        acceptRequest.setToken(token);
         acceptRequest.setPassword("Password123!");
-        acceptRequest.setFirstName("New");
-        acceptRequest.setLastName("User");
+        acceptRequest.setFirstName("John");
+        acceptRequest.setLastName("Doe");
 
+        String jwtToken = "jwt-token-123";
+        
         when(invitationService.acceptInvitation(any(AcceptInvitationRequest.class)))
-            .thenReturn(testUser);
+                .thenReturn(testUser);
         when(jwtUtil.generateToken(anyString(), anyString(), anyLong()))
-            .thenReturn("jwt-token-123");
+                .thenReturn(jwtToken);
 
         // Act
         ResponseEntity<AuthResponse> response = 
@@ -124,16 +131,20 @@ class InvitationControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        assertEquals("jwt-token-123", response.getBody().getToken());
-        assertEquals("newuser@example.com", response.getBody().getEmail());
+        assertEquals(jwtToken, response.getBody().getToken());
+        assertEquals("invited@example.com", response.getBody().getEmail());
+        assertEquals("John", response.getBody().getFirstName());
+        assertEquals("STUDENT", response.getBody().getRole());
+        verify(invitationService).acceptInvitation(any(AcceptInvitationRequest.class));
+        verify(jwtUtil).generateToken("invited@example.com", "STUDENT", 2L);
     }
 
     @Test
-    void testGetAllInvitations_Success() {
+    void getAllInvitations_Success() {
         // Arrange
-        List<InvitationResponse> invitations = Arrays.asList(invitationResponse);
+        List<InvitationResponse> invitations = List.of(invitationResponse);
         when(invitationService.getAllInvitations()).thenReturn(invitations);
 
         // Act
@@ -142,15 +153,17 @@ class InvitationControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
+        verify(invitationService).getAllInvitations();
     }
 
     @Test
-    void testGetPendingInvitations_Success() {
+    void getPendingInvitations_Success() {
         // Arrange
-        List<InvitationResponse> invitations = Arrays.asList(invitationResponse);
-        when(invitationService.getPendingInvitations()).thenReturn(invitations);
+        List<InvitationResponse> pendingInvitations = List.of(invitationResponse);
+        when(invitationService.getPendingInvitations()).thenReturn(pendingInvitations);
 
         // Act
         ResponseEntity<List<InvitationResponse>> response = 
@@ -158,44 +171,52 @@ class InvitationControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
         assertEquals(1, response.getBody().size());
+        assertFalse(response.getBody().get(0).isUsed());
+        verify(invitationService).getPendingInvitations();
     }
 
     @Test
-    void testCancelInvitation_Success() {
+    void cancelInvitation_Success() {
         // Arrange
-        doNothing().when(invitationService).cancelInvitation(1L);
+        Long invitationId = 1L;
+        doNothing().when(invitationService).cancelInvitation(invitationId);
 
         // Act
         ResponseEntity<Map<String, String>> response = 
-            invitationController.cancelInvitation(1L);
+            invitationController.cancelInvitation(invitationId);
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody().containsKey("message"));
-        verify(invitationService).cancelInvitation(1L);
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("Invitation cancelled successfully", response.getBody().get("message"));
+        verify(invitationService).cancelInvitation(invitationId);
     }
 
     @Test
-    void testResendInvitation_Success() {
+    void resendInvitation_Success() {
         // Arrange
-        when(invitationService.resendInvitation(1L)).thenReturn(invitationResponse);
+        Long invitationId = 1L;
+        when(invitationService.resendInvitation(invitationId))
+                .thenReturn(invitationResponse);
 
         // Act
         ResponseEntity<InvitationResponse> response = 
-            invitationController.resendInvitation(1L);
+            invitationController.resendInvitation(invitationId);
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertNotNull(response.getBody());
-        verify(invitationService).resendInvitation(1L);
+        assertEquals("invited@example.com", response.getBody().getEmail());
+        verify(invitationService).resendInvitation(invitationId);
     }
 
     @Test
-    void testCleanupExpiredInvitations_Success() {
+    void cleanupExpiredInvitations_Success() {
         // Arrange
         doNothing().when(invitationService).cleanupExpiredInvitations();
 
@@ -205,8 +226,9 @@ class InvitationControllerTest {
 
         // Assert
         assertNotNull(response);
-        assertEquals(200, response.getStatusCodeValue());
-        assertTrue(response.getBody().containsKey("message"));
+        assertEquals(200, response.getStatusCode().value());
+        assertNotNull(response.getBody());
+        assertEquals("Expired invitations cleaned up successfully", response.getBody().get("message"));
         verify(invitationService).cleanupExpiredInvitations();
     }
 }
