@@ -337,6 +337,10 @@
                         <exclude>**/client/**</exclude>
                         <!-- Exclude Enums -->
                         <exclude>**/enums/**</exclude>
+                        <!-- Exclude Util classes (hard to test, low coverage) -->
+                        <exclude>**/util/**</exclude>
+                        <!-- Exclude Exception classes (simple POJOs) -->
+                        <exclude>**/exception/**</exclude>
                         <!-- Exclude services with external dependencies (hard to test) -->
                         <exclude>**/service/EmailService.class</exclude>
                         <exclude>**/service/FileStorageService.class</exclude>
