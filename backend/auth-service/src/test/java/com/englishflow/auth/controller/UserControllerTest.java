@@ -351,4 +351,169 @@ class UserControllerTest {
         assertEquals(0, response.getBody().size());
         verify(userRepository, never()).findAllById(any());
     }
+
+    @Test
+    void getUserDocuments_Success() {
+        // Arrange
+        com.englishflow.auth.repository.ProfessionalDocumentRepository docRepo = 
+            mock(com.englishflow.auth.repository.ProfessionalDocumentRepository.class);
+        com.englishflow.auth.entity.ProfessionalDocument doc = new com.englishflow.auth.entity.ProfessionalDocument();
+        doc.setId(1L);
+        doc.setFileName("cv.pdf");
+        doc.setFilePath("/uploads/cv.pdf");
+        doc.setDocumentType("CV");
+        doc.setFileSize(1024L);
+        doc.setUploadedAt(java.time.LocalDateTime.now());
+        
+        when(userService.getProfessionalDocumentRepository()).thenReturn(docRepo);
+        when(docRepo.findByUserId(1L)).thenReturn(Arrays.asList(doc));
+
+        // Act
+        ResponseEntity<List<java.util.Map<String, Object>>> response = userController.getUserDocuments(1L);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        verify(docRepo).findByUserId(1L);
+    }
+
+    @Test
+    void getUserDocuments_Exception() {
+        // Arrange
+        when(userService.getProfessionalDocumentRepository()).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        ResponseEntity<List<java.util.Map<String, Object>>> response = userController.getUserDocuments(1L);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void deleteDocument_Success() {
+        // Arrange
+        com.englishflow.auth.repository.ProfessionalDocumentRepository docRepo = 
+            mock(com.englishflow.auth.repository.ProfessionalDocumentRepository.class);
+        com.englishflow.auth.entity.ProfessionalDocument doc = new com.englishflow.auth.entity.ProfessionalDocument();
+        doc.setId(1L);
+        doc.setFilePath("/uploads/cv.pdf");
+        
+        when(userService.getProfessionalDocumentRepository()).thenReturn(docRepo);
+        when(docRepo.findById(1L)).thenReturn(Optional.of(doc));
+        doNothing().when(fileStorageService).deleteFile(anyString());
+        doNothing().when(docRepo).delete(any());
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.deleteDocument(1L);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("message"));
+        verify(fileStorageService).deleteFile("/uploads/cv.pdf");
+        verify(docRepo).delete(doc);
+    }
+
+    @Test
+    void deleteDocument_NotFound() {
+        // Arrange
+        com.englishflow.auth.repository.ProfessionalDocumentRepository docRepo = 
+            mock(com.englishflow.auth.repository.ProfessionalDocumentRepository.class);
+        
+        when(userService.getProfessionalDocumentRepository()).thenReturn(docRepo);
+        when(docRepo.findById(1L)).thenReturn(Optional.empty());
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.deleteDocument(1L);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+        verify(fileStorageService, never()).deleteFile(anyString());
+    }
+
+    @Test
+    void deleteDocument_Exception() {
+        // Arrange
+        when(userService.getProfessionalDocumentRepository()).thenThrow(new RuntimeException("Database error"));
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.deleteDocument(1L);
+
+        // Assert
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    void uploadProfilePhoto_Success() throws Exception {
+        // Arrange
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(fileStorageService.isValidImageFile(file)).thenReturn(true);
+        when(fileStorageService.isValidFileSize(file, 5 * 1024 * 1024)).thenReturn(true);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(fileStorageService.storeFile(file)).thenReturn("/uploads/photo.jpg");
+        when(userRepository.save(any(User.class))).thenReturn(testUser);
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.uploadProfilePhoto(1L, file);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("profilePhoto"));
+        verify(fileStorageService).storeFile(file);
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void uploadProfilePhoto_EmptyFile() throws Exception {
+        // Arrange
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(true);
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.uploadProfilePhoto(1L, file);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("error"));
+        verify(fileStorageService, never()).storeFile(any());
+    }
+
+    @Test
+    void uploadProfilePhoto_InvalidImageType() throws Exception {
+        // Arrange
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(fileStorageService.isValidImageFile(file)).thenReturn(false);
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.uploadProfilePhoto(1L, file);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("error"));
+        verify(fileStorageService, never()).storeFile(any());
+    }
+
+    @Test
+    void uploadProfilePhoto_FileTooLarge() throws Exception {
+        // Arrange
+        org.springframework.web.multipart.MultipartFile file = mock(org.springframework.web.multipart.MultipartFile.class);
+        when(file.isEmpty()).thenReturn(false);
+        when(fileStorageService.isValidImageFile(file)).thenReturn(true);
+        when(fileStorageService.isValidFileSize(file, 5 * 1024 * 1024)).thenReturn(false);
+
+        // Act
+        ResponseEntity<java.util.Map<String, String>> response = userController.uploadProfilePhoto(1L, file);
+
+        // Assert
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().containsKey("error"));
+        verify(fileStorageService, never()).storeFile(any());
+    }
 }

@@ -90,7 +90,6 @@ jobs:
           SPRING_CLOUD_CONFIG_ENABLED: false
       
       - name: Generate test report
-        if: false  # Disabled due to permission issues with check runs
         uses: dorny/test-reporter@v1
         with:
           name: Test Results - ${{ matrix.service }}
