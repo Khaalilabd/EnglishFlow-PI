@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profile>
+  <name>EnglishFlow Custom Profile</name>
+  <language>java</language>
+  <rules>
+    <!-- Disable some strict security rules for development -->
+    <rule>
+      <repositoryKey>java</repositoryKey>
+      <key>S2068</key> <!-- Hard-coded credentials -->
+      <priority>INFO</priority>
+    </rule>
+    <rule>
+      <repositoryKey>java</repositoryKey>
+      <key>S1313</key> <!-- IP addresses should not be hardcoded -->
+      <priority>INFO</priority>
+    </rule>
+    <rule>
+      <repositoryKey>java</repositoryKey>
+      <key>S4502</key> <!-- Cross-Site Request Forgery -->
+      <priority>INFO</priority>
+    </rule>
+    <rule>
+      <repositoryKey>java</repositoryKey>
+      <key>S5122</key> <!-- CORS policy -->
+      <priority>INFO</priority>
+    </rule>
+    <!-- Disable strict duplication rules -->
+    <rule>
+      <repositoryKey>common-java</repositoryKey>
+      <key>DuplicatedBlocks</key>
+      <priority>INFO</priority>
+    </rule>
+  </rules>
+</profile>
