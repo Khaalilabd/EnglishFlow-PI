@@ -283,6 +283,8 @@
                         <exclude>**/client/**</exclude>
                         <exclude>**/scheduler/**</exclude>
                         <exclude>**/validation/**</exclude>
+                        <exclude>**/controller/**</exclude>
+                        <exclude>**/security/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>

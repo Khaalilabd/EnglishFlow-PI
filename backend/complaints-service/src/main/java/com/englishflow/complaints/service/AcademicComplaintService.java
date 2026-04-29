@@ -134,7 +134,7 @@ public class AcademicComplaintService {
                     complaint, "User#" + complaint.getUserId(), "N/A");
             
             // Only include high priority or overdue complaints
-            if (complaint.getPriority().name().equals("URGENT") || 
+            if (complaint.getPriority().name().equals("CRITICAL") || 
                 complaint.getPriority().name().equals("HIGH") || 
                 dto.getIsOverdue()) {
                 

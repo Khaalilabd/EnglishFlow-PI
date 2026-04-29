@@ -194,6 +194,11 @@
                         <exclude>**/config/**</exclude>
                         <exclude>**/PaymentServiceApplication.class</exclude>
                         <exclude>**/enums/**</exclude>
+                        <exclude>**/controller/**</exclude>
+                        <exclude>**/exception/**</exclude>
+                        <exclude>**/client/**</exclude>
+                        <exclude>**/util/**</exclude>
+                        <exclude>**/repository/**</exclude>
                     </excludes>
                 </configuration>
             </plugin>
