@@ -209,7 +209,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       
       - name: Build and analyze with SonarCloud
-        if: github.ref == 'refs/heads/main'  # Only run on main branch to avoid conflicts
+        if: github.ref == 'refs/heads/main'  # Only run on main branch
         run: |
           chmod +x .github/scripts/sonar-analysis.sh
           ./.github/scripts/sonar-analysis.sh
