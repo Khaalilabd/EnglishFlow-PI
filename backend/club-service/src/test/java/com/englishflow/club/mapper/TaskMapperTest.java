@@ -4,19 +4,25 @@ import com.englishflow.club.dto.TaskDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Task;
 import com.englishflow.club.enums.TaskStatus;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class TaskMapperTest {
     
-    @Autowired
     private TaskMapper taskMapper;
+    
+    @BeforeEach
+    void setUp() {
+        taskMapper = Mappers.getMapper(TaskMapper.class);
+    }
     
     @Test
     void testToDTO_WithValidTask() {

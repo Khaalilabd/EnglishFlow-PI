@@ -4,19 +4,25 @@ import com.englishflow.club.dto.MemberDTO;
 import com.englishflow.club.entity.Club;
 import com.englishflow.club.entity.Member;
 import com.englishflow.club.enums.RankType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mapstruct.factory.Mappers;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class MemberMapperTest {
     
-    @Autowired
     private MemberMapper memberMapper;
+    
+    @BeforeEach
+    void setUp() {
+        memberMapper = Mappers.getMapper(MemberMapper.class);
+    }
     
     @Test
     void testToDTO_WithValidMember() {
