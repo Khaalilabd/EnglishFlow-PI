@@ -209,7 +209,7 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       
       - name: Build and analyze with SonarCloud
-        if: false  # Temporarily disabled due to Automatic Analysis conflict
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/User-Authentication-Management'  # Enable for main and current working branch
         run: |
           # Build all services with tests and coverage
           for service in auth-service courses-service community-service messaging-service club-service event-service learning-service complaints-service gamification-service exam-service payment-service sponsors-service; do
