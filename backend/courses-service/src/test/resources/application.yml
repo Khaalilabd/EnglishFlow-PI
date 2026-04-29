@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: courses-service-test
+  
+  # Disable auto-configurations for tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.actuate.autoconfigure.tracing.BraveAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.tracing.MicrometerTracingAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.tracing.zipkin.ZipkinAutoConfiguration
+
+  cloud:
+    discovery:
+      enabled: false
+    config:
+      enabled: false
+
+management:
+  tracing:
+    enabled: false
+  zipkin:
+    enabled: false
+
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
