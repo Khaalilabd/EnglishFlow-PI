@@ -104,6 +104,14 @@ management:
       enabled: true
     readinessState:
       enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+    service:
+      name: ${spring.application.name}
 
 # Auth Service Configuration
 auth:
@@ -125,6 +133,11 @@ spring:
       on-profile: docker
   datasource:
     url: jdbc:postgresql://postgres:5432/englishflow_complaints
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://jaeger:9411/api/v2/spans
   
 eureka:
   client:

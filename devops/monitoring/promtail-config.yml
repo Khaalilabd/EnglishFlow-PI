@@ -1,0 +1,92 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Auth Service Logs
+  - job_name: auth-service
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: auth-service
+          service: auth-service
+          environment: docker
+          __path__: /logs/auth-service/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: logger
+            message: message
+            thread: thread
+      - labels:
+          level:
+          logger:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+  # Club Service Logs
+  - job_name: club-service
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: club-service
+          service: club-service
+          environment: docker
+          __path__: /logs/club-service/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: logger
+            message: message
+      - labels:
+          level:
+          logger:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+  # Community Service Logs
+  - job_name: community-service
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: community-service
+          service: community-service
+          environment: docker
+          __path__: /logs/community-service/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: logger
+            message: message
+      - labels:
+          level:
+          logger:
+      - timestamp:
+          source: timestamp
+          format: RFC3339
+
+  # System Logs (optional)
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: varlogs
+          __path__: /var/log/*log

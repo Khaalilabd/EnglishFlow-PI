@@ -107,6 +107,23 @@
             <scope>runtime</scope>
         </dependency>
         
+        <!-- Distributed Tracing -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-brave</artifactId>
+        </dependency>
+        
+        <!-- Jaeger Tracing -->
+        <dependency>
+            <groupId>io.zipkin.reporter2</groupId>
+            <artifactId>zipkin-reporter-brave</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-zipkin</artifactId>
+        </dependency>
+        
         <!-- SpringDoc OpenAPI (Swagger) -->
         <dependency>
             <groupId>org.springdoc</groupId>

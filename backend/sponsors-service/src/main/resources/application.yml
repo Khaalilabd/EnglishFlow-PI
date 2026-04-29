@@ -122,9 +122,29 @@ management:
       enabled: true
     mail:
       enabled: false
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    base-url: http://localhost:9411
+    enabled: true
+    service:
+      name: ${spring.application.name}
 
 logging:
   level:
     com.englishflow.sponsors: DEBUG
     org.springframework.web: INFO
     org.hibernate: INFO
+
+---
+# Docker profile
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+management:
+  zipkin:
+    tracing:
+      endpoint: http://jaeger:9411/api/v2/spans
