@@ -707,16 +707,16 @@ export class StudentsComponent implements OnInit, OnDestroy {
         return;
       }
 
-      const headers = lines[0].split(',').map((h: string) => h.trim().replaceAll(/"/g, ''));
+      const headers = lines[0].split(',').map((h: string) => h.trim().replaceAll('"', ''));
       this.importPreview = [];
       this.importErrors = [];
 
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map((v: string) => v.trim().replaceAll(/"/g, ''));
+        const values = lines[i].split(',').map((v: string) => v.trim().replaceAll('"', ''));
         const student: any = {};
         
         headers.forEach((header: string, index: number) => {
-          student[header.toLowerCase().replaceAll(/ /g, '')] = values[index] || '';
+          student[header.toLowerCase().replaceAll(' ', '')] = values[index] || '';
         });
 
         // Validation

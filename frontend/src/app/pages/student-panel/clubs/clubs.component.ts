@@ -19,9 +19,6 @@ import { Task, TaskStatus } from '../../../core/models/task.model';
 import { filter, forkJoin, of, switchMap, map } from 'rxjs';
 import { Subscription } from 'rxjs';
 import { CdkDragDrop, moveItemInArray, transferArrayItem, DragDropModule } from '@angular/cdk/drag-drop';
-import { ClubExpensesComponent } from '../../clubs/club-expenses/club-expenses.component';
-import { ClubTasksComponent } from '../../clubs/club-tasks/club-tasks.component';
-import { ClubMembershipRequestsComponent } from '../../clubs/club-membership-requests/club-membership-requests.component';
 import { ClubsDetailsComponent } from '../clubs-details/clubs-details.component';
 import { ClubWebSocketService } from '../../../services/club-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
@@ -340,26 +337,26 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.loading = false;
         
         // Load tasks, member count, events, and pending requests after displaying
-        if (this.isClubMember(club.id!)) {
-          this.loadTasksForClub(club.id!);
+        if (this.isClubMember(club.id)) {
+          this.loadTasksForClub(club.id);
         }
-        this.loadActualMemberCount(club.id!);
-        this.loadClubEventsForClub(club.id!);
+        this.loadActualMemberCount(club.id);
+        this.loadClubEventsForClub(club.id);
         this.loadPendingRequests();
-        this.loadMembershipRequestsCount(club.id!);
-        this.loadPaymentPendingCount(club.id!);
+        this.loadMembershipRequestsCount(club.id);
+        this.loadPaymentPendingCount(club.id);
         
         // Load members for the members tab (after roles are set)
-        const userRole = this.getUserRole(club.id!);
+        const userRole = this.getUserRole(club.id);
         console.log('🔑 User role for club:', userRole);
         // Auto-load members for management roles (needed for Join Rate chart)
         if (userRole === 'PRESIDENT' || userRole === 'VICE_PRESIDENT' || userRole === 'SECRETARY') {
-          this.loadClubMembers(club.id!);
+          this.loadClubMembers(club.id);
         }
         
         // Load total expenses if user has financial access
-        if (this.getUserRole(club.id!) === 'TREASURER' || this.getUserRole(club.id!) === 'PRESIDENT' || this.getUserRole(club.id!) === 'VICE_PRESIDENT' || this.getUserRole(club.id!) === 'SECRETARY') {
-          this.loadTotalExpenses(club.id!);
+        if (this.getUserRole(club.id) === 'TREASURER' || this.getUserRole(club.id) === 'PRESIDENT' || this.getUserRole(club.id) === 'VICE_PRESIDENT' || this.getUserRole(club.id) === 'SECRETARY') {
+          this.loadTotalExpenses(club.id);
         }
       },
       error: (err) => {

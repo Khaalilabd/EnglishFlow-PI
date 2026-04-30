@@ -9,7 +9,6 @@ import { Club, Member } from '../../../core/models/club.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ClubWebSocketService } from '../../../services/club-websocket.service';
 import { DataSyncService } from '../../../services/data-sync.service';
-import { ClubMembershipRequestsComponent } from '../club-membership-requests/club-membership-requests.component';
 import { forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 

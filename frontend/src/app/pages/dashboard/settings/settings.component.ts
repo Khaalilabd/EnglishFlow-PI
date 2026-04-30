@@ -50,9 +50,9 @@ export class AdminSettingsComponent implements OnInit {
   isDragging = false;
 
   constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private http: HttpClient
+    private readonly fb: FormBuilder,
+    private readonly authService: AuthService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit() {

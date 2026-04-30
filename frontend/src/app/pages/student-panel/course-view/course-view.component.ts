@@ -42,8 +42,8 @@ export class CourseViewComponent implements OnInit {
     private route: ActivatedRoute,
     private courseService: CourseService,
     private chapterService: ChapterService,
-    private lessonService: LessonService,
-    private authService: AuthService
+    private readonly lessonService: LessonService,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {

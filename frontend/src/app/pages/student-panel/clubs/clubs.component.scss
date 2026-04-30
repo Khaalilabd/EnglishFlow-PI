@@ -913,8 +913,8 @@ button {
   }
 }
 
-// Task cards animation (Kanban)
-.bg-white.rounded-lg.p-3 {
+// Task cards animation (Kanban) - Merged with skill cards
+.task-card {
   animation: scaleIn 0.4s ease-out backwards;
   transition: all 0.3s ease;
   

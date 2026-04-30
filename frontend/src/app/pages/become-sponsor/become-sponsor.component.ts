@@ -18,8 +18,8 @@ export class BecomeSponsorComponent {
   isAuthenticated$;
 
   constructor(
-    private router: Router,
-    public authService: AuthService
+    private readonly router: Router,
+    public readonly authService: AuthService
   ) {
     this.isAuthenticated$ = this.authService.currentUser$.pipe(
       map(user => !!user)

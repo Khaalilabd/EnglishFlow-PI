@@ -30,10 +30,10 @@ export class ClubMembershipRequestsComponent implements OnInit, OnDestroy {
   private wsSubscription?: Subscription;
 
   constructor(
-    private requestService: MembershipRequestService,
-    private authService: AuthService,
-    private notificationService: NotificationService,
-    private clubWebsocket: ClubWebSocketService
+    private readonly requestService: MembershipRequestService,
+    private readonly authService: AuthService,
+    private readonly notificationService: NotificationService,
+    private readonly clubWebsocket: ClubWebSocketService
   ) {}
 
   ngOnInit(): void {

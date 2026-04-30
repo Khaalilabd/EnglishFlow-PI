@@ -28,9 +28,9 @@ export class TutorPanelComponent implements OnInit {
   loadingLessons = false;
 
   constructor(
-    private router: Router,
-    private http: HttpClient,
-    private authService: AuthService
+    private readonly router: Router,
+    private readonly http: HttpClient,
+    private readonly authService: AuthService
   ) {}
   stats = [
     { icon: 'fas fa-users', label: 'Total Students', value: '124', change: '+12%', color: 'purple' },

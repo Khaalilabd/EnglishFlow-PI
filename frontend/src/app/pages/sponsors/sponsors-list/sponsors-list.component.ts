@@ -42,12 +42,12 @@ export class SponsorsListComponent implements OnInit, OnDestroy {
   loadingClubs = false;
 
   constructor(
-    private sponsorService: SponsorService,
-    private notificationService: NotificationService,
-    private router: Router,
-    private sponsorWsService: SponsorWebSocketService,
-    private dataSyncService: DataSyncService,
-    private http: HttpClient
+    private readonly sponsorService: SponsorService,
+    private readonly notificationService: NotificationService,
+    private readonly router: Router,
+    private readonly sponsorWsService: SponsorWebSocketService,
+    private readonly dataSyncService: DataSyncService,
+    private readonly http: HttpClient
   ) {}
 
   async ngOnInit() {

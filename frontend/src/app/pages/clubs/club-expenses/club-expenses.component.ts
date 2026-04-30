@@ -131,10 +131,10 @@ export class ClubExpensesComponent implements OnInit {
   }
 
   constructor(
-    private expenseService: ExpenseService,
-    private userService: UserService,
-    private notificationService: NotificationService,
-    private http: HttpClient
+    private readonly expenseService: ExpenseService,
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit() {
