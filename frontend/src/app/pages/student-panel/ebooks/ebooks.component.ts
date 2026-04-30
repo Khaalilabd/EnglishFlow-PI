@@ -11,6 +11,7 @@ import { ReadingProgressService } from '../../../core/services/reading-progress.
 import { CollectionService } from '../../../core/services/collection.service';
 import { Ebook, Review, ReadingProgress, Collection } from '../../../core/models/ebook.model';
 import { ReviewModalComponent } from './components/review-modal.component';
+import { parseIntSafe } from '../../../shared/utils/string.utils';
 
 // Pipe to sanitize URLs for iframe
 @Pipe({
