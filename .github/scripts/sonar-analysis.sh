@@ -72,7 +72,7 @@ else
         -Dsonar.coverage.jacoco.xmlReportPaths="backend/**/target/site/jacoco/jacoco.xml" \
         -Dsonar.typescript.lcov.reportPaths="frontend/coverage/lcov.info" \
         -Dsonar.qualitygate.wait=false \
-        -Dsonar.exclusions="**/devops/**,**/database/**,**/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml,**/docker-compose.yml,**/target/**,**/test/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/templates/**/*.html,**/node_modules/**,**/dist/**,**/*.spec.ts" \
+        -Dsonar.exclusions="**/devops/**,**/database/**,**/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml,**/docker-compose.yml,**/target/**,**/test/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/templates/**/*.html,**/node_modules/**,**/dist/**,**/*.spec.ts,**/coverage/**,**/environments/**" \
         -Dsonar.cpd.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/DatabaseInitializer.java,**/GlobalExceptionHandler.java,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/db/migration/**,**/*.sql,**/devops/**,**/templates/**/*.html" \
         -Dsonar.coverage.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/templates/**/*.html" \
         -Dsonar.cpd.java.minimumtokens=200 \

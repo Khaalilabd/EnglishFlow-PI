@@ -5,6 +5,7 @@
 /frontend/tmp
 /frontend/out-tsc
 /frontend/bazel-out
+/frontend/coverage
 
 # Frontend - Node
 /frontend/node_modules
@@ -61,7 +62,6 @@
 # Miscellaneous
 .sass-cache/
 /connect.lock
-/coverage
 /libpeerconnection.log
 testem.log
 /typings
