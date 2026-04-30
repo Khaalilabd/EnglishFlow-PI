@@ -7,6 +7,9 @@
 -- Password par défaut pour tous les comptes: "password123"
 -- NE PAS utiliser en production !
 -- =====================================================
+-- NOSONAR - This file contains test data only, not real credentials
+-- sonar.issue.ignore.allfile=true
+-- =====================================================
 -- Note: Connectez-vous à la base englishflow_identity avant d'exécuter ce script
 -- Exemple: psql -U postgres -d englishflow_identity -f insert-users.sql
 
