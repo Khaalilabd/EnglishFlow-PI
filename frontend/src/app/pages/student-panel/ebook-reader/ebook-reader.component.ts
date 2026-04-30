@@ -5,6 +5,7 @@ import { ActivatedRoute } from '@angular/router';
 import { DomSanitizer } from '@angular/platform-browser';
 import { EbookService } from '../../../core/services/ebook.service';
 import { Ebook } from '../../../core/models/ebook.model';
+import { parseIntSafe } from '../../../shared/utils/string.utils';
 
 declare var pdfjsLib: any;
 
@@ -51,9 +52,10 @@ export class EbookReaderComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const ebookId = this.route.snapshot.paramMap.get('id');
     if (ebookId) {
-      this.ebook = { id: Number.parseInt(ebookId, 10) } as Ebook; // Set ebook ID early for localStorage
+      const id = parseIntSafe(ebookId);
+      this.ebook = { id } as Ebook; // Set ebook ID early for localStorage
       this.loadBookmarks(); // Load bookmarks before loading ebook
-      this.loadEbook(Number.parseInt(ebookId, 10));
+      this.loadEbook(id);
     }
   }
 
@@ -412,7 +414,7 @@ export class EbookReaderComponent implements OnInit, AfterViewInit {
   loadBookmark() {
     const bookmark = localStorage.getItem(`bookmark_${this.ebook?.id}`);
     if (bookmark) {
-      this.currentPage = Number.parseInt(bookmark, 10);
+      this.currentPage = parseIntSafe(bookmark, 1);
       this.goToPage();
     }
   }

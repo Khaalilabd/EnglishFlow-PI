@@ -624,7 +624,7 @@ export class EbooksComponent implements OnInit, OnDestroy {
 
   // NEW: Get current user ID
   getCurrentUserId(): number {
-    return Number.parseInt(localStorage.getItem('userId') || '1', 10);
+    return parseIntSafe(localStorage.getItem('userId'), 1);
   }
 
   // Related ebooks
