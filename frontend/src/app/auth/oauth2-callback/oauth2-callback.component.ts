@@ -48,7 +48,7 @@ export class OAuth2CallbackComponent implements OnInit {
       }
       
       const token = actualParams['token'];
-      const id = actualParams['id'] ? parseInt(actualParams['id'], 10) : 0;
+      const id = actualParams['id'] ? Number.parseInt(actualParams['id'], 10) : 0;
       const email = actualParams['email'];
       const firstName = actualParams['firstName'];
       const lastName = actualParams['lastName'];

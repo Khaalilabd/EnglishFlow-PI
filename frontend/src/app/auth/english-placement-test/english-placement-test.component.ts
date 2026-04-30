@@ -610,8 +610,8 @@ export class EnglishPlacementTestComponent implements OnInit, OnDestroy {
       { name: 'speaking', score: this.skillBreakdown.speaking }
     ];
     
-    const strongest = scores.reduce((a, b) => a.score > b.score ? a : b);
-    const weakest = scores.reduce((a, b) => a.score < b.score ? a : b);
+    const strongest = scores.reduce((a, b) => a.score > b.score ? a : b, scores[0]);
+    const weakest = scores.reduce((a, b) => a.score < b.score ? a : b, scores[0]);
     
     return `Your ${strongest.name} is strong, but your ${weakest.name} could use more practice.`;
   }
@@ -706,7 +706,7 @@ export class EnglishPlacementTestComponent implements OnInit, OnDestroy {
   }
 
   getOptionLetter(index: number): string {
-    return String.fromCharCode(65 + index);
+    return String.fromCodePoint(65 + index);
   }
 
   getLevelName(): string {

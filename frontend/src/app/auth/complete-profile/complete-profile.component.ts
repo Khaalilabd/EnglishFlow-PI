@@ -92,7 +92,7 @@ export class CompleteProfileComponent implements OnInit {
         const userData = {
           token: this.token,
           type: 'Bearer',
-          id: parseInt(this.userId),
+          id: Number.parseInt(this.userId, 10),
           email: this.email,
           firstName: this.firstName,
           lastName: this.lastName,
