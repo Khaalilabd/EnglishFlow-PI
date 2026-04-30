@@ -2,6 +2,11 @@
 -- Script d'insertion des utilisateurs de test
 -- Base de données: englishflow_identity
 -- =====================================================
+-- ⚠️ IMPORTANT: Ce fichier contient des données de TEST uniquement
+-- Les passwords bcrypt sont pour le développement local
+-- Password par défaut pour tous les comptes: "password123"
+-- NE PAS utiliser en production !
+-- =====================================================
 -- Note: Connectez-vous à la base englishflow_identity avant d'exécuter ce script
 -- Exemple: psql -U postgres -d englishflow_identity -f insert-users.sql
 
