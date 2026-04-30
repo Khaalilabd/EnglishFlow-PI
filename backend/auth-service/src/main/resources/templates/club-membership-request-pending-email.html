@@ -6,10 +6,10 @@
     <title>Club Membership Request Pending</title>
 </head>
 <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f7f7f7;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 40px 0;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f7f7f7; padding: 40px 0;">
         <tr>
             <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <!-- Header with Platform Branding -->
                     <tr>
                         <td style="background: linear-gradient(135deg, #2D5757 0%, #F6BD60 100%); padding: 40px 30px; text-align: center;">
@@ -34,7 +34,7 @@
                             </p>
                             
                             <!-- Club Card with Image -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #F6BD60 0%, #e5ac4f 100%); border-radius: 12px; overflow: hidden; margin: 30px 0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #F6BD60 0%, #e5ac4f 100%); border-radius: 12px; overflow: hidden; margin: 30px 0;">
                                 <tr>
                                     <td style="padding: 25px; text-align: center;">
                                         <!-- Club Icon -->
@@ -54,13 +54,13 @@
                             </table>
                             
                             <!-- What Happens Next -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #F7EDE2; border-radius: 12px; padding: 25px; margin: 30px 0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #F7EDE2; border-radius: 12px; padding: 25px; margin: 30px 0;">
                                 <tr>
                                     <td>
                                         <h3 style="color: #2D5757; margin: 0 0 15px 0; font-size: 20px;">
                                             📋 What Happens Next?
                                         </h3>
-                                        <table width="100%" cellpadding="0" cellspacing="0">
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                             <tr>
                                                 <td style="padding: 8px 0;">
                                                     <p style="margin: 0; color: #333333; font-size: 15px; line-height: 1.6;">
@@ -96,7 +96,7 @@
                             
                             <!-- Your Message (if provided) -->
                             <div th:if="${message != null and !#strings.isEmpty(message)}">
-                                <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #f9f9f9; border: 2px solid #e0e0e0; border-radius: 8px; padding: 20px; margin: 25px 0;">
                                     <tr>
                                         <td>
                                             <p style="margin: 0 0 10px 0; color: #2D5757; font-size: 16px; font-weight: bold;">
@@ -115,7 +115,7 @@
                             </p>
                             
                             <!-- CTA Button -->
-                            <table width="100%" cellpadding="0" cellspacing="0">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
                                 <tr>
                                     <td align="center" style="padding: 10px 0 20px 0;">
                                         <a th:href="${clubsLink}" 
@@ -127,7 +127,7 @@
                             </table>
                             
                             <!-- Tip -->
-                            <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F4F8; border-left: 4px solid #2D5757; border-radius: 4px; padding: 15px; margin: 25px 0;">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color: #E8F4F8; border-left: 4px solid #2D5757; border-radius: 4px; padding: 15px; margin: 25px 0;">
                                 <tr>
                                     <td>
                                         <p style="margin: 0; color: #2D5757; font-size: 14px; line-height: 1.6;">
