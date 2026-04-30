@@ -278,9 +278,7 @@ select {
   
   &:focus {
     outline: none;
-    ring: 2px;
-    ring-color: #2D5757;
-    box-shadow: 0 0 0 3px rgba(45, 87, 87, 0.1);
+    box-shadow: 0 0 0 2px #2D5757, 0 0 0 3px rgba(45, 87, 87, 0.1);
   }
   
   // Hide default arrow in IE
