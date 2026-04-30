@@ -128,13 +128,14 @@ export class LoginComponent implements OnInit {
               lastName: response.lastName
             }
           });
+          return;
+        }
+        
+        // Profil complet, rediriger selon le rôle
+        if (response.role === 'ADMIN' || response.role === 'ACADEMIC_OFFICE_AFFAIR') {
+          this.router.navigate(['/dashboard']);
         } else {
-          // Profil complet, rediriger selon le rôle
-          if (response.role === 'ADMIN' || response.role === 'ACADEMIC_OFFICE_AFFAIR') {
-            this.router.navigate(['/dashboard']);
-          } else {
-            this.router.navigate(['/']); // Landing page for students, tutors and sponsors
-          }
+          this.router.navigate(['/']); // Landing page for students, tutors and sponsors
         }
       },
       error: (error) => {

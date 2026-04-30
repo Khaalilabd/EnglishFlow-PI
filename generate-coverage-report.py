@@ -39,7 +39,7 @@ def extract_coverage_from_html(html_path):
         if match:
             return int(match.group(1))
         return None
-    except Exception as e:
+    except (OSError, IOError):
         return None
 
 def count_tests(surefire_dir):
@@ -54,7 +54,7 @@ def count_tests(surefire_dir):
             root = tree.getroot()
             tests = root.get('tests', '0')
             total_tests += int(tests)
-        except:
+        except (ET.ParseError, ValueError, OSError):
             continue
     
     return total_tests
@@ -78,14 +78,17 @@ def get_badge_info(coverage):
     """Retourne les informations de badge selon la couverture"""
     if coverage is None:
         return 'no-data', 'N/A', 'Pas de données'
-    elif coverage >= 90:
+    
+    if coverage >= 90:
         return 'excellent', coverage, 'Excellent'
-    elif coverage >= 80:
+    
+    if coverage >= 80:
         return 'good', coverage, 'Bon'
-    elif coverage >= 50:
+    
+    if coverage >= 50:
         return 'medium', coverage, 'Moyen'
-    else:
-        return 'low', coverage, 'Faible'
+    
+    return 'low', coverage, 'Faible'
 
 def generate_text_report(metrics, filename):
     """Génère le rapport texte"""
@@ -116,7 +119,7 @@ def generate_text_report(metrics, filename):
         f.write(f"   - Couverture moyenne: {avg_coverage:.0f}%\n\n")
         f.write("✅ Rapport généré avec succès!\n")
 
-def generate_html_report(metrics, filename):
+def generate_html_report(metrics, filename):  # noqa: C901
     """Génère le rapport HTML"""
     total_tests = sum(m['tests'] for m in metrics)
     services_with_coverage = [m for m in metrics if m['coverage'] is not None]
@@ -310,7 +313,7 @@ def generate_html_report(metrics, filename):
 """
     
     for m in metrics:
-        badge_class, coverage_val, badge_text = get_badge_info(m['coverage'])
+        badge_class, _, badge_text = get_badge_info(m['coverage'])
         coverage_str = f"{m['coverage']}%" if m['coverage'] is not None else "N/A"
         coverage_width = m['coverage'] if m['coverage'] is not None else 0
         
@@ -328,7 +331,7 @@ def generate_html_report(metrics, filename):
                         <td>"""
         
         if m['coverage'] is not None:
-            fill_class = 'low' if m['coverage'] < 50 else ('medium' if m['coverage'] < 80 else '')
+            fill_class = 'low' if m['coverage'] < 50 else 'medium' if m['coverage'] < 80 else ''
             html += f"""
                             <div class="coverage-bar">
                                 <div class="coverage-fill {fill_class}" style="width: {coverage_width}%">{coverage_str}</div>

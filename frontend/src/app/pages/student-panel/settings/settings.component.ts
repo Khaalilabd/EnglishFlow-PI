@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, NO_ERRORS_SCHEMA } from '@angular/core';
+﻿import { Component, NO_ERRORS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -8,8 +8,6 @@ import { CommonModule } from '@angular/common';
   template: `<div class="p-6"><h1>Student Settings</h1></div>`,
   schemas: [NO_ERRORS_SCHEMA]
 })
-export class StudentSettingsComponent implements OnInit {
+export class StudentSettingsComponent {
   constructor() {}
-
-  ngOnInit() {}
 }

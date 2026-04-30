@@ -31,14 +31,14 @@ export function replaceAllRegex(str: string, pattern: RegExp, replacement: strin
  * Remove non-numeric characters
  */
 export function removeNonNumeric(str: string): string {
-  return str.replaceAll(/[^0-9]/g, '');
+  return str.replaceAll(/\D/g, '');
 }
 
 /**
  * Clean phone number (remove spaces, dashes, parentheses)
  */
 export function cleanPhoneNumber(phone: string): string {
-  return phone.replaceAll(/[\s\-\(\)]/g, '');
+  return phone.replaceAll(/[\s\-()]/g, '');
 }
 
 /**
