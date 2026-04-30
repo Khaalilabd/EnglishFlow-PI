@@ -604,7 +604,7 @@ export class InstantMeetingComponent implements OnInit, OnDestroy, AfterViewChec
     // Generate consistent color based on name
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
-      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      hash = name.codePointAt(i)! + ((hash << 5) - hash);
     }
     
     return colors[Math.abs(hash) % colors.length];

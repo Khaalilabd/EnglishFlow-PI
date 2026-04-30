@@ -39,7 +39,7 @@ export class AvatarTextComponent {
     ];
     const index = this.name
       .split('')
-      .reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      .reduce((acc, char) => acc + char.codePointAt(0)!, 0);
     return colors[index % colors.length];
   }
 }

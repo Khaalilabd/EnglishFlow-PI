@@ -558,7 +558,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
           messageType: MessageType.FILE,
           fileUrl: response.fileUrl,
           fileName: response.fileName,
-          fileSize: parseInt(response.fileSize)
+          fileSize: Number.parseInt(response.fileSize, 10)
         };
         
         console.log('Sending file message via WebSocket:', request);
@@ -1085,7 +1085,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
           messageType: MessageType.VOICE,
           fileUrl: response.fileUrl,
           fileName: response.fileName,
-          fileSize: parseInt(response.fileSize),
+          fileSize: Number.parseInt(response.fileSize, 10),
           voiceDuration: this.recordingTime
         };
         

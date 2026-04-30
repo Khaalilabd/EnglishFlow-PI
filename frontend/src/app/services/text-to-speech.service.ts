@@ -111,7 +111,7 @@ export class TextToSpeechService {
     this.stop();
     
     // Clean text (remove HTML tags if any)
-    const cleanText = text.replace(/<[^>]*>/g, '').trim();
+    const cleanText = text.replaceAll(/<[^>]*>/g, '').trim();
     
     if (!cleanText) {
       console.warn('No text to speak');

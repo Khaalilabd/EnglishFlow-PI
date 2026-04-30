@@ -39,8 +39,8 @@ export class ForumComponent implements OnInit {
   createSlug(name: string): string {
     return name
       .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
+      .replaceAll(/[^a-z0-9]+/g, '-')
+      .replaceAll(/^-+|-+$/g, '');
   }
   
   getRoutePrefix(subCategoryName: string): string {

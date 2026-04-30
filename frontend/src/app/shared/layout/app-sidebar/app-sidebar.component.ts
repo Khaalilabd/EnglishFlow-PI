@@ -50,7 +50,7 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
   }
   
   get headerTextClass(): string {
-    return this.currentUserRole === 'ADMIN' ? 'text-[#F7EDE2]/70' : 'text-[#F7EDE2]/70';
+    return 'text-[#F7EDE2]/70';
   }
   
   get gradientButtonClass(): string {

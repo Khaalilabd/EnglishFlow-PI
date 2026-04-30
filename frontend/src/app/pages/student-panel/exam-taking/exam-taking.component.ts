@@ -245,7 +245,7 @@ export class ExamTakingComponent implements OnInit, OnDestroy {
       startTime = new Date(this.attempt.startedAt).getTime();
     }
     
-    if (isNaN(startTime)) {
+    if (Number.isNaN(startTime)) {
       console.error('❌ Invalid startedAt date:', this.attempt.startedAt);
       this.timeRemaining = 0;
       return;
@@ -312,7 +312,7 @@ export class ExamTakingComponent implements OnInit, OnDestroy {
   }
 
   get formattedTime(): string {
-    if (this.timeRemaining === undefined || this.timeRemaining === null || isNaN(this.timeRemaining)) {
+    if (this.timeRemaining === undefined || this.timeRemaining === null || Number.isNaN(this.timeRemaining)) {
       console.warn('⚠️ formattedTime called with invalid timeRemaining:', this.timeRemaining);
       return '00:00:00';
     }

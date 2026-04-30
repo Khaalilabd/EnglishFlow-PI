@@ -51,9 +51,9 @@ export class EbookReaderComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     const ebookId = this.route.snapshot.paramMap.get('id');
     if (ebookId) {
-      this.ebook = { id: parseInt(ebookId) } as Ebook; // Set ebook ID early for localStorage
+      this.ebook = { id: Number.parseInt(ebookId, 10) } as Ebook; // Set ebook ID early for localStorage
       this.loadBookmarks(); // Load bookmarks before loading ebook
-      this.loadEbook(parseInt(ebookId));
+      this.loadEbook(Number.parseInt(ebookId, 10));
     }
   }
 
@@ -412,7 +412,7 @@ export class EbookReaderComponent implements OnInit, AfterViewInit {
   loadBookmark() {
     const bookmark = localStorage.getItem(`bookmark_${this.ebook?.id}`);
     if (bookmark) {
-      this.currentPage = parseInt(bookmark);
+      this.currentPage = Number.parseInt(bookmark, 10);
       this.goToPage();
     }
   }

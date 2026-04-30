@@ -441,7 +441,7 @@ export class EbooksComponent implements OnInit, OnDestroy {
   }
 
   getStarArray(rating: number): boolean[] {
-    return Array(5).fill(false).map((_, i) => i < Math.round(rating));
+    return new Array(5).fill(false).map((_, i) => i < Math.round(rating));
   }
 
   // NEW: Load user progress
@@ -624,7 +624,7 @@ export class EbooksComponent implements OnInit, OnDestroy {
 
   // NEW: Get current user ID
   getCurrentUserId(): number {
-    return parseInt(localStorage.getItem('userId') || '1');
+    return Number.parseInt(localStorage.getItem('userId') || '1', 10);
   }
 
   // Related ebooks

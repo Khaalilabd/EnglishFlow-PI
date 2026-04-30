@@ -344,7 +344,7 @@ export class TopicListComponent implements OnInit {
     if (this.isReviewCategory && topic.title.includes('Star')) {
       const match = topic.title.match(/(\d+)\s+Star/);
       if (match) {
-        this.rating = parseInt(match[1], 10);
+        this.rating = Number.parseInt(match[1], 10);
       }
     }
     
@@ -880,8 +880,8 @@ export class TopicListComponent implements OnInit {
   getStarsFromTitle(title: string): number[] {
     const match = title.match(/(\d+)\s+Star/);
     if (match) {
-      const rating = parseInt(match[1], 10);
-      return Array(rating).fill(0).map((_, i) => i + 1);
+      const rating = Number.parseInt(match[1], 10);
+      return new Array(rating).fill(0).map((_, i) => i + 1);
     }
     return [];
   }

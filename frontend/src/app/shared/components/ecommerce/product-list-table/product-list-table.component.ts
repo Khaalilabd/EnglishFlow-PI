@@ -251,8 +251,8 @@ export class ProductListTableComponent {
       let valA: any = a[this.sort.key];
       let valB: any = b[this.sort.key];
       if (this.sort.key === 'price') {
-        valA = parseFloat(valA.replace(/[^\d.]/g, ''));
-        valB = parseFloat(valB.replace(/[^\d.]/g, ''));
+        valA = Number.parseFloat(valA.replaceAll(/[^\d.]/g, ''));
+        valB = Number.parseFloat(valB.replaceAll(/[^\d.]/g, ''));
       }
       if (valA < valB) return this.sort.asc ? -1 : 1;
       if (valA > valB) return this.sort.asc ? 1 : -1;

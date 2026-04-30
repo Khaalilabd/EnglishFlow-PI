@@ -28,7 +28,7 @@ export class CustomValidators {
       }
       
       // Clean the phone number (remove spaces, dashes, etc.)
-      const cleanPhone = control.value.replace(/[\s\-\(\)]/g, '');
+      const cleanPhone = control.value.replaceAll(/[\s\-\(\)]/g, '');
       
       // Accept various formats:
       // +212XXXXXXXXX (international)

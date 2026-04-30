@@ -236,7 +236,7 @@ export class ClubsDetailsComponent implements OnChanges {
   formatHistoryDate(dateString: string): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    if (isNaN(date.getTime())) return dateString;
+    if (Number.isNaN(date.getTime())) return dateString;
     const diffDays = Math.floor((Date.now() - date.getTime()) / 86400000);
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';

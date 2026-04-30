@@ -576,7 +576,7 @@ export class MyVocabularyComponent implements OnInit {
 
         const csvContent = [
           headers.join(','),
-          ...rows.map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(','))
+          ...rows.map(row => row.map(cell => `"${cell.replaceAll(/"/g, '""')}"`).join(','))
         ].join('\n');
 
         const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });

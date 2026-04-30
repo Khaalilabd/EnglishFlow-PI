@@ -117,7 +117,7 @@ export class PhoneInputComponent implements ControlValueAccessor, OnInit {
 
   onPhoneNumberChange(): void {
     // Remove non-numeric characters
-    this.phoneNumber = this.phoneNumber.replace(/[^0-9]/g, '');
+    this.phoneNumber = this.phoneNumber.replaceAll(/[^0-9]/g, '');
     this.updateValue();
   }
 

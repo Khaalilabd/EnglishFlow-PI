@@ -22,10 +22,10 @@ export class WordLookupDirective {
       const context = this.extractContext(selection);
       
       // Remove all punctuation, special characters, and markdown symbols
-      word = word.replace(/[\*\_\~\`\[\]\(\)\{\}\#\+\-\=\|\\\:\;\"\'\<\>\,\.\?\/\!\@\$\%\^\&]/g, '');
+      word = word.replaceAll(/[\*\_\~\`\[\]\(\)\{\}\#\+\-\=\|\\\:\;\"\'\<\>\,\.\?\/\!\@\$\%\^\&]/g, '');
       
       // Remove numbers
-      word = word.replace(/[0-9]/g, '');
+      word = word.replaceAll(/[0-9]/g, '');
       
       // Get only the first word if multiple words selected
       word = word.split(/\s+/)[0];

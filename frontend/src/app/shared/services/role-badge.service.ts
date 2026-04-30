@@ -81,7 +81,8 @@ export class RoleBadgeService {
     if (badges.length === 0) return null;
     
     return badges.reduce((highest, current) => 
-      current.priority < highest.priority ? current : highest
+      current.priority < highest.priority ? current : highest,
+      badges[0]
     );
   }
 }
