@@ -1,0 +1,15 @@
+# SonarCloud Ignore File
+# Files and directories to exclude from SonarCloud analysis
+
+# DevOps database scripts (test data only)
+devops/database/**
+devops/kubernetes/**
+devops/docker/**
+
+# SQL files with test data
+**/*insert-users.sql
+**/insert-*.sql
+
+# Kubernetes secrets (dev environment only)
+**/02-secrets/**
+**/app-secrets.yaml

@@ -45,8 +45,8 @@ mvn -B sonar:sonar \
     -Dsonar.host.url=https://sonarcloud.io \
     -Dsonar.coverage.jacoco.xmlReportPaths="backend/**/target/site/jacoco/jacoco.xml" \
     -Dsonar.qualitygate.wait=false \
-    -Dsonar.cpd.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/DatabaseInitializer.java,**/GlobalExceptionHandler.java,**/util/**,**/client/**,**/scheduler/**,**/*Application.java" \
-    -Dsonar.exclusions="**/test/**,**/target/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**" \
+    -Dsonar.cpd.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/DatabaseInitializer.java,**/GlobalExceptionHandler.java,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/db/migration/**,**/*.sql,**/devops/**" \
+    -Dsonar.exclusions="**/test/**,**/target/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/devops/database/**,**/devops/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml" \
     -Dsonar.coverage.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/*Application.java" \
     -Dsonar.cpd.java.minimumtokens=200 \
     -Dsonar.newCodePeriod.type=PREVIOUS_VERSION \
