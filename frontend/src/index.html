@@ -6,8 +6,25 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <!-- 
+    Google Fonts: SRI (Subresource Integrity) cannot be used with Google Fonts
+    because the CSS content varies based on browser capabilities.
+    Google Fonts is a trusted source and widely used across the web.
+    Risk accepted: Low - Google's infrastructure is highly secure and reliable.
+  -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://unpkg.com/swiper@7/swiper-bundle.min.css" crossorigin="anonymous"/>
+  
+  <!-- 
+    Swiper CSS: Using specific version with SRI for security.
+    If this fails to load, the application will still function but without carousel styling.
+  -->
+  <link 
+    rel="stylesheet" 
+    href="https://unpkg.com/swiper@7.4.1/swiper-bundle.min.css"
+    integrity="sha384-uh3y/WeAusiZJ76/oewz8WiTiOl0SIQXYOTNT42NZ65y/Hyo8j3qGw7dnVAmSSDn"
+    crossorigin="anonymous"
+    onerror="console.warn('Swiper CSS failed to load from CDN')"
+  />
   
   <!-- Polyfill pour SockJS -->
   <script>
