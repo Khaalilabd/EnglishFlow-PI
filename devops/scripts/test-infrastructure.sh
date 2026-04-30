@@ -23,7 +23,7 @@ check_service() {
     
     response=$(curl -s -o /dev/null -w "%{http_code}" "$url" 2>/dev/null)
     
-    if [ "$response" -eq "$expected_status" ]; then
+    if [[ "$response" -eq "$expected_status" ]]; then
         echo -e "${GREEN}✅ OK${NC} (HTTP $response)"
         return 0
     else
@@ -71,7 +71,7 @@ echo ""
 echo "🎯 Checking Prometheus Targets..."
 echo "---------------------------------"
 targets=$(curl -s http://localhost:9090/api/v1/targets | jq -r '.data.activeTargets[] | "\(.labels.job): \(.health)"' 2>/dev/null)
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo "$targets"
 else
     echo -e "${YELLOW}⚠️  Could not fetch Prometheus targets${NC}"

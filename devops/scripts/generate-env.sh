@@ -17,8 +17,8 @@ copy_env_file() {
     local source=$1
     local target=$2
     
-    if [ -f "$source" ]; then
-        if [ -f "$target" ]; then
+    if [[ -f "$source" ]]; then
+        if [[ -f "$target" ]]; then
             echo -e "${YELLOW}⚠️  $target already exists, skipping...${NC}"
         else
             cp "$source" "$target"

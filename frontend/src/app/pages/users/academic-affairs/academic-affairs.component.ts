@@ -96,7 +96,7 @@ export class AcademicAffairsComponent implements OnInit, OnDestroy {
     const cities = this.users
       .map(u => u.city)
       .filter((city): city is string => city !== null && city !== undefined && city.trim() !== '');
-    return Array.from(new Set(cities)).sort();
+    return Array.from(new Set(cities)).sort((a, b) => a.localeCompare(b));
   }
 
   initForms(): void {
@@ -175,9 +175,13 @@ export class AcademicAffairsComponent implements OnInit, OnDestroy {
       if (aValue === null || aValue === undefined) aValue = '';
       if (bValue === null || bValue === undefined) bValue = '';
       
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+      // Use localeCompare for string comparison to ensure reliable alphabetical sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue, undefined, { sensitivity: 'base' });
+        return this.sortDirection === 'asc' ? comparison : -comparison;
+      }
       
+      // Fallback for non-string values
       if (aValue < bValue) return this.sortDirection === 'asc' ? -1 : 1;
       if (aValue > bValue) return this.sortDirection === 'asc' ? 1 : -1;
       return 0;

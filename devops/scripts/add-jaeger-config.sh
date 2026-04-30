@@ -22,7 +22,7 @@ echo "🚀 Adding Jaeger configuration to microservices..."
 for service in "${SERVICES[@]}"; do
   config_file="backend/$service/src/main/resources/application.yml"
   
-  if [ -f "$config_file" ]; then
+  if [[ -f "$config_file" ]]; then
     echo "✅ Processing $service..."
     
     # Check if zipkin config already exists

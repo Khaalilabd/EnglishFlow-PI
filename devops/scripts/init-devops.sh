@@ -58,7 +58,7 @@ check_command "node" || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_command "npm" || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 check_command "git" || MISSING_TOOLS=$((MISSING_TOOLS + 1))
 
-if [ $MISSING_TOOLS -gt 0 ]; then
+if [[ $MISSING_TOOLS -gt 0 ]]; then
     print_error "$MISSING_TOOLS required tool(s) missing. Please install them first."
     exit 1
 fi
@@ -67,7 +67,7 @@ echo ""
 print_header "Step 2: Setting up Environment Files"
 
 # Copy .env.example files
-if [ ! -f ".env" ]; then
+if [[ ! -f ".env" ]]; then
     cp .env.example .env
     print_success "Created .env file"
 else
@@ -95,8 +95,8 @@ SERVICES=(
 )
 
 for service in "${SERVICES[@]}"; do
-    if [ -f "backend/$service/.env.example" ]; then
-        if [ ! -f "backend/$service/.env" ]; then
+    if [[ -f "backend/$service/.env.example" ]]; then
+        if [[ ! -f "backend/$service/.env" ]]; then
             cp "backend/$service/.env.example" "backend/$service/.env"
             print_success "Created backend/$service/.env"
         else
@@ -106,7 +106,7 @@ for service in "${SERVICES[@]}"; do
 done
 
 # Frontend
-if [ ! -f "frontend/.env" ]; then
+if [[ ! -f "frontend/.env" ]]; then
     cp frontend/.env.example frontend/.env
     print_success "Created frontend/.env"
 else

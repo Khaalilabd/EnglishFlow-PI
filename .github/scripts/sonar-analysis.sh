@@ -25,7 +25,7 @@ services=(
 
 echo "📦 Building services..."
 for service in "${services[@]}"; do
-    if [ -d "backend/$service" ]; then
+    if [[ -d "backend/$service" ]]; then
         echo "Building $service..."
         cd "backend/$service"
         mvn clean verify -B -q || echo "⚠️ Warning: $service build had issues, continuing..."

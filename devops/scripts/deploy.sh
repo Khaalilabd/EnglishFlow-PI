@@ -49,21 +49,21 @@ check_requirements() {
 load_env() {
     log_info "Loading environment variables for: $ENVIRONMENT"
     
-    if [ "$ENVIRONMENT" = "prod" ]; then
-        if [ ! -f "$PROJECT_DIR/.env.prod" ]; then
+    if [[ "$ENVIRONMENT" = "prod" ]]; then
+        if [[ ! -f "$PROJECT_DIR/.env.prod" ]]; then
             log_error ".env.prod file not found"
             exit 1
         fi
         export $(cat "$PROJECT_DIR/.env.prod" | grep -v '^#' | xargs)
         COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.prod.yml"
-    elif [ "$ENVIRONMENT" = "staging" ]; then
-        if [ ! -f "$PROJECT_DIR/.env.staging" ]; then
+    elif [[ "$ENVIRONMENT" = "staging" ]]; then
+        if [[ ! -f "$PROJECT_DIR/.env.staging" ]]; then
             log_error ".env.staging file not found"
             exit 1
         fi
         export $(cat "$PROJECT_DIR/.env.staging" | grep -v '^#' | xargs)
     else
-        if [ ! -f "$PROJECT_DIR/.env" ]; then
+        if [[ ! -f "$PROJECT_DIR/.env" ]]; then
             log_warn ".env file not found, using defaults"
         else
             export $(cat "$PROJECT_DIR/.env" | grep -v '^#' | xargs)
@@ -72,7 +72,7 @@ load_env() {
 }
 
 backup_database() {
-    if [ "$ENVIRONMENT" = "prod" ]; then
+    if [[ "$ENVIRONMENT" = "prod" ]]; then
         log_info "Creating database backup..."
         
         BACKUP_DIR="$PROJECT_DIR/backups"
@@ -158,7 +158,7 @@ health_check() {
         fi
     done
     
-    if [ $FAILED -eq 1 ]; then
+    if [[ $FAILED -eq 1 ]]; then
         log_error "Some services failed health check"
         return 1
     fi
@@ -184,11 +184,11 @@ main() {
     check_requirements
     load_env
     
-    if [ "$ENVIRONMENT" = "prod" ]; then
+    if [[ "$ENVIRONMENT" = "prod" ]]; then
         backup_database
     fi
     
-    if [ "$ENVIRONMENT" = "dev" ]; then
+    if [[ "$ENVIRONMENT" = "dev" ]]; then
         build_images
     else
         pull_images

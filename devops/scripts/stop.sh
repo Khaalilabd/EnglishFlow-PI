@@ -16,7 +16,7 @@ log_info() {
     echo -e "${GREEN}[INFO]${NC} $1"
 }
 
-if [ "$ENVIRONMENT" = "prod" ]; then
+if [[ "$ENVIRONMENT" = "prod" ]]; then
     COMPOSE_FILES="$COMPOSE_FILES -f docker-compose.prod.yml"
 fi
 

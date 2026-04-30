@@ -5,11 +5,11 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 NC='\033[0m'
 BACKUP_FILE=$1
-if [ -z "$BACKUP_FILE" ]; then
+if [[ -z "$BACKUP_FILE" ]]; then
     echo -e "${RED}[ERROR]${NC} Usage: ./scripts/restore.sh <backup-file.sql.gz>"
     exit 1
 fi
-if [ ! -f "$BACKUP_FILE" ]; then
+if [[ ! -f "$BACKUP_FILE" ]]; then
     echo -e "${RED}[ERROR]${NC} Backup file not found: $BACKUP_FILE"
     exit 1
 fi

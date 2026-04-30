@@ -8,9 +8,9 @@ set -e
 ENVIRONMENT=${1:-dev}
 BASE_URL="http://localhost"
 
-if [ "$ENVIRONMENT" = "prod" ]; then
+if [[ "$ENVIRONMENT" = "prod" ]]; then
     BASE_URL="https://englishflow.com"
-elif [ "$ENVIRONMENT" = "staging" ]; then
+elif [[ "$ENVIRONMENT" = "staging" ]]; then
     BASE_URL="https://staging.englishflow.com"
 fi
 
@@ -57,11 +57,11 @@ check_service() {
     local url="$BASE_URL:$port/actuator/health"
     
     # Special cases
-    if [ "$name" = "Frontend" ]; then
+    if [[ "$name" = "Frontend" ]]; then
         url="$BASE_URL:$port"
-    elif [ "$name" = "WebRTC Signaling" ]; then
+    elif [[ "$name" = "WebRTC Signaling" ]]; then
         url="$BASE_URL:$port/health"
-    elif [ "$name" = "Prometheus" ] || [ "$name" = "Grafana" ]; then
+    elif [[ "$name" = "Prometheus" ]] || [[ "$name" = "Grafana" ]]; then
         url="$BASE_URL:$port/-/healthy"
     fi
     
@@ -90,7 +90,7 @@ echo -e "  ${GREEN}Healthy: $HEALTHY${NC}"
 echo -e "  ${RED}Unhealthy: $UNHEALTHY${NC}"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 
-if [ $UNHEALTHY -gt 0 ]; then
+if [[ $UNHEALTHY -gt 0 ]]; then
     echo ""
     echo -e "${YELLOW}⚠️  Some services are unhealthy!${NC}"
     exit 1

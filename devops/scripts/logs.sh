@@ -11,7 +11,7 @@ LINES=${2:-100}
 
 cd "$PROJECT_DIR"
 
-if [ -z "$SERVICE" ]; then
+if [[ -z "$SERVICE" ]]; then
     echo "Following all services logs..."
     docker-compose logs -f --tail=$LINES
 else

@@ -49,13 +49,13 @@ BACKEND_SERVICES=(
 )
 
 for service in "${BACKEND_SERVICES[@]}"; do
-    if [ -f "backend/$service/Dockerfile" ]; then
+    if [[ -f "backend/$service/Dockerfile" ]]; then
         build_service "$service" "backend/$service"
     fi
 done
 
 # Frontend
-if [ -f "frontend/Dockerfile" ]; then
+if [[ -f "frontend/Dockerfile" ]]; then
     build_service "frontend" "frontend"
 fi
 

@@ -42,7 +42,7 @@ run_backend_tests() {
     FAILED=0
     
     for service in "${SERVICES[@]}"; do
-        if [ -d "$service" ]; then
+        if [[ -d "$service" ]]; then
             echo -e "${BLUE}Testing $service...${NC}"
             
             cd "$service"
@@ -68,7 +68,7 @@ run_backend_tests() {
     echo -e "  ${RED}Failed: $FAILED${NC}"
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     
-    if [ $FAILED -gt 0 ]; then
+    if [[ $FAILED -gt 0 ]]; then
         return 1
     fi
 }
@@ -98,14 +98,14 @@ run_coverage_report() {
     # Backend coverage
     cd backend
     for service in auth-service courses-service community-service messaging-service club-service event-service learning-service complaints-service sponsors-service; do
-        if [ -d "$service" ] && [ -f "$service/target/site/jacoco/index.html" ]; then
+        if [[ -d "$service" ]] && [[ -f "$service/target/site/jacoco/index.html" ]]; then
             echo "  📄 $service: file://$(pwd)/$service/target/site/jacoco/index.html"
         fi
     done
     cd ..
     
     # Frontend coverage
-    if [ -f "frontend/coverage/index.html" ]; then
+    if [[ -f "frontend/coverage/index.html" ]]; then
         echo "  📄 Frontend: file://$(pwd)/frontend/coverage/index.html"
     fi
 }
@@ -114,21 +114,21 @@ run_coverage_report() {
 BACKEND_RESULT=0
 FRONTEND_RESULT=0
 
-if [ "$TARGET" = "backend" ] || [ "$TARGET" = "all" ]; then
+if [[ "$TARGET" = "backend" ]] || [[ "$TARGET" = "all" ]]; then
     run_backend_tests || BACKEND_RESULT=1
 fi
 
-if [ "$TARGET" = "frontend" ] || [ "$TARGET" = "all" ]; then
+if [[ "$TARGET" = "frontend" ]] || [[ "$TARGET" = "all" ]]; then
     run_frontend_tests || FRONTEND_RESULT=1
 fi
 
-if [ "$TARGET" = "all" ]; then
+if [[ "$TARGET" = "all" ]]; then
     run_coverage_report
 fi
 
 echo ""
 
-if [ $BACKEND_RESULT -eq 0 ] && [ $FRONTEND_RESULT -eq 0 ]; then
+if [[ $BACKEND_RESULT -eq 0 ]] && [[ $FRONTEND_RESULT -eq 0 ]]; then
     echo -e "${GREEN}✅ All tests passed!${NC}"
     exit 0
 else
