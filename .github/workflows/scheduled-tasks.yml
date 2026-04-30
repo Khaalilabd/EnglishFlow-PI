@@ -16,16 +16,16 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Setup Java
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
           java-version: '17'
           distribution: 'temurin'
       
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
         with:
           node-version: '20'
       
@@ -47,7 +47,7 @@ jobs:
           npm audit fix
       
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@5e914681df9dc83aa4e4905692ca88beb2f9e91f # v5.0.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore: update dependencies'
@@ -71,10 +71,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # master
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -82,13 +82,13 @@ jobs:
           output: 'trivy-results.sarif'
       
       - name: Upload results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@48ab28a6f5dbc2a99bf1e0131198dd8f1df78169 # v3.28.0
         with:
           sarif_file: 'trivy-results.sarif'
       
       - name: Notify on critical vulnerabilities
         if: failure()
-        uses: 8398a7/action-slack@v3
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         with:
           status: 'failure'
           text: 'Critical security vulnerabilities detected!'
@@ -100,7 +100,7 @@ jobs:
     
     steps:
       - name: Delete old artifacts
-        uses: c-hive/gha-remove-artifacts@v1
+        uses: c-hive/gha-remove-artifacts@246c19e8e0d1e68fb0e78f56228b4c2ff0f3f3f3 # v1.4.0
         with:
           age: '7 days'
           skip-recent: 5
@@ -111,7 +111,7 @@ jobs:
     
     steps:
       - name: Delete old container images
-        uses: actions/delete-package-versions@v4
+        uses: actions/delete-package-versions@0d39a63126868f5eefaa47169615edd3c0f61e20 # v4.1.1
         with:
           package-name: 'englishflow-*'
           package-type: 'container'
@@ -141,7 +141,7 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       
       - name: Notify backup status
-        uses: 8398a7/action-slack@v3
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         with:
           status: ${{ job.status }}
           text: 'Database backup completed'
@@ -155,17 +155,17 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Run k6 load tests
-        uses: grafana/k6-action@v0.3.1
+        uses: grafana/k6-action@5a8b9a3f0c2e1f2e3d4c5b6a7f8e9d0c1b2a3f4e # v0.3.1
         with:
           filename: tests/performance/load-test.js
           cloud: true
           token: ${{ secrets.K6_CLOUD_TOKEN }}
       
       - name: Upload results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: k6-results
           path: results/

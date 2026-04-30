@@ -48,13 +48,13 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
       
       - name: Log in to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -62,7 +62,7 @@ jobs:
       
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
           tags: |
@@ -74,7 +74,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v5.4.0
         with:
           context: backend/${{ matrix.service }}
           file: backend/${{ matrix.service }}/Dockerfile
@@ -86,7 +86,7 @@ jobs:
           platforms: linux/amd64
       
       - name: Scan image for vulnerabilities
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@915b19bbe73b92a6cf82a1bc12b087c9a19a5fe2 # master
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}:latest
           format: 'sarif'
@@ -94,7 +94,7 @@ jobs:
         continue-on-error: true
       
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@48ab28a6f5dbc2a99bf1e0131198dd8f1df78169 # v3.28.0
         with:
           sarif_file: 'trivy-${{ matrix.service }}.sarif'
         continue-on-error: true
@@ -108,13 +108,13 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@c47758b77c9736f4b2ef4073d4d51994fabfe349 # v3.7.1
       
       - name: Log in to Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@9780b0c442fbb1117ed29e0efdff1e18412f7567 # v3.3.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -122,7 +122,7 @@ jobs:
       
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5.5.1
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend
           tags: |
@@ -134,7 +134,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
       
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v5.4.0
         with:
           context: frontend
           file: frontend/Dockerfile
@@ -156,10 +156,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
+        uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
         with:
           ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
       
@@ -178,7 +178,7 @@ jobs:
           curl -f https://staging.englishflow.com/actuator/health || exit 1
       
       - name: Notify deployment
-        uses: 8398a7/action-slack@v3
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         with:
           status: ${{ job.status }}
           text: 'Staging deployment completed'
@@ -197,10 +197,10 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       
       - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.8.0
+        uses: webfactory/ssh-agent@dc588b651fe13675774614f8e6a936a468676387 # v0.9.0
         with:
           ssh-private-key: ${{ secrets.PRODUCTION_SSH_KEY }}
       
@@ -235,7 +235,7 @@ jobs:
           EOF
       
       - name: Notify deployment
-        uses: 8398a7/action-slack@v3
+        uses: 8398a7/action-slack@28ba43ae48961b90635b50953d216767a6bea486 # v3.16.2
         with:
           status: ${{ job.status }}
           text: 'Production deployment completed'
@@ -245,7 +245,7 @@ jobs:
       
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@c062e08bd532815e2082a85e87e3ef29c3e6d191 # v1.0.0
         with:
           generate_release_notes: true
           draft: false

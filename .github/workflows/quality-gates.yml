@@ -11,12 +11,12 @@ jobs:
     
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@8df1039502a15bceb9433410b1a100fbe190c53b # v4.5.0
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -95,7 +95,7 @@ jobs:
           echo "Generated on: $(date)" >> quality-report.md
       
       - name: Upload quality report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: quality-report
           path: quality-report.md
