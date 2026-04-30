@@ -7,7 +7,7 @@ set -e
 
 echo "🚀 Starting SonarCloud analysis for EnglishFlow..."
 
-# Build all services with tests and coverage
+# Build all backend services with tests and coverage
 services=(
     "auth-service"
     "courses-service" 
@@ -23,7 +23,7 @@ services=(
     "sponsors-service"
 )
 
-echo "📦 Building services..."
+echo "📦 Building backend services..."
 for service in "${services[@]}"; do
     if [[ -d "backend/$service" ]]; then
         echo "Building $service..."
@@ -34,6 +34,22 @@ for service in "${services[@]}"; do
         echo "⚠️ Warning: Service $service not found, skipping..."
     fi
 done
+
+echo "📦 Building frontend..."
+if [[ -d "frontend" ]]; then
+    cd frontend
+    if [[ -f "package.json" ]]; then
+        echo "Installing frontend dependencies..."
+        npm install --silent || echo "⚠️ Warning: npm install had issues, continuing..."
+        echo "Building frontend..."
+        npm run build --if-present || echo "⚠️ Warning: frontend build had issues, continuing..."
+        echo "Running frontend tests with coverage..."
+        npm run test:coverage --if-present || echo "⚠️ Warning: frontend tests had issues, continuing..."
+    fi
+    cd ..
+else
+    echo "⚠️ Warning: Frontend directory not found, skipping..."
+fi
 
 echo "🔍 Running SonarCloud analysis..."
 
@@ -52,10 +68,11 @@ else
         -Dsonar.projectKey=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish \
         -Dsonar.organization=khaalilabd \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.sources=backend/api-gateway/src,backend/auth-service/src,backend/club-service/src,backend/community-service/src,backend/complaints-service/src,backend/courses-service/src,backend/event-service/src,backend/exam-service/src,backend/gamification-service/src,backend/learning-service/src,backend/messaging-service/src,backend/payment-service/src,backend/sponsors-service/src \
+        -Dsonar.sources=backend/api-gateway/src,backend/auth-service/src,backend/club-service/src,backend/community-service/src,backend/complaints-service/src,backend/courses-service/src,backend/event-service/src,backend/exam-service/src,backend/gamification-service/src,backend/learning-service/src,backend/messaging-service/src,backend/payment-service/src,backend/sponsors-service/src,frontend/src/app \
         -Dsonar.coverage.jacoco.xmlReportPaths="backend/**/target/site/jacoco/jacoco.xml" \
+        -Dsonar.typescript.lcov.reportPaths="frontend/coverage/lcov.info" \
         -Dsonar.qualitygate.wait=false \
-        -Dsonar.exclusions="**/devops/**,**/database/**,**/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml,**/docker-compose.yml,**/target/**,**/test/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/templates/**/*.html" \
+        -Dsonar.exclusions="**/devops/**,**/database/**,**/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml,**/docker-compose.yml,**/target/**,**/test/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/templates/**/*.html,**/node_modules/**,**/dist/**,**/*.spec.ts" \
         -Dsonar.cpd.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/DatabaseInitializer.java,**/GlobalExceptionHandler.java,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/db/migration/**,**/*.sql,**/devops/**,**/templates/**/*.html" \
         -Dsonar.coverage.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/templates/**/*.html" \
         -Dsonar.cpd.java.minimumtokens=200 \

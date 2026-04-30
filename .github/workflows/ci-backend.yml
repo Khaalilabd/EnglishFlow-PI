@@ -2,12 +2,10 @@ name: Backend CI
 
 on:
   push:
-    branches: [ main, develop, User-Authentication-Management, learning-service ]
     paths:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
   pull_request:
-    branches: [ main, develop ]
     paths:
       - 'backend/**'
 
@@ -56,7 +54,7 @@ jobs:
           - event-service
           - complaints-service
           - gamification-service
-          # - learning-service  # Temporarily disabled
+          - learning-service
           - config-server
     
     steps:
@@ -126,7 +124,7 @@ jobs:
           - event-service
           - complaints-service
           - gamification-service
-          # - learning-service  # Temporarily disabled
+          - learning-service
           - config-server
     
     steps:
@@ -209,7 +207,6 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       
       - name: Build and analyze with SonarCloud
-        if: github.ref == 'refs/heads/main'  # Only run on main branch
         run: |
           chmod +x .github/scripts/sonar-analysis.sh
           ./.github/scripts/sonar-analysis.sh
