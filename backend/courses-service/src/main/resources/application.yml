@@ -120,17 +120,6 @@ management:
       enabled: true
     readinessState:
       enabled: true
-
-# Swagger/OpenAPI Configuration
-springdoc:
-  api-docs:
-    path: /api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-
-
-management:
   tracing:
     sampling:
       probability: 1.0
@@ -139,6 +128,14 @@ management:
     enabled: true
     service:
       name: ${spring.application.name}
+
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
 
 ---
 # Docker profile
