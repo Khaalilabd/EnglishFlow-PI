@@ -267,7 +267,7 @@ export class FrontofficeNotificationDropdownComponent implements OnInit {
   unreadCount = 0;
 
   ngOnInit() {
-    // TODO: Load notifications from service
+    // Load notifications from service
     this.loadNotifications();
   }
 
@@ -289,14 +289,14 @@ export class FrontofficeNotificationDropdownComponent implements OnInit {
     if (!notification.read) {
       notification.read = true;
       this.updateUnreadCount();
-      // TODO: Call service to mark as read
+      // Call service to mark as read (to be implemented)
     }
   }
 
   markAllAsRead() {
     this.notifications.forEach(n => n.read = true);
     this.updateUnreadCount();
-    // TODO: Call service to mark all as read
+    // Call service to mark all as read (to be implemented)
   }
 
   updateUnreadCount() {

@@ -568,19 +568,19 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
   }
   
   hasAdditionalContent(content: string): boolean {
-    return !!(content && content.includes('[ADDITIONAL_CONTENT]'));
+    return !!(content?.includes('[ADDITIONAL_CONTENT]'));
   }
   
   getOriginalContent(content: string): string {
     if (!content) return '';
-    if (content.includes('[ADDITIONAL_CONTENT]')) {
+    if (content?.includes('[ADDITIONAL_CONTENT]')) {
       return content.split('[ADDITIONAL_CONTENT]')[0];
     }
     return content;
   }
   
   getAdditionalContent(content: string): string {
-    if (!content || !content.includes('[ADDITIONAL_CONTENT]')) return '';
+    if (!content?.includes('[ADDITIONAL_CONTENT]')) return '';
     const parts = content.split('[ADDITIONAL_CONTENT]');
     return parts[1] || '';
   }

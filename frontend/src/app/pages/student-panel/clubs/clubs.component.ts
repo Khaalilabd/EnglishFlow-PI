@@ -1147,7 +1147,7 @@ export class ClubsComponent implements OnInit, OnDestroy {
 
   // Manage Members Modal Methods (List of all members)
   openManageMembersModal() {
-    if (this.selectedClub && this.selectedClub.id) {
+    if (this.selectedClub?.id) {
       // Load members before opening modal
       this.loadClubMembers(this.selectedClub.id);
     }

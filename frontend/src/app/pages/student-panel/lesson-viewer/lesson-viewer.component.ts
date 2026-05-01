@@ -676,10 +676,10 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
       this.quizService.getStudentAttempts(this.currentStudentId).subscribe({
         next: (attempts) => {
           const existingAttempt = attempts.find(a => a.quizId === quizId && a.status === 'COMPLETED');
-          if (existingAttempt) {
+          if (existingAttempt?.id) {
             this.quizAttemptExists = true;
             // Load the result
-            this.quizService.getAttemptResult(existingAttempt.id!).subscribe({
+            this.quizService.getAttemptResult(existingAttempt.id).subscribe({
               next: (result) => {
                 this.quizResult = result;
                 this.quizSubmitted = true;
@@ -799,7 +799,7 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   getCurrentQuestion(): any {
     const question = this.quizQuestions[this.currentQuestionIndex];
     // Debug log
-    if (question && question.type === 'TRUE_FALSE') {
+    if (question?.type === 'TRUE_FALSE') {
       console.log('TRUE_FALSE Question:', question);
       console.log('Options:', question.options);
       console.log('Split options:', question.options?.split('|'));
@@ -865,6 +865,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
       next: (attempt) => {
         console.log('Attempt started:', attempt);
         
+        if (!attempt.id) {
+          alert('Failed to start quiz attempt. Please try again.');
+          return;
+        }
+        
         const attemptRequest: any = {
           quizId: this.currentQuiz.id,
           studentId: this.currentStudentId,
@@ -873,7 +878,7 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
 
         console.log('Submitting attempt request:', attemptRequest);
 
-        this.quizService.submitAttempt(attempt.id!, attemptRequest).subscribe({
+        this.quizService.submitAttempt(attempt.id, attemptRequest).subscribe({
           next: (result) => {
             console.log('Quiz result:', result);
             this.quizResult = result;

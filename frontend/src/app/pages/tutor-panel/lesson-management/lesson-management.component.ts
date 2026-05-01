@@ -491,6 +491,7 @@ export class LessonManagementComponent implements OnInit {
         this.conversionError = 'Only DOCX files are supported. Please upload a .docx file.';
       }
     } catch (error) {
+      console.error('Document conversion error:', error);
       this.conversionError = 'Failed to convert document. Please try again or upload a different file.';
     } finally {
       this.convertingDocument = false;
@@ -590,7 +591,9 @@ export class LessonManagementComponent implements OnInit {
             endTime: this.selectedTimeSlot.endTime
           }).subscribe({
             next: () => {
-              this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
+              if (createdLesson.id) {
+                this.finishLessonCreation(createdLesson.id, shouldUploadFile);
+              }
             },
             error: (error) => {
               const errorMsg = error.error || 'Unknown error';
@@ -601,12 +604,14 @@ export class LessonManagementComponent implements OnInit {
               } else {
                 alert('Lesson created but failed to assign time slot: ' + errorMsg);
               }
-              this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
+              if (createdLesson.id) {
+                this.finishLessonCreation(createdLesson.id, shouldUploadFile);
+              }
             }
           });
-        } else {
+        } else if (createdLesson.id) {
           // Not an ONLINE lesson or no time slot, proceed normally
-          this.finishLessonCreation(createdLesson.id!, shouldUploadFile);
+          this.finishLessonCreation(createdLesson.id, shouldUploadFile);
         }
       },
       error: (error) => {
