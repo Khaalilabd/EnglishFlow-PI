@@ -550,9 +550,10 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
         if (e.creatorId === this.currentUserId) {
           this.myRank = 'CREATOR';
           this.isModerator = true;
-        } else if (e.clubId != null) {
+        } else if (e.clubId) {
+          const clubId = e.clubId;
           await new Promise<void>(resolve => {
-            this.memberService.getUserMembershipInClub(e.clubId!, this.currentUserId).subscribe({
+            this.memberService.getUserMembershipInClub(clubId, this.currentUserId).subscribe({
               next: (membership) => {
                 if (membership?.rank === 'EVENT_MANAGER') {
                   this.myRank = 'EVENT_MANAGER';

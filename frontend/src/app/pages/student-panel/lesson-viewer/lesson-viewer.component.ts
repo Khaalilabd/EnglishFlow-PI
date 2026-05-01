@@ -562,7 +562,7 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   }
 
   canJoinLesson(): boolean {
-    if (!this.lesson || this.lesson.lessonType !== 'ONLINE') return false;
+    if (!this.lesson?.lessonType || this.lesson.lessonType !== 'ONLINE') return false;
     if (!this.courseId || !this.currentStudentId) return false;
     
     // If tutor has started the meeting, allow join regardless of schedule

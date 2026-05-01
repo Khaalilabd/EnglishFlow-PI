@@ -6,7 +6,6 @@ RUN npm install --production
 
 FROM node:18-alpine
 RUN apk add --no-cache curl
-RUN addgroup -S node && adduser -S node -G node
 WORKDIR /app
 
 # Copy dependencies and application
@@ -14,8 +13,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY server.js .
 COPY package.json .
 
-RUN chown -R node:node /app
-USER node
 EXPOSE 3001
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
