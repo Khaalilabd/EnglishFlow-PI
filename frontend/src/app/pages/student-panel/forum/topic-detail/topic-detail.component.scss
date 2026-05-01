@@ -48,8 +48,6 @@
 .animate-slide-up {
   animation: slide-up 0.3s ease-out;
 }
-
-// Prose styling for content
 .prose {
   line-height: 1.75;
   
@@ -181,6 +179,4 @@
   }
 }
 
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
-}
+// Removed duplicate animate-slide-up class

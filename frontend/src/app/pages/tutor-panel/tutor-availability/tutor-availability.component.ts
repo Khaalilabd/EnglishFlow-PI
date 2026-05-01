@@ -43,10 +43,10 @@ export class TutorAvailabilityComponent implements OnInit {
   allStatuses = Object.values(TutorStatus);
 
   constructor(
-    private availabilityService: TutorAvailabilityService,
-    private categoryService: CourseCategoryService,
-    private authService: AuthService,
-    private modificationRequestService: AvailabilityModificationRequestService
+    private readonly availabilityService: TutorAvailabilityService,
+    private readonly categoryService: CourseCategoryService,
+    private readonly authService: AuthService,
+    private readonly modificationRequestService: AvailabilityModificationRequestService
   ) {}
 
   ngOnInit(): void {

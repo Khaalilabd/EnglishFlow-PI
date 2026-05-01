@@ -45,6 +45,9 @@ jobs:
           - gamification-service
           - learning-service
           - config-server
+          - sponsors-service
+          - payment-service
+          - webrtc-signaling
     
     steps:
       - name: Checkout code

@@ -493,14 +493,14 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
   private hasLeft = false;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    public liveService: LiveSessionService,
-    public webrtc: WebRTCService,
-    private authService: AuthService,
-    private eventService: EventService,
-    private memberService: MemberService,
-    private sponsorService: SponsorService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    public readonly liveService: LiveSessionService,
+    public readonly webrtc: WebRTCService,
+    private readonly authService: AuthService,
+    private readonly eventService: EventService,
+    private readonly memberService: MemberService,
+    private readonly sponsorService: SponsorService
   ) {}
 
   async ngOnInit() {
@@ -523,17 +523,17 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
         this.sponsorService.getAllSponsors().subscribe({
           next: (allSponsors) => {
             // Find users who have a club sponsorship for this club
-            const clubSponsorUserIds = allSponsors
+            const clubSponsorUserIds = new Set(allSponsors
               .filter(s => s.clubId === e.clubId && s.status === 'APPROVED')
               .map(s => s.userId)
-              .filter((id): id is number => !!id);
+              .filter((id): id is number => !!id));
 
             // Get their platform sponsor entry (no clubId) — that's where logo/name is stored
             const platformSponsors = allSponsors.filter(s =>
               !s.clubId &&
               s.status === 'APPROVED' &&
               s.userId != null &&
-              clubSponsorUserIds.includes(s.userId as number)
+              clubSponsorUserIds.has(s.userId as number)
             );
 
             // Fallback: if no platform entry found, use the club entries directly
@@ -1047,7 +1047,7 @@ export class LiveSessionComponent implements OnInit, OnDestroy, AfterViewChecked
     
     // Force full page reload to ensure clean state
     setTimeout(() => {
-      window.location.href = destination;
+      globalThis.location.href = destination;
     }, 100);
   }
 

@@ -317,7 +317,12 @@ def generate_service_row(metric):
     badge_html = f'<span class="badge {badge_class}">{badge_text}</span>' if metric['coverage'] is not None else ''
     
     if metric['coverage'] is not None:
-        fill_class = 'low' if metric['coverage'] < 50 else 'medium' if metric['coverage'] < 80 else ''
+        fill_class = ''
+        if metric['coverage'] < 50:
+            fill_class = 'low'
+        elif metric['coverage'] < 80:
+            fill_class = 'medium'
+        
         visualization = f'<div class="coverage-bar"><div class="coverage-fill {fill_class}" style="width: {coverage_width}%">{coverage_str}</div></div>'
     else:
         visualization = '<span class="no-data">Pas de données</span>'

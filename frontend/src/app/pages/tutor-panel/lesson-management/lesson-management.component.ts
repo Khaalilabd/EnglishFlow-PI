@@ -97,15 +97,15 @@ export class LessonManagementComponent implements OnInit {
   loadingTimeAssignment = false;
   
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private lessonService: LessonService,
-    private chapterService: ChapterService,
-    private courseService: CourseService,
-    private quizService: QuizService,
-    private sanitizer: DomSanitizer,
-    private onlineLessonService: OnlineLessonService,
-    private authService: AuthService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly lessonService: LessonService,
+    private readonly chapterService: ChapterService,
+    private readonly courseService: CourseService,
+    private readonly quizService: QuizService,
+    private readonly sanitizer: DomSanitizer,
+    private readonly onlineLessonService: OnlineLessonService,
+    private readonly authService: AuthService
   ) {}
 
   ngOnInit(): void {

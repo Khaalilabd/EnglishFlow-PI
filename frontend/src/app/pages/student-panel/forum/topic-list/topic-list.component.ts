@@ -225,10 +225,10 @@ export class TopicListComponent implements OnInit {
   private checkClubMembership(currentUser: any): void {
     this.clubService.getUserMemberships(currentUser.id).subscribe({
       next: (memberships) => {
-        const allowedRoles = ['PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 
-                             'COMMUNICATION_MANAGER', 'EVENT_MANAGER', 'PARTNERSHIP_MANAGER', 'MEMBER'];
+        const allowedRoles = new Set(['PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 
+                             'COMMUNICATION_MANAGER', 'EVENT_MANAGER', 'PARTNERSHIP_MANAGER', 'MEMBER']);
         
-        this.canCreateTopic = memberships.some(m => allowedRoles.includes(m.rank));
+        this.canCreateTopic = memberships.some(m => allowedRoles.has(m.rank));
         console.log('Club membership check:', {
           memberships,
           canCreateTopic: this.canCreateTopic
@@ -268,10 +268,10 @@ export class TopicListComponent implements OnInit {
     // Check if user has club membership with valid role
     this.clubService.getUserMemberships(currentUser.id).subscribe({
       next: (memberships) => {
-        const allowedRoles = ['PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 
-                             'COMMUNICATION_MANAGER', 'EVENT_MANAGER', 'PARTNERSHIP_MANAGER', 'MEMBER'];
+        const allowedRoles = new Set(['PRESIDENT', 'VICE_PRESIDENT', 'SECRETARY', 'TREASURER', 
+                             'COMMUNICATION_MANAGER', 'EVENT_MANAGER', 'PARTNERSHIP_MANAGER', 'MEMBER']);
         
-        this.canCreateTopic = memberships.some(m => allowedRoles.includes(m.rank));
+        this.canCreateTopic = memberships.some(m => allowedRoles.has(m.rank));
         this.cdr.markForCheck();
       },
       error: (err) => {

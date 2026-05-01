@@ -782,7 +782,7 @@ input[type="checkbox"] {
 }
 
 // Apply animations to detail page elements
-.min-h-screen.bg-gradient-to-br {
+.min-h-screen-bg-gradient {
   animation: fadeInUp 0.5s ease-out;
 }
 
@@ -924,8 +924,8 @@ button {
   }
 }
 
-// Kanban columns animation
-.bg-gradient-to-br {
+// Kanban columns animation - merged with stats cards
+.kanban-column-animation {
   animation: fadeInUp 0.5s ease-out backwards;
   
   &:nth-child(1) {

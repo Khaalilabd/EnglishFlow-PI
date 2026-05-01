@@ -155,8 +155,8 @@
 
   .stat-label {
     display: block;
-    color: #F7EDE2;
-    opacity: 0.9;
+    color: #1a1a1a;
+    opacity: 1;
     font-size: 1.1rem;
   }
 }
@@ -365,7 +365,7 @@
 // Error Message
 .error-message {
   background: rgba(200, 70, 48, 0.2);
-  color: #fff;
+  color: #000;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   margin-bottom: 1rem;
@@ -435,7 +435,7 @@
   .upload-text {
     font-size: 0.95rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.9);
+    color: #000000;
   }
 }
 
@@ -477,7 +477,7 @@
   top: 50%;
   transform: translateY(-50%);
   background: rgba(200, 70, 48, 0.9);
-  color: #ffffff;
+  color: #000000;
   padding: 0.25rem 0.75rem;
   border-radius: 20px;
   font-size: 0.8rem;
@@ -531,7 +531,7 @@
 
   p {
     font-size: 1.3rem;
-    color: #1a3d3d;
+    color: #0a1a1a;
     opacity: 0.95;
     margin-bottom: 2.5rem;
     line-height: 1.6;
@@ -539,7 +539,7 @@
 
   .cta-note {
     font-size: 1rem;
-    color: #1a3d3d;
+    color: #0a1a1a;
     opacity: 0.85;
     margin-top: 1.5rem;
   }

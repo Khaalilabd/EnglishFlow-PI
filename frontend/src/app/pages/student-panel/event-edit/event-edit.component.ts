@@ -10,7 +10,7 @@ import { Sponsor } from '../../../core/models/sponsor.model';
 import { NotificationService } from '../../../core/services/notification.service';
 import { LocationSearchComponent, LocationData } from '../../../shared/components/location-search/location-search.component';
 
-const EVENT_ALLOWED_ROLES = ['PRESIDENT', 'VICE_PRESIDENT', 'EVENT_MANAGER'];
+const EVENT_ALLOWED_ROLES = new Set(['PRESIDENT', 'VICE_PRESIDENT', 'EVENT_MANAGER']);
 
 @Component({
   selector: 'app-event-edit',
@@ -67,7 +67,7 @@ export class EventEditComponent implements OnInit {
       this.memberService.getUserClubsWithStatus(user.id).subscribe({
         next: (clubs) => {
           this.eligibleClubs = clubs.filter(c =>
-            c.status === 'APPROVED' && EVENT_ALLOWED_ROLES.includes(c.userRole)
+            c.status === 'APPROVED' && EVENT_ALLOWED_ROLES.has(c.userRole)
           );
           this.loadingClubs = false;
         },

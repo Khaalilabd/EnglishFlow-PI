@@ -69,16 +69,16 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   private currentStudentId: number = 0;
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private lessonService: LessonService,
-    private chapterService: ChapterService,
-    private courseService: CourseService,
-    private quizService: QuizService,
-    private progressService: LessonProgressService,
-    private authService: AuthService,
-    private sanitizer: DomSanitizer,
-    private onlineLessonService: OnlineLessonService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly lessonService: LessonService,
+    private readonly chapterService: ChapterService,
+    private readonly courseService: CourseService,
+    private readonly quizService: QuizService,
+    private readonly progressService: LessonProgressService,
+    private readonly authService: AuthService,
+    private readonly sanitizer: DomSanitizer,
+    private readonly onlineLessonService: OnlineLessonService
   ) {}
 
   ngOnInit(): void {

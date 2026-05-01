@@ -54,9 +54,9 @@ export class TutorSettingsComponent implements OnInit {
   profileCompletion: number = 0;
 
   constructor(
-    private fb: FormBuilder,
-    private authService: AuthService,
-    private http: HttpClient
+    private readonly fb: FormBuilder,
+    private readonly authService: AuthService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit() {
