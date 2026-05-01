@@ -41,12 +41,12 @@ export class EventCreateComponent implements OnInit {
   };
 
   constructor(
-    private eventService: EventService,
-    private authService: AuthService,
-    private sponsorService: SponsorService,
-    private memberService: MemberService,
-    private notificationService: NotificationService,
-    private router: Router
+    private readonly eventService: EventService,
+    private readonly authService: AuthService,
+    private readonly sponsorService: SponsorService,
+    private readonly memberService: MemberService,
+    private readonly notificationService: NotificationService,
+    private readonly router: Router
   ) {}
 
   ngOnInit() {

@@ -119,13 +119,9 @@ def generate_text_report(metrics, filename):
         f.write(f"   - Couverture moyenne: {avg_coverage:.0f}%\n\n")
         f.write("✅ Rapport généré avec succès!\n")
 
-def generate_html_report(metrics, filename):  # noqa: C901
-    """Génère le rapport HTML"""
-    total_tests = sum(m['tests'] for m in metrics)
-    services_with_coverage = [m for m in metrics if m['coverage'] is not None]
-    avg_coverage = sum(m['coverage'] for m in services_with_coverage) / len(services_with_coverage) if services_with_coverage else 0
-    
-    html = f"""<!DOCTYPE html>
+def generate_html_header(metrics, total_tests, avg_coverage, services_with_coverage):
+    """Génère l'en-tête HTML du rapport"""
+    return f"""<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
@@ -311,39 +307,39 @@ def generate_html_report(metrics, filename):  # noqa: C901
                 </thead>
                 <tbody>
 """
+
+def generate_service_row(metric):
+    """Génère une ligne HTML pour un service"""
+    badge_class, _, badge_text = get_badge_info(metric['coverage'])
+    coverage_str = f"{metric['coverage']}%" if metric['coverage'] is not None else "N/A"
+    coverage_width = metric['coverage'] if metric['coverage'] is not None else 0
     
-    for m in metrics:
-        badge_class, _, badge_text = get_badge_info(m['coverage'])
-        coverage_str = f"{m['coverage']}%" if m['coverage'] is not None else "N/A"
-        coverage_width = m['coverage'] if m['coverage'] is not None else 0
-        
-        html += f"""                    <tr>
-                        <td class="service-name">{m['service']}"""
-        
-        if m['coverage'] is not None:
-            html += f"""
-                            <span class="badge {badge_class}">{badge_text}</span>"""
-        
-        html += f"""
-                        </td>
-                        <td class="test-count">{m['tests']} tests</td>
+    badge_html = f'<span class="badge {badge_class}">{badge_text}</span>' if metric['coverage'] is not None else ''
+    
+    if metric['coverage'] is not None:
+        fill_class = 'low' if metric['coverage'] < 50 else 'medium' if metric['coverage'] < 80 else ''
+        visualization = f'<div class="coverage-bar"><div class="coverage-fill {fill_class}" style="width: {coverage_width}%">{coverage_str}</div></div>'
+    else:
+        visualization = '<span class="no-data">Pas de données</span>'
+    
+    return f"""                    <tr>
+                        <td class="service-name">{metric['service']}{badge_html}</td>
+                        <td class="test-count">{metric['tests']} tests</td>
                         <td><strong>{coverage_str}</strong></td>
-                        <td>"""
-        
-        if m['coverage'] is not None:
-            fill_class = 'low' if m['coverage'] < 50 else 'medium' if m['coverage'] < 80 else ''
-            html += f"""
-                            <div class="coverage-bar">
-                                <div class="coverage-fill {fill_class}" style="width: {coverage_width}%">{coverage_str}</div>
-                            </div>"""
-        else:
-            html += """
-                            <span class="no-data">Pas de données</span>"""
-        
-        html += """
-                        </td>
+                        <td>{visualization}</td>
                     </tr>
 """
+
+def generate_html_report(metrics, filename):
+    """Génère le rapport HTML"""
+    total_tests = sum(m['tests'] for m in metrics)
+    services_with_coverage = [m for m in metrics if m['coverage'] is not None]
+    avg_coverage = sum(m['coverage'] for m in services_with_coverage) / len(services_with_coverage) if services_with_coverage else 0
+    
+    html = generate_html_header(metrics, total_tests, avg_coverage, services_with_coverage)
+    
+    for m in metrics:
+        html += generate_service_row(m)
     
     html += """                </tbody>
             </table>

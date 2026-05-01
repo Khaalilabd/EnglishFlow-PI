@@ -31,13 +31,13 @@ export class EventEditComponent implements OnInit {
   form: Partial<Event> = {};
 
   constructor(
-    private eventService: EventService,
-    private authService: AuthService,
-    private sponsorService: SponsorService,
-    private memberService: MemberService,
-    private notificationService: NotificationService,
-    private router: Router,
-    private route: ActivatedRoute
+    private readonly eventService: EventService,
+    private readonly authService: AuthService,
+    private readonly sponsorService: SponsorService,
+    private readonly memberService: MemberService,
+    private readonly notificationService: NotificationService,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute
   ) {}
 
   ngOnInit() {

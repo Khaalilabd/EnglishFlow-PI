@@ -82,15 +82,15 @@ export class TopicDetailComponent implements OnInit, OnDestroy {
     ]
   };
 
-  private authService = inject(AuthService);
-  private sanitizer = inject(DomSanitizer);
-  public ttsService = inject(TextToSpeechService);
-  private cdr = inject(ChangeDetectorRef);
+  private readonly authService = inject(AuthService);
+  private readonly sanitizer = inject(DomSanitizer);
+  public readonly ttsService = inject(TextToSpeechService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private forumService: ForumService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly forumService: ForumService
   ) {}
 
   ngOnInit(): void {
