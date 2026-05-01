@@ -76,7 +76,7 @@
 }
 
 .btn-apply-hero {
-  background: linear-gradient(135deg, #B8770D 0%, #8B2810 100%);
+  background: linear-gradient(135deg, #8B5A0A 0%, #6B1E08 100%);
   color: white;
   padding: 1.2rem 3rem;
   border-radius: 50px;
@@ -149,7 +149,7 @@
     display: block;
     font-size: 3rem;
     font-weight: 900;
-    color: #B8770D;
+    color: #8B5A0A;
     margin-bottom: 0.5rem;
   }
 
@@ -213,7 +213,7 @@
     left: 0;
     width: 100%;
     height: 5px;
-    background: linear-gradient(90deg, #B8770D, #8B2810);
+    background: linear-gradient(90deg, #8B5A0A, #6B1E08);
     transform: scaleX(0);
     transition: transform 0.4s ease;
   }
@@ -293,7 +293,7 @@
   .check-icon {
     width: 36px;
     height: 36px;
-    background: linear-gradient(135deg, #B8770D 0%, #8B2810 100%);
+    background: linear-gradient(135deg, #8B5A0A 0%, #6B1E08 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -403,7 +403,7 @@
 
     &:focus {
       outline: none;
-      border-color: #B8770D;
+      border-color: #8B5A0A;
       background: rgba(61, 61, 96, 0.8);
     }
   }
@@ -427,7 +427,7 @@
   transition: all 0.3s ease;
 
   &:hover {
-    border-color: #B8770D;
+    border-color: #8B5A0A;
     background: rgba(61, 61, 96, 0.6);
   }
 
@@ -485,7 +485,7 @@
 }
 
 .btn-apply {
-  background: linear-gradient(135deg, #B8770D 0%, #8B2810 100%);
+  background: linear-gradient(135deg, #8B5A0A 0%, #6B1E08 100%);
   color: white;
   padding: 1rem 2rem;
   border-radius: 50px;
@@ -546,7 +546,7 @@
 }
 
 .btn-apply-large {
-  background: linear-gradient(135deg, #B8770D 0%, #8B2810 100%);
+  background: linear-gradient(135deg, #8B5A0A 0%, #6B1E08 100%);
   color: white;
   padding: 1.3rem 3.5rem;
   border-radius: 50px;
