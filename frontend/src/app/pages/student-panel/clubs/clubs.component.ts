@@ -337,6 +337,12 @@ export class ClubsComponent implements OnInit, OnDestroy {
         this.loading = false;
         
         // Load tasks, member count, events, and pending requests after displaying
+        if (!club.id) {
+          console.error('Club ID is undefined');
+          this.loading = false;
+          return;
+        }
+        
         if (this.isClubMember(club.id)) {
           this.loadTasksForClub(club.id);
         }
