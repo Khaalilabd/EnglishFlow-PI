@@ -9,7 +9,7 @@ import { CourseService } from '../../../core/services/course.service';
 import { CourseCategoryService } from '../../../core/services/course-category.service';
 import { ChapterService } from '../../../core/services/chapter.service';
 import { LessonService } from '../../../core/services/lesson.service';
-import { SafePipe } from '../../../core/pipes/safe.pipe';
+import { SafePipe } from '../../../shared/pipes/safe.pipe';
 import { environment } from '../../../../environments/environment';
 
 @Component({

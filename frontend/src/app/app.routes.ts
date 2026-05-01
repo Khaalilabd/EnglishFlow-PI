@@ -342,7 +342,7 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./pages/student-panel/settings/settings.component').then(m => m.StudentSettingsComponent),
+        loadComponent: () => import('./pages/student-panel/settings/settings/settings.component').then(m => m.StudentSettingsComponent),
         title: 'Settings | Jungle in English'
       },
       {
