@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: community-service
-        image: ghcr.io/your-org/englishflow-community-service:latest
+        image: khalilab/englishflow-community-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8082

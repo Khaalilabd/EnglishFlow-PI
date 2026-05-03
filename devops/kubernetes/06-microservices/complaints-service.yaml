@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: complaints-service
-        image: ghcr.io/your-org/englishflow-complaints-service:latest
+        image: khalilab/englishflow-complaints-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8089

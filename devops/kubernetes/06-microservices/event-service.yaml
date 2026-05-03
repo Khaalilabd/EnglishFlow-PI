@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: event-service
-        image: ghcr.io/your-org/englishflow-event-service:latest
+        image: khalilab/englishflow-event-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8088

@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: courses-service
-        image: ghcr.io/your-org/englishflow-courses-service:latest
+        image: khalilab/englishflow-courses-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8086

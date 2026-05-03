@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: eureka-server
-        image: ghcr.io/your-org/englishflow-eureka-server:latest
+        image: khalilab/englishflow-eureka-server:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8761

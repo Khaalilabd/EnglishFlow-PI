@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: config-server
-        image: ghcr.io/your-org/englishflow-config-server:latest
+        image: khalilab/englishflow-config-server:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8888

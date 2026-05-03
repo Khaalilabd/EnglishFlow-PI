@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/your-org/englishflow-frontend:latest
+        image: khalilab/englishflow-frontend:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 80

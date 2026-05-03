@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: messaging-service
-        image: ghcr.io/your-org/englishflow-messaging-service:latest
+        image: khalilab/englishflow-messaging-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8084

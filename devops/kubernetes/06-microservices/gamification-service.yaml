@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: gamification-service
-        image: ghcr.io/your-org/englishflow-gamification-service:latest
+        image: khalilab/englishflow-gamification-service:latest
         imagePullPolicy: Always
         ports:
         - containerPort: 8090
