@@ -51,32 +51,22 @@ else
     echo "⚠️ Warning: Frontend directory not found, skipping..."
 fi
 
-echo "🔍 Running SonarCloud analysis..."
+echo "🔍 Running SonarCloud analysis with multi-module configuration..."
 
-# Run SonarCloud analysis using sonar-scanner (reads .sonarcloud.properties)
-# If sonar-scanner is not available, fall back to Maven
+# Use sonar-project.properties for multi-module analysis
 if command -v sonar-scanner &> /dev/null; then
-    echo "Using sonar-scanner..."
+    echo "Using sonar-scanner with sonar-project.properties..."
     sonar-scanner \
         -Dsonar.login=$SONAR_TOKEN \
         -Dsonar.host.url=https://sonarcloud.io
 else
-    echo "Using Maven sonar plugin..."
-    # Run SonarCloud analysis with lenient settings
+    echo "Using Maven sonar plugin with sonar-project.properties..."
+    # Run SonarCloud analysis using the multi-module configuration from sonar-project.properties
     mvn -B sonar:sonar \
         -f backend/auth-service/pom.xml \
-        -Dsonar.projectKey=Khaalilabd_Esprit-PIDEV-4SAE1-2026-JungleInEnglish \
-        -Dsonar.organization=khaalilabd \
+        -Dsonar.login=$SONAR_TOKEN \
         -Dsonar.host.url=https://sonarcloud.io \
-        -Dsonar.sources=backend/api-gateway/src,backend/auth-service/src,backend/club-service/src,backend/community-service/src,backend/complaints-service/src,backend/courses-service/src,backend/event-service/src,backend/exam-service/src,backend/gamification-service/src,backend/learning-service/src,backend/messaging-service/src,backend/payment-service/src,backend/sponsors-service/src,frontend/src/app \
-        -Dsonar.coverage.jacoco.xmlReportPaths="backend/**/target/site/jacoco/jacoco.xml" \
-        -Dsonar.typescript.lcov.reportPaths="frontend/coverage/lcov.info" \
-        -Dsonar.qualitygate.wait=false \
-        -Dsonar.exclusions="**/devops/**,**/database/**,**/kubernetes/**,**/*.sql,**/insert-users.sql,**/app-secrets.yaml,**/docker-compose.yml,**/target/**,**/test/**,**/*Test.java,**/*Tests.java,**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/templates/**/*.html,**/node_modules/**,**/dist/**,**/*.spec.ts,**/coverage/**,**/environments/**" \
-        -Dsonar.cpd.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/DatabaseInitializer.java,**/GlobalExceptionHandler.java,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/db/migration/**,**/*.sql,**/devops/**,**/templates/**/*.html" \
-        -Dsonar.coverage.exclusions="**/dto/**,**/entity/**,**/config/**,**/mapper/**,**/exception/**,**/util/**,**/client/**,**/scheduler/**,**/*Application.java,**/templates/**/*.html" \
-        -Dsonar.cpd.java.minimumtokens=200 \
-        -Dsonar.newCodePeriod.type=PREVIOUS_VERSION
+        -Dsonar.qualitygate.wait=false
 fi \
     || {
         echo "⚠️ SonarCloud analysis completed with warnings - this is expected for development projects"
