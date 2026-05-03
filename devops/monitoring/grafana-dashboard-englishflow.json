@@ -1,0 +1,382 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "prometheus"
+    }
+  ],
+  "title": "EnglishFlow - Monitoring Complet des Microservices",
+  "tags": ["englishflow", "microservices", "spring-boot"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 2,
+  "panels": [
+    {
+      "id": 1,
+      "title": "📊 Vue d'ensemble - Services Actifs",
+      "type": "stat",
+      "gridPos": {"h": 5, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "up{job=~\".*-service|api-gateway|eureka-server|prometheus\"}",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "values": false,
+          "calcs": ["lastNotNull"]
+        },
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"value": 0, "color": "red"},
+              {"value": 1, "color": "green"}
+            ]
+          },
+          "mappings": [
+            {"type": "value", "value": "1", "text": "UP"},
+            {"type": "value", "value": "0", "text": "DOWN"}
+          ]
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "💾 Utilisation Mémoire JVM (MB)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Heap",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_max_bytes{application=~\".*-service|api-gateway\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Max Heap",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "🖥️ Utilisation CPU Système",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 5},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "system_cpu_usage{application=~\".*-service|api-gateway\"} * 100",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        },
+        {
+          "expr": "process_cpu_usage{application=~\".*-service|api-gateway\"} * 100",
+          "legendFormat": "{{application}} - Process",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "max": 100,
+          "min": 0,
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "🌐 Taux de Requêtes HTTP (req/s)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\"}[1m])) by (application)",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "⏱️ Temps de Réponse HTTP (ms) - Percentile 95",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 14},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_server_requests_seconds_bucket{application=~\".*-service|api-gateway\"}[5m])) by (application, le)) * 1000",
+          "legendFormat": "{{application}} - p95",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{application=~\".*-service|api-gateway\"}[5m])) by (application, le)) * 1000",
+          "legendFormat": "{{application}} - p99",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "🔴 Taux d'Erreurs HTTP (4xx, 5xx)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 23},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\", status=~\"4..|5..\"}[1m])) by (application, status)",
+          "legendFormat": "{{application}} - {{status}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "✅ Taux de Succès HTTP (2xx, 3xx)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 23},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\", status=~\"2..|3..\"}[1m])) by (application)",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "🧵 Threads JVM Actifs",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 32},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_threads_live_threads{application=~\".*-service|api-gateway\"}",
+          "legendFormat": "{{application}} - Live",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_threads_peak_threads{application=~\".*-service|api-gateway\"}",
+          "legendFormat": "{{application}} - Peak",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "🗑️ Garbage Collection - Temps (ms)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 32},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_sum{application=~\".*-service|api-gateway\"}[1m]) * 1000",
+          "legendFormat": "{{application}} - {{action}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "📦 Classes Chargées JVM",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 41},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_classes_loaded_classes{application=~\".*-service|api-gateway\"}",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "💿 Utilisation Disque (MB)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 41},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "disk_free_bytes{application=~\".*-service|api-gateway\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Free",
+          "refId": "A"
+        },
+        {
+          "expr": "disk_total_bytes{application=~\".*-service|api-gateway\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Total",
+          "refId": "B"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "📈 Statistiques Globales",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count[5m]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "displayName": "Total Requêtes/s"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "title": "💾 Mémoire Totale Utilisée",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(jvm_memory_used_bytes{area=\"heap\"}) / 1024 / 1024 / 1024",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "displayName": "Heap Total (GB)"
+        }
+      }
+    },
+    {
+      "id": 14,
+      "title": "🧵 Threads Totaux",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(jvm_threads_live_threads)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "displayName": "Threads Actifs"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "title": "⚡ Uptime Moyen",
+      "type": "stat",
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 50},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "avg(process_uptime_seconds)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "displayName": "Uptime (secondes)"
+        }
+      }
+    }
+  ],
+  "refresh": "5s",
+  "time": {"from": "now-15m", "to": "now"}
+}

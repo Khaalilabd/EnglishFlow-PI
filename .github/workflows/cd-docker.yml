@@ -18,7 +18,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_PREFIX: ${{ github.repository_owner }}/englishflow
+  IMAGE_PREFIX: khaalilabd/esprit-pidev-4sae1-2026-jungleinenglish
 
 jobs:
   build-backend:

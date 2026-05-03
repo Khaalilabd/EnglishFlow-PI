@@ -1,0 +1,468 @@
+{
+  "__inputs": [
+    {
+      "name": "DS_PROMETHEUS",
+      "label": "Prometheus",
+      "type": "datasource",
+      "pluginId": "prometheus"
+    }
+  ],
+  "title": "EnglishFlow - Dashboard Avancé (Analyse Détaillée)",
+  "tags": ["englishflow", "advanced", "detailed"],
+  "timezone": "browser",
+  "schemaVersion": 38,
+  "version": 1,
+  "panels": [
+    {
+      "id": 1,
+      "title": "💰 Coût Estimé par Service (RAM + CPU)",
+      "type": "table",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{application}}",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "system_cpu_usage{application=~\".*-service|api-gateway\"} * 100",
+          "legendFormat": "{{application}}",
+          "refId": "B",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge"
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "application": "Service",
+              "Value #A": "RAM (MB)",
+              "Value #B": "CPU (%)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "center"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "RAM (MB)"},
+            "properties": [
+              {"id": "unit", "value": "decmbytes"},
+              {"id": "custom.displayMode", "value": "gradient-gauge"},
+              {"id": "max", "value": 512}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "CPU (%)"},
+            "properties": [
+              {"id": "unit", "value": "percent"},
+              {"id": "custom.displayMode", "value": "gradient-gauge"},
+              {"id": "max", "value": 100}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 2,
+      "title": "📊 RAM Détaillée par Service",
+      "type": "bargauge",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", area=\"heap\"} / 1024 / 1024",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "max": 512,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"value": 0, "color": "green"},
+              {"value": 256, "color": "yellow"},
+              {"value": 400, "color": "red"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "🔥 Top 10 Endpoints les Plus Appelés",
+      "type": "table",
+      "gridPos": {"h": 10, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\"}[5m])) by (application, uri, method))",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "application": "Service",
+              "uri": "Endpoint",
+              "method": "Méthode",
+              "Value": "Req/s"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Req/s"},
+            "properties": [
+              {"id": "unit", "value": "reqps"},
+              {"id": "custom.displayMode", "value": "color-background"}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 4,
+      "title": "⚠️ Endpoints avec Erreurs (4xx/5xx)",
+      "type": "table",
+      "gridPos": {"h": 10, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "topk(10, sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\", status=~\"4..|5..\"}[5m])) by (application, uri, status))",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "application": "Service",
+              "uri": "Endpoint",
+              "status": "Code HTTP",
+              "Value": "Erreurs/s"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "Erreurs/s"},
+            "properties": [
+              {"id": "custom.displayMode", "value": "color-background"},
+              {"id": "color", "value": {"mode": "thresholds"}},
+              {"id": "thresholds", "value": {
+                "mode": "absolute",
+                "steps": [
+                  {"value": 0, "color": "green"},
+                  {"value": 0.1, "color": "yellow"},
+                  {"value": 1, "color": "red"}
+                ]
+              }}
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "title": "🗄️ Connexions Base de Données (HikariCP)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{application=~\".*-service\"}",
+          "legendFormat": "{{application}} - Active",
+          "refId": "A"
+        },
+        {
+          "expr": "hikaricp_connections_idle{application=~\".*-service\"}",
+          "legendFormat": "{{application}} - Idle",
+          "refId": "B"
+        },
+        {
+          "expr": "hikaricp_connections_max{application=~\".*-service\"}",
+          "legendFormat": "{{application}} - Max",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 6,
+      "title": "⏳ Temps d'Attente Connexions DB (ms)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 18},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "rate(hikaricp_connections_acquire_seconds_sum{application=~\".*-service\"}[1m]) / rate(hikaricp_connections_acquire_seconds_count{application=~\".*-service\"}[1m]) * 1000",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "💾 Détail Mémoire JVM par Zone",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 27},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", id=~\".*Eden.*\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Eden Space",
+          "refId": "A"
+        },
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", id=~\".*Survivor.*\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Survivor",
+          "refId": "B"
+        },
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", id=~\".*Old.*\"} / 1024 / 1024",
+          "legendFormat": "{{application}} - Old Gen",
+          "refId": "C"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decmbytes",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "🔄 Fréquence Garbage Collection",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 27},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "rate(jvm_gc_pause_seconds_count{application=~\".*-service|api-gateway\"}[1m])",
+          "legendFormat": "{{application}} - {{action}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ops",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "📡 Latence Réseau par Service (ms)",
+      "type": "heatmap",
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 36},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "rate(http_server_requests_seconds_bucket{application=~\".*-service|api-gateway\"}[5m])",
+          "legendFormat": "{{application}}",
+          "refId": "A",
+          "format": "heatmap"
+        }
+      ],
+      "options": {
+        "calculate": true,
+        "calculation": {
+          "xBuckets": {
+            "mode": "size",
+            "value": "1s"
+          }
+        }
+      }
+    },
+    {
+      "id": 10,
+      "title": "🎯 Taux de Cache Hit (Redis)",
+      "type": "stat",
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 36},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(cache_gets{result=\"hit\"}[5m])) / sum(rate(cache_gets[5m])) * 100",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "textMode": "value_and_name"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "displayName": "Cache Hit Rate",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"value": 0, "color": "red"},
+              {"value": 50, "color": "yellow"},
+              {"value": 80, "color": "green"}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 11,
+      "title": "📈 Évolution du Nombre de Requêtes (24h)",
+      "type": "timeseries",
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 45},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\"}[5m])) by (application)",
+          "legendFormat": "{{application}}",
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "color": {"mode": "palette-classic"}
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "🔢 Statistiques par Service",
+      "type": "table",
+      "gridPos": {"h": 10, "w": 24, "x": 0, "y": 54},
+      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "targets": [
+        {
+          "expr": "jvm_memory_used_bytes{application=~\".*-service|api-gateway\", area=\"heap\"} / 1024 / 1024",
+          "refId": "A",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "system_cpu_usage{application=~\".*-service|api-gateway\"} * 100",
+          "refId": "B",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "jvm_threads_live_threads{application=~\".*-service|api-gateway\"}",
+          "refId": "C",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "sum(rate(http_server_requests_seconds_count{application=~\".*-service|api-gateway\"}[5m])) by (application)",
+          "refId": "D",
+          "format": "table",
+          "instant": true
+        },
+        {
+          "expr": "process_uptime_seconds{application=~\".*-service|api-gateway\"} / 3600",
+          "refId": "E",
+          "format": "table",
+          "instant": true
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge"
+        },
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "application": "🔧 Service",
+              "Value #A": "💾 RAM (MB)",
+              "Value #B": "🖥️ CPU (%)",
+              "Value #C": "🧵 Threads",
+              "Value #D": "🌐 Req/s",
+              "Value #E": "⏱️ Uptime (h)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": {"id": "byName", "options": "💾 RAM (MB)"},
+            "properties": [
+              {"id": "unit", "value": "decmbytes"},
+              {"id": "custom.displayMode", "value": "gradient-gauge"},
+              {"id": "max", "value": 512}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "🖥️ CPU (%)"},
+            "properties": [
+              {"id": "unit", "value": "percent"},
+              {"id": "custom.displayMode", "value": "gradient-gauge"},
+              {"id": "max", "value": 100}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "🌐 Req/s"},
+            "properties": [
+              {"id": "unit", "value": "reqps"},
+              {"id": "custom.displayMode", "value": "lcd-gauge"}
+            ]
+          },
+          {
+            "matcher": {"id": "byName", "options": "⏱️ Uptime (h)"},
+            "properties": [
+              {"id": "unit", "value": "h"},
+              {"id": "decimals", "value": 2}
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "refresh": "5s",
+  "time": {"from": "now-1h", "to": "now"}
+}

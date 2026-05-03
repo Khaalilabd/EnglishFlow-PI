@@ -6,8 +6,10 @@
 set -e
 
 TAG=${1:-latest}
+REGISTRY="ghcr.io/khaalilabd/esprit-pidev-4sae1-2026-jungleinenglish"
 
 echo "🐳 Building all Docker images..."
+echo "Registry: $REGISTRY"
 echo "Tag: $TAG"
 echo ""
 
@@ -22,7 +24,7 @@ build_service() {
     
     echo -e "${BLUE}Building $service...${NC}"
     
-    docker build -t "englishflow-$service:$TAG" "$context"
+    docker build -t "$REGISTRY-$service:$TAG" "$context"
     
     echo -e "${GREEN}✓ $service built successfully${NC}"
     echo ""

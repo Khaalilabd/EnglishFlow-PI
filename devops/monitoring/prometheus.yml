@@ -40,15 +40,16 @@ scrape_configs:
           service_type: 'infrastructure'
           environment: 'docker'
 
-  - job_name: 'config-server'
-    metrics_path: '/actuator/prometheus'
-    scrape_interval: 10s
-    static_configs:
-      - targets: ['config-server:8888']
-        labels:
-          application: 'config-server'
-          service_type: 'infrastructure'
-          environment: 'docker'
+  # Config server not deployed in current setup
+  # - job_name: 'config-server'
+  #   metrics_path: '/actuator/prometheus'
+  #   scrape_interval: 10s
+  #   static_configs:
+  #     - targets: ['config-server:8888']
+  #       labels:
+  #         application: 'config-server'
+  #         service_type: 'infrastructure'
+  #         environment: 'docker'
 
   - job_name: 'api-gateway'
     metrics_path: '/actuator/prometheus'
@@ -75,7 +76,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['courses-service:8082']
+      - targets: ['courses-service:8086']
         labels:
           application: 'courses-service'
           service_type: 'business'
@@ -105,7 +106,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['event-service:8085']
+      - targets: ['event-service:8088']
         labels:
           application: 'event-service'
           service_type: 'business'
@@ -115,7 +116,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['club-service:8086']
+      - targets: ['club-service:8085']
         labels:
           application: 'club-service'
           service_type: 'business'
@@ -125,7 +126,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['community-service:8087']
+      - targets: ['community-service:8082']
         labels:
           application: 'community-service'
           service_type: 'business'
@@ -135,7 +136,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['gamification-service:8088']
+      - targets: ['gamification-service:8091']
         labels:
           application: 'gamification-service'
           service_type: 'business'
@@ -155,7 +156,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['complaints-service:8090']
+      - targets: ['complaints-service:8087']
         labels:
           application: 'complaints-service'
           service_type: 'business'
@@ -165,7 +166,7 @@ scrape_configs:
     metrics_path: '/actuator/prometheus'
     scrape_interval: 10s
     static_configs:
-      - targets: ['exam-service:8091']
+      - targets: ['exam-service:8090']
         labels:
           application: 'exam-service'
           service_type: 'business'
@@ -181,13 +182,13 @@ scrape_configs:
           service_type: 'business'
           environment: 'docker'
 
-  # Node.js Services
-  - job_name: 'webrtc-signaling'
-    metrics_path: '/metrics'
-    scrape_interval: 10s
-    static_configs:
-      - targets: ['webrtc-signaling:3001']
-        labels:
-          application: 'webrtc-signaling'
-          service_type: 'realtime'
-          environment: 'docker'
+  # WebRTC signaling - Node.js service without prometheus metrics
+  # - job_name: 'webrtc-signaling'
+  #   metrics_path: '/metrics'
+  #   scrape_interval: 10s
+  #   static_configs:
+  #     - targets: ['webrtc-signaling:3001']
+  #       labels:
+  #         application: 'webrtc-signaling'
+  #         service_type: 'realtime'
+  #         environment: 'docker'

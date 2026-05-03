@@ -33,7 +33,10 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_learning_
 SELECT 'CREATE DATABASE englishflow_complaints'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_complaints')\gexec
 
-SELECT 'CREATE DATABASE englishflow_sponsors'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_sponsors')\gexec
+SELECT 'CREATE DATABASE englishflow_payment'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_payment')\gexec
+
+SELECT 'CREATE DATABASE englishflow_sponsors_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'englishflow_sponsors_db')\gexec
 
 -- Note: GRANT ALL PRIVILEGES is automatically applied to the database owner (postgres)
