@@ -1,5 +1,5 @@
 # Prometheus Configuration for EnglishFlow Microservices
-# Complete monitoring setup for all services
+# Complete monitoring setup for all services - Final Demo Ready
 
 global:
   scrape_interval: 15s      # Scrape metrics every 15 seconds

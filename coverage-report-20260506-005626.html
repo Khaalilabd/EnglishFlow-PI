@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rapport de Couverture - EnglishFlow</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);
+            color: #F7EDE2;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 32px;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            padding: 30px;
+            background: #f8f9fa;
+        }
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .stat-card h3 {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2D5757;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th {
+            background: #2D5757;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        tr:hover {
+            background: #f8f9fa;
+        }
+        .coverage-bar {
+            width: 100%;
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .coverage-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10B981 0%, #059669 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .coverage-fill.low {
+            background: linear-gradient(90deg, #EF4444 0%, #DC2626 100%);
+        }
+        .coverage-fill.medium {
+            background: linear-gradient(90deg, #F59E0B 0%, #D97706 100%);
+        }
+        .service-name {
+            font-weight: 600;
+            color: #2D5757;
+        }
+        .test-count {
+            color: #3B82F6;
+            font-weight: 600;
+        }
+        .no-data {
+            color: #999;
+            font-style: italic;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+        .badge.excellent {
+            background: #10B981;
+            color: white;
+        }
+        .badge.good {
+            background: #3B82F6;
+            color: white;
+        }
+        .badge.medium {
+            background: #F59E0B;
+            color: white;
+        }
+        .badge.low {
+            background: #EF4444;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Rapport de Couverture de Tests</h1>
+            <p>EnglishFlow - Microservices Architecture</p>
+            <p>Généré le 06/05/2026 à 00:56:26</p>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>Microservices</h3>
+                <div class="value">13</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Tests</h3>
+                <div class="value">1844</div>
+            </div>
+            <div class="stat-card">
+                <h3>Couverture Moyenne</h3>
+                <div class="value">58%</div>
+            </div>
+            <div class="stat-card">
+                <h3>Services Testés</h3>
+                <div class="value">12/13</div>
+            </div>
+        </div>
+        
+        <div style="padding: 30px;">
+            <h2 style="color: #2D5757; margin-bottom: 20px;">Détails par Microservice</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Nombre de Tests</th>
+                        <th>Couverture</th>
+                        <th>Visualisation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td class="service-name">api-gateway</td>
+                        <td class="test-count">0 tests</td>
+                        <td><strong>N/A</strong></td>
+                        <td><span class="no-data">Pas de données</span></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">auth-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">416 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">club-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">180 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">community-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">315 tests</td>
+                        <td><strong>78%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 78%">78%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">complaints-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">120 tests</td>
+                        <td><strong>58%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 58%">58%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">courses-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">265 tests</td>
+                        <td><strong>52%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 52%">52%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">event-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">80 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">exam-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">70 tests</td>
+                        <td><strong>58%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 58%">58%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">gamification-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">25 tests</td>
+                        <td><strong>71%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 71%">71%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">learning-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">125 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">messaging-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">74 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">payment-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">33 tests</td>
+                        <td><strong>76%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 76%">76%</div></div></td>
+                    </tr>
+                    <tr>
+                        <td class="service-name">sponsors-service<span class="badge medium">Moyen</span></td>
+                        <td class="test-count">141 tests</td>
+                        <td><strong>50%</strong></td>
+                        <td><div class="coverage-bar"><div class="coverage-fill medium" style="width: 50%">50%</div></div></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="footer">
+            <p><strong>EnglishFlow</strong> - Plateforme d'apprentissage de l'anglais</p>
+            <p>© 2026 Jungle in English. Tous droits réservés.</p>
+        </div>
+    </div>
+</body>
+</html>

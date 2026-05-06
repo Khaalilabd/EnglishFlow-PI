@@ -177,6 +177,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
       - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=health,info,metrics,prometheus
       - MANAGEMENT_ENDPOINT_PROMETHEUS_ENABLED=true
       - MANAGEMENT_METRICS_EXPORT_PROMETHEUS_ENABLED=true
@@ -214,6 +215,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Messaging Service
   messaging-service:
@@ -290,6 +292,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Community Service
   community-service:
@@ -325,6 +328,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Event Service
   event-service:
@@ -360,6 +364,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Gamification Service
   gamification-service:
@@ -393,6 +398,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Payment Service
   payment-service:
@@ -428,6 +434,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Complaints Service
   complaints-service:
@@ -461,6 +468,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Exam Service
   exam-service:
@@ -498,6 +506,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # Sponsors Service
   sponsors-service:
@@ -531,6 +540,7 @@ services:
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
       - EUREKA_SERVER_URL=http://eureka-server:8761/eureka/
+      - JWT_SECRET=${JWT_SECRET:-englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}
 
   # WebRTC Signaling Service
   webrtc-signaling:

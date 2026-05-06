@@ -1,6 +1,6 @@
 {
-  "name": "englishflow-pi",
-  "version": "0.0.0",
+  "name": "englishflow-pi-final-demo",
+  "version": "1.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
