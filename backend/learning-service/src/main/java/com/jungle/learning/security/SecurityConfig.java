@@ -28,6 +28,8 @@ public class SecurityConfig {
                 // Public endpoints - read access
                 .requestMatchers(HttpMethod.GET, "/api/quizzes/public/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/ebooks/free/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/learning/ebooks/*/cover").permitAll()
+                .requestMatchers(HttpMethod.GET, "/learning/ebooks/*/download").permitAll()
                 
                 // Actuator endpoints
                 .requestMatchers("/actuator/**").permitAll()

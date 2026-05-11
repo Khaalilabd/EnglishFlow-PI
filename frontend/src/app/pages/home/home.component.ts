@@ -49,6 +49,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
   currentTutorPage = 0;
   tutorsPerPage = 4;
   
+  // Animated Stats
+  studentsCount = 0;
+  teachersCount = 0;
+  successRate = 0;
+  private statsAnimated = false;
+  
   constructor(
     public authService: AuthService,
     private packService: PackService,
@@ -101,6 +107,12 @@ export class HomeComponent implements OnInit, AfterViewInit {
     
     // Ajouter le listener de scroll pour activer les sections
     this.setupScrollListener();
+    
+    // Démarrer l'animation des stats après un court délai
+    setTimeout(() => {
+      this.animateStats();
+      this.statsAnimated = true;
+    }, 800);
   }
 
   ngAfterViewInit() {
@@ -151,7 +163,54 @@ export class HomeComponent implements OnInit, AfterViewInit {
           }
         }
       }
+      
+      // Animate stats when hero section is visible
+      if (!this.statsAnimated) {
+        const heroSection = document.getElementById('home');
+        if (heroSection) {
+          const heroTop = heroSection.offsetTop;
+          const heroHeight = heroSection.offsetHeight;
+          
+          if (scrollPosition >= heroTop && scrollPosition < heroTop + heroHeight) {
+            this.animateStats();
+            this.statsAnimated = true;
+          }
+        }
+      }
     });
+  }
+
+  animateStats(): void {
+    // Animate Students Count to 500
+    this.animateValue('studentsCount', 0, 500, 2000);
+    
+    // Animate Teachers Count to 50
+    this.animateValue('teachersCount', 0, 50, 2000);
+    
+    // Animate Success Rate to 95
+    this.animateValue('successRate', 0, 95, 2000);
+  }
+
+  animateValue(property: 'studentsCount' | 'teachersCount' | 'successRate', start: number, end: number, duration: number): void {
+    const startTime = performance.now();
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      
+      // Easing function for smooth animation
+      const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+      
+      this[property] = Math.floor(start + (end - start) * easeOutQuart);
+      
+      if (progress < 1) {
+        requestAnimationFrame(animate);
+      } else {
+        this[property] = end;
+      }
+    };
+    
+    requestAnimationFrame(animate);
   }
 
   loadCategories(): void {

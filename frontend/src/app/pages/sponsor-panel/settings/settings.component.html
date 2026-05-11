@@ -1,0 +1,261 @@
+<div class="min-h-screen bg-gray-50 p-6 animate-fade-in">
+  
+  <!-- Header -->
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 mb-2">⚙️ Settings</h1>
+    <p class="text-gray-600">Manage your account settings and preferences</p>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div *ngIf="successMessage" class="mb-6 p-4 bg-green-50 border border-green-200 rounded-xl flex items-center gap-3 animate-fade-in">
+    <span class="text-2xl">✅</span>
+    <p class="text-green-800 font-medium">{{ successMessage }}</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl flex items-center gap-3 animate-fade-in">
+    <span class="text-2xl">❌</span>
+    <p class="text-red-800 font-medium">{{ errorMessage }}</p>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Left: Profile Settings -->
+    <div class="lg:col-span-2 space-y-6">
+      
+      <!-- Profile Information -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-xl bg-[#F7EDE2] flex items-center justify-center text-2xl">
+            👤
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">Profile Information</h2>
+            <p class="text-sm text-gray-500">Update your personal details</p>
+          </div>
+        </div>
+
+        <form (ngSubmit)="updateProfile()" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">First Name</label>
+              <input
+                type="text"
+                [(ngModel)]="firstName"
+                name="firstName"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+                placeholder="Enter first name"
+                required
+              />
+            </div>
+            <div>
+              <label class="block text-sm font-semibold text-gray-700 mb-2">Last Name</label>
+              <input
+                type="text"
+                [(ngModel)]="lastName"
+                name="lastName"
+                class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+                placeholder="Enter last name"
+                required
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Email Address</label>
+            <input
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl bg-gray-50 cursor-not-allowed"
+              placeholder="Email address"
+              disabled
+            />
+            <p class="text-xs text-gray-500 mt-1">Email cannot be changed</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+            <input
+              type="tel"
+              [(ngModel)]="phone"
+              name="phone"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="Enter phone number"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Company Name</label>
+            <input
+              type="text"
+              [(ngModel)]="companyName"
+              name="companyName"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="Enter company name"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Company Website</label>
+            <input
+              type="url"
+              [(ngModel)]="companyWebsite"
+              name="companyWebsite"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="https://example.com"
+            />
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button
+              type="submit"
+              [disabled]="loading"
+              class="px-6 py-3 bg-gradient-to-r from-[#F6BD60] to-[#C84630] text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span *ngIf="!loading">💾 Save Changes</span>
+              <span *ngIf="loading">⏳ Saving...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Password Change -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="w-12 h-12 rounded-xl bg-[#F7EDE2] flex items-center justify-center text-2xl">
+            🔒
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-gray-800">Change Password</h2>
+            <p class="text-sm text-gray-500">Update your password to keep your account secure</p>
+          </div>
+        </div>
+
+        <form (ngSubmit)="changePassword()" class="space-y-4">
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Current Password</label>
+            <input
+              type="password"
+              [(ngModel)]="currentPassword"
+              name="currentPassword"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="Enter current password"
+              required
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">New Password</label>
+            <input
+              type="password"
+              [(ngModel)]="newPassword"
+              name="newPassword"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="Enter new password"
+              required
+            />
+            <p class="text-xs text-gray-500 mt-1">Must be at least 8 characters</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2">Confirm New Password</label>
+            <input
+              type="password"
+              [(ngModel)]="confirmPassword"
+              name="confirmPassword"
+              class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#F6BD60] transition-all"
+              placeholder="Confirm new password"
+              required
+            />
+          </div>
+
+          <div class="flex justify-end pt-4">
+            <button
+              type="submit"
+              [disabled]="loading || !currentPassword || !newPassword || !confirmPassword"
+              class="px-6 py-3 bg-gradient-to-r from-[#7A5200] to-[#B37D05] text-white font-semibold rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span *ngIf="!loading">🔐 Change Password</span>
+              <span *ngIf="loading">⏳ Changing...</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right: Account Info -->
+    <div class="space-y-6">
+      
+      <!-- Account Status -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Account Status</h3>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between p-3 bg-green-50 rounded-xl">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">✅</span>
+              <span class="text-sm font-medium text-gray-700">Status</span>
+            </div>
+            <span class="text-sm font-bold text-green-600">Active</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-orange-50 rounded-xl">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">🤝</span>
+              <span class="text-sm font-medium text-gray-700">Role</span>
+            </div>
+            <span class="text-sm font-bold text-orange-600">Sponsor</span>
+          </div>
+          <div class="flex items-center justify-between p-3 bg-blue-50 rounded-xl">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">📧</span>
+              <span class="text-sm font-medium text-gray-700">Email</span>
+            </div>
+            <span class="text-sm font-bold text-blue-600">Verified</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="bg-gradient-to-br from-[#F6BD60] to-[#C84630] rounded-2xl p-6 text-white">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-2xl">💡</span>
+          <h3 class="text-lg font-bold">Security Tips</h3>
+        </div>
+        <ul class="space-y-2 text-sm">
+          <li class="flex items-start gap-2">
+            <span>•</span>
+            <span>Use a strong, unique password</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span>•</span>
+            <span>Change your password regularly</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span>•</span>
+            <span>Never share your credentials</span>
+          </li>
+          <li class="flex items-start gap-2">
+            <span>•</span>
+            <span>Keep your contact info updated</span>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Help Section -->
+      <div class="bg-white rounded-2xl p-6 shadow-sm">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="text-2xl">❓</span>
+          <h3 class="text-lg font-bold text-gray-800">Need Help?</h3>
+        </div>
+        <p class="text-sm text-gray-600 mb-4">
+          If you're having trouble updating your settings, please contact our support team.
+        </p>
+        <a
+          href="mailto:support@jungleinenglish.com"
+          class="block w-full text-center px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium rounded-xl transition-colors"
+        >
+          📧 Contact Support
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

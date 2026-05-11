@@ -15,10 +15,19 @@
 <header class="modern-header">
   <nav class="modern-nav">
     <div class="nav-container">
-      <!-- Logo -->
+      <!-- Logo avec cercle et icône -->
       <a routerLink="/" class="nav-logo">
-        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
-        <span class="logo-text">JUNGLE IN ENGLISH</span>
+        <div class="logo-circle">
+          <svg class="graduation-cap" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3L1 9L12 15L23 9L12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 13V17C5 18.1046 8.13401 19 12 19C15.866 19 19 18.1046 19 17V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 10V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-line-1">JUNGLE IN</span>
+          <span class="logo-line-2">ENGLISH</span>
+        </div>
       </a>
 
       <!-- Desktop Navigation -->
@@ -64,58 +73,143 @@
 
 <!-- ***** Hero Section Start ***** -->
 <section class="hero-section" id="home">
+  <div class="hero-background">
+    <div class="hero-pattern"></div>
+    <div class="hero-gradient"></div>
+  </div>
+  
   <div class="hero-container">
     <div class="hero-content">
-      <span class="hero-badge">🌟 Welcome to Jungle in English</span>
-      <h1 class="hero-title">Master English with Expert Teachers</h1>
+      <div class="hero-badge-wrapper">
+        <span class="hero-badge">
+          <span class="badge-icon">🌟</span>
+          Welcome to Jungle in English
+        </span>
+      </div>
+      
+      <h1 class="hero-title">
+        <span class="title-highlight">Master English</span> with
+        <br>Expert Teachers
+      </h1>
+      
       <p class="hero-description">
         Learn English with our experienced teachers and modern teaching methods. 
-        Start your journey to fluency today with personalized lessons.
+        Start your journey to fluency today with personalized lessons designed for your success.
       </p>
+      
       <div class="hero-buttons">
-        <a routerLink="/register" class="btn-hero-primary">Start Learning Now</a>
+        <a routerLink="/register" class="btn-hero-primary">
+          <span>Start Learning Now</span>
+          <div class="btn-shine"></div>
+        </a>
         <a href="#courses" class="btn-hero-secondary">
           <svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path>
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
-          Explore Courses
+          <span>Explore Courses</span>
         </a>
       </div>
+      
       <div class="hero-stats">
         <div class="stat-item">
-          <span class="stat-number">500+</span>
-          <span class="stat-label">Students</span>
+          <div class="stat-number">{{ studentsCount }}+</div>
+          <div class="stat-label">Students</div>
+          <div class="stat-bar"></div>
         </div>
         <div class="stat-item">
-          <span class="stat-number">50+</span>
-          <span class="stat-label">Expert Teachers</span>
+          <div class="stat-number">{{ teachersCount }}+</div>
+          <div class="stat-label">Expert Teachers</div>
+          <div class="stat-bar"></div>
         </div>
         <div class="stat-item">
-          <span class="stat-number">95%</span>
-          <span class="stat-label">Success Rate</span>
+          <div class="stat-number">{{ successRate }}%</div>
+          <div class="stat-label">Success Rate</div>
+          <div class="stat-bar"></div>
         </div>
       </div>
     </div>
-    <div class="hero-image">
-      <div class="hero-image-wrapper">
-        <img src="assets/images/banner-item-01.jpg" alt="English Learning" class="hero-img">
-        <div class="floating-card card-1">
-          <div class="card-icon">📚</div>
+    
+    <div class="hero-visual">
+      <div class="hero-image-container">
+        <div class="main-image-wrapper">
+          <img src="assets/images/banner-item-01.jpg" alt="English Learning Classroom" class="main-hero-image">
+          <div class="image-overlay"></div>
+        </div>
+        
+        <!-- Floating Interactive Cards -->
+        <div class="floating-card card-interactive">
+          <div class="card-header">
+            <div class="card-icon">📚</div>
+            <div class="card-status">
+              <span class="status-dot"></span>
+              <span class="status-text">Live</span>
+            </div>
+          </div>
           <div class="card-content">
-            <span class="card-title">Interactive Lessons</span>
-            <span class="card-subtitle">Learn by doing</span>
+            <h4 class="card-title">Interactive Lessons</h4>
+            <p class="card-subtitle">Learn by doing</p>
+            <div class="card-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 75%"></div>
+              </div>
+              <span class="progress-text">75% Complete</span>
+            </div>
           </div>
         </div>
-        <div class="floating-card card-2">
-          <div class="card-icon">🎯</div>
+        
+        <div class="floating-card card-achievement">
+          <div class="card-header">
+            <div class="card-icon">🎯</div>
+            <div class="achievement-badge">+50 XP</div>
+          </div>
           <div class="card-content">
-            <span class="card-title">Personalized Path</span>
-            <span class="card-subtitle">Your pace, your goals</span>
+            <h4 class="card-title">Personalized Path</h4>
+            <p class="card-subtitle">Your pace, your goals</p>
+            <div class="achievement-stars">
+              <span class="star active">⭐</span>
+              <span class="star active">⭐</span>
+              <span class="star active">⭐</span>
+              <span class="star">⭐</span>
+              <span class="star">⭐</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="floating-card card-stats">
+          <div class="card-content">
+            <div class="mini-stat">
+              <span class="mini-number">24</span>
+              <span class="mini-label">Lessons</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-number">8.5h</span>
+              <span class="mini-label">Duration</span>
+            </div>
           </div>
         </div>
       </div>
+      
+      <!-- Decorative Elements -->
+      <div class="hero-decorations">
+        <div class="decoration-circle circle-1"></div>
+        <div class="decoration-circle circle-2"></div>
+        <div class="decoration-circle circle-3"></div>
+        <div class="decoration-dots">
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+          <span></span><span></span><span></span>
+        </div>
+      </div>
     </div>
+  </div>
+  
+  <!-- Scroll Indicator -->
+  <div class="scroll-indicator">
+    <div class="scroll-mouse">
+      <div class="scroll-wheel"></div>
+    </div>
+    <span class="scroll-text">Scroll to explore</span>
   </div>
 </section>
 <!-- ***** Hero Section End ***** -->
@@ -124,37 +218,82 @@
 <section class="services-section" id="services">
   <div class="section-container">
     <div class="section-header">
-      <span class="section-badge">Our Services</span>
+      <span class="section-badge">
+        <span class="badge-dot"></span>
+        Our Services
+      </span>
       <h2 class="section-title">What We Offer</h2>
-      <p class="section-description">Comprehensive English learning programs designed for all levels</p>
+      <p class="section-description">Comprehensive English learning programs designed for all levels with expert guidance</p>
     </div>
 
     <div class="services-grid">
-      <div class="service-card">
-        <div class="service-icon">
-          <img src="assets/images/service-01.png" alt="Online Degrees">
+      <div class="service-card" data-aos="fade-up" data-aos-delay="0">
+        <div class="service-icon-wrapper">
+          <div class="service-icon">
+            <img src="assets/images/service-01.png" alt="Online Degrees">
+          </div>
+          <div class="icon-bg"></div>
         </div>
-        <h3 class="service-title">Online Degrees</h3>
-        <p class="service-description">Get certified with our comprehensive English language programs designed for all levels.</p>
-        <a href="#" class="service-link">Learn More →</a>
+        <div class="service-content">
+          <h3 class="service-title">Online Degrees</h3>
+          <p class="service-description">Get certified with our comprehensive English language programs designed for all levels.</p>
+          <div class="service-features">
+            <span class="feature-item">✓ Certified Programs</span>
+            <span class="feature-item">✓ Flexible Schedule</span>
+          </div>
+          <a href="#courses" class="service-link">
+            <span>Learn More</span>
+            <svg class="link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </a>
+        </div>
       </div>
 
-      <div class="service-card">
-        <div class="service-icon">
-          <img src="assets/images/service-02.png" alt="Short Courses">
+      <div class="service-card" data-aos="fade-up" data-aos-delay="100">
+        <div class="service-icon-wrapper">
+          <div class="service-icon">
+            <img src="assets/images/service-02.png" alt="Short Courses">
+          </div>
+          <div class="icon-bg"></div>
         </div>
-        <h3 class="service-title">Short Courses</h3>
-        <p class="service-description">Intensive courses focused on specific skills like business English, conversation, or exam preparation.</p>
-        <a href="#" class="service-link">Learn More →</a>
+        <div class="service-content">
+          <h3 class="service-title">Short Courses</h3>
+          <p class="service-description">Intensive courses focused on specific skills like business English, conversation, or exam preparation.</p>
+          <div class="service-features">
+            <span class="feature-item">✓ Quick Results</span>
+            <span class="feature-item">✓ Focused Learning</span>
+          </div>
+          <a href="#courses" class="service-link">
+            <span>Learn More</span>
+            <svg class="link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </a>
+        </div>
       </div>
 
-      <div class="service-card">
-        <div class="service-icon">
-          <img src="assets/images/service-03.png" alt="Expert Teachers">
+      <div class="service-card" data-aos="fade-up" data-aos-delay="200">
+        <div class="service-icon-wrapper">
+          <div class="service-icon">
+            <img src="assets/images/service-03.png" alt="Expert Teachers">
+          </div>
+          <div class="icon-bg"></div>
         </div>
-        <h3 class="service-title">Expert Teachers</h3>
-        <p class="service-description">Learn from native speakers and certified English teachers with years of experience.</p>
-        <a href="#" class="service-link">Learn More →</a>
+        <div class="service-content">
+          <h3 class="service-title">Expert Teachers</h3>
+          <p class="service-description">Learn from native speakers and certified English teachers with years of experience.</p>
+          <div class="service-features">
+            <span class="feature-item">✓ Native Speakers</span>
+            <span class="feature-item">✓ Certified Tutors</span>
+          </div>
+          <a href="#team" class="service-link">
+            <span>Learn More</span>
+            <svg class="link-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+            </svg>
+          </a>
+        </div>
       </div>
     </div>
   </div>

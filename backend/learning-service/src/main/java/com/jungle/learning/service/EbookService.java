@@ -61,6 +61,10 @@ public class EbookService {
     
     @Transactional
     public EbookDTO createEbook(EbookDTO dto, MultipartFile file, MultipartFile coverImage) throws IOException {
+        System.out.println("=== CREATE EBOOK DEBUG ===");
+        System.out.println("File received: " + (file != null ? file.getOriginalFilename() : "null"));
+        System.out.println("Cover image received: " + (coverImage != null ? coverImage.getOriginalFilename() : "null"));
+        
         String fileUrl = null;
         Long fileSize = null;
         String mimeType = null;
@@ -70,10 +74,14 @@ public class EbookService {
             fileUrl = saveFile(file);
             fileSize = file.getSize();
             mimeType = file.getContentType();
+            System.out.println("File saved: " + fileUrl);
         }
         
         if (coverImage != null && !coverImage.isEmpty()) {
             coverImageUrl = saveFile(coverImage);
+            System.out.println("Cover image saved: " + coverImageUrl);
+        } else {
+            System.out.println("No cover image to save");
         }
         
         Ebook ebook = new Ebook();
@@ -92,25 +100,39 @@ public class EbookService {
         // Set status to PENDING for tutor uploads (requires approval)
         ebook.setStatus(Ebook.PublishStatus.PENDING);
         
+        System.out.println("Ebook cover image URL before save: " + coverImageUrl);
         Ebook saved = ebookRepository.save(ebook);
+        System.out.println("Ebook cover image URL after save: " + saved.getCoverImageUrl());
+        System.out.println("=== END CREATE EBOOK DEBUG ===");
         return convertToDTO(saved);
     }
     
     @Transactional
     public EbookDTO updateEbook(Long id, EbookDTO dto, MultipartFile file, MultipartFile coverImage) throws IOException {
+        System.out.println("=== UPDATE EBOOK DEBUG ===");
+        System.out.println("Ebook ID: " + id);
+        System.out.println("File received: " + (file != null ? file.getOriginalFilename() : "null"));
+        System.out.println("Cover image received: " + (coverImage != null ? coverImage.getOriginalFilename() : "null"));
+        
         Ebook ebook = ebookRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ebook not found with id: " + id));
+        
+        System.out.println("Current cover image URL: " + ebook.getCoverImageUrl());
         
         if (file != null && !file.isEmpty()) {
             String fileUrl = saveFile(file);
             ebook.setFileUrl(fileUrl);
             ebook.setFileSize(file.getSize());
             ebook.setMimeType(file.getContentType());
+            System.out.println("File updated: " + fileUrl);
         }
         
         if (coverImage != null && !coverImage.isEmpty()) {
             String coverImageUrl = saveFile(coverImage);
             ebook.setCoverImageUrl(coverImageUrl);
+            System.out.println("Cover image updated: " + coverImageUrl);
+        } else {
+            System.out.println("No cover image to update");
         }
         
         ebook.setTitle(dto.getTitle());
@@ -119,7 +141,10 @@ public class EbookService {
         ebook.setCategory(dto.getCategory() != null ? Ebook.Category.valueOf(dto.getCategory()) : ebook.getCategory());
         ebook.setIsFree(dto.getFree());
         
+        System.out.println("Ebook cover image URL before save: " + ebook.getCoverImageUrl());
         Ebook updated = ebookRepository.save(ebook);
+        System.out.println("Ebook cover image URL after save: " + updated.getCoverImageUrl());
+        System.out.println("=== END UPDATE EBOOK DEBUG ===");
         return convertToDTO(updated);
     }
     

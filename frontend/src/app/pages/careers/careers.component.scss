@@ -1,4 +1,7 @@
-/* ===== MODERN NAVBAR STYLES - COPIÉ DE HOME ===== */
+// Import home styles for consistency
+@import '../home/home.component.scss';
+
+/* ===== CAREERS PAGE STYLES ===== */
 .modern-header {
   position: fixed;
   top: 0;

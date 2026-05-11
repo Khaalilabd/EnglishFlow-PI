@@ -547,6 +547,11 @@ export const routes: Routes = [
         path: 'sponsorship-level',
         loadComponent: () => import('./pages/sponsor-panel/sponsorship-level/sponsorship-level.component').then(m => m.SponsorshipLevelComponent),
         title: 'Sponsorship Level | Jungle in English'
+      },
+      {
+        path: 'settings',
+        loadComponent: () => import('./pages/sponsor-panel/settings/settings.component').then(m => m.SponsorSettingsComponent),
+        title: 'Settings | Jungle in English'
       }
     ]
   },

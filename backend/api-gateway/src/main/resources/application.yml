@@ -546,4 +546,4 @@ management:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:#{null}}
+  secret: ${JWT_SECRET:englishflow-jwt-secret-key-for-development-only-change-in-production-minimum-256-bits}

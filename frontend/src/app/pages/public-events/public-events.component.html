@@ -2,10 +2,19 @@
 <header class="modern-header">
   <nav class="modern-nav">
     <div class="nav-container">
-      <!-- Logo -->
+      <!-- Logo avec cercle et icône -->
       <a routerLink="/" class="nav-logo">
-        <img src="/images/logo/jungle-in-english-removebg-preview.png" alt="Jungle in English" class="logo-img">
-        <span class="logo-text">JUNGLE IN ENGLISH</span>
+        <div class="logo-circle">
+          <svg class="graduation-cap" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 3L1 9L12 15L23 9L12 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M5 13V17C5 18.1046 8.13401 19 12 19C15.866 19 19 18.1046 19 17V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M21 10V16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="logo-text">
+          <span class="logo-line-1">JUNGLE IN</span>
+          <span class="logo-line-2">ENGLISH</span>
+        </div>
       </a>
 
       <!-- Desktop Navigation -->
@@ -16,8 +25,10 @@
           <li><a href="/#courses" class="nav-link">Courses</a></li>
           <li><a routerLink="/clubs" class="nav-link">Clubs</a></li>
           <li><a href="/#team" class="nav-link">Team</a></li>
+          <li><a routerLink="/careers" class="nav-link">Careers</a></li>
           <li><a routerLink="/events" class="nav-link active">Events</a></li>
           <li><a href="/#contact" class="nav-link">Contact</a></li>
+          <li><a routerLink="/become-sponsor" class="nav-link" style="color: #F6BD60; font-weight: 700;">Be Our Sponsor</a></li>
         </ul>
 
         <!-- Auth Buttons / User Menu -->

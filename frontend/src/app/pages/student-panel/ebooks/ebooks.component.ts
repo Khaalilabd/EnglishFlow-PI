@@ -797,15 +797,16 @@ export class EbooksComponent implements OnInit, OnDestroy {
   getCoverImageUrl(ebook: Ebook): string | null {
     // First check if there's a cover image URL directly on the ebook (from backend)
     if (ebook.id && ebook.coverImageUrl) {
-      // Use the correct API Gateway path
-      return `http://localhost:8080/api/learning/ebooks/${ebook.id}/cover?t=${Date.now()}`;
+      // Use the correct API Gateway path without cache busting in the URL generation
+      // Cache busting should be done once when loading, not on every change detection
+      return `http://localhost:8080/api/learning/ebooks/${ebook.id}/cover`;
     }
     
     // Check metadata for hasCoverImage flag
     const metadata = this.getMetadata(ebook.description);
     if (metadata && metadata.hasCoverImage && ebook.id) {
-      // Try to load from backend with cache busting
-      return `http://localhost:8080/api/learning/ebooks/${ebook.id}/cover?t=${Date.now()}`;
+      // Try to load from backend
+      return `http://localhost:8080/api/learning/ebooks/${ebook.id}/cover`;
     }
     
     return null;

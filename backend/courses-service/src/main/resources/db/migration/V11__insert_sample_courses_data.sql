@@ -39,7 +39,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('English Grammar Fundamentals', 
             'Master the basics of English grammar with clear explanations and practical exercises. Perfect for beginners starting their English learning journey.',
-            'Grammar', 'A1', 30, 40, 1, 99.99,
+            'Grammar', 'A1', 30, 40, 53, 99.99,
             '/uploads/courses/thumbnails/grammar-fundamentals.jpg',
             'Understand basic sentence structure, Learn present and past tenses, Master articles and prepositions, Build confidence in grammar usage',
             'No prior English knowledge required',
@@ -50,7 +50,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Business English Communication',
             'Enhance your professional English skills for the workplace. Learn business vocabulary, email writing, presentations, and meeting etiquette.',
-            'Business English', 'B2', 25, 50, 2, 149.99,
+            'Business English', 'B2', 25, 50, 53, 149.99,
             '/uploads/courses/thumbnails/business-english.jpg',
             'Write professional emails, Conduct business meetings, Deliver presentations, Negotiate effectively',
             'Intermediate English level (B1 or higher)',
@@ -61,7 +61,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('English Pronunciation Mastery',
             'Improve your English pronunciation and accent. Learn phonetics, stress patterns, and intonation to speak more clearly and confidently.',
-            'Pronunciation', 'B1', 20, 30, 1, 79.99,
+            'Pronunciation', 'B1', 20, 30, 53, 79.99,
             '/uploads/courses/thumbnails/pronunciation-mastery.jpg',
             'Master English phonetics, Improve accent and clarity, Learn stress and intonation, Practice with native speakers',
             'Basic English speaking ability',
@@ -72,7 +72,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Advanced Vocabulary Builder',
             'Expand your English vocabulary with advanced words, idioms, and expressions. Perfect for those aiming for fluency.',
-            'Vocabulary', 'C1', 30, 35, 2, 119.99,
+            'Vocabulary', 'C1', 30, 35, 53, 119.99,
             '/uploads/courses/thumbnails/vocabulary-builder.jpg',
             'Learn 1000+ advanced words, Master idioms and phrasal verbs, Understand context and usage, Improve reading comprehension',
             'Upper-intermediate English (B2)',
@@ -83,7 +83,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Conversational English Practice',
             'Practice everyday English conversations in real-life situations. Build confidence speaking English naturally.',
-            'Conversation', 'A2', 15, 25, 1, 89.99,
+            'Conversation', 'A2', 15, 25, 53, 89.99,
             '/uploads/courses/thumbnails/conversational-english.jpg',
             'Speak confidently in daily situations, Understand native speakers, Build conversational vocabulary, Practice listening skills',
             'Basic English knowledge (A1)',

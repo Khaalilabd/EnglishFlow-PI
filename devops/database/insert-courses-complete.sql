@@ -1,6 +1,6 @@
 -- Complete Course Data Insertion Script
 -- This script inserts realistic course data with detailed content for all lesson types
--- All courses belong to tutor_id = 13
+-- All courses belong to tutor_id = 53 (khalilabdelmoumen11@gmail.com)
 
 DO $$
 DECLARE
@@ -41,7 +41,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('English Grammar Fundamentals', 
             'Master the basics of English grammar with clear explanations and practical exercises. This comprehensive course covers essential grammar topics including parts of speech, verb tenses, articles, and sentence structure. Perfect for beginners starting their English learning journey.',
-            'Grammar', 'A1', 30, 40, 13, 99.99,
+            'Grammar', 'A1', 30, 40, 53, 99.99,
             '/uploads/courses/thumbnails/grammar-fundamentals.jpg',
             'Understand basic sentence structure, Learn present and past tenses, Master articles and prepositions, Build confidence in grammar usage, Recognize and use parts of speech correctly',
             'No prior English knowledge required. Basic literacy skills needed.',
@@ -54,7 +54,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Business English Communication',
             'Enhance your professional English skills for the workplace. This course focuses on practical business communication including email writing, presentations, meetings, and negotiations. Learn the vocabulary and expressions used in modern business environments.',
-            'Business English', 'B2', 25, 50, 13, 149.99,
+            'Business English', 'B2', 25, 50, 53, 149.99,
             '/uploads/courses/thumbnails/business-english.jpg',
             'Write professional emails and reports, Conduct effective business meetings, Deliver confident presentations, Negotiate successfully, Use business vocabulary appropriately',
             'Intermediate English level (B1 or higher). Basic understanding of business concepts helpful but not required.',
@@ -67,7 +67,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('English Pronunciation Mastery',
             'Improve your English pronunciation and accent with systematic phonetics training. Learn the International Phonetic Alphabet (IPA), master vowel and consonant sounds, and develop natural stress and intonation patterns. Includes live practice sessions with feedback.',
-            'Pronunciation', 'B1', 20, 30, 13, 79.99,
+            'Pronunciation', 'B1', 20, 30, 53, 79.99,
             '/uploads/courses/thumbnails/pronunciation-mastery.jpg',
             'Master English phonetics and IPA, Produce all English sounds correctly, Improve accent and clarity, Learn stress and intonation patterns, Practice with native speaker feedback',
             'Basic English speaking ability (A2 level). Willingness to practice speaking regularly.',
@@ -80,7 +80,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Advanced Vocabulary Builder',
             'Expand your English vocabulary to advanced levels with 1000+ words, idioms, phrasal verbs, and collocations. This course focuses on academic vocabulary, idiomatic expressions, and natural word combinations that native speakers use. Perfect for those aiming for fluency and C1/C2 proficiency.',
-            'Vocabulary', 'C1', 30, 35, 13, 119.99,
+            'Vocabulary', 'C1', 30, 35, 53, 119.99,
             '/uploads/courses/thumbnails/vocabulary-builder.jpg',
             'Learn 1000+ advanced words and expressions, Master idioms and phrasal verbs, Understand context and usage nuances, Improve reading comprehension, Use collocations naturally',
             'Upper-intermediate English (B2). Strong foundation in basic grammar and vocabulary.',
@@ -93,7 +93,7 @@ BEGIN
     INSERT INTO courses (title, description, category, level, max_students, duration, tutor_id, price, thumbnail_url, objectives, prerequisites, is_featured, status, created_at, updated_at)
     VALUES ('Conversational English Practice',
             'Practice everyday English conversations in real-life situations. This interactive course covers common scenarios like shopping, dining, traveling, and socializing. Build confidence speaking English naturally through role-plays and live practice sessions.',
-            'Conversation', 'A2', 15, 25, 13, 89.99,
+            'Conversation', 'A2', 15, 25, 53, 89.99,
             '/uploads/courses/thumbnails/conversational-english.jpg',
             'Speak confidently in daily situations, Understand native speakers better, Build conversational vocabulary, Practice listening skills, Handle common social interactions',
             'Basic English knowledge (A1). Ability to form simple sentences.',
