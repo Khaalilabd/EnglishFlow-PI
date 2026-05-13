@@ -3,6 +3,7 @@ package com.englishflow.courses.service;
 import com.englishflow.courses.dto.PackEnrollmentDTO;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IPackEnrollmentService {
     
@@ -25,4 +26,8 @@ public interface IPackEnrollmentService {
     void cancelEnrollment(Long enrollmentId);
     
     boolean isStudentEnrolled(Long studentId, Long packId);
+    
+    List<Long> getStudentIdsByTutorId(Long tutorId);
+    
+    Map<String, Integer> getPackCompletionRates(Long tutorId);
 }

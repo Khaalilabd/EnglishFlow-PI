@@ -441,7 +441,7 @@ export const routes: Routes = [
       },
       {
         path: 'analytics',
-        loadComponent: () => import('./pages/student-panel/progress/progress.component').then(m => m.ProgressComponent),
+        loadComponent: () => import('./pages/tutor-panel/analytics/analytics.component').then(m => m.AnalyticsComponent),
         title: 'Analytics | Jungle in English'
       },
       {

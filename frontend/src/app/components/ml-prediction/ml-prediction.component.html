@@ -1,0 +1,155 @@
+<div class="ml-prediction-card">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Analyzing your performance data...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadPrediction()">Retry</button>
+  </div>
+
+  <!-- Prediction Result -->
+  <div *ngIf="prediction && !loading && !error" class="prediction-content">
+    <!-- Header -->
+    <div class="prediction-header">
+      <h3>
+        <i class="fas fa-chart-line"></i>
+        Success Prediction Analysis
+      </h3>
+      <span class="risk-badge" [style.background-color]="getRiskColor()">
+        {{ getRiskIcon() }} {{ prediction.risk_level | uppercase }} RISK
+      </span>
+    </div>
+
+    <!-- How It Works Section -->
+    <div class="how-it-works-section">
+      <div class="section-title">
+        <i class="fas fa-brain"></i>
+        <h4>How This Prediction Works</h4>
+      </div>
+      <p class="explanation">
+        Our AI model analyzes <strong>12 key factors</strong> from your learning behavior to predict your success probability. 
+        The model was trained on thousands of student records and uses advanced machine learning algorithms to provide accurate predictions.
+      </p>
+    </div>
+
+    <!-- Probability Gauge -->
+    <div class="probability-gauge">
+      <div class="gauge-container">
+        <svg viewBox="0 0 200 120" class="gauge-svg">
+          <!-- Background arc -->
+          <path
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none"
+            stroke="#e0e0e0"
+            stroke-width="20"
+            stroke-linecap="round"
+          />
+          <!-- Progress arc -->
+          <path
+            d="M 20 100 A 80 80 0 0 1 180 100"
+            fill="none"
+            [attr.stroke]="getRiskColor()"
+            stroke-width="20"
+            stroke-linecap="round"
+            [attr.stroke-dasharray]="251.2"
+            [attr.stroke-dashoffset]="251.2 - (251.2 * getSuccessPercentage() / 100)"
+            class="gauge-progress"
+          />
+          <!-- Center text -->
+          <text x="100" y="85" text-anchor="middle" class="gauge-percentage">
+            {{ getSuccessPercentage() }}%
+          </text>
+          <text x="100" y="105" text-anchor="middle" class="gauge-label">
+            Success
+          </text>
+        </svg>
+      </div>
+
+      <div class="prediction-label">
+        <h4>{{ prediction.prediction_label }}</h4>
+        <p class="confidence">Model Confidence: {{ (prediction.confidence * 100).toFixed(0) }}%</p>
+      </div>
+    </div>
+
+    <!-- Analyzed Factors Section -->
+    <div class="analyzed-factors-section">
+      <div class="section-title">
+        <i class="fas fa-microscope"></i>
+        <h4>Factors Analyzed</h4>
+      </div>
+      <div class="factors-grid">
+        <div class="factor-item" *ngFor="let factor of analyzedFactors">
+          <div class="factor-header">
+            <span class="factor-icon">{{ factor.icon }}</span>
+            <span class="factor-name">{{ factor.name }}</span>
+          </div>
+          <div class="factor-value">{{ factor.value }}</div>
+          <div class="factor-impact" [ngClass]="factor.impactClass">
+            <span class="impact-indicator">{{ factor.impactIcon }}</span>
+            <span>{{ factor.impact }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Probabilities -->
+    <div class="probabilities">
+      <div class="prob-item success">
+        <span class="prob-label">Success Probability</span>
+        <div class="prob-bar">
+          <div 
+            class="prob-fill success-fill" 
+            [style.width.%]="prediction.probability.succes * 100"
+          ></div>
+        </div>
+        <span class="prob-value">{{ (prediction.probability.succes * 100).toFixed(1) }}%</span>
+      </div>
+
+      <div class="prob-item failure">
+        <span class="prob-label">Failure Risk</span>
+        <div class="prob-bar">
+          <div 
+            class="prob-fill failure-fill" 
+            [style.width.%]="prediction.probability.echec * 100"
+          ></div>
+        </div>
+        <span class="prob-value">{{ (prediction.probability.echec * 100).toFixed(1) }}%</span>
+      </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div *ngIf="prediction.recommendations && prediction.recommendations.length > 0" class="recommendations">
+      <div class="section-title">
+        <i class="fas fa-lightbulb"></i>
+        <h4>Personalized Recommendations</h4>
+      </div>
+      <p class="recommendations-intro">Based on your performance data, here's what you can do to improve:</p>
+      <ul>
+        <li *ngFor="let rec of prediction.recommendations">
+          {{ rec }}
+        </li>
+      </ul>
+    </div>
+
+    <!-- Model Info Footer -->
+    <div class="model-info-footer">
+      <div class="info-item">
+        <i class="fas fa-database"></i>
+        <span>Trained on 32,593 student records</span>
+      </div>
+      <div class="info-item">
+        <i class="fas fa-check-circle"></i>
+        <span>{{ (prediction.confidence * 100).toFixed(0) }}% prediction accuracy</span>
+      </div>
+      <div class="info-item">
+        <i class="fas fa-sync-alt"></i>
+        <span>Updated in real-time</span>
+      </div>
+    </div>
+  </div>
+</div>

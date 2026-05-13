@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { ActivityTrackerService } from '../../services/activity-tracker.service';
 
 @Component({
   selector: 'app-oauth2-callback',
@@ -27,7 +28,8 @@ export class OAuth2CallbackComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private authService: AuthService
+    private authService: AuthService,
+    private activityTracker: ActivityTrackerService
   ) {}
 
   ngOnInit(): void {
@@ -79,6 +81,16 @@ export class OAuth2CallbackComponent implements OnInit {
         
         // Update auth service subject to trigger navbar update
         this.authService['currentUserSubject'].next(userData);
+        
+        // 🎯 INITIALISER LE TRACKING AUTOMATIQUE POUR LES ÉTUDIANTS
+        if (role === 'STUDENT') {
+          console.log('📊 Initializing activity tracking for OAuth2 student');
+          // Le tracker s'initialise automatiquement via le constructeur
+          // Mais on peut forcer un track de session ici aussi
+          setTimeout(() => {
+            this.activityTracker.trackSession();
+          }, 500);
+        }
         
         console.log('OAuth2 Callback - User authenticated, redirecting...');
         

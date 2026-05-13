@@ -58,6 +58,12 @@ export class QuizManagementComponent implements OnInit {
     partialCreditEnabled: false
   };
 
+  // Attempts modal state
+  showAttemptsModal = false;
+  selectedQuiz: Quiz | null = null;
+  quizAttempts: any[] = [];
+  loadingAttempts = false;
+
   constructor(
     private quizService: QuizService,
     private courseService: CourseService
@@ -476,5 +482,90 @@ export class QuizManagementComponent implements OnInit {
       points: 10,
       partialCreditEnabled: false
     };
+  }
+
+  // ========== QUIZ ATTEMPTS MANAGEMENT ==========
+
+  viewQuizAttempts(quiz: Quiz) {
+    this.selectedQuiz = quiz;
+    this.showAttemptsModal = true;
+    this.loadQuizAttempts(quiz.id!);
+  }
+
+  loadQuizAttempts(quizId: number) {
+    this.loadingAttempts = true;
+    this.quizService.getAttemptsByQuizId(quizId).subscribe({
+      next: (attempts) => {
+        this.quizAttempts = attempts;
+        this.loadingAttempts = false;
+        console.log('✅ Loaded attempts:', attempts);
+      },
+      error: (error) => {
+        console.error('❌ Error loading attempts:', error);
+        this.loadingAttempts = false;
+        alert('Failed to load quiz attempts');
+      }
+    });
+  }
+
+  closeAttemptsModal() {
+    this.showAttemptsModal = false;
+    this.selectedQuiz = null;
+    this.quizAttempts = [];
+  }
+
+  resetAttempt(attempt: any) {
+    const confirmMsg = `Are you sure you want to reset this attempt?\n\nThis will allow Student #${attempt.studentId} to retake the quiz.\nThe current attempt will be deleted.`;
+    
+    if (!confirm(confirmMsg)) {
+      return;
+    }
+
+    this.quizService.deleteAttempt(attempt.id).subscribe({
+      next: () => {
+        alert('✅ Attempt reset successfully! The student can now retake the quiz.');
+        // Reload attempts
+        this.loadQuizAttempts(this.selectedQuiz!.id!);
+      },
+      error: (error) => {
+        console.error('❌ Error resetting attempt:', error);
+        alert('Failed to reset attempt. Please try again.');
+      }
+    });
+  }
+
+  getStudentInitials(studentId: number): string {
+    return `S${studentId}`;
+  }
+
+  formatDate(dateString: string): string {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  }
+
+  formatTime(dateString: string): string {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  getPassedCount(): number {
+    return this.quizAttempts.filter(a => 
+      (a.score || 0) >= (this.selectedQuiz?.passingScore || 0)
+    ).length;
+  }
+
+  getFailedCount(): number {
+    return this.quizAttempts.filter(a => 
+      (a.score || 0) < (this.selectedQuiz?.passingScore || 0)
+    ).length;
+  }
+
+  getAverageScore(): number {
+    if (this.quizAttempts.length === 0) return 0;
+    const total = this.quizAttempts.reduce((sum, a) => sum + (a.score || 0), 0);
+    const maxScore = this.selectedQuiz?.maxScore || 100;
+    return Math.round((total / this.quizAttempts.length / maxScore) * 100);
   }
 }

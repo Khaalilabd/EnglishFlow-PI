@@ -84,3 +84,18 @@ Thumbs.db
 temp_*.xml
 temp_*.yml
 temp_*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+dump.rdb

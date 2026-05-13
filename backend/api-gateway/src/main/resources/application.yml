@@ -52,11 +52,27 @@ spring:
             - StripPrefix=1
           order: 3
         
+        - id: analytics-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/analytics/**
+          filters:
+            - StripPrefix=1
+          order: 4
+        
+        - id: tutors-service
+          uri: lb://auth-service
+          predicates:
+            - Path=/api/tutors/**
+          filters:
+            - StripPrefix=1
+          order: 5
+        
         - id: sessions-service
           uri: lb://auth-service
           predicates:
             - Path=/sessions/**
-          order: 4
+          order: 6
         
         - id: sessions-service-api
           uri: lb://auth-service
@@ -64,7 +80,7 @@ spring:
             - Path=/api/sessions/**
           filters:
             - StripPrefix=1
-          order: 5
+          order: 7
             
         - id: community-uploads
           uri: lb://community-service

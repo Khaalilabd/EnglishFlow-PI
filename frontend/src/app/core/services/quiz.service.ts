@@ -74,4 +74,14 @@ export class QuizService {
   getAttemptResult(attemptId: number): Observable<AttemptResult> {
     return this.http.get<AttemptResult>(`${this.apiUrl}/attempts/${attemptId}/result`);
   }
+
+  // Get all attempts for a specific quiz (for tutors)
+  getAttemptsByQuizId(quizId: number): Observable<QuizAttempt[]> {
+    return this.http.get<QuizAttempt[]>(`${this.apiUrl}/attempts/quiz/${quizId}`);
+  }
+
+  // Delete an attempt (to allow student to retake)
+  deleteAttempt(attemptId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/attempts/${attemptId}`);
+  }
 }

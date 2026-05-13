@@ -42,4 +42,15 @@ public class AttemptController {
     public ResponseEntity<AttemptResultDTO> getAttemptResult(@PathVariable Long attemptId) {
         return ResponseEntity.ok(attemptService.getAttemptResult(attemptId));
     }
+    
+    @GetMapping("/quiz/{quizId}")
+    public ResponseEntity<List<QuizAttemptDTO>> getAttemptsByQuizId(@PathVariable Long quizId) {
+        return ResponseEntity.ok(attemptService.getAttemptsByQuizId(quizId));
+    }
+    
+    @DeleteMapping("/{attemptId}")
+    public ResponseEntity<Void> deleteAttempt(@PathVariable Long attemptId) {
+        attemptService.deleteAttempt(attemptId);
+        return ResponseEntity.noContent().build();
+    }
 }

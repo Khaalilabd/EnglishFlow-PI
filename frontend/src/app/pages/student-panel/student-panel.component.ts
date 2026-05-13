@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { GamificationService, UserLevel, UserBadge } from '../../services/gamification.service';
 import { AuthService } from '../../core/services/auth.service';
+import { MlPredictionComponent } from '../../components/ml-prediction/ml-prediction.component';
+import { CourseRecommendationsComponent } from '../../components/course-recommendations/course-recommendations.component';
+import { StudentAnalyticsService, StudentAnalyticsData } from '../../services/student-analytics.service';
 
 interface Course {
   id: number;
@@ -47,17 +50,22 @@ interface Stat {
 @Component({
   selector: 'app-student-panel',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MlPredictionComponent, CourseRecommendationsComponent],
   templateUrl: './student-panel.component.html',
   styleUrls: ['./student-panel.component.scss']
 })
 export class StudentPanelComponent implements OnInit {
   currentUser: any;
+  showAIInsights = false;
 
   // Gamification
   userLevel: UserLevel | null = null;
   userBadges: UserBadge[] = [];
   isLoadingGamification = false;
+
+  // ML Analytics
+  studentAnalytics: StudentAnalyticsData | null = null;
+  isLoadingAnalytics = false;
 
   stats: Stat[] = [
     {
@@ -153,13 +161,58 @@ export class StudentPanelComponent implements OnInit {
 
   constructor(
     private gamificationService: GamificationService,
-    private authService: AuthService
+    private authService: AuthService,
+    private studentAnalyticsService: StudentAnalyticsService
   ) {}
+
+  // Student data for ML prediction (dynamique)
+  get studentData() {
+    if (this.studentAnalytics) {
+      return this.studentAnalytics;
+    }
+    
+    // Données par défaut si pas encore chargées
+    return {
+      previousAttempts: 0,
+      credits: 60,
+      totalClicks: 1000,
+      sessions: 100,
+      avgClicks: 10,
+      maxClicks: 50,
+      avgScore: 75,
+      minScore: 60,
+      maxScore: 90,
+      assessments: 5,
+      registrationDate: -50,
+      isUnregistered: 0
+    };
+  }
 
   ngOnInit() {
     this.currentUser = this.authService.currentUserValue;
     this.generateCalendar();
     this.loadGamificationData();
+    this.loadStudentAnalytics();
+  }
+
+  loadStudentAnalytics() {
+    if (!this.currentUser?.id) return;
+
+    this.isLoadingAnalytics = true;
+
+    this.studentAnalyticsService.getStudentAnalytics(this.currentUser.id).subscribe({
+      next: (analytics) => {
+        this.studentAnalytics = analytics;
+        this.isLoadingAnalytics = false;
+        console.log('📊 Analytics chargées:', analytics);
+        console.log(`📈 Qualité des données: ${analytics.dataQuality}`);
+      },
+      error: (error) => {
+        console.error('Erreur chargement analytics:', error);
+        this.isLoadingAnalytics = false;
+        console.log('⚠️ Impossible de charger les analytics');
+      }
+    });
   }
 
   loadGamificationData() {

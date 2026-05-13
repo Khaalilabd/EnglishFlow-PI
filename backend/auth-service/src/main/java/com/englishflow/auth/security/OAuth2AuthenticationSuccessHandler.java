@@ -32,6 +32,7 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
     private final JwtUtil jwtUtil;
     private final com.englishflow.auth.service.UserSessionService userSessionService;
     private final com.englishflow.auth.service.TwoFactorAuthService twoFactorAuthService;
+    private final com.englishflow.auth.service.StudentAnalyticsService studentAnalyticsService;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -121,6 +122,16 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
             log.info("Attempting to create session for OAuth2 user: {} (ID: {})", user.getEmail(), user.getId());
             userSessionService.createSession(user.getId(), request);
             log.info("Session created successfully for OAuth2 user: {}", user.getEmail());
+            
+            // 🎯 TRACKER LA SESSION DANS LES ANALYTICS (pour les étudiants)
+            if (user.getRole() == User.Role.STUDENT) {
+                try {
+                    studentAnalyticsService.trackSession(user.getId());
+                    log.info("✅ Analytics session tracked for OAuth2 student: {}", user.getEmail());
+                } catch (Exception e) {
+                    log.error("❌ Failed to track analytics session for OAuth2 student: {}", user.getEmail(), e);
+                }
+            }
         } catch (Exception e) {
             log.error("Failed to create session for OAuth2 user: {} - Error: {}", user.getEmail(), e.getMessage(), e);
             // Continue anyway - session tracking is not critical for login

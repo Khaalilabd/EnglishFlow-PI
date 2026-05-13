@@ -6,6 +6,7 @@ import { ChapterService } from '../../../core/services/chapter.service';
 import { LessonService } from '../../../core/services/lesson.service';
 import { LessonProgressService } from '../../../core/services/lesson-progress.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { StudentAnalyticsService } from '../../../services/student-analytics.service';
 import { Course } from '../../../core/models/course.model';
 import { Chapter } from '../../../core/models/chapter.model';
 import { Lesson } from '../../../core/models/lesson.model';
@@ -49,6 +50,7 @@ export class CourseLearningComponent implements OnInit {
     private lessonService: LessonService,
     private lessonProgressService: LessonProgressService,
     private authService: AuthService,
+    private analyticsService: StudentAnalyticsService,
     private http: HttpClient
   ) {}
 
@@ -166,6 +168,16 @@ export class CourseLearningComponent implements OnInit {
         // Show completion message (only once)
         if (!sessionStorage.getItem(`course_${this.courseId}_completed`)) {
           sessionStorage.setItem(`course_${this.courseId}_completed`, 'true');
+          
+          // 🎯 TRACKER LES CRÉDITS DANS LES ANALYTICS
+          if (this.currentStudentId) {
+            const credits = 10; // 10 crédits par cours complété
+            this.analyticsService.addStudiedCredits(this.currentStudentId, credits).subscribe({
+              next: () => console.log(`✅ ${credits} crédits ajoutés pour le cours ${this.courseId}`),
+              error: (err) => console.error('❌ Erreur ajout crédits:', err)
+            });
+          }
+          
           alert('🎉 Congratulations! You have completed this course!');
         }
       }

@@ -9,6 +9,7 @@ import { CourseService } from '../../../core/services/course.service';
 import { QuizService } from '../../../core/services/quiz.service';
 import { LessonProgressService } from '../../../core/services/lesson-progress.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { StudentAnalyticsService } from '../../../services/student-analytics.service';
 import { OnlineLessonService, LessonTimeAssignment } from '../../../core/services/online-lesson.service';
 import { Lesson } from '../../../core/models/lesson.model';
 import { Chapter } from '../../../core/models/chapter.model';
@@ -78,7 +79,8 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     private readonly progressService: LessonProgressService,
     private readonly authService: AuthService,
     private readonly sanitizer: DomSanitizer,
-    private readonly onlineLessonService: OnlineLessonService
+    private readonly onlineLessonService: OnlineLessonService,
+    private readonly analyticsService: StudentAnalyticsService
   ) {}
 
   ngOnInit(): void {
@@ -87,6 +89,14 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
     const currentUser = this.authService.currentUserValue;
     if (currentUser) {
       this.currentStudentId = currentUser.id;
+      
+      // 🎯 TRACKER L'OUVERTURE DE LA LEÇON
+      if (currentUser.role === 'STUDENT') {
+        this.analyticsService.trackLessonOpened(currentUser.id).subscribe({
+          next: () => console.log('✅ Lesson opened tracked'),
+          error: (err: any) => console.error('❌ Error tracking lesson opened:', err)
+        });
+      }
     }
     
     this.loadLesson();
@@ -883,6 +893,11 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
             console.log('Quiz result:', result);
             this.quizResult = result;
             this.quizSubmitted = true;
+            
+            // 🎯 TRACKER L'ÉVALUATION DANS LES ANALYTICS
+            const score = Math.round((result.score / result.maxScore) * 100);
+            this.trackQuizCompletion(this.currentStudentId, score, result.passed);
+            
             // Mark lesson as complete if passed
             if (result.passed) {
               this.markAsComplete();
@@ -904,6 +919,43 @@ export class LessonViewerComponent implements OnInit, OnDestroy {
   retakeQuiz(): void {
     // Cannot retake quiz - show message
     alert('You have already completed this quiz. You cannot retake it.');
+  }
+
+  /**
+   * 🎯 Track l'évaluation dans les analytics
+   */
+  private trackQuizCompletion(userId: number, score: number, passed: boolean): void {
+    // Déterminer le type d'évaluation (TMA, CMA ou EXAM)
+    const assessmentType = this.determineAssessmentType();
+    
+    // Tracker l'évaluation
+    this.analyticsService.trackAssessment(userId, score, assessmentType).subscribe({
+      next: () => console.log(`✅ Quiz tracké: ${assessmentType} - Score: ${score}%`),
+      error: (err: any) => console.error('❌ Erreur tracking quiz:', err)
+    });
+
+    // Si l'étudiant a échoué, incrémenter les tentatives
+    if (!passed) {
+      this.analyticsService.incrementAttempts(userId).subscribe({
+        next: () => console.log('✅ Tentative incrémentée'),
+        error: (err: any) => console.error('❌ Erreur incrémentation tentative:', err)
+      });
+    }
+  }
+
+  /**
+   * Détermine le type d'évaluation basé sur le nom du quiz
+   */
+  private determineAssessmentType(): 'TMA' | 'CMA' | 'EXAM' {
+    const quizName = this.currentQuiz?.name?.toLowerCase() || '';
+    
+    if (quizName.includes('exam') || quizName.includes('final')) {
+      return 'EXAM';
+    } else if (quizName.includes('tma') || quizName.includes('tutor')) {
+      return 'TMA';
+    } else {
+      return 'CMA'; // Par défaut, Computer Marked Assignment
+    }
   }
 
 }

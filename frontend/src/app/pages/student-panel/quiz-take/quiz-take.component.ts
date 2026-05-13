@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QuizService } from '../../../core/services/quiz.service';
 import { AuthService } from '../../../core/services/auth.service';
+import { ActivityTrackerService } from '../../../services/activity-tracker.service';
 import { Quiz, Question } from '../../../core/models/quiz.model';
 
 @Component({
@@ -40,7 +41,8 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
 
   constructor(
     private quizService: QuizService,
-    private authService: AuthService
+    private authService: AuthService,
+    private activityTracker: ActivityTrackerService
   ) {}
 
   ngOnInit(): void {
@@ -267,6 +269,9 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
             this.quizFinished = true;
             this.submitting = false;
             
+            // 🎯 TRACKER L'ÉVALUATION DANS LES ANALYTICS
+            this.trackQuizCompletion(currentUser.id, this.score, result.passed);
+            
             // Emit completion event after 2 seconds
             setTimeout(() => {
               this.quizCompleted.emit();
@@ -294,5 +299,36 @@ export class QuizTakeComponent implements OnInit, OnDestroy {
 
   getAnsweredCount(): number {
     return Object.keys(this.answers).length;
+  }
+
+  /**
+   * 🎯 Track l'évaluation dans les analytics
+   */
+  private trackQuizCompletion(userId: number, score: number, passed: boolean): void {
+    // Déterminer le type d'évaluation (TMA, CMA ou EXAM)
+    const assessmentType = this.determineAssessmentType();
+    
+    // Tracker l'évaluation
+    this.activityTracker.trackAssessment(score, assessmentType);
+
+    // Si l'étudiant a échoué, incrémenter les tentatives
+    if (!passed) {
+      this.activityTracker.incrementAttempts();
+    }
+  }
+
+  /**
+   * Détermine le type d'évaluation basé sur le nom du quiz
+   */
+  private determineAssessmentType(): 'TMA' | 'CMA' | 'EXAM' {
+    const quizName = this.quiz?.name?.toLowerCase() || '';
+    
+    if (quizName.includes('exam') || quizName.includes('final')) {
+      return 'EXAM';
+    } else if (quizName.includes('tma') || quizName.includes('tutor')) {
+      return 'TMA';
+    } else {
+      return 'CMA'; // Par défaut, Computer Marked Assignment
+    }
   }
 }

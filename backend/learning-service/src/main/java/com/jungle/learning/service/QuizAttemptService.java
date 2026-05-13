@@ -163,4 +163,22 @@ public class QuizAttemptService {
         
         return result;
     }
+    
+    public List<QuizAttemptDTO> getAttemptsByQuizId(Long quizId) {
+        return attemptRepository.findByQuiz_Id(quizId).stream()
+                .map(this::convertToDTO)
+                .collect(java.util.stream.Collectors.toList());
+    }
+    
+    @Transactional
+    public void deleteAttempt(Long attemptId) {
+        QuizAttempt attempt = attemptRepository.findById(attemptId)
+                .orElseThrow(() -> new ResourceNotFoundException("Attempt not found with id: " + attemptId));
+        
+        // Delete associated student answers first
+        studentAnswerRepository.deleteByAttemptId(attemptId);
+        
+        // Delete the attempt
+        attemptRepository.delete(attempt);
+    }
 }

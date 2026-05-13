@@ -1,158 +1,180 @@
-<div class="my-students-container">
-  <!-- Header -->
-  <div class="page-header">
-    <div class="header-content">
-      <h1 class="page-title">My Students</h1>
-      <p class="page-subtitle">Track your students' progress across all your packs</p>
+<div class="page-wrapper">
+  
+  <!-- Page Header -->
+  <div class="page-header-modern">
+    <div>
+      <h1 class="page-title-modern">My Students</h1>
+      <p class="page-subtitle-modern">Monitor and analyze your students' performance</p>
     </div>
   </div>
 
   <!-- Loading State -->
   @if (loading) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading students...</p>
+    <div class="loading-modern">
+      <div class="spinner-modern"></div>
+      <p>Loading students data...</p>
     </div>
   }
 
   @if (!loading) {
     <!-- Stats Cards -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #2D5757 0%, #3D3D60 100%);">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <p class="stat-label">Total Students</p>
-          <p class="stat-value">{{ totalStudents }}</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <p class="stat-label">Active Students</p>
-          <p class="stat-value">{{ activeStudents }}</p>
+    <div class="stats-grid-modern">
+      <div class="stat-card-modern stat-primary">
+        <div class="stat-content">
+          <div class="stat-icon-wrapper">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+          </div>
+          <div class="stat-info-modern">
+            <p class="stat-value-modern">{{ totalStudents }}</p>
+            <p class="stat-label-modern">Total Students</p>
+          </div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <div class="stat-info">
-          <p class="stat-label">Completed</p>
-          <p class="stat-value">{{ completedStudents }}</p>
+      <div class="stat-card-modern stat-success">
+        <div class="stat-content">
+          <div class="stat-icon-wrapper">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div class="stat-info-modern">
+            <p class="stat-value-modern">{{ activeStudents }}</p>
+            <p class="stat-label-modern">Active</p>
+          </div>
         </div>
       </div>
 
-      <div class="stat-card">
-        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-          </svg>
+      <div class="stat-card-modern stat-warning">
+        <div class="stat-content">
+          <div class="stat-icon-wrapper">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <div class="stat-info-modern">
+            <p class="stat-value-modern">{{ atRiskStudents }}</p>
+            <p class="stat-label-modern">At Risk</p>
+          </div>
         </div>
-        <div class="stat-info">
-          <p class="stat-label">Avg Progress</p>
-          <p class="stat-value">{{ averageProgress }}%</p>
+      </div>
+
+      <div class="stat-card-modern stat-info">
+        <div class="stat-content">
+          <div class="stat-icon-wrapper">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+            </svg>
+          </div>
+          <div class="stat-info-modern">
+            <p class="stat-value-modern">{{ averageProgress }}%</p>
+            <p class="stat-label-modern">Avg Progress</p>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Filter by Pack -->
-    <div class="filter-section">
-      <label class="filter-label">Filter by Pack:</label>
-      <div class="filter-buttons">
-        <button 
-          class="filter-btn" 
-          [class.active]="selectedPackId === null"
-          (click)="filterByPack(null)">
-          All Packs ({{ enrollments.length }})
-        </button>
-        @for (pack of packs; track pack.id) {
-          <button 
-            class="filter-btn" 
-            [class.active]="selectedPackId === pack.id"
-            (click)="filterByPack(pack.id!)">
+    <!-- Filter & Search Bar -->
+    <div class="toolbar-modern">
+      <div class="search-box-modern">
+        <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input type="text" placeholder="Search students..." class="search-input-modern">
+      </div>
+      
+      <div class="filter-group-modern">
+        <label class="filter-label-compact">Pack:</label>
+        <select 
+          class="select-modern"
+          [(ngModel)]="selectedPackId"
+          (change)="filterByPack(selectedPackId)">
+          <option [value]="null">All ({{ enrollments.length }})</option>
+          <option *ngFor="let pack of packs" [value]="pack.id">
             {{ pack.name }} ({{ getPackEnrollmentCount(pack.id!) }})
-          </button>
-        }
+          </option>
+        </select>
       </div>
     </div>
 
     <!-- Students Table -->
     @if (filteredEnrollments.length > 0) {
-      <div class="students-table-container">
-        <table class="students-table">
+      <div class="table-container-modern">
+        <table class="table-modern">
           <thead>
             <tr>
               <th>Student</th>
               <th>Pack</th>
-              <th>Enrolled Date</th>
               <th>Progress</th>
               <th>Courses</th>
+              <th>AI Risk</th>
               <th>Status</th>
-              <th>Actions</th>
+              <th class="text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (enrollment of filteredEnrollments; track enrollment.id) {
-              <tr>
+              <tr class="table-row-modern">
                 <td>
-                  <div class="student-info">
-                    <div class="student-avatar">
+                  <div class="student-cell">
+                    <div class="avatar-modern">
                       {{ enrollment.studentName.charAt(0).toUpperCase() }}
                     </div>
-                    <span class="student-name">{{ enrollment.studentName }}</span>
+                    <div>
+                      <p class="student-name-modern">{{ enrollment.studentName }}</p>
+                      <p class="student-date-modern">{{ formatDate(enrollment.enrolledAt) }}</p>
+                    </div>
                   </div>
                 </td>
                 <td>
-                  <span class="pack-name">{{ enrollment.packName }}</span>
-                  <div class="pack-meta">
-                    <span class="pack-category">{{ enrollment.packCategory }}</span>
-                    <span class="pack-level">{{ enrollment.packLevel }}</span>
+                  <div class="pack-cell">
+                    <p class="pack-name-modern">{{ enrollment.packName }}</p>
+                    <div class="pack-badges">
+                      <span class="badge-modern badge-category">{{ enrollment.packCategory }}</span>
+                      <span class="badge-modern badge-level">{{ enrollment.packLevel }}</span>
+                    </div>
                   </div>
                 </td>
                 <td>
-                  <span class="date-text">{{ formatDate(enrollment.enrolledAt) }}</span>
-                </td>
-                <td>
-                  <div class="progress-cell">
-                    <div class="progress-bar-small">
+                  <div class="progress-cell-modern">
+                    <div class="progress-bar-modern">
                       <div 
-                        class="progress-fill-small" 
-                        [style.width.%]="enrollment.progressPercentage"
-                        [style.background]="getProgressColor(enrollment.progressPercentage)">
+                        class="progress-fill-modern" 
+                        [style.width.%]="getSafeProgress(enrollment.progressPercentage)"
+                        [style.background]="getProgressColor(getSafeProgress(enrollment.progressPercentage))">
                       </div>
                     </div>
-                    <span class="progress-text">{{ enrollment.progressPercentage }}%</span>
+                    <span class="progress-text-modern">{{ getSafeProgress(enrollment.progressPercentage) }}%</span>
                   </div>
                 </td>
                 <td>
-                  <span class="courses-text">
-                    {{ enrollment.completedCourses }} / {{ enrollment.totalCourses }}
-                  </span>
+                  <span class="courses-modern">{{ enrollment.completedCourses }}/{{ enrollment.totalCourses }}</span>
                 </td>
                 <td>
-                  <span class="status-badge" [ngClass]="getStatusBadgeClass(enrollment.status)">
+                  @if (enrollment.loadingPrediction) {
+                    <div class="risk-loading-inline">
+                      <div class="spinner-tiny"></div>
+                    </div>
+                  } @else {
+                    <span class="risk-badge-modern" [ngClass]="getRiskLevelClass(enrollment.prediction)">
+                      {{ getRiskLevelText(enrollment.prediction) }}
+                    </span>
+                  }
+                </td>
+                <td>
+                  <span class="status-badge-modern" [ngClass]="getStatusBadgeClass(enrollment.status)">
                     {{ enrollment.status }}
                   </span>
                 </td>
-                <td>
-                  <button class="btn-view" (click)="viewStudentProgress(enrollment)">
+                <td class="text-right">
+                  <button class="btn-action-modern" (click)="viewStudentProgress(enrollment)">
                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                     </svg>
-                    View Details
+                    View
                   </button>
                 </td>
               </tr>
@@ -164,11 +186,344 @@
 
     <!-- Empty State -->
     @if (filteredEnrollments.length === 0) {
-      <div class="empty-state">
-        <div class="empty-icon">👥</div>
+      <div class="empty-state-modern">
+        <div class="empty-icon-modern">👥</div>
         <h3>No Students Found</h3>
-        <p>No students have enrolled in your packs yet.</p>
+        <p>No students match your current filters</p>
       </div>
     }
   }
 </div>
+
+<!-- Student Details Modal - Compact & Clean -->
+@if (showStudentModal && selectedStudent) {
+  <div class="modal-overlay-clean" (click)="showStudentModal = false">
+    <div class="modal-backdrop-clean"></div>
+    
+    <div class="modal-compact" (click)="$event.stopPropagation()">
+      
+      <!-- Header -->
+      <div class="modal-header-compact">
+        <div class="student-info-header">
+          <div class="avatar-compact">
+            {{ selectedStudent.studentName.charAt(0).toUpperCase() }}
+          </div>
+          <div>
+            <h3 class="student-name-header">{{ selectedStudent.studentName }}</h3>
+            <p class="pack-name-header">{{ selectedStudent.packName }}</p>
+          </div>
+        </div>
+        <button (click)="showStudentModal = false" class="close-btn-compact">
+          <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body-compact">
+        
+        <!-- Course Progress with Roadmap -->
+        <div class="section-compact">
+          <h4 class="section-title-compact">
+            <svg class="icon-compact" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Course Progress
+          </h4>
+          
+          <div class="progress-details">
+            <!-- Overall Progress Bar -->
+            <div class="progress-item">
+              <span class="progress-label">Overall Progress</span>
+              <div class="progress-with-value">
+                <div class="progress-bar-compact">
+                  <div 
+                    class="progress-fill-compact" 
+                    [style.width.%]="getSafeProgress(selectedStudent.progressPercentage)"
+                    [style.background]="getProgressColor(getSafeProgress(selectedStudent.progressPercentage))">
+                  </div>
+                </div>
+                <span class="progress-value-compact">{{ getSafeProgress(selectedStudent.progressPercentage) }}%</span>
+              </div>
+            </div>
+
+            <!-- Course Roadmap/Timeline -->
+            <div class="course-roadmap">
+              <h5 class="roadmap-title">Course Roadmap</h5>
+              <div class="roadmap-timeline">
+                
+                <!-- Course 1 -->
+                <div class="timeline-item" [class.completed]="selectedStudent.completedCourses >= 1" [class.current]="selectedStudent.completedCourses === 0">
+                  <div class="timeline-marker">
+                    <div class="marker-circle">
+                      @if (selectedStudent.completedCourses >= 1) {
+                        <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      } @else if (selectedStudent.completedCourses === 0) {
+                        <div class="current-pulse"></div>
+                      } @else {
+                        <span class="course-number">1</span>
+                      }
+                    </div>
+                    @if (selectedStudent.completedCourses < selectedStudent.totalCourses - 1) {
+                      <div class="timeline-line"></div>
+                    }
+                  </div>
+                  <div class="timeline-content">
+                    <h6 class="course-title">Course 1</h6>
+                    <p class="course-status">
+                      @if (selectedStudent.completedCourses >= 1) {
+                        <span class="status-completed-text">✓ Completed</span>
+                      } @else if (selectedStudent.completedCourses === 0) {
+                        <span class="status-current-text">→ In Progress</span>
+                      } @else {
+                        <span class="status-locked-text">🔒 Locked</span>
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Course 2 -->
+                <div class="timeline-item" [class.completed]="selectedStudent.completedCourses >= 2" [class.current]="selectedStudent.completedCourses === 1">
+                  <div class="timeline-marker">
+                    <div class="marker-circle">
+                      @if (selectedStudent.completedCourses >= 2) {
+                        <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      } @else if (selectedStudent.completedCourses === 1) {
+                        <div class="current-pulse"></div>
+                      } @else {
+                        <span class="course-number">2</span>
+                      }
+                    </div>
+                    @if (selectedStudent.completedCourses < selectedStudent.totalCourses - 1) {
+                      <div class="timeline-line"></div>
+                    }
+                  </div>
+                  <div class="timeline-content">
+                    <h6 class="course-title">Course 2</h6>
+                    <p class="course-status">
+                      @if (selectedStudent.completedCourses >= 2) {
+                        <span class="status-completed-text">✓ Completed</span>
+                      } @else if (selectedStudent.completedCourses === 1) {
+                        <span class="status-current-text">→ In Progress</span>
+                      } @else {
+                        <span class="status-locked-text">🔒 Locked</span>
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Course 3 -->
+                <div class="timeline-item" [class.completed]="selectedStudent.completedCourses >= 3" [class.current]="selectedStudent.completedCourses === 2">
+                  <div class="timeline-marker">
+                    <div class="marker-circle">
+                      @if (selectedStudent.completedCourses >= 3) {
+                        <svg class="check-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      } @else if (selectedStudent.completedCourses === 2) {
+                        <div class="current-pulse"></div>
+                      } @else {
+                        <span class="course-number">3</span>
+                      }
+                    </div>
+                    @if (selectedStudent.totalCourses > 3) {
+                      <div class="timeline-line"></div>
+                    }
+                  </div>
+                  <div class="timeline-content">
+                    <h6 class="course-title">Course 3</h6>
+                    <p class="course-status">
+                      @if (selectedStudent.completedCourses >= 3) {
+                        <span class="status-completed-text">✓ Completed</span>
+                      } @else if (selectedStudent.completedCourses === 2) {
+                        <span class="status-current-text">→ In Progress</span>
+                      } @else {
+                        <span class="status-locked-text">🔒 Locked</span>
+                      }
+                    </p>
+                  </div>
+                </div>
+
+                <!-- More Courses Indicator -->
+                @if (selectedStudent.totalCourses > 3) {
+                  <div class="timeline-item more-courses">
+                    <div class="timeline-marker">
+                      <div class="marker-circle">
+                        <span class="course-number">+{{ selectedStudent.totalCourses - 3 }}</span>
+                      </div>
+                    </div>
+                    <div class="timeline-content">
+                      <h6 class="course-title">{{ selectedStudent.totalCourses - 3 }} more courses</h6>
+                      <p class="course-status">
+                        <span class="status-locked-text">Upcoming</span>
+                      </p>
+                    </div>
+                  </div>
+                }
+
+              </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="stats-row-compact">
+              <div class="stat-item-compact">
+                <span class="stat-label-compact">Completed</span>
+                <span class="stat-value-compact">{{ selectedStudent.completedCourses }}/{{ selectedStudent.totalCourses }}</span>
+              </div>
+              <div class="stat-item-compact">
+                <span class="stat-label-compact">Status</span>
+                <span class="status-badge-compact" [ngClass]="getStatusBadgeClass(selectedStudent.status)">
+                  {{ selectedStudent.status }}
+                </span>
+              </div>
+              <div class="stat-item-compact">
+                <span class="stat-label-compact">Enrolled</span>
+                <span class="stat-value-compact">{{ formatDate(selectedStudent.enrolledAt) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real Student Data from Database -->
+        <div class="section-compact real-data-section">
+          <h4 class="section-title-compact">
+            <svg class="icon-compact" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Student Activity Data
+          </h4>
+
+          @if (selectedStudent.realAnalytics) {
+            <div class="real-data-content">
+              <!-- Engagement Metrics -->
+              <div class="data-category">
+                <h5 class="category-title">📊 Engagement</h5>
+                <div class="real-data-grid">
+                  <div class="real-data-item">
+                    <span class="real-data-label">Total Clicks</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.totalClicks || 0 }}</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Sessions</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.sessions || 0 }}</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Avg Clicks/Session</span>
+                    <span class="real-data-value">{{ (selectedStudent.realAnalytics.avgClicks || 0).toFixed(1) }}</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Max Clicks</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.maxClicks || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Assessment Metrics -->
+              <div class="data-category">
+                <h5 class="category-title">📝 Assessments</h5>
+                <div class="real-data-grid">
+                  <div class="real-data-item">
+                    <span class="real-data-label">Total Assessments</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.assessments || 0 }}</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Average Score</span>
+                    <span class="real-data-value">{{ (selectedStudent.realAnalytics.avgScore || 0).toFixed(1) }}%</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Min Score</span>
+                    <span class="real-data-value">{{ (selectedStudent.realAnalytics.minScore || 0).toFixed(1) }}%</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Max Score</span>
+                    <span class="real-data-value">{{ (selectedStudent.realAnalytics.maxScore || 0).toFixed(1) }}%</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Academic Progress -->
+              <div class="data-category">
+                <h5 class="category-title">🎓 Academic Progress</h5>
+                <div class="real-data-grid">
+                  <div class="real-data-item">
+                    <span class="real-data-label">Studied Credits</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.credits || 0 }}</span>
+                  </div>
+                  <div class="real-data-item">
+                    <span class="real-data-label">Previous Attempts</span>
+                    <span class="real-data-value">{{ selectedStudent.realAnalytics.previousAttempts || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="real-data-unavailable">
+              <svg class="icon-unavailable" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p>No activity data yet</p>
+            </div>
+          }
+        </div>
+
+        <!-- AI Prediction -->
+        <div class="section-compact risk-section">
+          <h4 class="section-title-compact">
+            <svg class="icon-compact" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+            AI Prediction
+          </h4>
+
+          @if (selectedStudent.loadingPrediction) {
+            <div class="risk-loading-compact">
+              <div class="spinner-compact"></div>
+              <p>Analyzing...</p>
+            </div>
+          } @else if (selectedStudent.prediction) {
+            <div class="risk-content-compact">
+              <div class="risk-level-display">
+                <span class="risk-label-text">Success Rate:</span>
+                <span class="risk-badge-large-compact" [ngClass]="getRiskLevelClass(selectedStudent.prediction)">
+                  {{ getSafeProgress(selectedStudent.prediction.probability.succes * 100) }}%
+                </span>
+              </div>
+
+              @if (selectedStudent.prediction.recommendations && selectedStudent.prediction.recommendations.length > 0) {
+                <div class="recommendations-compact">
+                  <h5 class="recommendations-title-compact">
+                    <svg class="icon-small" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Recommendations
+                  </h5>
+                  <ul class="recommendations-list-compact">
+                    @for (rec of selectedStudent.prediction.recommendations; track $index) {
+                      <li>{{ rec }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="risk-unavailable-compact">
+              <p>Prediction not available</p>
+            </div>
+          }
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer-compact">
+        <button (click)="showStudentModal = false" class="btn-close-compact">Close</button>
+      </div>
+
+    </div>
+  </div>
+}

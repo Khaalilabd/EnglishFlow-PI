@@ -369,9 +369,49 @@ public class PackEnrollmentService implements IPackEnrollmentService {
         double progress = calculatePackProgress(studentId, enrollment.getPackId());
         int completedCourses = getCompletedCoursesCount(studentId, enrollment.getPackId());
         
-        dto.setProgressPercentage((int) Math.round(progress));
+        // Limiter le progress à 100% maximum
+        int progressPercentage = (int) Math.round(progress);
+        if (progressPercentage > 100) {
+            progressPercentage = 100;
+        }
+        
+        dto.setProgressPercentage(progressPercentage);
         dto.setCompletedCourses(completedCourses);
         
         return dto;
+    }
+    
+    @Override
+    public List<Long> getStudentIdsByTutorId(Long tutorId) {
+        return enrollmentRepository.findByTutorId(tutorId).stream()
+                .map(PackEnrollment::getStudentId)
+                .distinct()
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public java.util.Map<String, Integer> getPackCompletionRates(Long tutorId) {
+        List<PackEnrollment> enrollments = enrollmentRepository.findByTutorId(tutorId);
+        
+        java.util.Map<String, Integer> completionRates = new java.util.HashMap<>();
+        
+        // Group by pack name and calculate average completion
+        java.util.Map<String, List<PackEnrollment>> groupedByPack = enrollments.stream()
+                .collect(Collectors.groupingBy(PackEnrollment::getPackName));
+        
+        for (java.util.Map.Entry<String, List<PackEnrollment>> entry : groupedByPack.entrySet()) {
+            String packName = entry.getKey();
+            List<PackEnrollment> packEnrollments = entry.getValue();
+            
+            // Calculate average progress for this pack
+            double avgProgress = packEnrollments.stream()
+                    .mapToDouble(e -> calculatePackProgress(e.getStudentId(), e.getPackId()))
+                    .average()
+                    .orElse(0.0);
+            
+            completionRates.put(packName, (int) Math.round(avgProgress));
+        }
+        
+        return completionRates;
     }
 }

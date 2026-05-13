@@ -86,4 +86,22 @@ public class PackEnrollmentController {
         boolean enrolled = enrollmentService.isStudentEnrolled(studentId, packId);
         return ResponseEntity.ok(enrolled);
     }
+    
+    /**
+     * Get all student IDs enrolled with a specific tutor
+     */
+    @GetMapping("/tutor/{tutorId}/students")
+    public ResponseEntity<List<Long>> getStudentIdsByTutorId(@PathVariable Long tutorId) {
+        List<Long> studentIds = enrollmentService.getStudentIdsByTutorId(tutorId);
+        return ResponseEntity.ok(studentIds);
+    }
+    
+    /**
+     * Get pack completion rates for a tutor
+     */
+    @GetMapping("/tutor/{tutorId}/completion-rates")
+    public ResponseEntity<java.util.Map<String, Integer>> getPackCompletionRates(@PathVariable Long tutorId) {
+        java.util.Map<String, Integer> completionRates = enrollmentService.getPackCompletionRates(tutorId);
+        return ResponseEntity.ok(completionRates);
+    }
 }

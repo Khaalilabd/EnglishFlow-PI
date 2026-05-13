@@ -572,7 +572,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error uploading file:', error);
-        alert('Erreur lors de l\'upload du fichier. Veuillez réessayer.');
+        alert('Error uploading file. Please try again.');
         this.uploadingFile = false;
       }
     });
@@ -923,7 +923,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error downloading file:', error);
-        alert('Erreur lors du téléchargement du fichier');
+        alert('Error downloading file');
       }
     });
   }
@@ -1099,7 +1099,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Error uploading voice:', error);
-        alert('Erreur lors de l\'envoi du message vocal');
+        alert('Error sending voice message');
         this.uploadingFile = false;
       }
     });
@@ -1287,7 +1287,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error removing participant:', error);
-          alert('Erreur lors du retrait du participant');
+          alert('Error removing participant');
         }
       });
   }
@@ -1381,7 +1381,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error adding participants:', error);
           this.isLoadingParticipants = false;
-          alert('Erreur lors de l\'ajout des participants');
+          alert('Error adding participants');
         }
       });
   }
@@ -1435,7 +1435,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
           },
           error: (error) => {
             console.error('Error uploading photo:', error);
-            alert('Erreur lors de l\'upload de la photo');
+            alert('Error uploading photo');
           }
         });
     } else {
@@ -1462,7 +1462,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error updating group:', error);
-          alert('Erreur lors de la modification du groupe');
+          alert('Error updating group');
         }
       });
   }
@@ -1483,7 +1483,7 @@ export class MessagingContainerComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error leaving group:', error);
-          alert('Erreur lors de la sortie du groupe');
+          alert('Error leaving group');
         }
       });
   }

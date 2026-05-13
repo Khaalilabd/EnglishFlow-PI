@@ -1,0 +1,111 @@
+<div class="course-recommendations">
+  <!-- Header -->
+  <div *ngIf="showTitle" class="recommendations-header">
+    <h3>
+      <i class="fas fa-lightbulb"></i>
+      Recommended Courses for You
+    </h3>
+    <p class="subtitle">Based on your profile, performance, and learning goals</p>
+  </div>
+
+  <!-- How Recommendations Work -->
+  <div class="how-recommendations-work">
+    <div class="section-title">
+      <i class="fas fa-robot"></i>
+      <h4>How We Recommend Courses</h4>
+    </div>
+    <p class="explanation">
+      Our AI analyzes <strong>your performance data, learning patterns, and course characteristics</strong> to suggest the best courses for you. 
+      The recommendation model considers factors like your average score, engagement level, course difficulty, and success rates of similar students.
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Analyzing courses and generating recommendations...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <i class="fas fa-exclamation-circle"></i>
+    <p>{{ error }}</p>
+    <button class="btn-retry" (click)="loadRecommendations()">Retry</button>
+  </div>
+
+  <!-- Recommendations Grid -->
+  <div *ngIf="!loading && !error && recommendations.length > 0" class="recommendations-grid">
+    <div *ngFor="let course of recommendations" class="course-card">
+      <!-- Course Thumbnail (si disponible) -->
+      <div *ngIf="course.course_thumbnail" class="course-thumbnail">
+        <img [src]="course.course_thumbnail" [alt]="getCourseDisplayName(course)">
+      </div>
+
+      <!-- Course Header -->
+      <div class="course-header">
+        <div class="course-info">
+          <div class="course-code">{{ course.course_code }}</div>
+          <div *ngIf="course.course_level" class="course-level">{{ course.course_level }}</div>
+        </div>
+        <div class="recommendation-score" [style.background-color]="getScoreColor(course.recommendation_score)">
+          {{ (course.recommendation_score * 100).toFixed(0) }}%
+        </div>
+      </div>
+
+      <!-- Course Title -->
+      <h4 class="course-title">{{ getCourseDisplayName(course) }}</h4>
+
+      <!-- Course Description -->
+      <p *ngIf="course.course_description" class="course-description">
+        {{ course.course_description.length > 100 ? (course.course_description.substring(0, 100) + '...') : course.course_description }}
+      </p>
+
+      <!-- Course Stats -->
+      <div class="course-stats">
+        <div class="stat-item" *ngIf="course.course_credits">
+          <i class="fas fa-clock"></i>
+          <span>{{ course.course_credits }}h</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-users"></i>
+          <span>{{ course.nb_students }} students</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-star"></i>
+          <span>{{ course.avg_interaction.toFixed(1) }}/5</span>
+        </div>
+        <div class="stat-item">
+          <i class="fas fa-chart-line"></i>
+          <span class="success-rate" [ngClass]="getSuccessRateClass(course.success_rate)">
+            {{ (course.success_rate * 100).toFixed(0) }}% success
+          </span>
+        </div>
+      </div>
+
+      <!-- Reason -->
+      <div *ngIf="course.reason" class="course-reason">
+        <i class="fas fa-info-circle"></i>
+        <span>{{ course.reason }}</span>
+      </div>
+
+      <!-- Actions -->
+      <div class="course-actions">
+        <button class="btn-view" (click)="viewCourse(course)">
+          <i class="fas fa-eye"></i>
+          View Course
+        </button>
+        <button class="btn-enroll" (click)="enrollCourse(course)">
+          <i class="fas fa-plus"></i>
+          Enroll
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && recommendations.length === 0" class="empty-state">
+    <i class="fas fa-inbox"></i>
+    <p>No recommendations available at the moment</p>
+    <p class="empty-subtitle">Complete more assessments to get personalized recommendations</p>
+  </div>
+</div>

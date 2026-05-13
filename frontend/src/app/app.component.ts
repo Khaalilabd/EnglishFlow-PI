@@ -8,6 +8,7 @@ import { EnglishPlacementTestComponent } from './auth/english-placement-test/eng
 import { slideAnimation } from './auth/auth-animations';
 import { PlacementTestService } from './core/services/placement-test.service';
 import { AuthService } from './core/services/auth.service';
+import { ActivityTrackerService } from './services/activity-tracker.service';
 
 declare var $: any;
 
@@ -35,7 +36,8 @@ export class AppComponent implements OnInit {
     private contexts: ChildrenOutletContexts,
     private placementTestService: PlacementTestService,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private activityTracker: ActivityTrackerService // Initialise le tracker automatiquement
   ) {}
 
   ngOnInit(): void {

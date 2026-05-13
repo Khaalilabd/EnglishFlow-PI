@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { Router, RouterModule, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { TwoFactorAuthService } from '../../services/two-factor-auth.service';
+import { ActivityTrackerService } from '../../services/activity-tracker.service';
 import { LogoComponent } from '../../shared/components/logo.component';
 import { RecaptchaModule, RecaptchaFormsModule } from 'ng-recaptcha';
 
@@ -42,7 +43,8 @@ export class LoginComponent implements OnInit {
     private authService: AuthService,
     private twoFactorService: TwoFactorAuthService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private activityTracker: ActivityTrackerService
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -95,6 +97,11 @@ export class LoginComponent implements OnInit {
       next: (response) => {
         console.log('Login successful:', response);
         console.log('mustChangePassword:', response.mustChangePassword);
+        
+        // Track session pour les étudiants
+        if (response.role === 'STUDENT') {
+          this.trackStudentSession(response.id);
+        }
         
         // Check if 2FA is required
         if (response.requires2FA && response.tempToken) {
@@ -246,5 +253,12 @@ export class LoginComponent implements OnInit {
     this.twoFactorCode = '';
     this.tempToken = '';
     this.errorMessage = '';
+  }
+
+  /**
+   * Track la session de l'étudiant au login
+   */
+  private trackStudentSession(userId: number): void {
+    this.activityTracker.trackSession();
   }
 }
